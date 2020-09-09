@@ -1,0 +1,30 @@
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.juul.sensortag"
+    >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <application
+        android:name=".App"
+        android:label="SensorTag Example"
+        android:theme="@style/Theme.AppCompat"
+        >
+
+        <activity android:name=".features.scan.ScanActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".features.sensor.SensorActivity" />
+
+    </application>
+
+</manifest>

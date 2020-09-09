@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+    <head>
+        <meta charset="UTF-8">
+        <title>SensorTag</title>
+        <link rel="stylesheet" href="styles.css">
+        <script type="text/javascript" src="app.js"></script>
+        <script type="text/javascript">
+            var script = new app.com.juul.sensortag.Script();
+            script.addStatusListener(function(message) {
+                document.getElementById('status').innerHTML = message;
+            });
+            script.addMovementListener(function(x, y, z) {
+                document.getElementById('movement').innerHTML = "x: " + x + "<br/>y: " + y + "<br/>z: " + z;
+            });
+        </script>
+    </head>
+    <body>
+        <h1>SensorTag</h1>
+        <button onclick="script.connect();">Connect</button>
+        <button onclick="script.disconnect();">Disconnect</button>
+        <br/>
+        <br/>
+        Status: <div id="status">Unknown</div>
+        <br/>
+        Movement: <div id="movement">Unknown</div>
+    </body>
+</html>
