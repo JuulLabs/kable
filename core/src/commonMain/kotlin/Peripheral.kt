@@ -11,9 +11,7 @@ public expect class Peripheral {
 
     public suspend fun connect(): Unit
 
-    public suspend fun discoverServices(): Unit
-
-    /** @return discovered services, or `null` if services have not yet been [discovered][discoverServices]. */
+    /** @return discovered [services][Service], or `null` until a [connection][connect] has been established. */
     public val services: List<Service>?
 
     public suspend fun rssi(): Int

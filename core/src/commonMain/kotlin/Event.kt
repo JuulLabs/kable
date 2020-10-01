@@ -33,13 +33,13 @@ public suspend fun Event.onConnected(
 }
 
 public suspend fun Event.onDisconnected(
-    action: suspend (Event.Disconnected) -> Unit,
+    action: suspend Event.Disconnected.() -> Unit,
 ) {
     if (this is Event.Disconnected) action.invoke(this)
 }
 
 public suspend fun Event.onRejected(
-    action: suspend (Event.Rejected) -> Unit,
+    action: suspend Event.Rejected.() -> Unit,
 ) {
     if (this is Event.Rejected) action.invoke(this)
 }
