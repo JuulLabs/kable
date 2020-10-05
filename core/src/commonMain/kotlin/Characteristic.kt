@@ -13,15 +13,10 @@ public expect class Characteristic {
     public val descriptors: List<Descriptor>
 }
 
-public operator fun List<Characteristic>?.get(
+public operator fun List<Descriptor>.get(
     uuid: String,
-): Characteristic = getOrNull(uuid)
-    ?: throw NoSuchElementException("Characteristic $uuid")
-
-public fun List<Characteristic>?.getOrNull(
-    uuid: String,
-): Characteristic? {
-    if (this == null) return null
+): Descriptor {
     val searchUuid = uuidFrom(uuid)
     return firstOrNull { it.uuid == searchUuid }
+        ?: throw NoSuchElementException("Descriptor $uuid not found.")
 }

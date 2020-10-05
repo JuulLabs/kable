@@ -8,15 +8,10 @@ public expect class Service {
     public val characteristics: List<Characteristic>
 }
 
-public operator fun List<Service>?.get(
-    uuid: String
-): Service = getOrNull(uuid)
-    ?: throw NoSuchElementException("Service $uuid")
-
-public fun List<Service>?.getOrNull(
-    uuid: String
-): Service? {
-    if (this == null) return null
+public operator fun List<Characteristic>.get(
+    uuid: String,
+): Characteristic {
     val searchUuid = uuidFrom(uuid)
     return firstOrNull { it.uuid == searchUuid }
+        ?: throw NoSuchElementException("Characteristic $uuid not found.")
 }
