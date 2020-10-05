@@ -12,3 +12,8 @@ fun uuid(
     artifact: String = "uuid",
     version: String = "0.2.2"
 ): String = "com.benasher44:$artifact:$version"
+
+fun stately(
+    module: String,
+    version: String = "1.1.1-a1"
+): String = "co.touchlab:stately-$module:$version"
