@@ -2,7 +2,6 @@
 
 package com.juul.kable
 
-import com.benasher44.uuid.uuidFrom
 import kotlinx.coroutines.flow.Flow
 
 public expect class Peripheral {
@@ -14,8 +13,8 @@ public expect class Peripheral {
 
     public suspend fun discoverServices(): Unit
 
-    /** @throws IllegalStateException if accessed prior to [service discovery][discoverServices]. */
-    public val services: List<Service>
+    /** @return discovered services, or `null` if services have not yet been [discovered][discoverServices]. */
+    public val services: List<Service>?
 
     public suspend fun rssi(): Int
 
@@ -43,12 +42,4 @@ public expect class Peripheral {
     ): Flow<ByteArray>
 
     public suspend fun disconnect(): Unit
-}
-
-public operator fun List<Service>.get(
-    uuid: String
-): Service {
-    val searchUuid = uuidFrom(uuid)
-    return firstOrNull { it.uuid == searchUuid }
-        ?: throw NoSuchElementException("Service $uuid not found.")
 }
