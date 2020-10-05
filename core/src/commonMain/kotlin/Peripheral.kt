@@ -10,16 +10,14 @@ public expect class Peripheral {
     public val state: Flow<State>
     public val events: Flow<Event>
 
+    public suspend fun connect(): Unit
+
+    public suspend fun discoverServices(): Unit
+
     /** @throws IllegalStateException if accessed prior to [service discovery][discoverServices]. */
     public val services: List<Service>
 
-    public suspend fun connect(): Unit
-
-    public suspend fun disconnect(): Unit
-
     public suspend fun rssi(): Int
-
-    public suspend fun discoverServices(): Unit
 
     public suspend fun write(
         characteristic: Characteristic,
@@ -43,6 +41,8 @@ public expect class Peripheral {
     public fun observe(
         characteristic: Characteristic,
     ): Flow<ByteArray>
+
+    public suspend fun disconnect(): Unit
 }
 
 public operator fun List<Service>.get(
