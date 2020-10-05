@@ -8,8 +8,7 @@ public sealed class Event {
     ) : Event()
 
     /**
-     * Triggered either immediately after an established connection has dropped or after a failed
-     * connection attempt.
+     * Triggered either immediately after an established connection has dropped or after a failed connection attempt.
      *
      * @param wasConnected is `true` if event follows an established connection, or `false` if previous connection attempt failed.
      */
@@ -17,13 +16,8 @@ public sealed class Event {
         val wasConnected: Boolean,
     ) : Event()
 
-    /**
-     * Triggered when the connection request was rejected by the system (e.g. bluetooth hardware
-     * unavailable).
-     */
-    public data class Rejected(
-        val cause: Throwable,
-    ) : Event()
+    /** Triggered when the connection request was rejected by the system (e.g. bluetooth hardware unavailable). */
+    public object Rejected : Event()
 }
 
 public suspend fun Event.onConnected(
@@ -39,7 +33,7 @@ public suspend fun Event.onDisconnected(
 }
 
 public suspend fun Event.onRejected(
-    action: suspend Event.Rejected.() -> Unit,
+    action: suspend () -> Unit,
 ) {
-    if (this is Event.Rejected) action.invoke(this)
+    if (this is Event.Rejected) action.invoke()
 }

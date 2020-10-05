@@ -2,6 +2,7 @@
 
 package com.juul.kable
 
+import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.flow.Flow
 
 public enum class WriteType {
@@ -24,7 +25,7 @@ public expect class Peripheral {
     public suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
-        writeType: WriteType,
+        writeType: WriteType = WithoutResponse,
     ): Unit
 
     public suspend fun read(
