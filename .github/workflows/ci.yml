@@ -1,0 +1,39 @@
+# Each virtual machine has the same hardware resources available.
+#
+# - 2-core CPU
+# - 7 GB of RAM memory
+# - 14 GB of SSD disk space
+#
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners
+
+name: CI
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-16.04
+    env:
+      GRADLE_ARGS: >-
+        --stacktrace
+        --no-daemon
+        --max-workers 2
+        -Pkotlin.incremental=false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Gradle cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle
+          key: grade-${{ hashFiles('**/build.gradle') }}
+
+      - name: Check
+        run: ./gradlew $GRADLE_ARGS check
