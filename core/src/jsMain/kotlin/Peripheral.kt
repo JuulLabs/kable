@@ -131,14 +131,14 @@ public actual class Peripheral internal constructor(
         descriptor: Descriptor,
         data: ByteArray
     ): Unit {
-        descriptor.toBluetoothRemoteGATTDescriptor()
+        bluetoothRemoteGATTDescriptorFrom(descriptor)
             .writeValue(data)
             .await()
     }
 
     public suspend fun readAsDataView(
         descriptor: Descriptor
-    ): DataView = descriptor.toBluetoothRemoteGATTDescriptor()
+    ): DataView = bluetoothRemoteGATTDescriptorFrom(descriptor)
         .readValue()
         .await()
 
@@ -171,16 +171,18 @@ public actual class Peripheral internal constructor(
             .bluetoothRemoteGATTCharacteristic
     }
 
-    private fun Descriptor.toBluetoothRemoteGATTDescriptor(): BluetoothRemoteGATTDescriptor {
+    private fun bluetoothRemoteGATTDescriptorFrom(
+        descriptor: Descriptor
+    ): BluetoothRemoteGATTDescriptor {
         val services = checkNotNull(_services) { "Services have not been discovered for $this" }
         val characteristics = services
-            .first { service -> service.serviceUuid == serviceUuid }
+            .first { service -> service.serviceUuid == descriptor.serviceUuid }
             .characteristics
         val descriptors = characteristics
-            .first { characteristic -> characteristic.characteristicUuid == characteristicUuid }
+            .first { it.characteristicUuid == descriptor.characteristicUuid }
             .descriptors
         return descriptors
-            .first { descriptor -> descriptor.descriptorUuid == descriptorUuid }
+            .first { it.descriptorUuid == descriptor.descriptorUuid }
             .bluetoothRemoteGATTDescriptor
     }
 
