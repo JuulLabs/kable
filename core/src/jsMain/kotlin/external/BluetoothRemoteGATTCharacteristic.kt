@@ -5,12 +5,19 @@ import org.khronos.webgl.DataView
 import org.w3c.dom.events.EventTarget
 import kotlin.js.Promise
 
-// https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic
-// https://webbluetoothcg.github.io/web-bluetooth/#bluetoothgattcharacteristic-interface
+/**
+ * https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic
+ * https://webbluetoothcg.github.io/web-bluetooth/#bluetoothgattcharacteristic-interface
+ */
 internal abstract external class BluetoothRemoteGATTCharacteristic : EventTarget {
     val uuid: UUID
     val value: DataView?
+
+    fun getDescriptor(descriptor: BluetoothDescriptorUUID): Promise<BluetoothRemoteGATTDescriptor>
+    fun getDescriptors(): Promise<Array<BluetoothRemoteGATTDescriptor>>
+
     fun readValue(): Promise<DataView>
+
     fun writeValueWithResponse(value: BufferSource): Promise<Unit>
     fun writeValueWithoutResponse(value: BufferSource): Promise<Unit>
 

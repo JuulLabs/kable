@@ -5,6 +5,8 @@ package com.juul.kable
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.BluetoothDevice
+import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
+import com.juul.kable.external.BluetoothRemoteGATTDescriptor
 import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
 import kotlinx.coroutines.CancellationException
@@ -53,9 +55,9 @@ public actual class Peripheral internal constructor(
     private val _events = MutableSharedFlow<Event>()
     public actual val events: Flow<Event> = _events.asSharedFlow()
 
-    private var _services: List<Service>? = null
-    public actual val services: List<Service>?
-        get() = _services
+    private var _services: List<PlatformService>? = null
+    public actual val services: List<DiscoveredService>?
+        get() = _services?.map { it.toDiscoveredService() }
 
     public actual suspend fun rssi(): Int {
         TODO("Not yet implemented")
@@ -94,12 +96,9 @@ public actual class Peripheral internal constructor(
 
     private suspend fun discoverServices(): Unit {
         console.log("Discovering services")
-        _services = gatt.getPrimaryServices().await().map { service ->
-            console.dir(service)
-            val characteristics = service.getCharacteristics().await()
-            characteristics.forEach { characteristic -> console.dir(characteristic) }
-            Service(service, characteristics)
-        }
+        _services = gatt.getPrimaryServices()
+            .await()
+            .map { service -> service.toPlatformService() }
         console.log("Service discovery complete")
     }
 
@@ -108,7 +107,7 @@ public actual class Peripheral internal constructor(
         data: ByteArray,
         writeType: WriteType,
     ): Unit {
-        characteristic.bluetoothRemoteGATTCharacteristic.run {
+        bluetoothRemoteGATTCharacteristicFrom(characteristic).run {
             when (writeType) {
                 WithResponse -> writeValueWithResponse(data)
                 WithoutResponse -> writeValueWithResponse(data)
@@ -118,7 +117,7 @@ public actual class Peripheral internal constructor(
 
     public suspend fun readAsDataView(
         characteristic: Characteristic
-    ): DataView = characteristic.bluetoothRemoteGATTCharacteristic
+    ): DataView = bluetoothRemoteGATTCharacteristicFrom(characteristic)
         .readValue()
         .await()
 
@@ -132,14 +131,14 @@ public actual class Peripheral internal constructor(
         descriptor: Descriptor,
         data: ByteArray
     ): Unit {
-        descriptor.bluetoothRemoteGATTDescriptor
+        descriptor.toBluetoothRemoteGATTDescriptor()
             .writeValue(data)
             .await()
     }
 
     public suspend fun readAsDataView(
         descriptor: Descriptor
-    ): DataView = descriptor.bluetoothRemoteGATTDescriptor
+    ): DataView = descriptor.toBluetoothRemoteGATTDescriptor()
         .readValue()
         .await()
 
@@ -149,7 +148,7 @@ public actual class Peripheral internal constructor(
         .buffer
         .toByteArray()
 
-    private val observers = Observers()
+    private val observers = Observers(this)
 
     public fun observeDataView(
         characteristic: Characteristic
@@ -159,6 +158,31 @@ public actual class Peripheral internal constructor(
         characteristic: Characteristic
     ): Flow<ByteArray> = observeDataView(characteristic)
         .map { it.buffer.toByteArray() }
+
+    internal fun bluetoothRemoteGATTCharacteristicFrom(
+        characteristic: Characteristic
+    ): BluetoothRemoteGATTCharacteristic {
+        val services = checkNotNull(_services) { "Services have not been discovered for $this" }
+        val characteristics = services
+            .first { it.serviceUuid == characteristic.serviceUuid }
+            .characteristics
+        return characteristics
+            .first { it.characteristicUuid == characteristic.characteristicUuid }
+            .bluetoothRemoteGATTCharacteristic
+    }
+
+    private fun Descriptor.toBluetoothRemoteGATTDescriptor(): BluetoothRemoteGATTDescriptor {
+        val services = checkNotNull(_services) { "Services have not been discovered for $this" }
+        val characteristics = services
+            .first { service -> service.serviceUuid == serviceUuid }
+            .characteristics
+        val descriptors = characteristics
+            .first { characteristic -> characteristic.characteristicUuid == characteristicUuid }
+            .descriptors
+        return descriptors
+            .first { descriptor -> descriptor.descriptorUuid == descriptorUuid }
+            .bluetoothRemoteGATTDescriptor
+    }
 
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = {
@@ -180,8 +204,7 @@ public actual class Peripheral internal constructor(
         bluetoothDevice.removeEventListener(GATT_SERVER_DISCONNECTED, disconnectedListener)
     }
 
-    override fun toString(): String =
-        "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
+    override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
 }
 
 private fun ArrayBuffer.toByteArray(): ByteArray = Int8Array(this).unsafeCast<ByteArray>()

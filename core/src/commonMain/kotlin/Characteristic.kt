@@ -1,13 +1,28 @@
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
+import com.benasher44.uuid.uuidFrom
 
-public enum class WriteType {
-    WithResponse,
-    WithoutResponse,
+public fun characteristicOf(
+    service: String,
+    characteristic: String,
+): Characteristic = LazyCharacteristic(
+    serviceUuid = uuidFrom(service),
+    characteristicUuid = uuidFrom(characteristic)
+)
+
+public interface Characteristic {
+    public val serviceUuid: Uuid
+    public val characteristicUuid: Uuid
 }
 
-public expect class Characteristic {
-    public val uuid: Uuid
-    public val descriptors: List<Descriptor>
-}
+public data class LazyCharacteristic internal constructor(
+    override val serviceUuid: Uuid,
+    override val characteristicUuid: Uuid,
+) : Characteristic
+
+public data class DiscoveredCharacteristic internal constructor(
+    override val serviceUuid: Uuid,
+    override val characteristicUuid: Uuid,
+    public val descriptors: List<Descriptor>,
+) : Characteristic

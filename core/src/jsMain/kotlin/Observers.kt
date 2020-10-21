@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -13,11 +12,6 @@ private typealias EventListener = (Event) -> Unit
 
 private const val CHARACTERISTIC_VALUE_CHANGED = "characteristicvaluechanged"
 
-private data class CharacteristicIdentifier(
-    val serviceUuid: Uuid,
-    val characteristicUuid: Uuid,
-)
-
 private data class CharacteristicChange(
     val characteristic: Characteristic,
     val data: DataView,
@@ -28,50 +22,52 @@ private data class Observation(
     var listener: EventListener?,
 )
 
-internal class Observers {
+internal class Observers(
+    private val peripheral: Peripheral
+) {
 
-    private val observers = mutableMapOf<CharacteristicIdentifier, Observation>()
+    private val observers = mutableMapOf<Characteristic, Observation>()
     private val changes = MutableSharedFlow<CharacteristicChange>(extraBufferCapacity = 64)
 
     fun acquire(characteristic: Characteristic) = flow {
-        val identifier = characteristic.identifier
-
-        val observation = observers[identifier] ?: run {
+        val bluetoothRemoteGATTCharacteristic =
+            peripheral.bluetoothRemoteGATTCharacteristicFrom(characteristic)
+        val observation = observers[characteristic] ?: run {
             Observation(listener = characteristic.createListener()).also {
-                observers[identifier] = it
+                observers[characteristic] = it
             }
         }
 
         if (++observation.count == 1) {
-            characteristic
-                .bluetoothRemoteGATTCharacteristic
-                .apply {
-                    addEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
-                    startNotifications().await()
-                }
+            bluetoothRemoteGATTCharacteristic.apply {
+                addEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
+                startNotifications().await()
+            }
         }
 
         try {
-            changes.collect { if (it.characteristic.uuid == characteristic.uuid) emit(it.data) }
+            changes.collect {
+                if (it.characteristic.characteristicUuid == characteristic.characteristicUuid) {
+                    emit(it.data)
+                }
+            }
         } finally {
             if (--observation.count < 1) {
-                characteristic
-                    .bluetoothRemoteGATTCharacteristic
-                    .apply {
-                        /* Throws `DOMException` if connection is closed:
-                         *
-                         * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
-                         * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
-                         * again after reconnecting.
-                         *
-                         * Wrapped in `runCatching` to silently ignore failure, as notification will already be
-                         * invalidated due to the connection being closed.
-                         */
-                        runCatching { stopNotifications().await() }
+                bluetoothRemoteGATTCharacteristic.apply {
+                    /* Throws `DOMException` if connection is closed:
+                     *
+                     * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
+                     * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
+                     * again after reconnecting.
+                     *
+                     * Wrapped in `runCatching` to silently ignore failure, as notification will already be
+                     * invalidated due to the connection being closed.
+                     */
+                    runCatching { stopNotifications().await() }
 
-                        removeEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
-                    }
-                observers.remove(identifier)
+                    removeEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
+                }
+                observers.remove(characteristic)
             }
         }
     }
@@ -82,14 +78,14 @@ internal class Observers {
         }
     }
 
-    suspend fun rewire(services: List<Service>) {
+    suspend fun rewire(services: List<PlatformService>) {
         if (observers.isEmpty()) return
         console.log("Rewiring observers")
 
         observers.forEach { (identifier, _) ->
             val characteristic =
-                services.first { it.uuid == identifier.serviceUuid }
-                    .characteristics.first { it.uuid == identifier.characteristicUuid }
+                services.first { it.serviceUuid == identifier.serviceUuid }
+                    .characteristics.first { it.characteristicUuid == identifier.characteristicUuid }
 
             console.log("Starting notifications for $identifier")
             characteristic
@@ -110,6 +106,3 @@ internal class Observers {
         changes.tryEmit(CharacteristicChange(this, target.value!!))
     }
 }
-
-private val Characteristic.identifier: CharacteristicIdentifier
-    get() = CharacteristicIdentifier(serviceUuid = serviceUuid, characteristicUuid = uuid)

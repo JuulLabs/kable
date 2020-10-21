@@ -4,6 +4,11 @@ package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
 
+public enum class WriteType {
+    WithResponse,
+    WithoutResponse,
+}
+
 public expect class Peripheral {
 
     public val state: Flow<State>
@@ -12,7 +17,7 @@ public expect class Peripheral {
     public suspend fun connect(): Unit
 
     /** @return discovered [services][Service], or `null` until a [connection][connect] has been established. */
-    public val services: List<Service>?
+    public val services: List<DiscoveredService>?
 
     public suspend fun rssi(): Int
 
