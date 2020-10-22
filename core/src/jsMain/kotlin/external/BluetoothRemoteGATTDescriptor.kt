@@ -1,7 +1,6 @@
 package com.juul.kable.external
 
 import com.juul.kable.UUID
-import org.khronos.webgl.BufferDataSource
 import org.khronos.webgl.DataView
 import org.w3c.dom.events.EventTarget
 import kotlin.js.Promise
