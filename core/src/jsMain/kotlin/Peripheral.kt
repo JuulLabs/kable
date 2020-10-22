@@ -66,7 +66,7 @@ public actual class Peripheral internal constructor(
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
 
-    public actual suspend fun connect(): Unit {
+    public actual suspend fun connect() {
         _state.value = State.Connecting
 
         try {
@@ -82,7 +82,7 @@ public actual class Peripheral internal constructor(
         }
     }
 
-    public actual suspend fun disconnect(): Unit {
+    public actual suspend fun disconnect() {
         console.log("Initiating disconnect")
         scope.coroutineContext[Job]?.cancelAndJoinChildren()
         disconnectGatt()
@@ -94,7 +94,7 @@ public actual class Peripheral internal constructor(
         bluetoothDevice.gatt?.disconnect()
     }
 
-    private suspend fun discoverServices(): Unit {
+    private suspend fun discoverServices() {
         console.log("Discovering services")
         _services = gatt.getPrimaryServices()
             .await()
@@ -106,7 +106,7 @@ public actual class Peripheral internal constructor(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
-    ): Unit {
+    ) {
         bluetoothRemoteGATTCharacteristicFrom(characteristic).run {
             when (writeType) {
                 WithResponse -> writeValueWithResponse(data)
@@ -130,7 +130,7 @@ public actual class Peripheral internal constructor(
     public actual suspend fun write(
         descriptor: Descriptor,
         data: ByteArray
-    ): Unit {
+    ) {
         bluetoothRemoteGATTDescriptorFrom(descriptor)
             .writeValue(data)
             .await()
