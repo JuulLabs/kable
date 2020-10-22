@@ -1,6 +1,6 @@
 package com.juul.kable
 
-// https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
+/** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice */
 public data class Options(
     val optionalServices: Array<String> = emptyArray(),
     val filters: Array<Filter>? = null,
