@@ -8,6 +8,10 @@ buildscript {
     }
 }
 
+plugins {
+    id("org.jmailen.kotlinter") version "3.2.0" apply false
+}
+
 subprojects {
     repositories {
         jcenter()

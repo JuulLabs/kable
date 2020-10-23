@@ -1,17 +1,20 @@
 plugins {
     kotlin("multiplatform")
+    id("org.jmailen.kotlinter")
     `maven-publish`
 }
 
 kotlin {
+    explicitApi()
+
+    js().browser()
+
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
-                api("com.benasher44:uuid:0.2.2")
+                api(coroutines("core"))
+                api(uuid())
             }
         }
     }
-
-    explicitApi()
 }
