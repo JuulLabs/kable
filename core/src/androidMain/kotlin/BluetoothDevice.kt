@@ -12,13 +12,13 @@ import kotlinx.coroutines.newSingleThreadContext
 
 internal fun BluetoothDevice.connect(context: Context): Connection? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        establishConnection26(context)
+        connectApi26(context)
     } else {
-        establishConnection21(context)
+        connectApi21(context)
     }
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-private fun BluetoothDevice.establishConnection21(context: Context): Connection? {
+private fun BluetoothDevice.connectApi21(context: Context): Connection? {
     val dispatcher = newSingleThreadContext()
     val callback = Callback()
     val bluetoothGatt = connectGatt(context, false, callback) ?: return null
@@ -26,7 +26,7 @@ private fun BluetoothDevice.establishConnection21(context: Context): Connection?
 }
 
 @TargetApi(Build.VERSION_CODES.O)
-private fun BluetoothDevice.establishConnection26(context: Context): Connection? {
+private fun BluetoothDevice.connectApi26(context: Context): Connection? {
     val thread = HandlerThread("")
     val handler = Handler(thread.looper)
     val dispatcher = handler.asCoroutineDispatcher()

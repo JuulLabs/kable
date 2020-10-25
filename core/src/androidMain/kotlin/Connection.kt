@@ -18,7 +18,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-class OutOfOrderGattCallbackException internal constructor(
+public class OutOfOrderGattCallbackException internal constructor(
     message: String
 ) : IllegalStateException(message)
 

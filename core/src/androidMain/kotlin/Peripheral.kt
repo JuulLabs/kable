@@ -1,12 +1,14 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.content.Context
 import com.juul.kable.Event.Rejected
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
+import com.juul.kable.gatt.ConnectionLostException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.onEach
@@ -22,7 +25,7 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import kotlin.coroutines.CoroutineContext
 
-class NotReadyException internal constructor(
+public class NotReadyException internal constructor(
     message: String
 ) : IOException(message)
 
@@ -53,6 +56,7 @@ public actual class Peripheral internal constructor(
     private val connection: Connection
         inline get() = _connection ?: throw NotReadyException(toString())
 
+    private val platformServices: List<PlatformService>? = null
     public actual val services: List<DiscoveredService>?
         get() = TODO("Not yet implemented")
 
@@ -69,10 +73,11 @@ public actual class Peripheral internal constructor(
             return
         }
 
-        // todo: Cancel collection on connection drop. via upstream Channel?
         connection.callback
             .onCharacteristicChanged
+            // todo: Map to `Uuid` type in changed object (i.e. map to `Characteristic` rather than Android characteristic type).
             .onEach(observers.characteristicChanges::emit)
+            .catch { cause -> if (cause !is ConnectionLostException) throw cause }
             .launchIn(scope, start = UNDISPATCHED)
 
         connection.suspendUntilConnected()
@@ -91,6 +96,7 @@ public actual class Peripheral internal constructor(
 
     private suspend fun discoverServices(): Boolean = connection.request {
         discoverServices()
+        // todo: map services
     }
 
     public suspend fun requestMtu(mtu: Int): Unit = connection.request {
@@ -102,17 +108,30 @@ public actual class Peripheral internal constructor(
         data: ByteArray,
         writeType: WriteType,
     ): Unit = connection.request {
-        val bluetoothGattCharacteristic = characteristic.bluetoothGattCharacteristic.also {
+        val platformCharacteristic = bluetoothGattCharacteristicFrom(characteristic).also {
             it.value = data
             it.writeType = writeType.intValue
         }
-        writeCharacteristic(bluetoothGattCharacteristic)
+        writeCharacteristic(platformCharacteristic)
+    }
+
+    private fun bluetoothGattCharacteristicFrom(
+        characteristic: Characteristic
+    ): BluetoothGattCharacteristic {
+        val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
+        val characteristics = services
+            .first { characteristic.serviceUuid == it.serviceUuid }
+            .characteristics
+        return characteristics
+            .first { characteristic.characteristicUuid == it.characteristicUuid }
+            .bluetoothGattCharacteristic
     }
 
     public actual suspend fun read(
         characteristic: Characteristic
     ): ByteArray = connection.request {
-        readCharacteristic(characteristic.bluetoothGattCharacteristic)
+        val platformCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
+        readCharacteristic(platformCharacteristic)
     }
 
     public actual suspend fun write(
@@ -134,7 +153,7 @@ public actual class Peripheral internal constructor(
         TODO("Not yet implemented")
     }
 
-    // todo: toString
+    override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
 }
 
 private val WriteType.intValue: Int

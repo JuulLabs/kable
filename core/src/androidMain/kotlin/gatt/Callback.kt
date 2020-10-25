@@ -5,10 +5,10 @@ import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.BluetoothProfile
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
 import android.util.Log
+import com.juul.kable.TAG
 import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
@@ -19,17 +19,15 @@ import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
-class GattStatusException internal constructor(
+public class GattStatusException internal constructor(
     message: String?
 ) : IOException(message) {
     internal constructor(
@@ -38,12 +36,10 @@ class GattStatusException internal constructor(
     ) : this("$prefix failed with status $status")
 }
 
-class ConnectionLostException internal constructor(
+public class ConnectionLostException internal constructor(
     message: String? = null,
     cause: Throwable? = null
 ) : IOException(message, cause)
-
-private const val TAG = "Callback"
 
 private val Success = ConnectionStatus(GATT_SUCCESS)
 private val Disconnected = ConnectionState(STATE_DISCONNECTED)

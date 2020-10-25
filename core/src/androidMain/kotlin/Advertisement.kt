@@ -14,7 +14,6 @@ public actual class Advertisement(
     public val scanRecord: ScanRecord?
         get() = scanResult.scanRecord
 
-    override fun toString(): String = TODO()
-
-    // todo: equals/hashCode
+    override fun toString(): String =
+        "Advertisement(name=$name, rssi=$rssi, device=${scanResult.device})"
 }

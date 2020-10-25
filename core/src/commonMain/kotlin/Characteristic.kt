@@ -11,7 +11,11 @@ public fun characteristicOf(
     characteristicUuid = uuidFrom(characteristic)
 )
 
-public interface Characteristic {
+// todo: Drop `expect` when https://youtrack.jetbrains.com/issue/KTIJ-405 is fixed.
+// On some source sets (when expect/actual is **not** used), IntelliJ highlights Uuid with an error similar to:
+// > Property type is Uuid /* = UUID */, which is not a subtype type of overridden
+// https://youtrack.jetbrains.com/issue/KTIJ-405
+public expect interface Characteristic {
     public val serviceUuid: Uuid
     public val characteristicUuid: Uuid
 }

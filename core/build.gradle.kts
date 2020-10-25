@@ -1,14 +1,8 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
     id("org.jmailen.kotlinter")
     `maven-publish`
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.freeCompilerArgs += "-Xinline-classes"
 }
 
 kotlin {
@@ -30,6 +24,10 @@ kotlin {
                 implementation(coroutines("android"))
             }
         }
+
+        all {
+            languageSettings.enableLanguageFeature("InlineClasses")
+        }
     }
 }
 
@@ -47,9 +45,7 @@ android {
 
     sourceSets {
         val main by getting {
-            manifest.apply {
-                srcFile("src/androidMain/AndroidManifest.xml")
-            }
+            manifest.srcFile("src/androidMain/AndroidManifest.xml")
         }
     }
 }

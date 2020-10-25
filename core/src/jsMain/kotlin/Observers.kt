@@ -82,17 +82,17 @@ internal class Observers(
         if (observers.isEmpty()) return
         console.log("Rewiring observers")
 
-        observers.forEach { (identifier, _) ->
-            val characteristic =
-                services.first { it.serviceUuid == identifier.serviceUuid }
-                    .characteristics.first { it.characteristicUuid == identifier.characteristicUuid }
+        observers.forEach { (characteristic, _) ->
+            val platformCharacteristic =
+                services.first { it.serviceUuid == characteristic.serviceUuid }
+                    .characteristics.first { it.characteristicUuid == characteristic.characteristicUuid }
 
-            console.log("Starting notifications for $identifier")
-            characteristic
+            console.log("Starting notifications for $characteristic")
+            platformCharacteristic
                 .bluetoothRemoteGATTCharacteristic
                 .apply {
                     startNotifications().await()
-                    addEventListener(CHARACTERISTIC_VALUE_CHANGED, characteristic.createListener())
+                    addEventListener(CHARACTERISTIC_VALUE_CHANGED, platformCharacteristic.createListener())
                 }
         }
     }

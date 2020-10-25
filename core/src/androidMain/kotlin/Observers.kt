@@ -1,18 +1,11 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.gatt.OnCharacteristicChanged
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-
-private data class CharacteristicIdentifier(
-    val serviceUuid: Uuid,
-    val characteristicUuid: Uuid,
-)
 
 internal class Observers(
     private val peripheral: Peripheral,
@@ -20,30 +13,30 @@ internal class Observers(
 
     val characteristicChanges = MutableSharedFlow<OnCharacteristicChanged>(extraBufferCapacity = 64)
 
-    private val observers = HashMap<CharacteristicIdentifier, Int>()
+    private val observers = HashMap<Characteristic, Int>()
 
     fun acquire(characteristic: Characteristic) = flow {
-        val identifier = characteristic.identifier
-
-        if (observers.incrementAndGet(identifier) == 1) {
+        if (observers.incrementAndGet(characteristic) == 1) {
             peripheral.startNotifications(characteristic)
         }
 
         try {
             characteristicChanges.collect {
-                if (it.characteristic.uuid == characteristic.bluetoothGattCharacteristic.uuid &&
-                    it.characteristic.instanceId == characteristic.bluetoothGattCharacteristic.instanceId
+                if (it.characteristic.uuid == characteristic.characteristicUuid &&
+                    it.characteristic.instanceId == characteristic.instanceId
                 ) emit(it.value)
             }
         } finally {
-            if (observers.decrementAndGet(identifier) < 1) {
+            if (observers.decrementAndGet(characteristic) < 1) {
                 peripheral.stopNotifications(characteristic)
             }
         }
     }
 
-    fun invalidate() {
-        observers.clear()
+    suspend fun invalidate() {
+        lock.withLock {
+            observers.clear()
+        }
     }
 
     private val lock = Mutex()
@@ -53,10 +46,10 @@ internal class Observers(
         val services = peripheral.services ?: error("Services unavailable for rewiring observers")
 
         lock.withLock {
-            observers.keys.forEach { identifier ->
-                val characteristic =
-                    services.first { it.uuid == identifier.serviceUuid }
-                        .characteristics.first { it.uuid == identifier.characteristicUuid }
+            observers.keys.forEach { characteristic ->
+                val platformCharacteristic =
+                    services.first { it.serviceUuid == characteristic.serviceUuid }
+                        .characteristics.first { it.characteristicUuid == characteristic.characteristicUuid }
                 peripheral.startNotifications(characteristic)
             }
         }
@@ -82,9 +75,6 @@ internal class Observers(
         newValue
     }
 }
-
-private val Characteristic.identifier: CharacteristicIdentifier
-    get() = CharacteristicIdentifier(serviceUuid = serviceUuid, characteristicUuid = uuid)
 
 private suspend fun Peripheral.startNotifications(
     characteristic: Characteristic
