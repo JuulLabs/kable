@@ -4,11 +4,18 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+import android.bluetooth.BluetoothGattDescriptor
 import android.content.Context
 import com.juul.kable.Event.Rejected
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.gatt.ConnectionLostException
+import com.juul.kable.gatt.Response.OnCharacteristicRead
+import com.juul.kable.gatt.Response.OnCharacteristicWrite
+import com.juul.kable.gatt.Response.OnDescriptorRead
+import com.juul.kable.gatt.Response.OnDescriptorWrite
+import com.juul.kable.gatt.Response.OnReadRemoteRssi
+import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
@@ -56,13 +63,9 @@ public actual class Peripheral internal constructor(
     private val connection: Connection
         inline get() = _connection ?: throw NotReadyException(toString())
 
-    private val platformServices: List<PlatformService>? = null
+    internal val platformServices: List<PlatformService>? = null
     public actual val services: List<DiscoveredService>?
-        get() = TODO("Not yet implemented")
-
-    public actual suspend fun rssi(): Int {
-        TODO("Not yet implemented")
-    }
+        get() = platformServices?.map { it.toDiscoveredService() }
 
     public actual suspend fun connect() {
         // todo: Prevent multiple simultaneous connection attempts.
@@ -81,7 +84,7 @@ public actual class Peripheral internal constructor(
             .launchIn(scope, start = UNDISPATCHED)
 
         connection.suspendUntilConnected()
-        discoverServices() || error("Service discovery failed")
+        discoverServices()
         observers.rewire()
         _connection = connection
         _events.emit(Event.Connected(this))
@@ -94,9 +97,16 @@ public actual class Peripheral internal constructor(
         // todo: finally gatt.disconnect()?
     }
 
-    private suspend fun discoverServices(): Boolean = connection.request {
-        discoverServices()
+    public actual suspend fun rssi(): Int = connection.request<OnReadRemoteRssi> {
+        readRemoteRssi()
+    }.rssi
+
+    private suspend fun discoverServices() {
+        connection.request<OnServicesDiscovered> {
+            discoverServices()
+        }
         // todo: map services
+//        platformServices = ...
     }
 
     public suspend fun requestMtu(mtu: Int): Unit = connection.request {
@@ -107,53 +117,95 @@ public actual class Peripheral internal constructor(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
-    ): Unit = connection.request {
-        val platformCharacteristic = bluetoothGattCharacteristicFrom(characteristic).also {
-            it.value = data
-            it.writeType = writeType.intValue
+    ) {
+        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
+        connection.request<OnCharacteristicWrite> {
+            bluetoothGattCharacteristic.value = data
+            bluetoothGattCharacteristic.writeType = writeType.intValue
+            writeCharacteristic(bluetoothGattCharacteristic)
         }
-        writeCharacteristic(platformCharacteristic)
-    }
-
-    private fun bluetoothGattCharacteristicFrom(
-        characteristic: Characteristic
-    ): BluetoothGattCharacteristic {
-        val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
-        val characteristics = services
-            .first { characteristic.serviceUuid == it.serviceUuid }
-            .characteristics
-        return characteristics
-            .first { characteristic.characteristicUuid == it.characteristicUuid }
-            .bluetoothGattCharacteristic
     }
 
     public actual suspend fun read(
-        characteristic: Characteristic
-    ): ByteArray = connection.request {
-        val platformCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
-        readCharacteristic(platformCharacteristic)
+        characteristic: Characteristic,
+    ): ByteArray {
+        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
+        return connection.request<OnCharacteristicRead> {
+            readCharacteristic(bluetoothGattCharacteristic)
+        }.value
     }
 
     public actual suspend fun write(
         descriptor: Descriptor,
-        data: ByteArray
-    ): Unit = connection.request {
-        TODO("Not yet implemented")
+        data: ByteArray,
+    ) {
+        val bluetoothGattDescriptor = bluetoothGattDescriptorFrom(descriptor)
+        connection.request<OnDescriptorWrite> {
+            writeDescriptor(bluetoothGattDescriptor)
+        }
     }
 
     public actual suspend fun read(
-        descriptor: Descriptor
-    ): ByteArray = connection.request {
-        TODO("Not yet implemented")
+        descriptor: Descriptor,
+    ): ByteArray {
+        val bluetoothGattDescriptor = bluetoothGattDescriptorFrom(descriptor)
+        return connection.request<OnDescriptorRead> {
+            readDescriptor(bluetoothGattDescriptor)
+        }.value
     }
 
     public actual fun observe(
-        characteristic: Characteristic
-    ): Flow<ByteArray> {
-        TODO("Not yet implemented")
+        characteristic: Characteristic,
+    ): Flow<ByteArray> = observers.acquire(characteristic)
+
+    internal suspend fun startNotifications(characteristic: Characteristic) {
+        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
+        TODO()
+        // todo: set notifications to true
+        // todo: write descriptor
+    }
+
+    internal suspend fun stopNotifications(characteristic: Characteristic) {
+        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
+        TODO()
+        // todo: write descriptor
+        // todo: set notifications to false
     }
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
+}
+
+private fun Peripheral.bluetoothGattCharacteristicFrom(
+    characteristic: Characteristic,
+): BluetoothGattCharacteristic {
+    val services = checkNotNull(platformServices) {
+        "Services have not been discovered for $this"
+    }
+
+    val characteristics = services
+        .first { characteristic.serviceUuid == it.serviceUuid }
+        .characteristics
+    return characteristics
+        .first { characteristic.characteristicUuid == it.characteristicUuid }
+        .bluetoothGattCharacteristic
+}
+
+private fun Peripheral.bluetoothGattDescriptorFrom(
+    descriptor: Descriptor,
+): BluetoothGattDescriptor {
+    val services = checkNotNull(platformServices) {
+        "Services have not been discovered for $this"
+    }
+
+    val characteristics = services
+        .first { descriptor.serviceUuid == it.serviceUuid }
+        .characteristics
+    val descriptors = characteristics
+        .first { descriptor.characteristicUuid == it.characteristicUuid }
+        .descriptors
+    return descriptors
+        .first { descriptor.descriptorUuid == it.descriptorUuid }
+        .bluetoothGattDescriptor
 }
 
 private val WriteType.intValue: Int
@@ -164,7 +216,7 @@ private val WriteType.intValue: Int
 
 private fun <T> Flow<T>.launchIn(
     scope: CoroutineScope,
-    start: CoroutineStart = CoroutineStart.DEFAULT
+    start: CoroutineStart = CoroutineStart.DEFAULT,
 ): Job = scope.launch(start = start) {
     collect()
 }

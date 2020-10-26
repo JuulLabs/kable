@@ -43,13 +43,8 @@ internal class Observers(
 
     suspend fun rewire() {
         if (observers.isEmpty()) return
-        val services = peripheral.services ?: error("Services unavailable for rewiring observers")
-
         lock.withLock {
             observers.keys.forEach { characteristic ->
-                val platformCharacteristic =
-                    services.first { it.serviceUuid == characteristic.serviceUuid }
-                        .characteristics.first { it.characteristicUuid == characteristic.characteristicUuid }
                 peripheral.startNotifications(characteristic)
             }
         }
@@ -74,20 +69,4 @@ internal class Observers(
         if (newValue < 1) remove(key) else put(key, newValue)
         newValue
     }
-}
-
-private suspend fun Peripheral.startNotifications(
-    characteristic: Characteristic
-) {
-    TODO()
-    // todo: set notifications to true
-    // todo: write descriptor
-}
-
-private suspend fun Peripheral.stopNotifications(
-    characteristic: Characteristic
-) {
-    TODO()
-    // todo: write descriptor
-    // todo: set notifications to false
 }

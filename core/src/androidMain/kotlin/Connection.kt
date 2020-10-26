@@ -9,6 +9,7 @@ import com.juul.kable.gatt.Callback
 import com.juul.kable.gatt.ConnectionLostException
 import com.juul.kable.gatt.ConnectionState
 import com.juul.kable.gatt.ConnectionStatus
+import com.juul.kable.gatt.GattStatus
 import com.juul.kable.gatt.GattStatusException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -22,7 +23,8 @@ public class OutOfOrderGattCallbackException internal constructor(
     message: String
 ) : IllegalStateException(message)
 
-private val Success = ConnectionStatus(GATT_SUCCESS)
+private val GattSuccess = GattStatus(GATT_SUCCESS)
+private val ConnectionSuccess = ConnectionStatus(GATT_SUCCESS)
 private val Disconnected = ConnectionState(STATE_DISCONNECTED)
 private val Connected = ConnectionState(STATE_CONNECTED)
 
@@ -38,7 +40,7 @@ internal class Connection(
         crossinline action: BluetoothGatt.() -> Boolean
     ): T = lock.withLock {
         withContext(dispatcher) {
-            // todo: Exception type (other than RemoteException)?
+            // todo: Exception type (other than RemoteException) — extend IOException?
             action.invoke(bluetoothGatt) || throw RemoteException("BluetoothGatt method call returned false")
         }
 
@@ -49,6 +51,8 @@ internal class Connection(
         } catch (e: ConnectionLostException) {
             throw ConnectionLostException(cause = e)
         }
+
+        if (response.status != GattSuccess) throw GattStatusException(response.toString())
 
         // `lock` should always enforce a 1:1 matching of request to response, but if an Android `BluetoothGattCallback`
         // method gets called out of order then we'll cast to the wrong response type.
@@ -62,7 +66,7 @@ internal class Connection(
         callback.onConnectionStateChange
             .onEach { event ->
                 val (status, newState) = event
-                if (status != Success) throw GattStatusException(event.toString())
+                if (status != ConnectionSuccess) throw GattStatusException(event.toString())
                 if (newState == Disconnected) throw ConnectionLostException()
             }
             .first { (_, newState) -> newState == Connected }
@@ -72,7 +76,7 @@ internal class Connection(
         callback.onConnectionStateChange
             .onEach { event ->
                 val (status, newState) = event
-                if (status != Success && newState != Disconnected)
+                if (status != ConnectionSuccess && newState != Disconnected)
                     throw GattStatusException(event.toString())
             }
             .first { (_, newState) -> newState == Disconnected }

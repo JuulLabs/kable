@@ -29,12 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 public class GattStatusException internal constructor(
     message: String?
-) : IOException(message) {
-    internal constructor(
-        status: GattStatus,
-        prefix: String
-    ) : this("$prefix failed with status $status")
-}
+) : IOException(message)
 
 public class ConnectionLostException internal constructor(
     message: String? = null,
