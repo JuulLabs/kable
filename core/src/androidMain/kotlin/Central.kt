@@ -19,7 +19,7 @@ public actual class Central internal constructor(
     internal val applicationContext = androidContext.applicationContext
 
     public actual fun scanner(services: List<Uuid>?): Scanner = Scanner()
-    
+
     public actual fun peripheral(
         advertisement: Advertisement
     ): Peripheral = scope.peripheral(applicationContext, advertisement.scanResult.device)

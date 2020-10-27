@@ -1,7 +1,5 @@
 package com.juul.kable.gatt
 
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_CONNECTION_CONGESTED
 import android.bluetooth.BluetoothGatt.GATT_FAILURE
@@ -13,6 +11,8 @@ import android.bluetooth.BluetoothGatt.GATT_READ_NOT_PERMITTED
 import android.bluetooth.BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.bluetooth.BluetoothGatt.GATT_WRITE_NOT_PERMITTED
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
 import com.juul.kable.external.GATT_AUTH_FAIL
 import com.juul.kable.external.GATT_BUSY
 import com.juul.kable.external.GATT_CCC_CFG_ERR
