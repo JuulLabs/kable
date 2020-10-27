@@ -20,7 +20,7 @@ internal fun BluetoothGattService.toPlatformService(): PlatformService {
     val characteristics = characteristics
         .map { characteristic ->
             Log.d(TAG, characteristic.toString())
-            characteristic.toPlatformCharacteristic(serviceUuid)
+            characteristic.toPlatformCharacteristic()
         }
 
     return PlatformService(

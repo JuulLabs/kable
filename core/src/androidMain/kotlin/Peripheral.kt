@@ -9,15 +9,17 @@ import android.content.Context
 import com.juul.kable.Event.Rejected
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
-import com.juul.kable.gatt.ConnectionLostException
 import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
 import com.juul.kable.gatt.Response.OnDescriptorWrite
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -47,8 +49,8 @@ public actual class Peripheral internal constructor(
     private val bluetoothDevice: BluetoothDevice,
 ) {
 
-    private val scope =
-        CoroutineScope(parentCoroutineContext + Job(parentCoroutineContext[Job]))
+    private val job = Job(parentCoroutineContext[Job])
+    private val scope = CoroutineScope(parentCoroutineContext + job)
 
     private val _state = MutableStateFlow<State?>(null)
     public actual val state: Flow<State> = _state.filterNotNull()
@@ -58,43 +60,60 @@ public actual class Peripheral internal constructor(
 
     private val observers = Observers(this)
 
+    internal val platformServices: List<PlatformService>? = null
+    public actual val services: List<DiscoveredService>?
+        get() = platformServices?.map { it.toDiscoveredService() }
+
     @Volatile
     private var _connection: Connection? = null
     private val connection: Connection
         inline get() = _connection ?: throw NotReadyException(toString())
 
-    internal val platformServices: List<PlatformService>? = null
-    public actual val services: List<DiscoveredService>?
-        get() = platformServices?.map { it.toDiscoveredService() }
+    private val connectJob = atomic<Job?>(null)
 
-    public actual suspend fun connect() {
-        // todo: Prevent multiple simultaneous connection attempts.
+    private fun createConnectJob(): Job = scope.launch(start = LAZY) {
+        _state.value = State.Connecting
 
         val connection = bluetoothDevice.connect(androidContext)
         if (connection == null) {
             _events.emit(Rejected)
-            return
+            return@launch
         }
 
-        connection.callback
-            .onCharacteristicChanged
-            // todo: Map to `Uuid` type in changed object (i.e. map to `Characteristic` rather than Android characteristic type).
+        connection
+            .characteristicChanges
             .onEach(observers.characteristicChanges::emit)
             .catch { cause -> if (cause !is ConnectionLostException) throw cause }
             .launchIn(scope, start = UNDISPATCHED)
 
-        connection.suspendUntilConnected()
-        discoverServices()
-        observers.rewire()
-        _connection = connection
-        _events.emit(Event.Connected(this))
+        try {
+            connection.suspendUntilConnected()
+            discoverServices()
+            observers.rewire()
+            _connection = connection
+            _events.emit(Event.Connected(this@Peripheral))
+        } catch (t: Throwable) {
+            connection.close()
+            _connection = null
+            throw t
+        }
+    }
+
+    public actual suspend fun connect() {
+        check(!job.isCancelled) { "Cannot connect, scope is cancelled for $this" }
+        connectJob.updateAndGet { it ?: createConnectJob() }!!.join()
     }
 
     public actual suspend fun disconnect() {
-        scope.coroutineContext[Job]?.cancelAndJoinChildren()
-        connection.suspendUntilDisconnected()
-        // todo: emit Event.Disconnected? or should it be emitted from Callback?
-        // todo: finally gatt.disconnect()?
+        try {
+            job.cancelAndJoinChildren()
+            connection.suspendUntilDisconnected()
+            connectJob.value = null
+            // todo: emit Event.Disconnected? or should it be emitted from Callback?
+        } finally {
+            _connection?.close()
+            _connection = null
+        }
     }
 
     public actual suspend fun rssi(): Int = connection.request<OnReadRemoteRssi> {

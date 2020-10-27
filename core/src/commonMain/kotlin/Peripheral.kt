@@ -12,9 +12,39 @@ public enum class WriteType {
 
 public expect class Peripheral {
 
+    /**
+     * Provides a [Flow] of the [Peripheral]'s [State].
+     *
+     * After [connect] is called, the [state] will typically transition through the following [State]s:
+     *
+     * ```
+     *     connect()
+     *         :
+     *         v
+     *   .------------.       .-----------.
+     *   | Connecting | ----> | Connected |
+     *   '------------'       '-----------'
+     *                              |
+     *                       connection drop
+     *                              v
+     *                      .---------------.       .--------------.
+     *                      | Disconnecting | ----> | Disconnected |
+     *                      '---------------'       '--------------'
+     * ```
+     *
+     * This [state] [Flow] is conflated and is intended to provide current connection status. If it is desired to handle
+     * specific connection events, then [events] [Flow] should be used instead.
+     */
     public val state: Flow<State>
+
     public val events: Flow<Event>
 
+    /**
+     * Initiates a connection, suspending until connected, or failure occurs. Multiple concurrent invocations will all
+     * suspend until connected (or failure). If already connected, then returns immediately.
+     *
+     * @throws IllegalStateException if [Peripheral]'s Coroutine scope has been cancelled.
+     */
     public suspend fun connect(): Unit
 
     /** @return discovered [services][Service], or `null` until a [connection][connect] has been established. */

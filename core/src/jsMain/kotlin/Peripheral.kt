@@ -67,14 +67,15 @@ public actual class Peripheral internal constructor(
         get() = bluetoothDevice.gatt!! // fixme: !!
 
     public actual suspend fun connect() {
+        // todo: Prevent multiple simultaneous connection attempts.
         _state.value = State.Connecting
 
         try {
-            registerDisconnectedListener()
+            registerDisconnectedListener() // todo: Unregister on connection drop?
             gatt.connect().await() // todo: Catch appropriate exception to emit State.Rejected.
-            discoverServices()
+            val services = discoverServices()
             _events.emit(Event.Connected(this))
-            observers.rewire(_services!!)
+            observers.rewire(services)
             _state.value = State.Connected
         } catch (cancellation: CancellationException) {
             disconnectGatt()
@@ -94,12 +95,14 @@ public actual class Peripheral internal constructor(
         bluetoothDevice.gatt?.disconnect()
     }
 
-    private suspend fun discoverServices() {
+    private suspend fun discoverServices(): List<PlatformService> {
         console.log("Discovering services")
-        _services = gatt.getPrimaryServices()
+        val services = gatt.getPrimaryServices()
             .await()
             .map { service -> service.toPlatformService() }
+        _services = services
         console.log("Service discovery complete")
+        return services
     }
 
     public actual suspend fun write(

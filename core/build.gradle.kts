@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    id("kotlinx-atomicfu")
     id("com.android.library")
     id("org.jmailen.kotlinter")
     `maven-publish`

@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.juul.kable.gatt.OnCharacteristicChanged
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -11,7 +10,7 @@ internal class Observers(
     private val peripheral: Peripheral,
 ) {
 
-    val characteristicChanges = MutableSharedFlow<OnCharacteristicChanged>(extraBufferCapacity = 64)
+    val characteristicChanges = MutableSharedFlow<CharacteristicChange>(extraBufferCapacity = 64)
 
     private val observers = HashMap<Characteristic, Int>()
 
@@ -22,9 +21,9 @@ internal class Observers(
 
         try {
             characteristicChanges.collect {
-                if (it.characteristic.uuid == characteristic.characteristicUuid &&
-                    it.characteristic.instanceId == characteristic.instanceId
-                ) emit(it.value)
+                if (it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
+                    it.characteristic.serviceUuid == characteristic.serviceUuid
+                ) emit(it.data)
             }
         } finally {
             if (observers.decrementAndGet(characteristic) < 1) {

@@ -11,8 +11,4 @@ public sealed class State {
     public data class Disconnected internal constructor(
         val cause: Throwable?,
     ) : State()
-
-    public data class Cancelled internal constructor(
-        val cause: Throwable?,
-    ) : State()
 }

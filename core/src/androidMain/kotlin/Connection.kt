@@ -6,22 +6,35 @@ import android.bluetooth.BluetoothProfile.STATE_CONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.os.RemoteException
 import com.juul.kable.gatt.Callback
-import com.juul.kable.gatt.ConnectionLostException
 import com.juul.kable.gatt.ConnectionState
 import com.juul.kable.gatt.ConnectionStatus
 import com.juul.kable.gatt.GattStatus
-import com.juul.kable.gatt.GattStatusException
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.io.IOException
+
+public class GattStatusException internal constructor(
+    message: String?,
+) : IOException(message)
+
+public class ConnectionLostException internal constructor(
+    message: String? = null,
+    cause: Throwable? = null,
+) : IOException(message, cause)
 
 public class OutOfOrderGattCallbackException internal constructor(
-    message: String
+    message: String,
 ) : IllegalStateException(message)
+
+internal data class CharacteristicChange(
+    val characteristic: Characteristic,
+    val data: ByteArray,
+)
 
 private val GattSuccess = GattStatus(GATT_SUCCESS)
 private val ConnectionSuccess = ConnectionStatus(GATT_SUCCESS)
@@ -31,23 +44,31 @@ private val Connected = ConnectionState(STATE_CONNECTED)
 internal class Connection(
     private val bluetoothGatt: BluetoothGatt,
     private val dispatcher: CoroutineDispatcher,
-    val callback: Callback,
+    private val callback: Callback,
+    private val invokeOnClose: () -> Unit,
 ) {
+
+    init {
+        callback.invokeOnDisconnected(::close)
+    }
+
+    val characteristicChanges = callback.onCharacteristicChanged
+        .map { (bluetoothGattCharacteristic, value) ->
+            CharacteristicChange(bluetoothGattCharacteristic.toLazyCharacteristic(), value)
+        }
 
     private val lock = Mutex()
 
     suspend inline fun <reified T> request(
-        crossinline action: BluetoothGatt.() -> Boolean
+        crossinline action: BluetoothGatt.() -> Boolean,
     ): T = lock.withLock {
         withContext(dispatcher) {
-            // todo: Exception type (other than RemoteException) — extend IOException?
+            // todo: Exception type (other than RemoteException; that is uniform across platforms) — extend IOException?
             action.invoke(bluetoothGatt) || throw RemoteException("BluetoothGatt method call returned false")
         }
 
         val response = try {
             callback.onResponse.receive()
-        } catch (e: CancellationException) {
-            throw CancellationException("Waiting for response was cancelled", e)
         } catch (e: ConnectionLostException) {
             throw ConnectionLostException(cause = e)
         }
@@ -80,5 +101,9 @@ internal class Connection(
                     throw GattStatusException(event.toString())
             }
             .first { (_, newState) -> newState == Disconnected }
+    }
+
+    fun close() {
+        invokeOnClose.invoke()
     }
 }

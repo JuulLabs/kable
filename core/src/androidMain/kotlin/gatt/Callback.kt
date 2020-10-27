@@ -1,13 +1,13 @@
 package com.juul.kable.gatt
 
 import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
 import android.util.Log
+import com.juul.kable.ConnectionLostException
 import com.juul.kable.TAG
 import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
@@ -16,7 +16,6 @@ import com.juul.kable.gatt.Response.OnDescriptorWrite
 import com.juul.kable.gatt.Response.OnMtuChanged
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.flow.Flow
@@ -24,24 +23,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.runBlocking
-import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
 
-public class GattStatusException internal constructor(
-    message: String?
-) : IOException(message)
+private typealias DisconnectedAction = () -> Unit
 
-public class ConnectionLostException internal constructor(
-    message: String? = null,
-    cause: Throwable? = null
-) : IOException(message, cause)
+internal class Callback : BluetoothGattCallback() {
 
-private val Success = ConnectionStatus(GATT_SUCCESS)
-private val Disconnected = ConnectionState(STATE_DISCONNECTED)
-
-internal class Callback(
-    private val dispatcher: ExecutorCoroutineDispatcher
-) : BluetoothGattCallback() {
+    private var disconnectedAction: DisconnectedAction? = null
+    fun invokeOnDisconnected(action: () -> Unit) {
+        disconnectedAction = action
+    }
 
     private val _onConnectionStateChange = MutableStateFlow<OnConnectionStateChange?>(null)
     val onConnectionStateChange: Flow<OnConnectionStateChange> =
@@ -49,27 +39,8 @@ internal class Callback(
 
     private val _onCharacteristicChanged = Channel<OnCharacteristicChanged>()
     val onCharacteristicChanged = _onCharacteristicChanged.consumeAsFlow()
+
     val onResponse = Channel<Response>(CONFLATED)
-
-    private val isClosed = AtomicBoolean()
-
-    private fun onDisconnecting() {
-        _onCharacteristicChanged.close(ConnectionLostException())
-        onResponse.close(ConnectionLostException())
-    }
-
-    fun close(gatt: BluetoothGatt) {
-        if (isClosed.compareAndSet(false, true)) {
-            Log.v(TAG, "Closing GattCallback belonging to device ${gatt.device}")
-            onDisconnecting() // Duplicate call in case Android skips STATE_DISCONNECTING.
-            gatt.close()
-
-            _onConnectionStateChange.value = OnConnectionStateChange(Success, Disconnected)
-
-            // todo: Remove when https://github.com/Kotlin/kotlinx.coroutines/issues/261 is fixed.
-            dispatcher.close()
-        }
-    }
 
     override fun onPhyUpdate(
         gatt: BluetoothGatt,
@@ -97,9 +68,14 @@ internal class Callback(
         val event = OnConnectionStateChange(ConnectionStatus(status), ConnectionState(newState))
         _onConnectionStateChange.value = event
 
-        when (newState) {
-            STATE_DISCONNECTING -> onDisconnecting()
-            STATE_DISCONNECTED -> close(gatt)
+        if (newState == STATE_DISCONNECTING || newState == STATE_DISCONNECTED) {
+            _onCharacteristicChanged.close(ConnectionLostException())
+            onResponse.close(ConnectionLostException())
+
+            if (newState == STATE_DISCONNECTED) {
+                gatt.close()
+                disconnectedAction?.invoke()
+            }
         }
     }
 

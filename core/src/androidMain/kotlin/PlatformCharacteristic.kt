@@ -17,9 +17,8 @@ internal fun PlatformCharacteristic.toDiscoveredCharacteristic() = DiscoveredCha
     descriptors = descriptors.map { it.toLazyDescriptor() },
 )
 
-internal fun BluetoothGattCharacteristic.toPlatformCharacteristic(
-    serviceUuid: Uuid,
-): PlatformCharacteristic {
+internal fun BluetoothGattCharacteristic.toPlatformCharacteristic(): PlatformCharacteristic {
+    val serviceUuid = service.uuid.toUuid()
     val characteristicUuid = uuid.toUuid()
     val platformDescriptors = descriptors.map { descriptor ->
         Log.d(TAG, descriptor.toString())
@@ -33,3 +32,8 @@ internal fun BluetoothGattCharacteristic.toPlatformCharacteristic(
         bluetoothGattCharacteristic = this,
     )
 }
+
+internal fun BluetoothGattCharacteristic.toLazyCharacteristic() = LazyCharacteristic(
+    serviceUuid = service.uuid.toUuid(),
+    characteristicUuid = uuid.toUuid(),
+)
