@@ -24,8 +24,10 @@ public expect class Peripheral {
      *   .------------.       .-----------.
      *   | Connecting | ----> | Connected |
      *   '------------'       '-----------'
-     *                              |
+     *                              :
+     *                       disconnect() or
      *                       connection drop
+     *                              :
      *                              v
      *                      .---------------.       .--------------.
      *                      | Disconnecting | ----> | Disconnected |
@@ -52,21 +54,33 @@ public expect class Peripheral {
 
     public suspend fun rssi(): Int
 
+    /**
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
     public suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType = WithoutResponse,
     ): Unit
 
+    /**
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
     public suspend fun read(
         characteristic: Characteristic,
     ): ByteArray
 
+    /**
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
     public suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
     ): Unit
 
+    /**
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
     public suspend fun read(
         descriptor: Descriptor,
     ): ByteArray
@@ -75,5 +89,11 @@ public expect class Peripheral {
         characteristic: Characteristic,
     ): Flow<ByteArray>
 
+    /**
+     * Disconnects the active connection, or cancels an in-flight [connection][connect] attempt, suspending until
+     * [Peripheral] has settled on a [disconnected][State.Disconnected] state, or failure occurs.
+     *
+     * Multiple concurrent invocations will all suspend until disconnected (or failure).
+     */
     public suspend fun disconnect(): Unit
 }

@@ -58,3 +58,6 @@ internal const val GATT_NOT_ENCRYPTED = 0x8e
 internal const val GATT_CCC_CFG_ERR = 0xFD
 internal const val GATT_PRC_IN_PROGRESS = 0xFE
 internal const val GATT_OUT_OF_RANGE = 0xFF
+
+/** https://android.googlesource.com/platform/development/+/7167a054a8027f75025c865322fa84791a9b3bd1/samples/BluetoothLeGatt/src/com/example/bluetooth/le/SampleGattAttributes.java#27 */
+internal const val CLIENT_CHARACTERISTIC_CONFIG_UUID = "00002902-0000-1000-8000-00805f9b34fb"

@@ -2,6 +2,7 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothProfile.STATE_CONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.os.RemoteException
@@ -16,16 +17,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.io.IOException
-
-public class GattStatusException internal constructor(
-    message: String?,
-) : IOException(message)
-
-public class ConnectionLostException internal constructor(
-    message: String? = null,
-    cause: Throwable? = null,
-) : IOException(message, cause)
 
 public class OutOfOrderGattCallbackException internal constructor(
     message: String,
@@ -81,6 +72,13 @@ internal class Connection(
             ?: throw OutOfOrderGattCallbackException(
                 "Unexpected response type ${response.javaClass.simpleName} received"
             )
+    }
+
+    fun setNotification(
+        bluetoothGattCharacteristic: BluetoothGattCharacteristic,
+        enable: Boolean,
+    ) {
+        bluetoothGatt.setCharacteristicNotification(bluetoothGattCharacteristic, enable)
     }
 
     suspend fun suspendUntilConnected() {

@@ -5,8 +5,8 @@ import com.benasher44.uuid.uuidFrom
 
 public fun descriptorOf(
     serviceUuid: String,
-    descriptorUuid: String,
     characteristicUuid: String,
+    descriptorUuid: String,
 ): Descriptor = LazyDescriptor(
     serviceUuid = uuidFrom(serviceUuid),
     characteristicUuid = uuidFrom(characteristicUuid),

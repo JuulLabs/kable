@@ -41,8 +41,8 @@ internal class Observers(
     private val lock = Mutex()
 
     suspend fun rewire() {
-        if (observers.isEmpty()) return
         lock.withLock {
+            if (observers.isEmpty()) return
             observers.keys.forEach { characteristic ->
                 peripheral.startNotifications(characteristic)
             }
@@ -50,7 +50,10 @@ internal class Observers(
     }
 
     fun clear() {
-        observers.clear()
+        TODO()
+//        lock.withLock {
+//            observers.clear()
+//        }
     }
 
     private suspend fun <K> MutableMap<K, Int>.incrementAndGet(
