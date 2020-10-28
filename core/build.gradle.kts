@@ -1,16 +1,20 @@
 plugins {
+    // Android plugin must be before multiplatform plugin until https://youtrack.jetbrains.com/issue/KT-34038 is fixed.
+    id("com.android.library")
     kotlin("multiplatform")
     id("kotlinx-atomicfu")
-    id("com.android.library")
     id("org.jmailen.kotlinter")
-    `maven-publish`
+    id("org.jetbrains.dokka")
+    id("com.vanniktech.maven.publish")
 }
 
 kotlin {
     explicitApi()
 
     js().browser()
-    android()
+    android {
+        publishAllLibraryVariants()
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -37,6 +41,10 @@ android {
 
     defaultConfig {
         minSdkVersion(21)
+    }
+
+    buildFeatures {
+        buildConfig = false
     }
 
     lintOptions {
