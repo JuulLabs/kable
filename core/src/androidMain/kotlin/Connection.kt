@@ -33,7 +33,7 @@ private val Disconnected = ConnectionState(STATE_DISCONNECTED)
 private val Connected = ConnectionState(STATE_CONNECTED)
 
 internal class Connection(
-    private val bluetoothGatt: BluetoothGatt,
+    internal val bluetoothGatt: BluetoothGatt,
     private val dispatcher: CoroutineDispatcher,
     private val callback: Callback,
     private val invokeOnClose: () -> Unit,

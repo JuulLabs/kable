@@ -49,7 +49,7 @@ public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val androidContext: Context,
     private val bluetoothDevice: BluetoothDevice,
-): Peripheral {
+) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext[Job])
     private val scope = CoroutineScope(parentCoroutineContext + job)
@@ -64,7 +64,7 @@ public class AndroidPeripheral internal constructor(
 
     private val observers = Observers(this)
 
-    internal val platformServices: List<PlatformService>? = null
+    internal var platformServices: List<PlatformService>? = null
     public override val services: List<DiscoveredService>?
         get() = platformServices?.map { it.toDiscoveredService() }
 
@@ -128,8 +128,7 @@ public class AndroidPeripheral internal constructor(
         connection.request<OnServicesDiscovered> {
             discoverServices()
         }
-        // todo: map services
-//        platformServices = ...
+        platformServices = connection.bluetoothGatt.services.map { it.toPlatformService() }
     }
 
     public suspend fun requestMtu(mtu: Int): Unit = connection.request {

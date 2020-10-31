@@ -57,9 +57,9 @@ public class JsPeripheral internal constructor(
     public override val events: Flow<Event> = _events.asSharedFlow()
     private suspend fun emit(event: Event) { _events.emit(event) }
 
-    private var _services: List<PlatformService>? = null
+    private var platformServices: List<PlatformService>? = null
     public override val services: List<DiscoveredService>?
-        get() = _services?.map { it.toDiscoveredService() }
+        get() = platformServices?.map { it.toDiscoveredService() }
 
     public override suspend fun rssi(): Int {
         TODO("Not yet implemented")
@@ -101,8 +101,8 @@ public class JsPeripheral internal constructor(
         console.log("Discovering services")
         val services = gatt.getPrimaryServices()
             .await()
-            .map { service -> service.toPlatformService() }
-        _services = services
+            .map { it.toPlatformService() }
+        platformServices = services
         console.log("Service discovery complete")
         return services
     }
@@ -167,7 +167,7 @@ public class JsPeripheral internal constructor(
     internal fun bluetoothRemoteGATTCharacteristicFrom(
         characteristic: Characteristic
     ): BluetoothRemoteGATTCharacteristic {
-        val services = checkNotNull(_services) { "Services have not been discovered for $this" }
+        val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
         val characteristics = services
             .first { it.serviceUuid == characteristic.serviceUuid }
             .characteristics
@@ -179,7 +179,7 @@ public class JsPeripheral internal constructor(
     private fun bluetoothRemoteGATTDescriptorFrom(
         descriptor: Descriptor
     ): BluetoothRemoteGATTDescriptor {
-        val services = checkNotNull(_services) { "Services have not been discovered for $this" }
+        val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
         val characteristics = services
             .first { service -> service.serviceUuid == descriptor.serviceUuid }
             .characteristics
