@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
 import android.util.Log
 import com.juul.kable.ConnectionLostException
+import com.juul.kable.State
 import com.juul.kable.TAG
 import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
@@ -18,6 +19,7 @@ import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -26,7 +28,9 @@ import kotlinx.coroutines.runBlocking
 
 private typealias DisconnectedAction = () -> Unit
 
-internal class Callback : BluetoothGattCallback() {
+internal class Callback(
+    private val state: MutableStateFlow<State>
+) : BluetoothGattCallback() {
 
     private var disconnectedAction: DisconnectedAction? = null
     fun invokeOnDisconnected(action: () -> Unit) {
@@ -37,7 +41,7 @@ internal class Callback : BluetoothGattCallback() {
     val onConnectionStateChange: Flow<OnConnectionStateChange> =
         _onConnectionStateChange.filterNotNull()
 
-    private val _onCharacteristicChanged = Channel<OnCharacteristicChanged>()
+    private val _onCharacteristicChanged = Channel<OnCharacteristicChanged>(UNLIMITED)
     val onCharacteristicChanged = _onCharacteristicChanged.consumeAsFlow()
 
     val onResponse = Channel<Response>(CONFLATED)
@@ -72,9 +76,13 @@ internal class Callback : BluetoothGattCallback() {
             _onCharacteristicChanged.close(ConnectionLostException())
             onResponse.close(ConnectionLostException())
 
-            if (newState == STATE_DISCONNECTED) {
-                gatt.close()
-                disconnectedAction?.invoke()
+            when (newState) {
+                STATE_DISCONNECTING -> state.value = State.Disconnecting
+                STATE_DISCONNECTED -> {
+                    gatt.close()
+                    disconnectedAction?.invoke()
+                    state.value = State.Disconnected
+                }
             }
         }
     }
@@ -105,10 +113,7 @@ internal class Callback : BluetoothGattCallback() {
         characteristic: BluetoothGattCharacteristic
     ) {
         val event = OnCharacteristicChanged(characteristic, characteristic.value)
-        if (!_onCharacteristicChanged.offer(event)) {
-            Log.w(TAG, "Subscribers are slow to consume, blocking thread for $event")
-            runBlocking { _onCharacteristicChanged.send(event) }
-        }
+        _onCharacteristicChanged.offer(event)
     }
 
     override fun onDescriptorRead(

@@ -34,7 +34,7 @@ public interface Peripheral {
      *                      '---------------'       '--------------'
      * ```
      *
-     * This [state] [Flow] is conflated (so some states may be missed by slow consumers), it is intended to provide
+     * The [state] [Flow] is conflated (so some states may be missed by slow consumers); it is intended to provide the
      * current connection status to the user. If it is desired to handle (take action based on) specific connection
      * events, then [events] [Flow] should be used instead.
      */
@@ -86,13 +86,23 @@ public interface Peripheral {
         data: ByteArray,
     ): Unit
 
+    /**
+     * Observes changes to the specified [Characteristic].
+     *
+     * Observations can be setup ([observe] can be called) prior to a [connection][connect] being established. Once
+     * connected, the observation will automatically start emitting changes. If connection is lost, [Flow] will remain
+     * active, once reconnected characteristic changes will begin emitting again.
+     *
+     * If the specified [characteristic] is invalid or cannot be found then a [NoSuchElementException] will be
+     * propagated via the [connect] function.
+     */
     public fun observe(
         characteristic: Characteristic,
     ): Flow<ByteArray>
 
     /**
      * Disconnects the active connection, or cancels an in-flight [connection][connect] attempt, suspending until
-     * [Peripheral] has settled on a [disconnected][State.Disconnected] state, or failure occurs.
+     * [Peripheral] has settled on a [disconnected][State.Disconnected] state.
      *
      * Multiple concurrent invocations will all suspend until disconnected (or failure).
      */

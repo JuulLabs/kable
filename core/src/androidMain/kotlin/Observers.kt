@@ -10,7 +10,7 @@ internal class Observers(
     private val peripheral: AndroidPeripheral,
 ) {
 
-    val characteristicChanges = MutableSharedFlow<CharacteristicChange>(extraBufferCapacity = 64)
+    val characteristicChanges = MutableSharedFlow<CharacteristicChange>()
 
     private val observers = HashMap<Characteristic, Int>()
 

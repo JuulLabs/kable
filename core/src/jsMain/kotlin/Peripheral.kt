@@ -194,7 +194,7 @@ public class JsPeripheral internal constructor(
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = {
         observers.invalidate()
-        _state.value = State.Disconnected(cause = null) // `cause` is unavailable in Javascript.
+        _state.value = State.Disconnected
         scope.launch {
             emit(Event.Disconnected(wasConnected = true))
         }
