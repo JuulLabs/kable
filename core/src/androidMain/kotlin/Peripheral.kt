@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,27 +43,29 @@ private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONF
 internal fun CoroutineScope.peripheral(
     androidContext: Context,
     bluetoothDevice: BluetoothDevice,
-) = Peripheral(coroutineContext, androidContext, bluetoothDevice)
+): Peripheral = AndroidPeripheral(coroutineContext, androidContext, bluetoothDevice)
 
-public actual class Peripheral internal constructor(
+public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val androidContext: Context,
     private val bluetoothDevice: BluetoothDevice,
-) {
+): Peripheral {
 
-    private val job = Job(parentCoroutineContext[Job])
+    private val job = SupervisorJob(parentCoroutineContext[Job])
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
     private val _state = MutableStateFlow<State?>(null)
-    public actual val state: Flow<State> = _state.filterNotNull()
+    public override val state: Flow<State> = _state.filterNotNull()
+    private fun setState(state: State) { _state.value = state }
 
     private val _events = MutableSharedFlow<Event>()
-    public actual val events: Flow<Event> = _events.asSharedFlow()
+    public override val events: Flow<Event> = _events.asSharedFlow()
+    private suspend fun emit(event: Event) { _events.emit(event) }
 
     private val observers = Observers(this)
 
     internal val platformServices: List<PlatformService>? = null
-    public actual val services: List<DiscoveredService>?
+    public override val services: List<DiscoveredService>?
         get() = platformServices?.map { it.toDiscoveredService() }
 
     @Volatile
@@ -73,11 +76,11 @@ public actual class Peripheral internal constructor(
     private val connectJob = atomic<Job?>(null)
 
     private fun createConnectJob(): Job = scope.launch(start = LAZY) {
-        _state.value = State.Connecting
+        setState(State.Connecting)
 
         val connection = bluetoothDevice.connect(androidContext)
         if (connection == null) {
-            _events.emit(Rejected)
+            emit(Rejected)
             return@launch
         }
 
@@ -92,7 +95,7 @@ public actual class Peripheral internal constructor(
             discoverServices()
             observers.rewire()
             _connection = connection
-            _events.emit(Event.Connected(this@Peripheral))
+            emit(Event.Connected(this@AndroidPeripheral))
         } catch (t: Throwable) {
             connection.close()
             _connection = null
@@ -100,12 +103,12 @@ public actual class Peripheral internal constructor(
         }
     }
 
-    public actual suspend fun connect() {
+    public override suspend fun connect() {
         check(!job.isCancelled) { "Cannot connect, scope is cancelled for $this" }
         connectJob.updateAndGet { it ?: createConnectJob() }!!.join()
     }
 
-    public actual suspend fun disconnect() {
+    public override suspend fun disconnect() {
         try {
             job.cancelAndJoinChildren()
             connection.suspendUntilDisconnected()
@@ -117,7 +120,7 @@ public actual class Peripheral internal constructor(
         }
     }
 
-    public actual suspend fun rssi(): Int = connection.request<OnReadRemoteRssi> {
+    public override suspend fun rssi(): Int = connection.request<OnReadRemoteRssi> {
         readRemoteRssi()
     }.rssi
 
@@ -133,7 +136,7 @@ public actual class Peripheral internal constructor(
         requestMtu(mtu)
     }
 
-    public actual suspend fun write(
+    public override suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
@@ -146,7 +149,7 @@ public actual class Peripheral internal constructor(
         }
     }
 
-    public actual suspend fun read(
+    public override suspend fun read(
         characteristic: Characteristic,
     ): ByteArray {
         val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
@@ -155,7 +158,7 @@ public actual class Peripheral internal constructor(
         }.value
     }
 
-    public actual suspend fun write(
+    public override suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
     ) {
@@ -165,7 +168,7 @@ public actual class Peripheral internal constructor(
         }
     }
 
-    public actual suspend fun read(
+    public override suspend fun read(
         descriptor: Descriptor,
     ): ByteArray {
         val bluetoothGattDescriptor = bluetoothGattDescriptorFrom(descriptor)
@@ -174,7 +177,7 @@ public actual class Peripheral internal constructor(
         }.value
     }
 
-    public actual fun observe(
+    public override fun observe(
         characteristic: Characteristic,
     ): Flow<ByteArray> = observers.acquire(characteristic)
 
@@ -205,7 +208,7 @@ public actual class Peripheral internal constructor(
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
 }
 
-private fun Peripheral.bluetoothGattCharacteristicFrom(
+private fun AndroidPeripheral.bluetoothGattCharacteristicFrom(
     characteristic: Characteristic,
 ): BluetoothGattCharacteristic {
     val services = checkNotNull(platformServices) {
@@ -220,7 +223,7 @@ private fun Peripheral.bluetoothGattCharacteristicFrom(
         .bluetoothGattCharacteristic
 }
 
-private fun Peripheral.bluetoothGattDescriptorFrom(
+private fun AndroidPeripheral.bluetoothGattDescriptorFrom(
     descriptor: Descriptor,
 ): BluetoothGattDescriptor {
     val services = checkNotNull(platformServices) {

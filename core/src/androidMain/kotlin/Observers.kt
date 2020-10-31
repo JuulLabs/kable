@@ -7,7 +7,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 internal class Observers(
-    private val peripheral: Peripheral,
+    private val peripheral: AndroidPeripheral,
 ) {
 
     val characteristicChanges = MutableSharedFlow<CharacteristicChange>(extraBufferCapacity = 64)

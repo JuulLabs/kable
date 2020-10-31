@@ -10,7 +10,7 @@ public enum class WriteType {
     WithoutResponse,
 }
 
-public expect class Peripheral {
+public interface Peripheral {
 
     /**
      * Provides a [Flow] of the [Peripheral]'s [State].
@@ -34,8 +34,9 @@ public expect class Peripheral {
      *                      '---------------'       '--------------'
      * ```
      *
-     * This [state] [Flow] is conflated and is intended to provide current connection status. If it is desired to handle
-     * specific connection events, then [events] [Flow] should be used instead.
+     * This [state] [Flow] is conflated (so some states may be missed by slow consumers), it is intended to provide
+     * current connection status to the user. If it is desired to handle (take action based on) specific connection
+     * events, then [events] [Flow] should be used instead.
      */
     public val state: Flow<State>
 
@@ -43,7 +44,7 @@ public expect class Peripheral {
 
     /**
      * Initiates a connection, suspending until connected, or failure occurs. Multiple concurrent invocations will all
-     * suspend until connected (or failure). If already connected, then returns immediately.
+     * suspend until connected (or failure occurs). If already connected, then returns immediately.
      *
      * @throws IllegalStateException if [Peripheral]'s Coroutine scope has been cancelled.
      */
@@ -53,6 +54,13 @@ public expect class Peripheral {
     public val services: List<DiscoveredService>?
 
     public suspend fun rssi(): Int
+
+    /**
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
+    public suspend fun read(
+        characteristic: Characteristic,
+    ): ByteArray
 
     /**
      * @throws NotReadyException if invoked without an established [connection][connect].
@@ -67,7 +75,7 @@ public expect class Peripheral {
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
     public suspend fun read(
-        characteristic: Characteristic,
+        descriptor: Descriptor,
     ): ByteArray
 
     /**
@@ -77,13 +85,6 @@ public expect class Peripheral {
         descriptor: Descriptor,
         data: ByteArray,
     ): Unit
-
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
-    public suspend fun read(
-        descriptor: Descriptor,
-    ): ByteArray
 
     public fun observe(
         characteristic: Characteristic,

@@ -30,17 +30,17 @@ private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
 
 internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-) = Peripheral(coroutineContext, bluetoothDevice)
+) = JsPeripheral(coroutineContext, bluetoothDevice)
 
-public actual class Peripheral internal constructor(
+public class JsPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
-) {
+) : Peripheral {
 
     private val job = Job(parentCoroutineContext[Job]).apply {
         invokeOnCompletion {
             console.log("Shutting down job")
-            console.dir(this@Peripheral)
+            console.dir(this@JsPeripheral)
             observers.clear()
             disconnectGatt()
             unregisterDisconnectedListener()
@@ -50,40 +50,42 @@ public actual class Peripheral internal constructor(
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
     private val _state = MutableStateFlow<State?>(null)
-    public actual val state: Flow<State> = _state.filterNotNull()
+    public override val state: Flow<State> = _state.filterNotNull()
+    private fun setState(state: State) { _state.value = state }
 
     private val _events = MutableSharedFlow<Event>()
-    public actual val events: Flow<Event> = _events.asSharedFlow()
+    public override val events: Flow<Event> = _events.asSharedFlow()
+    private suspend fun emit(event: Event) { _events.emit(event) }
 
     private var _services: List<PlatformService>? = null
-    public actual val services: List<DiscoveredService>?
+    public override val services: List<DiscoveredService>?
         get() = _services?.map { it.toDiscoveredService() }
 
-    public actual suspend fun rssi(): Int {
+    public override suspend fun rssi(): Int {
         TODO("Not yet implemented")
     }
 
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
 
-    public actual suspend fun connect() {
+    public override suspend fun connect() {
         // todo: Prevent multiple simultaneous connection attempts.
-        _state.value = State.Connecting
+        setState(State.Connecting)
 
         try {
             registerDisconnectedListener() // todo: Unregister on connection drop?
             gatt.connect().await() // todo: Catch appropriate exception to emit State.Rejected.
             val services = discoverServices()
-            _events.emit(Event.Connected(this))
+            emit(Event.Connected(this))
             observers.rewire(services)
-            _state.value = State.Connected
+            setState(State.Connected)
         } catch (cancellation: CancellationException) {
             disconnectGatt()
             throw cancellation
         }
     }
 
-    public actual suspend fun disconnect() {
+    public override suspend fun disconnect() {
         console.log("Initiating disconnect")
         scope.coroutineContext[Job]?.cancelAndJoinChildren()
         disconnectGatt()
@@ -105,7 +107,7 @@ public actual class Peripheral internal constructor(
         return services
     }
 
-    public actual suspend fun write(
+    public override suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
@@ -124,13 +126,13 @@ public actual class Peripheral internal constructor(
         .readValue()
         .await()
 
-    public actual suspend fun read(
+    public override suspend fun read(
         characteristic: Characteristic
     ): ByteArray = readAsDataView(characteristic)
         .buffer
         .toByteArray()
 
-    public actual suspend fun write(
+    public override suspend fun write(
         descriptor: Descriptor,
         data: ByteArray
     ) {
@@ -145,7 +147,7 @@ public actual class Peripheral internal constructor(
         .readValue()
         .await()
 
-    public actual suspend fun read(
+    public override suspend fun read(
         descriptor: Descriptor
     ): ByteArray = readAsDataView(descriptor)
         .buffer
@@ -157,7 +159,7 @@ public actual class Peripheral internal constructor(
         characteristic: Characteristic
     ): Flow<DataView> = observers.acquire(characteristic)
 
-    public actual fun observe(
+    public override fun observe(
         characteristic: Characteristic
     ): Flow<ByteArray> = observeDataView(characteristic)
         .map { it.buffer.toByteArray() }
@@ -194,7 +196,7 @@ public actual class Peripheral internal constructor(
         observers.invalidate()
         _state.value = State.Disconnected(cause = null) // `cause` is unavailable in Javascript.
         scope.launch {
-            _events.emit(Event.Disconnected(wasConnected = true))
+            emit(Event.Disconnected(wasConnected = true))
         }
     }
 

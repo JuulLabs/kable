@@ -2,8 +2,8 @@ package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
 
-public actual class Scanner internal constructor() {
+public class AndroidScanner internal constructor() : Scanner {
 
-    public actual val peripherals: Flow<Advertisement>
+    public override val peripherals: Flow<Advertisement>
         get() = TODO("Not yet implemented")
 }

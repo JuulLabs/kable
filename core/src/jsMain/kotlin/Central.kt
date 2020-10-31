@@ -1,22 +1,21 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.external.Bluetooth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
 import kotlin.coroutines.CoroutineContext
 
-public fun CoroutineScope.central(): Central = Central(coroutineContext)
+public fun CoroutineScope.central(): Central = JsCentral(coroutineContext)
 
-public actual class Central internal constructor(
+public class JsCentral internal constructor(
     parentCoroutineContext: CoroutineContext
-) {
+) : Central {
 
     private val scope = CoroutineScope(parentCoroutineContext + Job(parentCoroutineContext[Job]))
     private val bluetooth: Bluetooth? = js("window.navigator.bluetooth")
 
-    public actual fun scanner(services: List<Uuid>?): Scanner {
+    public override fun scanner(): Scanner {
         TODO("Not yet implemented")
     }
 
@@ -26,7 +25,7 @@ public actual class Central internal constructor(
         return scope.peripheral(device)
     }
 
-    public actual fun peripheral(advertisement: Advertisement): Peripheral {
+    public override fun peripheral(advertisement: Advertisement): Peripheral {
         TODO("Not yet implemented")
     }
 }

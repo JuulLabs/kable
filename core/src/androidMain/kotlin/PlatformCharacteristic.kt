@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.util.Log
 import com.benasher44.uuid.Uuid
 
+@Suppress("PROPERTY_TYPE_MISMATCH_ON_OVERRIDE") // https://youtrack.jetbrains.com/issue/KTIJ-405
 internal data class PlatformCharacteristic(
     override val serviceUuid: Uuid,
     override val characteristicUuid: Uuid,

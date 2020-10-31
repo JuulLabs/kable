@@ -2,26 +2,25 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
-import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
 
 public fun CoroutineScope.central(
     context: Context
-): Central = Central(coroutineContext, context)
+): Central = AndroidCentral(coroutineContext, context)
 
-public actual class Central internal constructor(
+public class AndroidCentral internal constructor(
     parentCoroutineContext: CoroutineContext,
     androidContext: Context
-) {
+) : Central {
 
     private val scope = CoroutineScope(parentCoroutineContext + Job(parentCoroutineContext[Job]))
-    internal val applicationContext = androidContext.applicationContext
+    private val applicationContext = androidContext.applicationContext
 
-    public actual fun scanner(services: List<Uuid>?): Scanner = Scanner()
+    public override fun scanner(): Scanner = AndroidScanner()
 
-    public actual fun peripheral(
+    public override fun peripheral(
         advertisement: Advertisement
     ): Peripheral = scope.peripheral(applicationContext, advertisement.scanResult.device)
 
