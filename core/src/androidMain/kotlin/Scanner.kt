@@ -1,3 +1,5 @@
+// ktlint-disable filename
+
 package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
