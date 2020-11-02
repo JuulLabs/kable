@@ -1,6 +1,6 @@
 package com.juul.kable
 
-import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -8,7 +8,7 @@ import kotlin.coroutines.CoroutineContext
 
 public fun CoroutineScope.central(
     context: Context
-): Central = AndroidCentral(coroutineContext, context)
+): AndroidCentral = AndroidCentral(coroutineContext, context)
 
 public class AndroidCentral internal constructor(
     parentCoroutineContext: CoroutineContext,
@@ -22,12 +22,9 @@ public class AndroidCentral internal constructor(
 
     public override fun peripheral(
         advertisement: Advertisement
-    ): Peripheral = scope.peripheral(applicationContext, advertisement.scanResult.device)
+    ): Peripheral = peripheral(advertisement.bluetoothDevice)
 
     public fun peripheral(
-        macAddress: String
-    ): Peripheral = scope.peripheral(applicationContext, bluetoothDeviceOf(macAddress))
+        bluetoothDevice: BluetoothDevice
+    ): Peripheral = scope.peripheral(applicationContext, bluetoothDevice)
 }
-
-private fun bluetoothDeviceOf(macAddress: String) =
-    BluetoothAdapter.getDefaultAdapter().getRemoteDevice(macAddress)

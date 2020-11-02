@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
 import android.content.Context
+import android.util.Log
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.Event.Rejected
 import com.juul.kable.WriteType.WithResponse
@@ -42,14 +43,21 @@ private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONF
 
 internal fun CoroutineScope.peripheral(
     androidContext: Context,
+    advertisement: Advertisement,
+): Peripheral = peripheral(androidContext, advertisement.bluetoothDevice)
+
+public fun CoroutineScope.peripheral(
+    androidContext: Context,
     bluetoothDevice: BluetoothDevice,
 ): Peripheral = AndroidPeripheral(coroutineContext, androidContext, bluetoothDevice)
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
-    private val androidContext: Context,
+    androidContext: Context,
     private val bluetoothDevice: BluetoothDevice,
 ) : Peripheral {
+
+    private val context = androidContext.applicationContext
 
     private val job = SupervisorJob(parentCoroutineContext[Job])
     private val scope = CoroutineScope(parentCoroutineContext + job)
@@ -78,7 +86,7 @@ public class AndroidPeripheral internal constructor(
     private fun createConnectJob(): Job = scope.launch(start = LAZY) {
         setState(State.Connecting)
 
-        val connection = bluetoothDevice.connect(androidContext, _state)
+        val connection = bluetoothDevice.connect(context, _state).also { _connection = it }
         if (connection == null) {
             emit(Rejected)
             return@launch
@@ -94,8 +102,8 @@ public class AndroidPeripheral internal constructor(
             connection.suspendUntilConnected()
             discoverServices()
             observers.rewire()
-            _connection = connection
             emit(Event.Connected(this@AndroidPeripheral))
+            _state.value = State.Connected
         } catch (t: Throwable) {
             connection.close()
             _connection = null
@@ -128,7 +136,22 @@ public class AndroidPeripheral internal constructor(
         connection.request<OnServicesDiscovered> {
             discoverServices()
         }
-        platformServices = connection.bluetoothGatt.services.map { it.toPlatformService() }
+        platformServices = connection.bluetoothGatt
+            .services
+            .map { it.toPlatformService() }
+            .also(::log)
+    }
+
+    private fun log(services: List<PlatformService>) {
+        services.forEach { service ->
+            Log.d(TAG, "• Service: ${service.serviceUuid}")
+            service.characteristics.forEach { characteristic ->
+                Log.d(TAG, "    • Characteristic: ${characteristic.characteristicUuid}")
+                characteristic.descriptors.forEach { descriptor ->
+                    Log.d(TAG, "        • Descriptor: ${descriptor.descriptorUuid}")
+                }
+            }
+        }
     }
 
     public suspend fun requestMtu(mtu: Int): Unit = connection.request {

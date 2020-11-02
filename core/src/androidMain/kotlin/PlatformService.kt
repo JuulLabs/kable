@@ -1,7 +1,6 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothGattService
-import android.util.Log
 import com.benasher44.uuid.Uuid
 
 @Suppress("PROPERTY_TYPE_MISMATCH_ON_OVERRIDE") // https://youtrack.jetbrains.com/issue/KTIJ-405
@@ -19,10 +18,7 @@ internal fun PlatformService.toDiscoveredService() = DiscoveredService(
 internal fun BluetoothGattService.toPlatformService(): PlatformService {
     val serviceUuid = uuid.toUuid()
     val characteristics = characteristics
-        .map { characteristic ->
-            Log.d(TAG, characteristic.toString())
-            characteristic.toPlatformCharacteristic()
-        }
+        .map { characteristic -> characteristic.toPlatformCharacteristic() }
 
     return PlatformService(
         serviceUuid = serviceUuid,

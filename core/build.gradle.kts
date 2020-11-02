@@ -27,6 +27,7 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(coroutines("android"))
+                implementation(atomicfu("jvm"))
             }
         }
 
@@ -34,6 +35,11 @@ kotlin {
             languageSettings.enableLanguageFeature("InlineClasses")
         }
     }
+}
+
+atomicfu {
+    transformJvm = true
+    transformJs = false
 }
 
 android {

@@ -39,19 +39,23 @@ private fun BluetoothDevice.connectApi26(
     context: Context,
     state: MutableStateFlow<State>,
 ): Connection? {
-    val thread = HandlerThread(threadName)
-    val handler = Handler(thread.looper)
-    val dispatcher = handler.asCoroutineDispatcher()
-    val callback = Callback(state)
+    val thread = HandlerThread(threadName).apply { start() }
+    try {
+        val handler = Handler(thread.looper)
+        val dispatcher = handler.asCoroutineDispatcher()
+        val callback = Callback(state)
 
-    // todo: Have `transport` and `phy` be configurable.
-    val transport = TRANSPORT_AUTO
-    val phy = PHY_LE_1M_MASK
+        // todo: Have `transport` and `phy` be configurable.
+        val transport = TRANSPORT_AUTO
+        val phy = PHY_LE_1M_MASK
 
-    val bluetoothGatt =
-        connectGatt(context, false, callback, transport, phy, handler) ?: return null
-    thread.start()
-    return Connection(bluetoothGatt, dispatcher, callback, thread::quit)
+        val bluetoothGatt =
+            connectGatt(context, false, callback, transport, phy, handler) ?: return null
+        return Connection(bluetoothGatt, dispatcher, callback, thread::quit)
+    } catch (t: Throwable) {
+        thread.quit()
+        throw t
+    }
 }
 
 private val BluetoothDevice.threadName: String

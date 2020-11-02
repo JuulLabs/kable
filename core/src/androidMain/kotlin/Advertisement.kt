@@ -1,19 +1,18 @@
 package com.juul.kable
 
-import android.bluetooth.le.ScanRecord
-import android.bluetooth.le.ScanResult
+import android.bluetooth.BluetoothDevice
 
 public actual class Advertisement(
     public actual val rssi: Int,
-    internal val scanResult: ScanResult,
+    internal val bluetoothDevice: BluetoothDevice,
 ) {
 
     public actual val name: String?
-        get() = scanResult.device.name
+        get() = bluetoothDevice.name
 
-    public val scanRecord: ScanRecord?
-        get() = scanResult.scanRecord
+    public val address: String
+        get() = bluetoothDevice.address
 
     override fun toString(): String =
-        "Advertisement(name=$name, rssi=$rssi, device=${scanResult.device})"
+        "Advertisement(name=$name, rssi=$rssi, bluetoothDevice=$bluetoothDevice)"
 }

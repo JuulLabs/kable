@@ -6,7 +6,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
 import kotlin.coroutines.CoroutineContext
 
-public fun CoroutineScope.central(): Central = JsCentral(coroutineContext)
+public fun CoroutineScope.central(): JsCentral = JsCentral(coroutineContext)
 
 public class JsCentral internal constructor(
     parentCoroutineContext: CoroutineContext
