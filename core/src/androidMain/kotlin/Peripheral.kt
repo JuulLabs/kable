@@ -186,6 +186,7 @@ public class AndroidPeripheral internal constructor(
     ) {
         val bluetoothGattDescriptor = bluetoothGattDescriptorFrom(descriptor)
         connection.request<OnDescriptorWrite> {
+            bluetoothGattDescriptor.value = data
             writeDescriptor(bluetoothGattDescriptor)
         }
     }
