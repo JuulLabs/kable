@@ -101,6 +101,10 @@ internal class Connection(
             .first { (_, newState) -> newState == Disconnected }
     }
 
+    fun disconnect() {
+        bluetoothGatt.disconnect()
+    }
+
     fun close() {
         invokeOnClose.invoke()
     }

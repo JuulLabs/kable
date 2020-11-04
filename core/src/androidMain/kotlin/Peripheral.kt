@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -64,11 +65,9 @@ public class AndroidPeripheral internal constructor(
 
     private val _state = MutableStateFlow<State>(State.Disconnected)
     public override val state: Flow<State> = _state.asStateFlow()
-    private fun setState(state: State) { _state.value = state }
 
     private val _events = MutableSharedFlow<Event>()
     public override val events: Flow<Event> = _events.asSharedFlow()
-    private suspend fun emit(event: Event) { _events.emit(event) }
 
     private val observers = Observers(this)
 
@@ -84,11 +83,11 @@ public class AndroidPeripheral internal constructor(
     private val connectJob = atomic<Job?>(null)
 
     private fun createConnectJob(): Job = scope.launch(start = LAZY) {
-        setState(State.Connecting)
+        _state.value = State.Connecting
 
         val connection = bluetoothDevice.connect(context, _state).also { _connection = it }
         if (connection == null) {
-            emit(Rejected)
+            _events.emit(Rejected)
             return@launch
         }
 
@@ -97,13 +96,13 @@ public class AndroidPeripheral internal constructor(
                 .characteristicChanges
                 .onEach(observers.characteristicChanges::emit)
                 .catch { cause -> if (cause !is ConnectionLostException) throw cause }
+                .onCompletion { _events.emit(Event.Disconnected) }
                 .launchIn(scope, start = UNDISPATCHED)
 
             connection.suspendUntilConnected()
             discoverServices()
             observers.rewire()
-            emit(Event.Connected(this@AndroidPeripheral))
-            _state.value = State.Connected
+            _events.emit(Event.Ready)
         } catch (t: Throwable) {
             connection.close()
             _connection = null
@@ -119,12 +118,12 @@ public class AndroidPeripheral internal constructor(
     public override suspend fun disconnect() {
         try {
             job.cancelAndJoinChildren()
+            connection.disconnect()
             connection.suspendUntilDisconnected()
             connectJob.value = null
         } finally {
             _connection?.close()
             _connection = null
-            _state.value = State.Disconnected
         }
     }
 

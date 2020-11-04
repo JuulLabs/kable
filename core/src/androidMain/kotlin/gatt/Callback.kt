@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothProfile.STATE_CONNECTED
+import android.bluetooth.BluetoothProfile.STATE_CONNECTING
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
 import com.juul.kable.ConnectionLostException
@@ -34,6 +36,7 @@ internal class Callback(
         disconnectedAction = action
     }
 
+    // fixme: Why do we have _onConnectionStateChange AND state?!
     private val _onConnectionStateChange = MutableStateFlow<OnConnectionStateChange?>(null)
     val onConnectionStateChange: Flow<OnConnectionStateChange> =
         _onConnectionStateChange.filterNotNull()
@@ -72,15 +75,18 @@ internal class Callback(
         if (newState == STATE_DISCONNECTING || newState == STATE_DISCONNECTED) {
             _onCharacteristicChanged.close(ConnectionLostException())
             onResponse.close(ConnectionLostException())
+        }
 
-            when (newState) {
-                STATE_DISCONNECTING -> state.value = State.Disconnecting
-                STATE_DISCONNECTED -> {
-                    gatt.close()
-                    disconnectedAction?.invoke()
-                    state.value = State.Disconnected
-                }
-            }
+        if (newState == STATE_DISCONNECTED) {
+            gatt.close()
+            disconnectedAction?.invoke()
+        }
+
+        when (newState) {
+            STATE_CONNECTING -> state.value = State.Connecting
+            STATE_CONNECTED -> state.value = State.Connected
+            STATE_DISCONNECTING -> state.value = State.Disconnecting
+            STATE_DISCONNECTED -> state.value = State.Disconnected
         }
     }
 
