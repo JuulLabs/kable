@@ -3,14 +3,11 @@ buildscript {
         google()
         jcenter()
     }
-
-    dependencies {
-        classpath("com.android.tools.build:gradle:4.0.2")
-    }
 }
 
 plugins {
     kotlin("multiplatform") version "1.4.10" apply false
+    id("com.android.library") version "4.0.2" apply false
     id("org.jmailen.kotlinter") version "3.2.0" apply false
     id("com.vanniktech.maven.publish") version "0.13.0" apply false
     id("org.jetbrains.dokka") version "1.4.10.2" apply false
