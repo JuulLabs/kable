@@ -2,18 +2,11 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothProfile.STATE_CONNECTED
-import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.os.RemoteException
 import com.juul.kable.gatt.Callback
-import com.juul.kable.gatt.ConnectionState
-import com.juul.kable.gatt.ConnectionStatus
 import com.juul.kable.gatt.GattStatus
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -28,9 +21,6 @@ internal data class CharacteristicChange(
 )
 
 private val GattSuccess = GattStatus(GATT_SUCCESS)
-private val ConnectionSuccess = ConnectionStatus(GATT_SUCCESS)
-private val Disconnected = ConnectionState(STATE_DISCONNECTED)
-private val Connected = ConnectionState(STATE_CONNECTED)
 
 internal class Connection(
     internal val bluetoothGatt: BluetoothGatt,
@@ -72,37 +62,6 @@ internal class Connection(
             ?: throw OutOfOrderGattCallbackException(
                 "Unexpected response type ${response.javaClass.simpleName} received"
             )
-    }
-
-    fun setNotification(
-        bluetoothGattCharacteristic: BluetoothGattCharacteristic,
-        enable: Boolean,
-    ) {
-        bluetoothGatt.setCharacteristicNotification(bluetoothGattCharacteristic, enable)
-    }
-
-    suspend fun suspendUntilConnected() {
-        callback.onConnectionStateChange
-            .onEach { event ->
-                val (status, newState) = event
-                if (status != ConnectionSuccess) throw GattStatusException(event.toString())
-                if (newState == Disconnected) throw ConnectionLostException()
-            }
-            .first { (_, newState) -> newState == Connected }
-    }
-
-    suspend fun suspendUntilDisconnected() {
-        callback.onConnectionStateChange
-            .onEach { event ->
-                val (status, newState) = event
-                if (status != ConnectionSuccess && newState != Disconnected)
-                    throw GattStatusException(event.toString())
-            }
-            .first { (_, newState) -> newState == Disconnected }
-    }
-
-    fun disconnect() {
-        bluetoothGatt.disconnect()
     }
 
     fun close() {

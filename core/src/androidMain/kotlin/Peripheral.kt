@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -63,7 +64,7 @@ public class AndroidPeripheral internal constructor(
     private val job = SupervisorJob(parentCoroutineContext[Job])
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
-    private val _state = MutableStateFlow<State>(State.Disconnected)
+    private val _state = MutableStateFlow<State>(State.Disconnected())
     public override val state: Flow<State> = _state.asStateFlow()
 
     private val _events = MutableSharedFlow<Event>()
@@ -83,8 +84,6 @@ public class AndroidPeripheral internal constructor(
     private val connectJob = atomic<Job?>(null)
 
     private fun createConnectJob(): Job = scope.launch(start = LAZY) {
-        _state.value = State.Connecting
-
         val connection = bluetoothDevice.connect(context, _state).also { _connection = it }
         if (connection == null) {
             _events.emit(Rejected)
@@ -99,7 +98,7 @@ public class AndroidPeripheral internal constructor(
                 .onCompletion { _events.emit(Event.Disconnected) }
                 .launchIn(scope, start = UNDISPATCHED)
 
-            connection.suspendUntilConnected()
+            suspendUntilConnected()
             discoverServices()
             observers.rewire()
             _events.emit(Event.Ready)
@@ -118,8 +117,8 @@ public class AndroidPeripheral internal constructor(
     public override suspend fun disconnect() {
         try {
             job.cancelAndJoinChildren()
-            connection.disconnect()
-            connection.suspendUntilDisconnected()
+            connection.bluetoothGatt.disconnect()
+            suspendUntilDisconnected()
             connectJob.value = null
         } finally {
             _connection?.close()
@@ -205,7 +204,7 @@ public class AndroidPeripheral internal constructor(
 
     internal suspend fun startNotifications(characteristic: Characteristic) {
         val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
-        connection.setNotification(bluetoothGattCharacteristic, enable = true)
+        connection.bluetoothGatt.setCharacteristicNotification(bluetoothGattCharacteristic, true)
 
         val descriptor = LazyDescriptor(
             serviceUuid = characteristic.serviceUuid,
@@ -224,10 +223,20 @@ public class AndroidPeripheral internal constructor(
         write(descriptor, DISABLE_NOTIFICATION_VALUE)
 
         val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
-        connection.setNotification(bluetoothGattCharacteristic, enable = false)
+        connection.bluetoothGatt.setCharacteristicNotification(bluetoothGattCharacteristic, false)
     }
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
+}
+
+private suspend fun Peripheral.suspendUntilConnected() {
+    state
+        .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
+        .first { it == State.Connected }
+}
+
+private suspend fun Peripheral.suspendUntilDisconnected() {
+    state.first { it is State.Disconnected }
 }
 
 private fun AndroidPeripheral.bluetoothGattCharacteristicFrom(

@@ -1,6 +1,7 @@
 package com.juul.kable.gatt
 
 import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
@@ -10,6 +11,15 @@ import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
 import com.juul.kable.ConnectionLostException
 import com.juul.kable.State
+import com.juul.kable.State.Disconnected.Status.Cancelled
+import com.juul.kable.State.Disconnected.Status.Failed
+import com.juul.kable.State.Disconnected.Status.PeripheralDisconnected
+import com.juul.kable.State.Disconnected.Status.Timeout
+import com.juul.kable.State.Disconnected.Status.Unknown
+import com.juul.kable.external.GATT_CONN_CANCEL
+import com.juul.kable.external.GATT_CONN_FAIL_ESTABLISH
+import com.juul.kable.external.GATT_CONN_TERMINATE_PEER_USER
+import com.juul.kable.external.GATT_CONN_TIMEOUT
 import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
@@ -20,12 +30,15 @@ import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.filterNotNull
 
 private typealias DisconnectedAction = () -> Unit
+
+internal data class OnCharacteristicChanged(
+    val characteristic: BluetoothGattCharacteristic,
+    val value: ByteArray,
+)
 
 internal class Callback(
     private val state: MutableStateFlow<State>
@@ -35,11 +48,6 @@ internal class Callback(
     fun invokeOnDisconnected(action: () -> Unit) {
         disconnectedAction = action
     }
-
-    // fixme: Why do we have _onConnectionStateChange AND state?!
-    private val _onConnectionStateChange = MutableStateFlow<OnConnectionStateChange?>(null)
-    val onConnectionStateChange: Flow<OnConnectionStateChange> =
-        _onConnectionStateChange.filterNotNull()
 
     private val _onCharacteristicChanged = Channel<OnCharacteristicChanged>(UNLIMITED)
     val onCharacteristicChanged = _onCharacteristicChanged.consumeAsFlow()
@@ -69,14 +77,6 @@ internal class Callback(
         status: Int,
         newState: Int
     ) {
-        val event = OnConnectionStateChange(ConnectionStatus(status), ConnectionState(newState))
-        _onConnectionStateChange.value = event
-
-        if (newState == STATE_DISCONNECTING || newState == STATE_DISCONNECTED) {
-            _onCharacteristicChanged.close(ConnectionLostException())
-            onResponse.close(ConnectionLostException())
-        }
-
         if (newState == STATE_DISCONNECTED) {
             gatt.close()
             disconnectedAction?.invoke()
@@ -86,7 +86,12 @@ internal class Callback(
             STATE_CONNECTING -> state.value = State.Connecting
             STATE_CONNECTED -> state.value = State.Connected
             STATE_DISCONNECTING -> state.value = State.Disconnecting
-            STATE_DISCONNECTED -> state.value = State.Disconnected
+            STATE_DISCONNECTED -> state.value = State.Disconnected(status.toStatus())
+        }
+
+        if (newState == STATE_DISCONNECTING || newState == STATE_DISCONNECTED) {
+            _onCharacteristicChanged.close(ConnectionLostException())
+            onResponse.close(ConnectionLostException())
         }
     }
 
@@ -157,4 +162,13 @@ internal class Callback(
     ) {
         onResponse.offer(OnMtuChanged(mtu, GattStatus(status)))
     }
+}
+
+private fun Int.toStatus(): State.Disconnected.Status? = when (this) {
+    GATT_SUCCESS -> null
+    GATT_CONN_TIMEOUT -> Timeout
+    GATT_CONN_TERMINATE_PEER_USER -> PeripheralDisconnected
+    GATT_CONN_FAIL_ESTABLISH -> Failed
+    GATT_CONN_CANCEL -> Cancelled
+    else -> Unknown(this)
 }

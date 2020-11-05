@@ -190,9 +190,10 @@ public class JsPeripheral internal constructor(
     }
 
     private var isDisconnectedListenerRegistered = false
-    private val disconnectedListener: (JsEvent) -> Unit = {
+    private val disconnectedListener: (JsEvent) -> Unit = { event ->
+        console.dir(event)
         observers.invalidate()
-        _state.value = State.Disconnected
+        _state.value = State.Disconnected()
         scope.launch {
             _events.emit(Event.Disconnected)
         }
