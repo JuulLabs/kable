@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -14,6 +15,7 @@ internal class Observers(
     val characteristicChanges = MutableSharedFlow<CharacteristicChange>()
 
     private val observers = HashMap<Characteristic, Int>()
+    private val lock = Mutex()
 
     fun acquire(characteristic: Characteristic) = flow {
         peripheral.suspendUntilReady()
@@ -35,14 +37,6 @@ internal class Observers(
         }
     }
 
-    suspend fun invalidate() {
-        lock.withLock {
-            observers.clear()
-        }
-    }
-
-    private val lock = Mutex()
-
     suspend fun rewire() {
         lock.withLock {
             if (observers.isEmpty()) return
@@ -50,13 +44,6 @@ internal class Observers(
                 peripheral.startNotifications(characteristic)
             }
         }
-    }
-
-    fun clear() {
-        TODO()
-//        lock.withLock {
-//            observers.clear()
-//        }
     }
 
     private suspend fun <K> MutableMap<K, Int>.incrementAndGet(
