@@ -65,6 +65,7 @@ internal class Connection(
     }
 
     fun close() {
+        bluetoothGatt.close()
         invokeOnClose.invoke()
     }
 }

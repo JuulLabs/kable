@@ -2,6 +2,7 @@ package com.juul.kable
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -15,6 +16,8 @@ internal class Observers(
     private val observers = HashMap<Characteristic, Int>()
 
     fun acquire(characteristic: Characteristic) = flow {
+        peripheral.suspendUntilReady()
+
         if (observers.incrementAndGet(characteristic) == 1) {
             peripheral.startNotifications(characteristic)
         }
@@ -71,4 +74,8 @@ internal class Observers(
         if (newValue < 1) remove(key) else put(key, newValue)
         newValue
     }
+}
+
+private suspend fun Peripheral.suspendUntilReady() {
+    events.first { it == Event.Ready }
 }

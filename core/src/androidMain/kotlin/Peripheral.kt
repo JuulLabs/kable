@@ -61,7 +61,9 @@ public class AndroidPeripheral internal constructor(
 
     private val context = androidContext.applicationContext
 
-    private val job = SupervisorJob(parentCoroutineContext[Job])
+    private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
+        invokeOnCompletion { _connection?.close() }
+    }
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
@@ -72,6 +74,7 @@ public class AndroidPeripheral internal constructor(
 
     private val observers = Observers(this)
 
+    @Volatile
     internal var platformServices: List<PlatformService>? = null
     public override val services: List<DiscoveredService>?
         get() = platformServices?.map { it.toDiscoveredService() }
@@ -105,8 +108,10 @@ public class AndroidPeripheral internal constructor(
         } catch (t: Throwable) {
             connection.close()
             _connection = null
-            throw t
+            if (t !is ConnectionLostException) throw t
         }
+    }.apply {
+        invokeOnCompletion { connectJob.value = null }
     }
 
     public override suspend fun connect() {

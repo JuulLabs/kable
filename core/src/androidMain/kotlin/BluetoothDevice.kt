@@ -30,6 +30,11 @@ private fun BluetoothDevice.connectApi21(
 ): Connection? {
     val callback = Callback(state)
     val bluetoothGatt = connectGatt(context, false, callback) ?: return null
+
+    // Kludge: Explicitly set Connecting state so when Peripheral is suspending until Connected, it doesn't incorrectly
+    // see Disconnected before the connection request has kicked off the Connecting state (via Callback).
+    state.value = State.Connecting
+
     val dispatcher = newSingleThreadContext(threadName)
     return Connection(bluetoothGatt, dispatcher, callback, dispatcher::close)
 }
@@ -51,6 +56,11 @@ private fun BluetoothDevice.connectApi26(
 
         val bluetoothGatt =
             connectGatt(context, false, callback, transport, phy, handler) ?: return null
+
+        // Kludge: Explicitly set Connecting state so when Peripheral is suspending until Connected, it doesn't
+        // incorrectly see Disconnected before the connection request has kicked off the Connecting state (via Callback).
+        state.value = State.Connecting
+
         return Connection(bluetoothGatt, dispatcher, callback, thread::quit)
     } catch (t: Throwable) {
         thread.quit()

@@ -18,17 +18,17 @@ public sealed class Event {
 public suspend fun Event.onReady(
     action: suspend () -> Unit,
 ) {
-    if (this is Event.Ready) action.invoke()
+    if (this == Event.Ready) action.invoke()
 }
 
 public suspend fun Event.onDisconnected(
     action: suspend () -> Unit,
 ) {
-    if (this is Event.Disconnected) action.invoke()
+    if (this == Event.Disconnected) action.invoke()
 }
 
 public suspend fun Event.onRejected(
     action: suspend () -> Unit,
 ) {
-    if (this is Event.Rejected) action.invoke()
+    if (this == Event.Rejected) action.invoke()
 }
