@@ -38,7 +38,6 @@ internal class Observers(
 
     suspend fun rewire() {
         lock.withLock {
-            if (observers.isEmpty()) return
             observers.keys.forEach { characteristic ->
                 peripheral.startNotifications(characteristic)
             }
