@@ -16,7 +16,7 @@ internal fun PlatformService.toDiscoveredService() = DiscoveredService(
 )
 
 internal fun BluetoothGattService.toPlatformService(): PlatformService {
-    val serviceUuid = uuid.toUuid()
+    val serviceUuid = uuid
     val characteristics = characteristics
         .map { characteristic -> characteristic.toPlatformCharacteristic() }
 

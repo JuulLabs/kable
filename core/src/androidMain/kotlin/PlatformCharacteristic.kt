@@ -18,21 +18,19 @@ internal fun PlatformCharacteristic.toDiscoveredCharacteristic() = DiscoveredCha
 )
 
 internal fun BluetoothGattCharacteristic.toPlatformCharacteristic(): PlatformCharacteristic {
-    val serviceUuid = service.uuid.toUuid()
-    val characteristicUuid = uuid.toUuid()
     val platformDescriptors = descriptors.map { descriptor ->
-        descriptor.toPlatformDescriptor(serviceUuid, characteristicUuid)
+        descriptor.toPlatformDescriptor(service.uuid, uuid)
     }
 
     return PlatformCharacteristic(
-        serviceUuid = serviceUuid,
-        characteristicUuid = characteristicUuid,
+        serviceUuid = service.uuid,
+        characteristicUuid = uuid,
         descriptors = platformDescriptors,
         bluetoothGattCharacteristic = this,
     )
 }
 
 internal fun BluetoothGattCharacteristic.toLazyCharacteristic() = LazyCharacteristic(
-    serviceUuid = service.uuid.toUuid(),
-    characteristicUuid = uuid.toUuid(),
+    serviceUuid = service.uuid,
+    characteristicUuid = uuid,
 )

@@ -23,6 +23,6 @@ internal fun BluetoothGattDescriptor.toPlatformDescriptor(
 ) = PlatformDescriptor(
     serviceUuid = serviceUuid,
     characteristicUuid = characteristicUuid,
-    descriptorUuid = uuid.toUuid(),
+    descriptorUuid = uuid,
     bluetoothGattDescriptor = this,
 )
