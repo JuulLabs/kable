@@ -158,7 +158,7 @@ public class AndroidPeripheral internal constructor(
     }
 
     public suspend fun requestMtu(mtu: Int): Unit = connection.request {
-        requestMtu(mtu)
+        this@request.requestMtu(mtu)
     }
 
     public override suspend fun write(
