@@ -131,12 +131,12 @@ public class AndroidPeripheral internal constructor(
         }
     }
 
-    public override suspend fun rssi(): Int = connection.request<OnReadRemoteRssi> {
+    public override suspend fun rssi(): Int = connection.execute<OnReadRemoteRssi> {
         readRemoteRssi()
     }.rssi
 
     private suspend fun discoverServices() {
-        connection.request<OnServicesDiscovered> {
+        connection.execute<OnServicesDiscovered> {
             discoverServices()
         }
         platformServices = connection.bluetoothGatt
@@ -157,8 +157,8 @@ public class AndroidPeripheral internal constructor(
         }
     }
 
-    public suspend fun requestMtu(mtu: Int): Unit = connection.request {
-        this@request.requestMtu(mtu)
+    public suspend fun requestMtu(mtu: Int): Unit = connection.execute {
+        this@execute.requestMtu(mtu)
     }
 
     public override suspend fun write(
@@ -167,7 +167,7 @@ public class AndroidPeripheral internal constructor(
         writeType: WriteType,
     ) {
         val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
-        connection.request<OnCharacteristicWrite> {
+        connection.execute<OnCharacteristicWrite> {
             bluetoothGattCharacteristic.value = data
             bluetoothGattCharacteristic.writeType = writeType.intValue
             writeCharacteristic(bluetoothGattCharacteristic)
@@ -178,7 +178,7 @@ public class AndroidPeripheral internal constructor(
         characteristic: Characteristic,
     ): ByteArray {
         val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
-        return connection.request<OnCharacteristicRead> {
+        return connection.execute<OnCharacteristicRead> {
             readCharacteristic(bluetoothGattCharacteristic)
         }.value
     }
@@ -188,7 +188,7 @@ public class AndroidPeripheral internal constructor(
         data: ByteArray,
     ) {
         val bluetoothGattDescriptor = bluetoothGattDescriptorFrom(descriptor)
-        connection.request<OnDescriptorWrite> {
+        connection.execute<OnDescriptorWrite> {
             bluetoothGattDescriptor.value = data
             writeDescriptor(bluetoothGattDescriptor)
         }
@@ -198,7 +198,7 @@ public class AndroidPeripheral internal constructor(
         descriptor: Descriptor,
     ): ByteArray {
         val bluetoothGattDescriptor = bluetoothGattDescriptorFrom(descriptor)
-        return connection.request<OnDescriptorRead> {
+        return connection.execute<OnDescriptorRead> {
             readDescriptor(bluetoothGattDescriptor)
         }.value
     }

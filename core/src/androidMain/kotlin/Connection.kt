@@ -40,7 +40,20 @@ internal class Connection(
 
     private val lock = Mutex()
 
-    suspend inline fun <reified T> request(
+    /**
+     * Executes specified [BluetoothGatt] [action].
+     *
+     * Android Bluetooth Low Energy has strict requirements: all I/O must be executed sequentially. In other words, the
+     * response for an [action] must be received before another [action] can be performed. Additionally, the Android BLE
+     * stack can be unstable if I/O isn't performed on a dedicated thread.
+     *
+     * These requirements are fulfilled by ensuring that all [action]s are performed behind a [Mutex]. On Android pre-O
+     * a single threaded [CoroutineDispatcher] is used, Android O and newer a [CoroutineDispatcher] backed by an Android
+     * `Handler` is used (and is also used in the Android BLE [Callback]).
+     *
+     * @throws GattStatusException if response has a non-`GATT_SUCCESS` status.
+     */
+    suspend inline fun <reified T> execute(
         crossinline action: BluetoothGatt.() -> Boolean,
     ): T = lock.withLock {
         withContext(dispatcher) {
