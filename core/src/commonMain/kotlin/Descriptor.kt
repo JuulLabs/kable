@@ -4,13 +4,13 @@ import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuidFrom
 
 public fun descriptorOf(
-    serviceUuid: String,
-    descriptorUuid: String,
-    characteristicUuid: String,
+    service: String,
+    characteristic: String,
+    descriptor: String,
 ): Descriptor = LazyDescriptor(
-    serviceUuid = uuidFrom(serviceUuid),
-    characteristicUuid = uuidFrom(characteristicUuid),
-    descriptorUuid = uuidFrom(descriptorUuid)
+    serviceUuid = uuidFrom(service),
+    characteristicUuid = uuidFrom(characteristic),
+    descriptorUuid = uuidFrom(descriptor)
 )
 
 public interface Descriptor {

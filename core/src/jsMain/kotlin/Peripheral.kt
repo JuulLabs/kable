@@ -30,17 +30,17 @@ private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
 
 internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-) = Peripheral(coroutineContext, bluetoothDevice)
+) = JsPeripheral(coroutineContext, bluetoothDevice)
 
-public actual class Peripheral internal constructor(
+public class JsPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
-) {
+) : Peripheral {
 
     private val job = Job(parentCoroutineContext[Job]).apply {
         invokeOnCompletion {
             console.log("Shutting down job")
-            console.dir(this@Peripheral)
+            console.dir(this@JsPeripheral)
             observers.clear()
             disconnectGatt()
             unregisterDisconnectedListener()
@@ -50,39 +50,40 @@ public actual class Peripheral internal constructor(
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
     private val _state = MutableStateFlow<State?>(null)
-    public actual val state: Flow<State> = _state.filterNotNull()
+    public override val state: Flow<State> = _state.filterNotNull()
 
     private val _events = MutableSharedFlow<Event>()
-    public actual val events: Flow<Event> = _events.asSharedFlow()
+    public override val events: Flow<Event> = _events.asSharedFlow()
 
-    private var _services: List<PlatformService>? = null
-    public actual val services: List<DiscoveredService>?
-        get() = _services?.map { it.toDiscoveredService() }
+    private var platformServices: List<PlatformService>? = null
+    public override val services: List<DiscoveredService>?
+        get() = platformServices?.map { it.toDiscoveredService() }
 
-    public actual suspend fun rssi(): Int {
+    public override suspend fun rssi(): Int {
         TODO("Not yet implemented")
     }
 
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
 
-    public actual suspend fun connect() {
+    public override suspend fun connect() {
+        // todo: Prevent multiple simultaneous connection attempts.
         _state.value = State.Connecting
 
         try {
-            registerDisconnectedListener()
+            registerDisconnectedListener() // todo: Unregister on connection drop?
             gatt.connect().await() // todo: Catch appropriate exception to emit State.Rejected.
-            discoverServices()
-            _events.emit(Event.Connected(this))
-            observers.rewire(_services!!)
             _state.value = State.Connected
+            val services = discoverServices()
+            observers.rewire(services)
+            _events.emit(Event.Ready)
         } catch (cancellation: CancellationException) {
             disconnectGatt()
             throw cancellation
         }
     }
 
-    public actual suspend fun disconnect() {
+    public override suspend fun disconnect() {
         console.log("Initiating disconnect")
         scope.coroutineContext[Job]?.cancelAndJoinChildren()
         disconnectGatt()
@@ -94,15 +95,17 @@ public actual class Peripheral internal constructor(
         bluetoothDevice.gatt?.disconnect()
     }
 
-    private suspend fun discoverServices() {
+    private suspend fun discoverServices(): List<PlatformService> {
         console.log("Discovering services")
-        _services = gatt.getPrimaryServices()
+        val services = gatt.getPrimaryServices()
             .await()
-            .map { service -> service.toPlatformService() }
+            .map { it.toPlatformService() }
+        platformServices = services
         console.log("Service discovery complete")
+        return services
     }
 
-    public actual suspend fun write(
+    public override suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
@@ -121,13 +124,13 @@ public actual class Peripheral internal constructor(
         .readValue()
         .await()
 
-    public actual suspend fun read(
+    public override suspend fun read(
         characteristic: Characteristic
     ): ByteArray = readAsDataView(characteristic)
         .buffer
         .toByteArray()
 
-    public actual suspend fun write(
+    public override suspend fun write(
         descriptor: Descriptor,
         data: ByteArray
     ) {
@@ -142,7 +145,7 @@ public actual class Peripheral internal constructor(
         .readValue()
         .await()
 
-    public actual suspend fun read(
+    public override suspend fun read(
         descriptor: Descriptor
     ): ByteArray = readAsDataView(descriptor)
         .buffer
@@ -154,7 +157,7 @@ public actual class Peripheral internal constructor(
         characteristic: Characteristic
     ): Flow<DataView> = observers.acquire(characteristic)
 
-    public actual fun observe(
+    public override fun observe(
         characteristic: Characteristic
     ): Flow<ByteArray> = observeDataView(characteristic)
         .map { it.buffer.toByteArray() }
@@ -162,7 +165,7 @@ public actual class Peripheral internal constructor(
     internal fun bluetoothRemoteGATTCharacteristicFrom(
         characteristic: Characteristic
     ): BluetoothRemoteGATTCharacteristic {
-        val services = checkNotNull(_services) { "Services have not been discovered for $this" }
+        val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
         val characteristics = services
             .first { it.serviceUuid == characteristic.serviceUuid }
             .characteristics
@@ -174,7 +177,7 @@ public actual class Peripheral internal constructor(
     private fun bluetoothRemoteGATTDescriptorFrom(
         descriptor: Descriptor
     ): BluetoothRemoteGATTDescriptor {
-        val services = checkNotNull(_services) { "Services have not been discovered for $this" }
+        val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
         val characteristics = services
             .first { service -> service.serviceUuid == descriptor.serviceUuid }
             .characteristics
@@ -187,11 +190,12 @@ public actual class Peripheral internal constructor(
     }
 
     private var isDisconnectedListenerRegistered = false
-    private val disconnectedListener: (JsEvent) -> Unit = {
+    private val disconnectedListener: (JsEvent) -> Unit = { event ->
+        console.dir(event)
         observers.invalidate()
-        _state.value = State.Disconnected(cause = null) // `cause` is unavailable in Javascript.
+        _state.value = State.Disconnected()
         scope.launch {
-            _events.emit(Event.Disconnected(wasConnected = true))
+            _events.emit(Event.Disconnected)
         }
     }
 

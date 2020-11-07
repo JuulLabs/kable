@@ -2,44 +2,33 @@ package com.juul.kable
 
 public sealed class Event {
 
-    /** Triggered upon a connection being successfully established. */
-    public data class Connected(
-        val peripheral: Peripheral,
-    ) : Event()
-
     /**
-     * Triggered either immediately after an established connection has dropped or after a failed
-     * connection attempt.
-     *
-     * @param wasConnected is `true` if event follows an established connection, or `false` if previous connection attempt failed.
+     * Triggered when a connection is established and ready. A connection is considered "ready" after service discovery
+     * is complete and observations (if any) have been rewired.
      */
-    public data class Disconnected(
-        val wasConnected: Boolean,
-    ) : Event()
+    public object Ready : Event()
 
-    /**
-     * Triggered when the connection request was rejected by the system (e.g. bluetooth hardware
-     * unavailable).
-     */
-    public data class Rejected(
-        val cause: Throwable,
-    ) : Event()
+    /** Triggered either after an established connection has dropped or after a connection attempt has failed. */
+    public object Disconnected : Event()
+
+    /** Triggered when a connection request is rejected by the system (e.g. bluetooth hardware unavailable). */
+    public object Rejected : Event()
 }
 
-public suspend fun Event.onConnected(
-    action: suspend Peripheral.() -> Unit,
+public suspend fun Event.onReady(
+    action: suspend () -> Unit,
 ) {
-    if (this is Event.Connected) action.invoke(peripheral)
+    if (this === Event.Ready) action.invoke()
 }
 
 public suspend fun Event.onDisconnected(
-    action: suspend Event.Disconnected.() -> Unit,
+    action: suspend () -> Unit,
 ) {
-    if (this is Event.Disconnected) action.invoke(this)
+    if (this === Event.Disconnected) action.invoke()
 }
 
 public suspend fun Event.onRejected(
-    action: suspend Event.Rejected.() -> Unit,
+    action: suspend () -> Unit,
 ) {
-    if (this is Event.Rejected) action.invoke(this)
+    if (this === Event.Rejected) action.invoke()
 }

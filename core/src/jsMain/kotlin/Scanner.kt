@@ -1,3 +1,5 @@
+// ktlint-disable filename
+
 package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
@@ -8,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
  *
  * See also: [Chrome Platform Status: Web Bluetooth Scanning](https://www.chromestatus.com/feature/5346724402954240)
  */
-public actual class Scanner {
+public class JsScanner : Scanner {
 
-    public actual val peripherals: Flow<Advertisement> = TODO()
+    public override val peripherals: Flow<Advertisement> = TODO()
 }

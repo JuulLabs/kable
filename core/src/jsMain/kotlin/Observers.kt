@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.flow
 import org.khronos.webgl.DataView
 import org.w3c.dom.events.Event
 
-private typealias EventListener = (Event) -> Unit
+private typealias ObservationListener = (Event) -> Unit
 
 private const val CHARACTERISTIC_VALUE_CHANGED = "characteristicvaluechanged"
 
@@ -19,11 +19,11 @@ private data class CharacteristicChange(
 
 private data class Observation(
     var count: Int = 0,
-    var listener: EventListener?,
+    var listener: ObservationListener?,
 )
 
 internal class Observers(
-    private val peripheral: Peripheral
+    private val peripheral: JsPeripheral
 ) {
 
     private val observers = mutableMapOf<Characteristic, Observation>()
@@ -82,17 +82,17 @@ internal class Observers(
         if (observers.isEmpty()) return
         console.log("Rewiring observers")
 
-        observers.forEach { (identifier, _) ->
-            val characteristic =
-                services.first { it.serviceUuid == identifier.serviceUuid }
-                    .characteristics.first { it.characteristicUuid == identifier.characteristicUuid }
+        observers.forEach { (characteristic, _) ->
+            val platformCharacteristic =
+                services.first { it.serviceUuid == characteristic.serviceUuid }
+                    .characteristics.first { it.characteristicUuid == characteristic.characteristicUuid }
 
-            console.log("Starting notifications for $identifier")
-            characteristic
+            console.log("Starting notifications for $characteristic")
+            platformCharacteristic
                 .bluetoothRemoteGATTCharacteristic
                 .apply {
                     startNotifications().await()
-                    addEventListener(CHARACTERISTIC_VALUE_CHANGED, characteristic.createListener())
+                    addEventListener(CHARACTERISTIC_VALUE_CHANGED, platformCharacteristic.createListener())
                 }
         }
     }
@@ -101,7 +101,7 @@ internal class Observers(
         observers.clear()
     }
 
-    private fun Characteristic.createListener(): EventListener = { event ->
+    private fun Characteristic.createListener(): ObservationListener = { event ->
         val target = event.target as BluetoothRemoteGATTCharacteristic
         changes.tryEmit(CharacteristicChange(this, target.value!!))
     }
