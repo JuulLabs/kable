@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import platform.CoreBluetooth.CBManagerStatePoweredOn
 
-public actual class Scanner internal constructor(
+public class AppleScanner internal constructor(
     central: CentralManager,
     services: List<Uuid>?
-) {
+) : Scanner {
 
-    public actual val peripherals: Flow<Advertisement> =
+    public override val peripherals: Flow<Advertisement> =
         central.delegate
             .response
             .onStart {

@@ -36,11 +36,13 @@ kotlin {
             kotlin.srcDir("src/appleMain/kotlin")
 
             dependencies {
-                implementation(coroutines("core", version = "1.3.9-native-mt-2!!"))
                 implementation(stately("isolate-macosx64"))
             }
         }
-        val macosX64Test by getting { kotlin.srcDir("src/appleTest/kotlin") }
+
+        val macosX64Test by getting {
+            kotlin.srcDir("src/appleTest/kotlin")
+        }
 
         all {
             languageSettings.enableLanguageFeature("InlineClasses")

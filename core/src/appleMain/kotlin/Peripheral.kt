@@ -9,9 +9,16 @@ import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Data
 import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Error
 import com.juul.kable.PeripheralDelegate.Response
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
+import com.juul.kable.State.Disconnected.Status.Cancelled
+import com.juul.kable.State.Disconnected.Status.ConnectionLimitReached
+import com.juul.kable.State.Disconnected.Status.EncryptionTimedOut
+import com.juul.kable.State.Disconnected.Status.Failed
+import com.juul.kable.State.Disconnected.Status.PeripheralDisconnected
+import com.juul.kable.State.Disconnected.Status.Timeout
+import com.juul.kable.State.Disconnected.Status.Unknown
+import com.juul.kable.State.Disconnected.Status.UnknownDevice
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
@@ -36,10 +43,18 @@ import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
 import platform.CoreBluetooth.CBDescriptor
+import platform.CoreBluetooth.CBErrorConnectionFailed
+import platform.CoreBluetooth.CBErrorConnectionLimitReached
+import platform.CoreBluetooth.CBErrorConnectionTimeout
+import platform.CoreBluetooth.CBErrorEncryptionTimedOut
+import platform.CoreBluetooth.CBErrorOperationCancelled
+import platform.CoreBluetooth.CBErrorPeripheralDisconnected
+import platform.CoreBluetooth.CBErrorUnknownDevice
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSData
+import platform.Foundation.NSError
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.native.concurrent.freeze
@@ -47,43 +62,39 @@ import kotlin.native.concurrent.freeze
 internal fun CoroutineScope.peripheral(
     centralManager: CentralManager,
     cbPeripheral: CBPeripheral,
-) = Peripheral(coroutineContext, centralManager, cbPeripheral)
+) = ApplePeripheral(coroutineContext, centralManager, cbPeripheral)
 
 @OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
-public actual class Peripheral internal constructor(
+public class ApplePeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val centralManager: CentralManager,
     private val cbPeripheral: CBPeripheral,
-) {
+) : Peripheral {
 
     private val delegate = PeripheralDelegate().freeze()
 
     private val scope =
         CoroutineScope(parentCoroutineContext + Job(parentCoroutineContext[Job]))
 
-    public actual val state: Flow<State> = centralManager.delegate
+    public override val state: Flow<State> = centralManager.delegate
         .connection
         .filter { event -> event.identifier == cbPeripheral.identifier }
         .map { event ->
             when (event) {
                 is DidConnect -> State.Connected
-                is DidFailToConnect -> State.Disconnected(event.error)
-                is DidDisconnect -> State.Disconnected(null)
+                is DidFailToConnect -> State.Disconnected(event.error?.toStatus())
+                is DidDisconnect -> State.Disconnected(event.error?.toStatus())
             }
         }
 
-    // fixme: Use MutableSharedFlow; a buffer of 1 here will **not** exhibit the desired behavior.
-    // We want the connection handling control flow to pause until event has been processed (rendezvous style). With a
-    // buffer of 1, we won't wait (for example) for a Connected event to be processed before proceeding. So it doesn't
-    // give a library consumer the ability to do connection setup (e.g. discover services) via the Connected event prior
-    // to a Connected state being emitted.
+    // fixme: Use MutableSharedFlow.
     private val _events = BroadcastChannel<Event>(1)
-    public actual val events: Flow<Event> = _events.asFlow()
+    public override val events: Flow<Event> = _events.asFlow()
 
     internal val platformServices: List<PlatformService>? = null
 
     // todo: Is CBPeripheral.services `null` until service discovery?
-    public actual val services: List<DiscoveredService>?
+    public override val services: List<DiscoveredService>?
         get() = cbPeripheral.services?.map { service ->
             service as CBService
             service.toPlatformService().toDiscoveredService()
@@ -91,9 +102,7 @@ public actual class Peripheral internal constructor(
 
     private val _characteristicChange = BroadcastChannel<CharacteristicChange>(BUFFERED)
 
-    private val wasConnected = atomic(false)
-
-    public actual suspend fun connect(): Unit {
+    public override suspend fun connect(): Unit {
         val job = scope.launch(start = UNDISPATCHED) {
             try {
                 // todo: Restore observations.
@@ -105,8 +114,7 @@ public actual class Peripheral internal constructor(
                     centralManager.cancelPeripheralConnection(cbPeripheral)
                 }
 
-                _events.send(Event.Disconnected(wasConnected.value))
-                wasConnected.value = false
+                _events.send(Event.Disconnected)
             }
         }
 
@@ -117,8 +125,10 @@ public actual class Peripheral internal constructor(
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
             suspendUntilConnected()
 
-            wasConnected.value = true
-            _events.send(Event.Connected(this))
+            discoverServices()
+            // todo: Re-wire observers.
+
+            _events.send(Event.Ready)
         } catch (cancellation: CancellationException) {
             job.cancel()
             throw cancellation
@@ -132,13 +142,12 @@ public actual class Peripheral internal constructor(
         }
     }
 
-    public actual suspend fun disconnect(): Unit {
-        wasConnected.value = false
+    public override suspend fun disconnect(): Unit {
         scope.coroutineContext[Job]?.cancelAndJoinChildren()
     }
 
     @Throws(CancellationException::class, IOException::class)
-    public actual suspend fun rssi(): Int = mutex.withLock {
+    public override suspend fun rssi(): Int = mutex.withLock {
         centralManager.readRssi(cbPeripheral)
         delegate.response
             .receive()
@@ -172,7 +181,7 @@ public actual class Peripheral internal constructor(
     }
 
     @Throws(CancellationException::class, IOException::class)
-    public actual suspend fun write(
+    public override suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
@@ -193,7 +202,7 @@ public actual class Peripheral internal constructor(
     }
 
     @Throws(CancellationException::class, IOException::class)
-    public actual suspend fun read(
+    public override suspend fun read(
         characteristic: Characteristic,
     ): ByteArray = readAsNSData(characteristic).toByteArray()
 
@@ -208,7 +217,7 @@ public actual class Peripheral internal constructor(
     }
 
     @Throws(CancellationException::class, IOException::class)
-    public actual suspend fun write(
+    public override suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
     ): Unit = performAction {
@@ -217,13 +226,13 @@ public actual class Peripheral internal constructor(
 
     // todo: readAsNSData
     @Throws(CancellationException::class, IOException::class)
-    public actual suspend fun read(
+    public override suspend fun read(
         descriptor: Descriptor,
     ): ByteArray = mutex.withLock {
         TODO("Not yet implemented")
     }
 
-    public actual fun observe(
+    public override fun observe(
         characteristic: Characteristic
     ): Flow<ByteArray> = observeAsNSData(characteristic).map { it.toByteArray() }
 
@@ -251,7 +260,7 @@ public actual class Peripheral internal constructor(
     }
 }
 
-internal fun Peripheral.cbCharacteristicFrom(
+internal fun ApplePeripheral.cbCharacteristicFrom(
     characteristic: Characteristic,
 ): CBCharacteristic {
     val services = checkNotNull(platformServices) {
@@ -265,7 +274,7 @@ internal fun Peripheral.cbCharacteristicFrom(
         .cbCharacteristic
 }
 
-private fun Peripheral.cbDescriptorFrom(
+private fun ApplePeripheral.cbDescriptorFrom(
     descriptor: Descriptor,
 ): CBDescriptor {
     val services = checkNotNull(platformServices) {
@@ -299,11 +308,22 @@ private val WriteType.cbWriteType: CBCharacteristicWriteType
 
 private fun <T> Response.getOrThrow(): T {
     val error = this.error
-    if (error != null) throw IOException(error.description)
+    if (error != null) throw IOException(error.description, cause = null)
     return this as T
 }
 
 private fun DidUpdateValueForCharacteristic.getOrThrow(): NSData = when (this) {
     is Data -> data
-    is Error -> throw IOException(error.description)
+    is Error -> throw IOException(error.description, cause = null)
+}
+
+private fun NSError.toStatus(): State.Disconnected.Status = when (code) {
+    CBErrorPeripheralDisconnected -> PeripheralDisconnected
+    CBErrorConnectionFailed -> Failed
+    CBErrorConnectionTimeout -> Timeout
+    CBErrorUnknownDevice -> UnknownDevice
+    CBErrorOperationCancelled -> Cancelled
+    CBErrorConnectionLimitReached -> ConnectionLimitReached
+    CBErrorEncryptionTimedOut -> EncryptionTimedOut
+    else -> Unknown(code.toInt())
 }

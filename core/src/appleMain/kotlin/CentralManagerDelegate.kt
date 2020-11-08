@@ -47,7 +47,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         abstract val identifier: NSUUID
 
         data class DidConnect(
-            override val identifier: NSUUID
+            override val identifier: NSUUID,
         ) : ConnectionEvent()
 
         data class DidFailToConnect(
@@ -70,7 +70,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         central: CBCentralManager,
         didDiscoverPeripheral: CBPeripheral,
         advertisementData: Map<Any?, *>,
-        RSSI: NSNumber
+        RSSI: NSNumber,
     ): Unit {
         val peripheral = didDiscoverPeripheral.freeze()
 
@@ -83,33 +83,31 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
 
     override fun centralManager(
         central: CBCentralManager,
-        didConnectPeripheral: CBPeripheral
+        didConnectPeripheral: CBPeripheral,
     ): Unit {
         _connection.offer(DidConnect(didConnectPeripheral.identifier))
     }
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
     override fun centralManager(
         central: CBCentralManager,
         didFailToConnectPeripheral: CBPeripheral,
-        error: NSError?
+        error: NSError?,
     ): Unit {
         _connection.offer(DidFailToConnect(didFailToConnectPeripheral.identifier, error))
     }
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
     override fun centralManager(
         central: CBCentralManager,
         didDisconnectPeripheral: CBPeripheral,
-        error: NSError?
+        error: NSError?,
     ): Unit {
         _connection.offer(DidDisconnect(didDisconnectPeripheral.identifier, error))
     }
 
     override fun centralManagerDidUpdateState(
-        central: CBCentralManager
+        central: CBCentralManager,
     ): Unit {
         _state.value = central.state
     }

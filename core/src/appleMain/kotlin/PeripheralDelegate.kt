@@ -12,10 +12,8 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.id
 import kotlinx.coroutines.runBlocking
 import platform.CoreBluetooth.CBCharacteristic
-import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBPeripheralDelegateProtocol
 import platform.CoreBluetooth.CBService
@@ -109,6 +107,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
             )
         )
     }
+
     // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
     @Suppress("CONFLICTING_OVERLOADS")
     override fun peripheral(
