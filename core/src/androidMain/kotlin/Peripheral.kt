@@ -23,19 +23,17 @@ import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -282,10 +280,3 @@ private val WriteType.intValue: Int
         WithResponse -> WRITE_TYPE_DEFAULT
         WithoutResponse -> WRITE_TYPE_NO_RESPONSE
     }
-
-private fun <T> Flow<T>.launchIn(
-    scope: CoroutineScope,
-    start: CoroutineStart = CoroutineStart.DEFAULT,
-): Job = scope.launch(start = start) {
-    collect()
-}

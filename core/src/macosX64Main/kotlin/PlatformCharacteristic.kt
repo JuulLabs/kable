@@ -35,3 +35,8 @@ internal fun CBCharacteristic.toPlatformCharacteristic(
         cbCharacteristic = this,
     )
 }
+
+internal fun CBCharacteristic.toLazyCharacteristic() = LazyCharacteristic(
+    serviceUuid = service.UUID.toUuid(),
+    characteristicUuid = UUID.toUuid(),
+)

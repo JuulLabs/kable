@@ -20,8 +20,14 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(coroutines("core"))
+                api(coroutines("core", version = "1.3.9-native-mt-2"))
                 api(uuid())
+            }
+        }
+
+        val jsMain by getting {
+            dependencies {
+                implementation(coroutines("core"))
             }
         }
 
@@ -33,15 +39,10 @@ kotlin {
         }
 
         val macosX64Main by getting {
-            kotlin.srcDir("src/appleMain/kotlin")
-
             dependencies {
+                implementation(coroutines("core", version = "1.3.9-native-mt-2!!"))
                 implementation(stately("isolate-macosx64"))
             }
-        }
-
-        val macosX64Test by getting {
-            kotlin.srcDir("src/appleTest/kotlin")
         }
 
         all {

@@ -4,18 +4,21 @@ package com.juul.kable
 
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlin.coroutines.cancellation.CancellationException
 
 public enum class WriteType {
     WithResponse,
     WithoutResponse,
 }
 
+@OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
 public interface Peripheral {
 
     /**
      * Provides a [Flow] of the [Peripheral]'s [State].
      *
-     * After [connect] is called, the [state] will typically transition through the following [State]s:
+     * After [connect] is called, the [state] will typically transition through the following [states][State]:
      *
      * ```
      *     connect()
@@ -53,11 +56,13 @@ public interface Peripheral {
     /** @return discovered [services][Service], or `null` until a [connection][connect] has been established. */
     public val services: List<DiscoveredService>?
 
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun rssi(): Int
 
     /**
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun read(
         characteristic: Characteristic,
     ): ByteArray
@@ -65,6 +70,7 @@ public interface Peripheral {
     /**
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
@@ -74,6 +80,7 @@ public interface Peripheral {
     /**
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun read(
         descriptor: Descriptor,
     ): ByteArray
@@ -81,6 +88,7 @@ public interface Peripheral {
     /**
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
