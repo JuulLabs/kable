@@ -61,8 +61,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         ) : ConnectionEvent()
     }
 
-    private val _connection = MutableStateFlow<ConnectionEvent?>(null).freeze()
-    val connection: Flow<ConnectionEvent> = _connection.filterNotNull().freeze()
+    private val _connectionState = MutableStateFlow<ConnectionEvent?>(null).freeze()
+    val connectionState: Flow<ConnectionEvent> = _connectionState.filterNotNull().freeze()
 
     /* Monitoring Connections with Peripherals */
 
@@ -70,7 +70,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         central: CBCentralManager,
         didConnectPeripheral: CBPeripheral,
     ): Unit {
-        _connection.value = DidConnect(didConnectPeripheral.identifier)
+        _connectionState.value = DidConnect(didConnectPeripheral.identifier)
     }
 
     @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
@@ -79,7 +79,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didDisconnectPeripheral: CBPeripheral,
         error: NSError?,
     ): Unit {
-        _connection.value = DidDisconnect(didDisconnectPeripheral.identifier, error)
+        _connectionState.value = DidDisconnect(didDisconnectPeripheral.identifier, error)
         peripheralDelegates.remove(didDisconnectPeripheral.identifier)?.close()
     }
 
@@ -89,7 +89,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didFailToConnectPeripheral: CBPeripheral,
         error: NSError?,
     ): Unit {
-        _connection.value = DidFailToConnect(didFailToConnectPeripheral.identifier, error)
+        _connectionState.value = DidFailToConnect(didFailToConnectPeripheral.identifier, error)
     }
 
     // todo: func centralManager(CBCentralManager, connectionEventDidOccur: CBConnectionEvent, for: CBPeripheral)

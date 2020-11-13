@@ -56,6 +56,9 @@ internal class Observers(
                     it.cbCharacteristic.service.UUID == cbServiceUuid
                 ) emit(it.data)
             }
+        } catch (t: Throwable) {
+            println("Observers acquire caught $t")
+            throw t
         } finally {
             if (observers.decrementAndGet(characteristic) < 1) {
                 peripheral.stopNotifications(characteristic)
