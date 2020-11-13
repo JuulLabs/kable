@@ -145,6 +145,8 @@ public class ApplePeripheral internal constructor(
         }
 
         _ready.value = true
+    }.apply {
+        invokeOnCompletion { connectJob.value = null }
     }
 
     public override suspend fun connect(): Unit {
