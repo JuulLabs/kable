@@ -52,9 +52,6 @@ public class JsPeripheral internal constructor(
     private val _state = MutableStateFlow<State?>(null)
     public override val state: Flow<State> = _state.filterNotNull()
 
-    private val _events = MutableSharedFlow<Event>()
-    public override val events: Flow<Event> = _events.asSharedFlow()
-
     private var platformServices: List<PlatformService>? = null
     public override val services: List<DiscoveredService>?
         get() = platformServices?.map { it.toDiscoveredService() }
@@ -68,7 +65,7 @@ public class JsPeripheral internal constructor(
 
     public override suspend fun connect() {
         // todo: Prevent multiple simultaneous connection attempts.
-        _state.value = State.Connecting
+        _state.value = State.Connecting // todo: Emit **after** triggering connect process.
 
         try {
             registerDisconnectedListener() // todo: Unregister on connection drop?
@@ -76,7 +73,6 @@ public class JsPeripheral internal constructor(
             _state.value = State.Connected
             val services = discoverServices()
             observers.rewire(services)
-            _events.emit(Event.Ready)
         } catch (cancellation: CancellationException) {
             disconnectGatt()
             throw cancellation
@@ -194,9 +190,6 @@ public class JsPeripheral internal constructor(
         console.dir(event)
         observers.invalidate()
         _state.value = State.Disconnected()
-        scope.launch {
-            _events.emit(Event.Disconnected)
-        }
     }
 
     private fun registerDisconnectedListener() {

@@ -5,6 +5,11 @@ public expect open class IOException(
     cause: Throwable? = null,
 ) : Exception
 
+public class ConnectionRejectedException internal constructor(
+    message: String? = null,
+    cause: Throwable? = null,
+) : IOException(message, cause)
+
 public class NotReadyException internal constructor(
     message: String? = null,
     cause: Throwable? = null,

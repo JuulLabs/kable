@@ -4,7 +4,6 @@ import co.touchlab.stately.isolate.IsolateState
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import platform.Foundation.NSData
 
@@ -87,8 +86,4 @@ private class ObservationCount : IsolateState<MutableMap<Characteristic, Int>>({
         if (newValue < 1) it -= characteristic else it[characteristic] = newValue
         newValue
     }
-}
-
-private suspend fun Peripheral.suspendUntilReady() {
-    events.first { it == Event.Ready }
 }

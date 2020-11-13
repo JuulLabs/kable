@@ -82,7 +82,3 @@ internal class Observers(
         newValue
     }
 }
-
-private suspend fun Peripheral.suspendUntilReady() {
-    events.first { it == Event.Ready }
-}

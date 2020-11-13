@@ -16,7 +16,7 @@ public enum class WriteType {
 public interface Peripheral {
 
     /**
-     * Provides a [Flow] of the [Peripheral]'s [State].
+     * Provides a conflated [Flow] of the [Peripheral]'s [State].
      *
      * After [connect] is called, the [state] will typically transition through the following [states][State]:
      *
@@ -36,22 +36,25 @@ public interface Peripheral {
      *                      | Disconnecting | ----> | Disconnected |
      *                      '---------------'       '--------------'
      * ```
-     *
-     * The [state] [Flow] is conflated (so some states may be missed by slow consumers); it is intended to provide the
-     * current connection status to the user. If it is desired to handle (take action based on) specific connection
-     * events, then [events] [Flow] should be used instead.
      */
     public val state: Flow<State>
-
-    public val events: Flow<Event>
 
     /**
      * Initiates a connection, suspending until connected, or failure occurs. Multiple concurrent invocations will all
      * suspend until connected (or failure occurs). If already connected, then returns immediately.
      *
+     * @throws ConnectionRejectedException when a connection request is rejected by the system (e.g. bluetooth hardware unavailable).
      * @throws IllegalStateException if [Peripheral]'s Coroutine scope has been cancelled.
      */
     public suspend fun connect(): Unit
+
+    /**
+     * Disconnects the active connection, or cancels an in-flight [connection][connect] attempt, suspending until
+     * [Peripheral] has settled on a [disconnected][State.Disconnected] state.
+     *
+     * Multiple concurrent invocations will all suspend until disconnected (or failure occurs).
+     */
+    public suspend fun disconnect(): Unit
 
     /** @return discovered [services][Service], or `null` until a [connection][connect] has been established. */
     public val services: List<DiscoveredService>?
@@ -107,12 +110,4 @@ public interface Peripheral {
     public fun observe(
         characteristic: Characteristic,
     ): Flow<ByteArray>
-
-    /**
-     * Disconnects the active connection, or cancels an in-flight [connection][connect] attempt, suspending until
-     * [Peripheral] has settled on a [disconnected][State.Disconnected] state.
-     *
-     * Multiple concurrent invocations will all suspend until disconnected (or failure).
-     */
-    public suspend fun disconnect(): Unit
 }

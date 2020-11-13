@@ -35,8 +35,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -87,19 +90,16 @@ public class ApplePeripheral internal constructor(
         .filter { event -> event.identifier == cbPeripheral.identifier }
         .map { event -> event.toState() }
 
-    // fixme: Use MutableSharedFlow once Coroutines 1.4.x-mt is released.
-    private val _events = BroadcastChannel<Event>(1)
-    public override val events: Flow<Event> = _events.asFlow()
-
     private val observers = Observers(this)
 
-    internal val platformServices: List<PlatformService>? = null
-
-    public override val services: List<DiscoveredService>?
+    internal val platformServices: List<PlatformService>?
         get() = cbPeripheral.services?.map { service ->
             service as CBService
-            service.toPlatformService().toDiscoveredService()
+            service.toPlatformService()
         }
+
+    public override val services: List<DiscoveredService>?
+        get() = platformServices?.map { it.toDiscoveredService() }
 
     private val _connection = atomic<Connection?>(null)
     private val connection: Connection
@@ -107,7 +107,14 @@ public class ApplePeripheral internal constructor(
 
     private val connectJob = atomic<Job?>(null)
 
+    private val _ready = MutableStateFlow(false)
+    internal suspend fun suspendUntilReady() {
+        combine(_ready, state) { ready, state -> ready && state == State.Connected }.first { it }
+    }
+
     private fun createConnectJob(): Job = scope.launch(start = LAZY) {
+        _ready.value = false
+
         try {
             val delegate = PeripheralDelegate().freeze()
             val connection = centralManager.connectPeripheral(cbPeripheral, delegate).also {
@@ -117,7 +124,6 @@ public class ApplePeripheral internal constructor(
             connection.characteristicChanges
                 .onEach(observers.characteristicChanges::send)
                 .catch { cause -> if (cause !is ConnectionLostException) throw cause }
-                .onCompletion { _events.send(Event.Disconnected) }
                 .launchIn(scope, start = UNDISPATCHED)
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
@@ -129,18 +135,16 @@ public class ApplePeripheral internal constructor(
             println("Discovered")
             observers.rewire()
             println("Rewired")
-
-            _events.send(Event.Ready)
-            println("Ready")
         } catch (t: Throwable) {
             withContext(NonCancellable) {
                 println("connect cancel")
                 centralManager.cancelPeripheralConnection(cbPeripheral)
-                _events.send(Event.Disconnected)
             }
             _connection.value = null
             if (t !is ConnectionLostException) throw t
         }
+
+        _ready.value = true
     }
 
     public override suspend fun connect(): Unit {
@@ -166,17 +170,14 @@ public class ApplePeripheral internal constructor(
         services: List<Uuid>?,
     ): Unit {
         val servicesToDiscover = services?.map { CBUUID.UUIDWithNSUUID(it.toNSUUID()) }
+
         connection.execute<DidDiscoverServices> {
-            centralManager.discoverServices(
-                cbPeripheral,
-                servicesToDiscover
-            )
+            centralManager.discoverServices(cbPeripheral, servicesToDiscover)
         }
 
-        val cbServices = platformServices?.map { it.cbService } ?: emptyList()
-        cbServices.forEach { cbService ->
+        cbPeripheral.services?.forEach { cbService ->
             connection.execute<DidDiscoverCharacteristicsForService> {
-                centralManager.discoverCharacteristics(cbPeripheral, cbService)
+                centralManager.discoverCharacteristics(cbPeripheral, cbService as CBService)
             }
         }
     }
