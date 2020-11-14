@@ -10,10 +10,8 @@ import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.runBlocking
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBPeripheral
@@ -236,8 +234,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
 
     fun close() {
         println("PeripheralDelegate close")
-        val exception = ConnectionLostException()
-        _response.close(exception)
-        _characteristicChanges.close(exception)
+        _response.close(ConnectionLostException())
+        _characteristicChanges.close()
     }
 }

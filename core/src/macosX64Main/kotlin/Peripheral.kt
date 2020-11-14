@@ -42,9 +42,11 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteType
@@ -120,7 +122,7 @@ public class ApplePeripheral internal constructor(
 
             connection.characteristicChanges
                 .onEach(observers.characteristicChanges::send)
-                .catch { cause -> if (cause !is ConnectionLostException) throw cause }
+                .onCompletion { println("Peripheral characteristicChanges onCompletion") }
                 .launchIn(scope, start = UNDISPATCHED)
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
@@ -136,9 +138,8 @@ public class ApplePeripheral internal constructor(
             withContext(NonCancellable) {
                 println("connect cancel")
                 centralManager.cancelPeripheralConnection(cbPeripheral)
+                _connection.value = null
             }
-            _connection.value = null
-            if (t !is ConnectionLostException) throw t
         }
 
         _ready.value = true
@@ -214,7 +215,7 @@ public class ApplePeripheral internal constructor(
         val connection = this.connection
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
 
-        return connection.mutex.withLock {
+        return connection.semaphore.withPermit {
             coroutineScope {
                 val response = async(start = UNDISPATCHED) {
                     connection.delegate
@@ -273,6 +274,7 @@ public class ApplePeripheral internal constructor(
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
         println("Peripheral startNotifications")
         connection.execute<DidUpdateNotificationStateForCharacteristic> {
+            println("Peripheral startNotifications notify")
             centralManager.notify(cbPeripheral, cbCharacteristic)
         }
         println("Peripheral startNotifications DONE")
@@ -282,6 +284,7 @@ public class ApplePeripheral internal constructor(
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
         println("Peripheral stopNotifications")
         connection.execute<DidUpdateNotificationStateForCharacteristic> {
+            println("Peripheral startNotifications cancelNotify")
             centralManager.cancelNotify(cbPeripheral, cbCharacteristic)
         }
         println("Peripheral stopNotifications DONE")
