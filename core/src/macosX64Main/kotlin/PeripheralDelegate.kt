@@ -3,8 +3,8 @@ package com.juul.kable
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
-import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
+import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.IsReadyToSendWriteWithoutResponse
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
@@ -71,7 +71,6 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
             val rssi: NSNumber,
             override val error: NSError?,
         ) : Response()
-
     }
 
     private val _response = Channel<Response>(BUFFERED)

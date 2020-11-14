@@ -68,7 +68,7 @@ internal class CentralManager(
 
     suspend fun cancelPeripheralConnection(
         cbPeripheral: CBPeripheral,
-    ): Unit {
+    ) {
         println("-> CentralManager.cancelPeripheralConnection")
         withContext(dispatcher) {
             cbCentralManager.cancelPeripheralConnection(cbPeripheral)
@@ -78,7 +78,7 @@ internal class CentralManager(
 
     suspend fun readRssi(
         cbPeripheral: CBPeripheral,
-    ): Unit {
+    ) {
         println("-> CentralManager CBPeripheral.readRssi")
         withContext(dispatcher) {
             cbPeripheral.readRSSI()
@@ -88,7 +88,7 @@ internal class CentralManager(
     suspend fun discoverServices(
         cbPeripheral: CBPeripheral,
         services: List<CBUUID>?,
-    ): Unit {
+    ) {
         println("-> CentralManager CBPeripheral.discoverServices")
         withContext(dispatcher) {
             cbPeripheral.discoverServices(services)
@@ -98,7 +98,7 @@ internal class CentralManager(
     suspend fun discoverCharacteristics(
         cbPeripheral: CBPeripheral,
         cbService: CBService,
-    ): Unit {
+    ) {
         println("-> CentralManager CBPeripheral.discoverCharacteristics")
         withContext(dispatcher) {
             cbPeripheral.discoverCharacteristics(null, cbService)
@@ -143,7 +143,7 @@ internal class CentralManager(
         cbDescriptor: CBDescriptor,
     ) {
         withContext(dispatcher) {
-        println("-> CentralManager CBPeripheral.readValueForDescriptor")
+            println("-> CentralManager CBPeripheral.readValueForDescriptor")
             cbPeripheral.readValueForDescriptor(cbDescriptor)
         }
     }

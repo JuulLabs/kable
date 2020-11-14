@@ -34,7 +34,7 @@ public class AppleScanner internal constructor(
             }
 }
 
-private suspend fun CentralManager.awaitPoweredOn(): Unit {
+private suspend fun CentralManager.awaitPoweredOn() {
     delegate.state
         .onEach {
             if (it == CBManagerStateUnsupported ||

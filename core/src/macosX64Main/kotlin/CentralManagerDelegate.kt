@@ -39,8 +39,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     }
 
     // todo: MutableSharedFlow when Coroutines 1.4.x-mt is released.
-    private val _response = BroadcastChannel<Response>(BUFFERED) //.freeze()
-    val response: Flow<Response> = _response.asFlow() //.freeze()
+    private val _response = BroadcastChannel<Response>(BUFFERED) // .freeze()
+    val response: Flow<Response> = _response.asFlow() // .freeze()
 
     sealed class ConnectionEvent {
 
@@ -69,7 +69,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     override fun centralManager(
         central: CBCentralManager,
         didConnectPeripheral: CBPeripheral,
-    ): Unit {
+    ) {
         println("<- CentralManagerDelegate didConnect")
         _connectionState.value = DidConnect(didConnectPeripheral.identifier)
     }
@@ -79,7 +79,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         central: CBCentralManager,
         didDisconnectPeripheral: CBPeripheral,
         error: NSError?,
-    ): Unit {
+    ) {
         println("<- CentralManagerDelegate didDisconnectPeripheral")
         _connectionState.value = DidDisconnect(didDisconnectPeripheral.identifier, error)
         peripheralDelegates.remove(didDisconnectPeripheral.identifier)?.close()
@@ -90,7 +90,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         central: CBCentralManager,
         didFailToConnectPeripheral: CBPeripheral,
         error: NSError?,
-    ): Unit {
+    ) {
         println("<- CentralManagerDelegate didFailToConnectPeripheral")
         _connectionState.value = DidFailToConnect(didFailToConnectPeripheral.identifier, error)
     }
@@ -104,7 +104,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didDiscoverPeripheral: CBPeripheral,
         advertisementData: Map<Any?, *>,
         RSSI: NSNumber,
-    ): Unit {
+    ) {
         println("<- CentralManagerDelegate didDiscoverPeripheral")
         val peripheral = didDiscoverPeripheral.freeze()
 
@@ -119,7 +119,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
 
     override fun centralManagerDidUpdateState(
         central: CBCentralManager,
-    ): Unit {
+    ) {
         println("<- CentralManagerDelegate didUpdateState")
         _state.value = central.state
     }

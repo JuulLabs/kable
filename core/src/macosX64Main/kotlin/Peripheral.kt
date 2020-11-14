@@ -13,8 +13,8 @@ import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForS
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
-import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
+import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.State.Disconnected.Status.Cancelled
 import com.juul.kable.State.Disconnected.Status.ConnectionLimitReached
 import com.juul.kable.State.Disconnected.Status.EncryptionTimedOut
@@ -36,7 +36,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filter
@@ -45,7 +44,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCharacteristic
@@ -147,12 +145,12 @@ public class ApplePeripheral internal constructor(
         invokeOnCompletion { connectJob.value = null }
     }
 
-    public override suspend fun connect(): Unit {
+    public override suspend fun connect() {
         check(!job.isCancelled) { "Cannot connect, scope is cancelled for $this" }
         connectJob.updateAndGet { it ?: createConnectJob() }!!.join()
     }
 
-    public override suspend fun disconnect(): Unit {
+    public override suspend fun disconnect() {
         scope.coroutineContext[Job]?.cancelAndJoinChildren()
         centralManager.cancelPeripheralConnection(cbPeripheral)
     }
@@ -168,7 +166,7 @@ public class ApplePeripheral internal constructor(
     @Throws(CancellationException::class, IOException::class)
     public suspend fun discoverServices(
         services: List<Uuid>?,
-    ): Unit {
+    ) {
         val servicesToDiscover = services?.map { CBUUID.UUIDWithNSUUID(it.toNSUUID()) }
 
         connection.execute<DidDiscoverServices> {
@@ -194,7 +192,7 @@ public class ApplePeripheral internal constructor(
         characteristic: Characteristic,
         data: NSData,
         writeType: WriteType,
-    ): Unit {
+    ) {
         println("Peripheral write")
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
         connection.execute<DidWriteValueForCharacteristic> {
@@ -240,7 +238,7 @@ public class ApplePeripheral internal constructor(
     public suspend fun write(
         descriptor: Descriptor,
         data: NSData,
-    ): Unit {
+    ) {
         val cbDescriptor = cbDescriptorFrom(descriptor)
         connection.execute<DidUpdateValueForDescriptor> {
             centralManager.write(cbPeripheral, data, cbDescriptor)
@@ -324,7 +322,7 @@ private fun ApplePeripheral.cbDescriptorFrom(
         .cbDescriptor
 }
 
-private suspend fun Peripheral.suspendUntilConnected(): Unit {
+private suspend fun Peripheral.suspendUntilConnected() {
     state.first { it == State.Connected }
 }
 

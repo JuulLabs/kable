@@ -3,7 +3,6 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
-import platform.Foundation.NSLog
 
 internal data class PlatformCharacteristic(
     override val serviceUuid: Uuid,

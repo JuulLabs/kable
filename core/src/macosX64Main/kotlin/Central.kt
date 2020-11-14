@@ -3,8 +3,6 @@ package com.juul.kable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
-import kotlin.native.concurrent.ensureNeverFrozen
-import kotlin.native.concurrent.freeze
 
 public fun CoroutineScope.central(): AppleCentral = AppleCentral(coroutineContext)
 

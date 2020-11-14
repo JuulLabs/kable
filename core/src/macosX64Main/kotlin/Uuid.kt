@@ -10,7 +10,7 @@ internal fun NSUUID.toUuid(): Uuid = uuidFrom(UUIDString)
 
 internal fun Uuid.toCBUUID(): CBUUID = CBUUID.UUIDWithString(toString())
 internal fun CBUUID.toUuid(): Uuid {
-    val fromUuid = when(UUIDString.length) {
+    val fromUuid = when (UUIDString.length) {
         4 -> "0000$UUIDString-0000-1000-8000-00805F9B34FB"
         else -> UUIDString
     }
