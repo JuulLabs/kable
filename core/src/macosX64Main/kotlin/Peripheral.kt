@@ -12,6 +12,7 @@ import com.juul.kable.PeripheralDelegate.Response
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForService
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
+import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
 import com.juul.kable.State.Disconnected.Status.Cancelled
@@ -193,10 +194,12 @@ public class ApplePeripheral internal constructor(
         data: NSData,
         writeType: WriteType,
     ): Unit {
+        println("Peripheral write")
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
         connection.execute<DidWriteValueForCharacteristic> {
             centralManager.write(cbPeripheral, data, cbCharacteristic, writeType.cbWriteType)
         }
+        println("Peripheral write DONE")
     }
 
     @Throws(CancellationException::class, IOException::class)
@@ -268,12 +271,20 @@ public class ApplePeripheral internal constructor(
 
     internal suspend fun startNotifications(characteristic: Characteristic) {
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
-        centralManager.notify(cbPeripheral, cbCharacteristic)
+        println("Peripheral startNotifications")
+        connection.execute<DidUpdateNotificationStateForCharacteristic> {
+            centralManager.notify(cbPeripheral, cbCharacteristic)
+        }
+        println("Peripheral startNotifications DONE")
     }
 
     internal suspend fun stopNotifications(characteristic: Characteristic) {
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
-        centralManager.cancelNotify(cbPeripheral, cbCharacteristic)
+        println("Peripheral stopNotifications")
+        connection.execute<DidUpdateNotificationStateForCharacteristic> {
+            centralManager.cancelNotify(cbPeripheral, cbCharacteristic)
+        }
+        println("Peripheral stopNotifications DONE")
     }
 
     override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"

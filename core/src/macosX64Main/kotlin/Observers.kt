@@ -41,13 +41,17 @@ internal class Observers(
     fun acquire(characteristic: Characteristic): Flow<NSData> = flow {
         println("Observers acquire suspendUntilReady")
         peripheral.suspendUntilReady()
-        println("Observers acquire suspendUntilReady done")
+        println("Observers acquire suspendUntilReady DONE")
 
         val cbCharacteristicUuid = characteristic.characteristicUuid.toCBUUID()
         val cbServiceUuid = characteristic.serviceUuid.toCBUUID()
 
         if (observers.incrementAndGet(characteristic) == 1) {
+            println("Observers acquire startNotifications")
             peripheral.startNotifications(characteristic)
+            println("Observers acquire startNotifications DONE")
+        } else {
+            println("Observers acquire startNotifications SKIPPED")
         }
 
         try {
@@ -60,16 +64,20 @@ internal class Observers(
             println("Observers acquire caught $t")
             throw t
         } finally {
+            println("Observers acquire finally")
             if (observers.decrementAndGet(characteristic) < 1) {
                 peripheral.stopNotifications(characteristic)
             }
+            println("Observers acquire finally DONE")
         }
     }
 
     suspend fun rewire() {
+        println("Observers rewire")
         observers.keys.forEach { characteristic ->
             peripheral.startNotifications(characteristic)
         }
+        println("Observers rewire DONE")
     }
 }
 

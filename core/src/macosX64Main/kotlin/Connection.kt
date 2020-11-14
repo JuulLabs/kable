@@ -19,11 +19,18 @@ internal class Connection(
 
     suspend inline fun <T> execute(
         action: () -> Unit,
-    ): T = mutex.withLock {
-        action.invoke()
-        val response = delegate.response.receive()
-        val error = response.error
-        if (error != null) throw IOException(error.description, cause = null)
-        response as T
+    ): T {
+        println("⎵ Connection.execute")
+        val result = mutex.withLock {
+            println("Lock ENTER")
+            action.invoke()
+            val response = delegate.response.receive()
+            val error = response.error
+            if (error != null) throw IOException(error.description, cause = null)
+            println("Lock EXIT")
+            response as T
+        }
+        println("⎴ Connection.execute")
+        return result
     }
 }

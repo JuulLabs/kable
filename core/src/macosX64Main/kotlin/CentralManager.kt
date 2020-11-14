@@ -41,14 +41,14 @@ internal class CentralManager(
         services: List<Uuid>?,
         options: Map<Any?, *>?,
     ) {
-        println("CentralManager scanForPeripheralsWithServices")
+        println("-> CentralManager.scanForPeripheralsWithServices")
         scope.launch {
             cbCentralManager.scanForPeripheralsWithServices(services, options)
         }
     }
 
     fun stopScan() {
-        println("CentralManager stopScan")
+        println("-> CentralManager.stopScan")
         cbCentralManager.stopScan()
     }
 
@@ -57,7 +57,7 @@ internal class CentralManager(
         delegate: PeripheralDelegate,
         options: Map<Any?, *>? = null,
     ): Connection {
-        println("CentralManager connectPeripheral")
+        println("-> CentralManager.connectPeripheral")
         withContext(dispatcher) {
             cbPeripheral.delegate = delegate
             this@CentralManager.delegate.peripheralDelegates.put(cbPeripheral.identifier, delegate)
@@ -69,7 +69,7 @@ internal class CentralManager(
     suspend fun cancelPeripheralConnection(
         cbPeripheral: CBPeripheral,
     ): Unit {
-        println("CentralManager cancelPeripheralConnection")
+        println("-> CentralManager.cancelPeripheralConnection")
         withContext(dispatcher) {
             cbCentralManager.cancelPeripheralConnection(cbPeripheral)
             cbPeripheral.delegate = null
@@ -79,7 +79,7 @@ internal class CentralManager(
     suspend fun readRssi(
         cbPeripheral: CBPeripheral,
     ): Unit {
-        println("CentralManager readRssi")
+        println("-> CentralManager CBPeripheral.readRssi")
         withContext(dispatcher) {
             cbPeripheral.readRSSI()
         }
@@ -89,7 +89,7 @@ internal class CentralManager(
         cbPeripheral: CBPeripheral,
         services: List<CBUUID>?,
     ): Unit {
-        println("CentralManager discoverServices")
+        println("-> CentralManager CBPeripheral.discoverServices")
         withContext(dispatcher) {
             cbPeripheral.discoverServices(services)
         }
@@ -99,7 +99,7 @@ internal class CentralManager(
         cbPeripheral: CBPeripheral,
         cbService: CBService,
     ): Unit {
-        println("CentralManager discoverCharacteristics")
+        println("-> CentralManager CBPeripheral.discoverCharacteristics")
         withContext(dispatcher) {
             cbPeripheral.discoverCharacteristics(null, cbService)
         }
@@ -111,7 +111,7 @@ internal class CentralManager(
         cbCharacteristic: CBCharacteristic,
         cbWriteType: CBCharacteristicWriteType,
     ) {
-        println("CentralManager write CBCharacteristic")
+        println("-> CentralManager CBPeripheral.writeValue(CBCharacteristic)")
         withContext(dispatcher) {
             cbPeripheral.writeValue(data, cbCharacteristic, cbWriteType)
         }
@@ -121,7 +121,7 @@ internal class CentralManager(
         cbPeripheral: CBPeripheral,
         cbCharacteristic: CBCharacteristic,
     ) {
-        println("CentralManager read CBCharacteristic")
+        println("-> CentralManager CBPeripheral.readValueForCharacteristic")
         withContext(dispatcher) {
             cbPeripheral.readValueForCharacteristic(cbCharacteristic)
         }
@@ -132,7 +132,7 @@ internal class CentralManager(
         data: NSData,
         cbDescriptor: CBDescriptor,
     ) {
-        println("CentralManager write CBDescriptor")
+        println("-> CentralManager CBPeripheral.writeValue(CBDescriptor)")
         withContext(dispatcher) {
             cbPeripheral.writeValue(data, cbDescriptor)
         }
@@ -143,7 +143,7 @@ internal class CentralManager(
         cbDescriptor: CBDescriptor,
     ) {
         withContext(dispatcher) {
-        println("CentralManager read CBDescriptor")
+        println("-> CentralManager CBPeripheral.readValueForDescriptor")
             cbPeripheral.readValueForDescriptor(cbDescriptor)
         }
     }
@@ -152,7 +152,7 @@ internal class CentralManager(
         cbPeripheral: CBPeripheral,
         cbCharacteristic: CBCharacteristic,
     ) {
-        println("CentralManager notify CBCharacteristic")
+        println("-> CentralManager CBPeripheral.setNotifyValue(true)")
         withContext(dispatcher) {
             cbPeripheral.setNotifyValue(true, cbCharacteristic)
         }
@@ -162,7 +162,7 @@ internal class CentralManager(
         cbPeripheral: CBPeripheral,
         cbCharacteristic: CBCharacteristic,
     ) {
-        println("CentralManager cancelNotify CBCharacteristic")
+        println("-> CentralManager CBPeripheral.setNotifyValue(false)")
         withContext(dispatcher) {
             cbPeripheral.setNotifyValue(false, cbCharacteristic)
         }

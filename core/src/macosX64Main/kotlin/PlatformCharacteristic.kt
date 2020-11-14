@@ -23,7 +23,6 @@ internal fun CBCharacteristic.toPlatformCharacteristic(
 ): PlatformCharacteristic {
     val characteristicUuid = UUID.toUuid()
     val platformDescriptors = descriptors?.map { descriptor ->
-        NSLog("%@", descriptor)
         descriptor as CBDescriptor
         descriptor.toPlatformDescriptor(serviceUuid, characteristicUuid)
     } ?: emptyList()

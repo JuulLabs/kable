@@ -105,7 +105,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         peripheral: CBPeripheral,
         didDiscoverServices: NSError?,
     ) {
-        println("PeripheralDelegate didDiscoverServices")
+        println("<- PeripheralDelegate didDiscoverServices")
         _response.sendBlocking(DidDiscoverServices(peripheral.identifier, didDiscoverServices))
     }
 
@@ -118,7 +118,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         didDiscoverCharacteristicsForService: CBService,
         error: NSError?
     ) {
-        println("PeripheralDelegate didDiscoverCharacteristicsForService")
+        println("<- PeripheralDelegate didDiscoverCharacteristicsForService")
         _response.sendBlocking(
             Response.DidDiscoverCharacteristicsForService(
                 peripheral.identifier,
@@ -139,7 +139,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         didUpdateValueForCharacteristic: CBCharacteristic,
         error: NSError?
     ) {
-        println("PeripheralDelegate didUpdateValueForCharacteristic")
+        println("<- PeripheralDelegate didUpdateValueForCharacteristic")
         val cbCharacteristic = didUpdateValueForCharacteristic.freeze()
 
         val change = if (error == null) {
@@ -158,7 +158,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         didUpdateValueForDescriptor: CBDescriptor,
         error: NSError?
     ) {
-        println("PeripheralDelegate didWriteValueForDescriptor")
+        println("<- PeripheralDelegate didWriteValueForDescriptor")
         _response.sendBlocking(
             DidUpdateValueForDescriptor(peripheral.identifier, didUpdateValueForDescriptor, error)
         )
@@ -173,7 +173,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         didWriteValueForCharacteristic: CBCharacteristic,
         error: NSError?
     ) {
-        println("PeripheralDelegate didWriteValueForCharacteristic")
+        println("<- PeripheralDelegate didWriteValueForCharacteristic")
         _response.sendBlocking(
             DidWriteValueForCharacteristic(
                 peripheral.identifier,
@@ -188,7 +188,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
     override fun peripheralIsReadyToSendWriteWithoutResponse(
         peripheral: CBPeripheral
     ) {
-        println("PeripheralDelegate IsReadyToSendWriteWithoutResponse")
+        println("<- PeripheralDelegate isReadyToSendWriteWithoutResponse")
         _response.sendBlocking(
             IsReadyToSendWriteWithoutResponse(peripheral.identifier, error = null)
         )
@@ -203,7 +203,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         didUpdateNotificationStateForCharacteristic: CBCharacteristic,
         error: NSError?
     ) {
-        println("PeripheralDelegate didUpdateNotificationStateForCharacteristic")
+        println("<- PeripheralDelegate didUpdateNotificationStateForCharacteristic")
         _response.sendBlocking(
             DidUpdateNotificationStateForCharacteristic(
                 peripheral.identifier,
@@ -220,7 +220,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         didReadRSSI: NSNumber,
         error: NSError?,
     ) {
-        println("PeripheralDelegate didReadRSSI")
+        println("<- PeripheralDelegate didReadRSSI")
         _response.sendBlocking(DidReadRssi(peripheral.identifier, didReadRSSI, error))
     }
 
@@ -235,6 +235,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
     // todo: func peripheral(CBPeripheral, didOpen: CBL2CAPChannel?, error: Error?)
 
     fun close() {
+        println("PeripheralDelegate close")
         val exception = ConnectionLostException()
         _response.close(exception)
         _characteristicChanges.close(exception)

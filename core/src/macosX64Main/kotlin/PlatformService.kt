@@ -19,7 +19,6 @@ internal fun PlatformService.toDiscoveredService() = DiscoveredService(
 internal fun CBService.toPlatformService(): PlatformService {
     val serviceUuid = UUID.toUuid()
     val platformCharacteristics = characteristics?.map { characteristic ->
-        NSLog("%@", characteristic)
         characteristic as CBCharacteristic
         characteristic.toPlatformCharacteristic(serviceUuid)
     } ?: emptyList()
