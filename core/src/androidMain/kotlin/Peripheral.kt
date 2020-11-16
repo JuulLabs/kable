@@ -92,11 +92,8 @@ public class AndroidPeripheral internal constructor(
                 .catch { cause -> if (cause !is ConnectionLostException) throw cause }
                 .launchIn(scope, start = UNDISPATCHED)
 
-            println("Suspending until connected")
             suspendUntilConnected()
-            println("Discovering services")
             discoverServices()
-            println("Re-wiring observers")
             observers.rewire()
         } catch (t: Throwable) {
             connection.close()
@@ -107,7 +104,8 @@ public class AndroidPeripheral internal constructor(
         println("Ready")
         _ready.value = true
     }.apply {
-        invokeOnCompletion { connectJob.value = null } // fixme: Clear on disconnect (not connect).
+        // fixme: Clear on disconnect (not at end of connect).
+        invokeOnCompletion { connectJob.value = null }
     }
 
     public override suspend fun connect() {

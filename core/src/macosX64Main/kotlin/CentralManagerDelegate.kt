@@ -43,8 +43,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     }
 
     // todo: MutableSharedFlow when Coroutines 1.4.x-mt is released.
-    private val _response = BroadcastChannel<Response>(BUFFERED) // .freeze()
-    val response: Flow<Response> = _response.asFlow() // .freeze()
+    private val _response = BroadcastChannel<Response>(BUFFERED)
+    val response: Flow<Response> = _response.asFlow()
 
     sealed class ConnectionEvent {
 
@@ -65,8 +65,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         ) : ConnectionEvent()
     }
 
-    private val _connectionState = MutableStateFlow<ConnectionEvent?>(null).freeze()
-    val connectionState: Flow<ConnectionEvent> = _connectionState.filterNotNull().freeze()
+    private val _connectionState = MutableStateFlow<ConnectionEvent?>(null)
+    val connectionState: Flow<ConnectionEvent> = _connectionState.filterNotNull()
 
     /* Monitoring Connections with Peripherals */
 

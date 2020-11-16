@@ -26,7 +26,6 @@ internal class CentralManager(
 
     private val job = Job(parentCoroutineContext[Job]).apply {
         invokeOnCompletion {
-            println("CentralManager job invokeOnCompletion")
             cbCentralManager.delegate = null
         }
     }

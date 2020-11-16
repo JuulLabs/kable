@@ -12,7 +12,7 @@ internal class Connection(
     val characteristicChanges: Flow<DidUpdateValueForCharacteristic> =
         delegate.characteristicChanges
 
-    // Using Semaphore as Mutex never relinquished lock when multiple concurrent `withLock`s were executed.
+    // Using Semaphore as Mutex never relinquished lock when multiple concurrent `withLock`s are executed.
     val semaphore = Semaphore(1)
 
     suspend inline fun <T> execute(
