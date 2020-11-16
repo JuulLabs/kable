@@ -76,8 +76,7 @@ val peripheral = central.requestPeripheral(options)
 ```
 
 _Scanning for all nearby peripherals is supported, but is only available on Chrome 79+ with "Experimental Web Platform
-features" enabled via:_
-[`chrome://flags/#enable-experimental-web-platform-features`](chrome://flags/#enable-experimental-web-platform-features)
+features" enabled via:_ `chrome://flags/#enable-experimental-web-platform-features`
 
 ## Peripheral
 
