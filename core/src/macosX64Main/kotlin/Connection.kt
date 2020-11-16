@@ -2,18 +2,15 @@ package com.juul.kable
 
 import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
 internal class Connection(
-    val delegate: PeripheralDelegate,
+    private val delegate: PeripheralDelegate,
 ) {
 
-    val characteristicChanges: Flow<DidUpdateValueForCharacteristic.Data> =
-        delegate.characteristicChanges.transform {
-            if (it is DidUpdateValueForCharacteristic.Data) emit(it)
-        }
+    val characteristicChanges: Flow<DidUpdateValueForCharacteristic> =
+        delegate.characteristicChanges
 
     // Using Semaphore as Mutex never relinquished lock when multiple concurrent `withLock`s were executed.
     val semaphore = Semaphore(1)
@@ -26,5 +23,9 @@ internal class Connection(
         val error = response.error
         if (error != null) throw IOException(error.description, cause = null)
         response as T
+    }
+
+    fun close() {
+        delegate.close()
     }
 }

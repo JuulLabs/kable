@@ -28,7 +28,6 @@ internal class CentralManager(
         invokeOnCompletion {
             println("CentralManager job invokeOnCompletion")
             cbCentralManager.delegate = null
-            delegate.peripheralDelegates.clear()
         }
     }
     private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
@@ -60,7 +59,6 @@ internal class CentralManager(
         println("-> CentralManager.connectPeripheral")
         withContext(dispatcher) {
             cbPeripheral.delegate = delegate
-            this@CentralManager.delegate.peripheralDelegates.put(cbPeripheral.identifier, delegate)
             cbCentralManager.connectPeripheral(cbPeripheral, options)
         }
         return Connection(delegate)

@@ -36,11 +36,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -65,6 +66,7 @@ import platform.Foundation.NSData
 import platform.Foundation.NSError
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.native.concurrent.ensureNeverFrozen
 import kotlin.native.concurrent.freeze
 
 internal fun CoroutineScope.peripheral(
@@ -79,8 +81,18 @@ public class ApplePeripheral internal constructor(
     private val cbPeripheral: CBPeripheral,
 ) : Peripheral {
 
+    init {
+//        ensureNeverFrozen()
+    }
+
     private val job = Job(parentCoroutineContext[Job])
     private val scope = CoroutineScope(parentCoroutineContext + job)
+
+    private val disconnectedMonitor = scope.launch(start = LAZY) {
+        centralManager.delegate.onDisconnected.collect { identifier ->
+//            if (identifier == cbPeripheral.identifier) onDisconnected()
+        }
+    }
 
     public override val state: Flow<State> = centralManager.delegate
         .connectionState
@@ -109,16 +121,25 @@ public class ApplePeripheral internal constructor(
         combine(_ready, state) { ready, state -> ready && state == State.Connected }.first { it }
     }
 
+    // `inline` to prevent capturing (freezing) of Peripheral.
+    private inline fun onDisconnected() {
+        connectJob.value?.cancel()
+        connectJob.value = null
+        _connection.value?.close()
+        _connection.value = null
+    }
+
     private fun createConnectJob(): Job = scope.launch(start = LAZY) {
         _ready.value = false
 
         try {
-            val delegate = PeripheralDelegate().freeze()
+            val delegate = PeripheralDelegate().freeze() // todo: Create in `connectPeripheral`.
             val connection = centralManager.connectPeripheral(cbPeripheral, delegate).also {
                 _connection.value = it
             }
 
             connection.characteristicChanges
+                .mapNotNull { it as? Data }
                 .onEach(observers.characteristicChanges::send)
                 .onCompletion { println("Peripheral characteristicChanges onCompletion") }
                 .launchIn(scope, start = UNDISPATCHED)
@@ -141,18 +162,18 @@ public class ApplePeripheral internal constructor(
         }
 
         _ready.value = true
-    }.apply {
-        invokeOnCompletion { connectJob.value = null }
     }
 
     public override suspend fun connect() {
         check(!job.isCancelled) { "Cannot connect, scope is cancelled for $this" }
+        disconnectedMonitor.start()
         connectJob.updateAndGet { it ?: createConnectJob() }!!.join()
     }
 
     public override suspend fun disconnect() {
         scope.coroutineContext[Job]?.cancelAndJoinChildren()
         centralManager.cancelPeripheralConnection(cbPeripheral)
+        connectJob.value = null
     }
 
     @Throws(CancellationException::class, IOException::class)
@@ -216,10 +237,8 @@ public class ApplePeripheral internal constructor(
         return connection.semaphore.withPermit {
             coroutineScope {
                 val response = async(start = UNDISPATCHED) {
-                    connection.delegate
-                        ._characteristicChanges
-                        .openSubscription()
-                        .consumeAsFlow()
+                    connection
+                        .characteristicChanges
                         .first { it.cbCharacteristic.UUID == cbCharacteristic.UUID }
                 }
                 centralManager.read(cbPeripheral, cbCharacteristic)

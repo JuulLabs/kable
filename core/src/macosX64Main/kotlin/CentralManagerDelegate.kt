@@ -1,15 +1,16 @@
 package com.juul.kable
 
-import co.touchlab.stately.isolate.IsolateState
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
 import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filterNotNull
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCentralManagerDelegateProtocol
@@ -24,7 +25,11 @@ import kotlin.native.concurrent.freeze
 // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate
 internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProtocol {
 
-    val peripheralDelegates = PeripheralDelegates()
+    // todo: MutableSharedFlow
+    private val _onDisconnected = BroadcastChannel<NSUUID>(1)
+    internal val onDisconnected: Flow<NSUUID>
+        // todo: Drop `get()` when `_onDisconnected` is a MutableSharedFlow.
+        get() = _onDisconnected.openSubscription().consumeAsFlow()
 
     private val _state = MutableStateFlow<CBManagerState?>(null)
     val state: Flow<CBManagerState> = _state.filterNotNull()
@@ -81,8 +86,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         error: NSError?,
     ) {
         println("<- CentralManagerDelegate didDisconnectPeripheral")
+        _onDisconnected.sendBlocking(didDisconnectPeripheral.identifier) // Used to notify `Peripheral` of disconnect.
         _connectionState.value = DidDisconnect(didDisconnectPeripheral.identifier, error)
-        peripheralDelegates.remove(didDisconnectPeripheral.identifier)?.close()
     }
 
     @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
@@ -129,24 +134,4 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     /* Monitoring the Central Manager’s Authorization */
 
     // todo: func centralManager(CBCentralManager, didUpdateANCSAuthorizationFor: CBPeripheral)
-}
-
-internal class PeripheralDelegates : IsolateState<MutableMap<NSUUID, PeripheralDelegate>>({ mutableMapOf() }) {
-
-    fun put(
-        identifier: NSUUID,
-        delegate: PeripheralDelegate,
-    ): Unit = access {
-        it[identifier] = delegate
-    }
-
-    fun remove(
-        identifier: NSUUID,
-    ): PeripheralDelegate? = access {
-        it.remove(identifier)
-    }
-
-    fun clear(): Unit = access {
-        it.clear()
-    }
 }

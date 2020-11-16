@@ -40,11 +40,6 @@ private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONF
 
 internal fun CoroutineScope.peripheral(
     androidContext: Context,
-    advertisement: Advertisement,
-): Peripheral = peripheral(androidContext, advertisement.bluetoothDevice)
-
-public fun CoroutineScope.peripheral(
-    androidContext: Context,
     bluetoothDevice: BluetoothDevice,
 ): Peripheral = AndroidPeripheral(coroutineContext, androidContext, bluetoothDevice)
 
@@ -97,8 +92,11 @@ public class AndroidPeripheral internal constructor(
                 .catch { cause -> if (cause !is ConnectionLostException) throw cause }
                 .launchIn(scope, start = UNDISPATCHED)
 
+            println("Suspending until connected")
             suspendUntilConnected()
+            println("Discovering services")
             discoverServices()
+            println("Re-wiring observers")
             observers.rewire()
         } catch (t: Throwable) {
             connection.close()
@@ -106,9 +104,10 @@ public class AndroidPeripheral internal constructor(
             if (t !is ConnectionLostException) throw t
         }
 
+        println("Ready")
         _ready.value = true
     }.apply {
-        invokeOnCompletion { connectJob.value = null }
+        invokeOnCompletion { connectJob.value = null } // fixme: Clear on disconnect (not connect).
     }
 
     public override suspend fun connect() {

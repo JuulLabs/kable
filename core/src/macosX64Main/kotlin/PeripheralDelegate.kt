@@ -91,10 +91,11 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         ) : DidUpdateValueForCharacteristic()
     }
 
-    // todo: MutableSharedFlow when Coroutines 1.4.x-mt is released.
-    val _characteristicChanges = BroadcastChannel<DidUpdateValueForCharacteristic>(BUFFERED)
-    val characteristicChanges: Flow<DidUpdateValueForCharacteristic> =
-        _characteristicChanges.openSubscription().consumeAsFlow()
+    // todo: MutableSharedFlow
+    private val _characteristicChanges = BroadcastChannel<DidUpdateValueForCharacteristic>(BUFFERED)
+    val characteristicChanges: Flow<DidUpdateValueForCharacteristic>
+        // todo: Remove `get()` when `_characteristicChanges` is MutableSharedFlow.
+        get() = _characteristicChanges.openSubscription().consumeAsFlow()
 
     /* Discovering Services */
 

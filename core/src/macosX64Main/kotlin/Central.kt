@@ -7,7 +7,7 @@ import kotlin.coroutines.CoroutineContext
 public fun CoroutineScope.central(): AppleCentral = AppleCentral(coroutineContext)
 
 public class AppleCentral internal constructor(
-    parentCoroutineContext: CoroutineContext
+    parentCoroutineContext: CoroutineContext,
 ) : Central {
 
     private val scope = CoroutineScope(parentCoroutineContext + Job(parentCoroutineContext[Job]))
