@@ -132,7 +132,7 @@ _`Disconnecting` state only occurs on Android platform. JavaScript and Apple-bas
 
 ### I/O
 
-Bluetooth Low Energy device are organized into a tree-like structure of services, characteristics and descriptors;
+Bluetooth Low Energy devices are organized into a tree-like structure of services, characteristics and descriptors;
 whereas characteristics and descriptors have the capability of being read from, or written to.
 
 For example, a peripheral might have the following structure:
