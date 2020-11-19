@@ -58,13 +58,16 @@ public interface Peripheral {
     /** @return discovered [services][Service], or `null` until a [connection][connect] has been established. */
     public val services: List<DiscoveredService>?
 
-    @Throws(CancellationException::class, IOException::class)
+    /**
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun rssi(): Int
 
     /**
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun read(
         characteristic: Characteristic,
     ): ByteArray
@@ -72,7 +75,7 @@ public interface Peripheral {
     /**
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
@@ -82,7 +85,7 @@ public interface Peripheral {
     /**
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun read(
         descriptor: Descriptor,
     ): ByteArray
@@ -90,7 +93,7 @@ public interface Peripheral {
     /**
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
@@ -103,8 +106,11 @@ public interface Peripheral {
      * connected, the observation will automatically start emitting changes. If connection is lost, [Flow] will remain
      * active, once reconnected characteristic changes will begin emitting again.
      *
-     * If the specified [characteristic] is invalid or cannot be found then a [NoSuchElementException] will be
-     * propagated via the [connect] function.
+     * Failures related to notifications are propagated via [connect] if the [observe] [Flow] is collected prior to a
+     * connection being established. If a connection is already established when an [observe] [Flow] collection begins,
+     * then notification failures are propagated via the returned [observe] [Flow].
+     *
+     * If the specified [characteristic] is invalid or cannot be found then a [NoSuchElementException] is propagated.
      */
     public fun observe(
         characteristic: Characteristic,

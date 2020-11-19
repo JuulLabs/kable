@@ -173,7 +173,7 @@ public class ApplePeripheral internal constructor(
         }
     }
 
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public override suspend fun rssi(): Int = connection.execute<DidReadRssi> {
         centralManager.readRssi(cbPeripheral)
     }.rssi.intValue
@@ -181,8 +181,7 @@ public class ApplePeripheral internal constructor(
     private suspend fun discoverServices(): Unit = discoverServices(services = null)
 
     /** @param services to discover (list of service UUIDs), or `null` for all. */
-    @Throws(CancellationException::class, IOException::class)
-    public suspend fun discoverServices(
+    private suspend fun discoverServices(
         services: List<Uuid>?,
     ) {
         val servicesToDiscover = services?.map { CBUUID.UUIDWithNSUUID(it.toNSUUID()) }
@@ -198,14 +197,14 @@ public class ApplePeripheral internal constructor(
         }
     }
 
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public override suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
     ): Unit = write(characteristic, data.toNSData(), writeType)
 
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun write(
         characteristic: Characteristic,
         data: NSData,
@@ -219,12 +218,12 @@ public class ApplePeripheral internal constructor(
         println("Peripheral write DONE")
     }
 
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public override suspend fun read(
         characteristic: Characteristic,
     ): ByteArray = readAsNSData(characteristic).toByteArray()
 
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun readAsNSData(
         characteristic: Characteristic,
     ): NSData {
@@ -244,7 +243,7 @@ public class ApplePeripheral internal constructor(
         }
     }
 
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public override suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
@@ -261,12 +260,12 @@ public class ApplePeripheral internal constructor(
         }
     }
 
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public override suspend fun read(
         descriptor: Descriptor,
     ): ByteArray = readAsNSData(descriptor).toByteArray()
 
-    @Throws(CancellationException::class, IOException::class)
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun readAsNSData(
         descriptor: Descriptor,
     ): NSData {
