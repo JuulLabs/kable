@@ -27,20 +27,20 @@ kotlin {
 
         val jsMain by getting {
             dependencies {
-                implementation(coroutines("core"))
+                api(coroutines("core"))
             }
         }
 
         val androidMain by getting {
             dependencies {
-                implementation(coroutines("android"))
+                api(coroutines("android"))
                 implementation(atomicfu("jvm"))
             }
         }
 
         val macosX64Main by getting {
             dependencies {
-                implementation(coroutines("core", version = "1.3.9-native-mt-2!!"))
+                api(coroutines("core", version = "1.3.9-native-mt-2!!"))
                 implementation(stately("isolate-macosx64"))
             }
         }
