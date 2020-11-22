@@ -10,6 +10,10 @@ name: CI
 on:
   push:
 
+env:
+  SONATYPE_NEXUS_USERNAME: ${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
+  SONATYPE_NEXUS_PASSWORD: ${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
+
 jobs:
   build:
     runs-on: ubuntu-16.04
@@ -17,6 +21,7 @@ jobs:
       GRADLE_ARGS: >-
         --stacktrace
         --no-daemon
+        --no-parallel
         --max-workers 2
         -Pkotlin.incremental=false
 
@@ -37,3 +42,26 @@ jobs:
 
       - name: Check
         run: ./gradlew $GRADLE_ARGS check
+
+      - name: Snapshot
+        if: github.ref == 'refs/heads/main'
+        run: >-
+          ./gradlew
+          $GRADLE_ARGS
+          uploadArchives
+          -PVERSION_NAME=main-SNAPSHOT
+
+      - name: Keyring
+        if: startsWith(github.ref, 'refs/tags/')
+        run: echo "${{ secrets.SIGNING_SECRET_KEY_RING }}" | base64 --decode > ~/secring.gpg
+
+      - name: Publish
+        if: startsWith(github.ref, 'refs/tags/')
+        run: >-
+          ./gradlew
+          $GRADLE_ARGS
+          uploadArchives
+          -PVERSION_NAME=${GITHUB_REF/refs\/tags\//}
+          -Psigning.keyId="${{ secrets.SIGNING_KEY_ID }}"
+          -Psigning.password="${{ secrets.SIGNING_PASSWORD }}"
+          -Psigning.secretKeyRingFile="$HOME/secring.gpg"
