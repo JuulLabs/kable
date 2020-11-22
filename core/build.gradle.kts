@@ -20,7 +20,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(coroutines("core", version = "1.4.1-native-mt"))
+                api(coroutines("core", version = "1.3.9-native-mt-2"))
                 api(uuid())
             }
         }
@@ -40,7 +40,7 @@ kotlin {
 
         val macosX64Main by getting {
             dependencies {
-                implementation(coroutines("core", version = "1.4.1-native-mt!!"))
+                implementation(coroutines("core", version = "1.3.9-native-mt-2!!"))
                 implementation(stately("isolate-macosx64"))
             }
         }
