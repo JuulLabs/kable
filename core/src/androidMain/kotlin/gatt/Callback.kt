@@ -30,6 +30,7 @@ import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 
@@ -50,7 +51,8 @@ internal class Callback(
     }
 
     private val _onCharacteristicChanged = Channel<OnCharacteristicChanged>(UNLIMITED)
-    val onCharacteristicChanged = _onCharacteristicChanged.consumeAsFlow()
+    val onCharacteristicChanged: Flow<OnCharacteristicChanged> =
+        _onCharacteristicChanged.consumeAsFlow()
 
     val onResponse = Channel<Response>(CONFLATED)
 

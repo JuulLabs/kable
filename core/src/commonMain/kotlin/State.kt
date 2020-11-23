@@ -9,6 +9,8 @@ public sealed class State {
     public object Disconnecting : State()
 
     /**
+     * Triggered either after an established connection has dropped or after a connection attempt has failed.
+     *
      * @param status represents status (cause) of [Disconnected] [State]. Always `null` for Javascript target.
      */
     public data class Disconnected(val status: Status? = null) : State() {
