@@ -10,7 +10,6 @@ import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
 import android.content.Context
 import android.util.Log
 import com.benasher44.uuid.uuidFrom
-import com.juul.kable.Event.Rejected
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
@@ -23,20 +22,16 @@ import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -44,11 +39,6 @@ import kotlin.coroutines.CoroutineContext
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
 internal fun CoroutineScope.peripheral(
-    androidContext: Context,
-    advertisement: Advertisement,
-): Peripheral = peripheral(androidContext, advertisement.bluetoothDevice)
-
-public fun CoroutineScope.peripheral(
     androidContext: Context,
     bluetoothDevice: BluetoothDevice,
 ): Peripheral = AndroidPeripheral(coroutineContext, androidContext, bluetoothDevice)
@@ -69,9 +59,6 @@ public class AndroidPeripheral internal constructor(
     private val _state = MutableStateFlow<State>(State.Disconnected())
     public override val state: Flow<State> = _state.asStateFlow()
 
-    private val _events = MutableSharedFlow<Event>()
-    public override val events: Flow<Event> = _events.asSharedFlow()
-
     private val observers = Observers(this)
 
     @Volatile
@@ -86,31 +73,38 @@ public class AndroidPeripheral internal constructor(
 
     private val connectJob = atomic<Job?>(null)
 
+    private val _ready = MutableStateFlow(false)
+    internal suspend fun suspendUntilReady() {
+        combine(_ready, state) { ready, state -> ready && state == State.Connected }.first { it }
+    }
+
     private fun createConnectJob(): Job = scope.launch(start = LAZY) {
-        val connection = bluetoothDevice.connect(context, _state).also { _connection = it }
-        if (connection == null) {
-            _events.emit(Rejected)
-            return@launch
-        }
+        _ready.value = false
+
+        val connection =
+            bluetoothDevice.connect(context, _state) ?: throw ConnectionRejectedException()
+        _connection = connection
 
         try {
             connection
                 .characteristicChanges
                 .onEach(observers.characteristicChanges::emit)
                 .catch { cause -> if (cause !is ConnectionLostException) throw cause }
-                .onCompletion { _events.emit(Event.Disconnected) }
                 .launchIn(scope, start = UNDISPATCHED)
 
             suspendUntilConnected()
             discoverServices()
             observers.rewire()
-            _events.emit(Event.Ready)
         } catch (t: Throwable) {
             connection.close()
             _connection = null
             if (t !is ConnectionLostException) throw t
         }
+
+        println("Ready")
+        _ready.value = true
     }.apply {
+        // fixme: Clear on disconnect (not at end of connect).
         invokeOnCompletion { connectJob.value = null }
     }
 
@@ -282,10 +276,3 @@ private val WriteType.intValue: Int
         WithResponse -> WRITE_TYPE_DEFAULT
         WithoutResponse -> WRITE_TYPE_NO_RESPONSE
     }
-
-private fun <T> Flow<T>.launchIn(
-    scope: CoroutineScope,
-    start: CoroutineStart = CoroutineStart.DEFAULT,
-): Job = scope.launch(start = start) {
-    collect()
-}
