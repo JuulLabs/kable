@@ -224,12 +224,18 @@ scope.cancel() // All `peripherals` will implicitly disconnect and be disposed.
 
 ### Gradle
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core)
+
 Kable can be configured via Gradle Kotlin DSL (when using the Kotlin `multiplatform` plugin) as follows:
 
 ```kotlin
 plugins {
     id("com.android.application") // or id("com.android.library")
     kotlin("multiplatform")
+}
+
+repositories {
+    jcenter() // or mavenCentral()
 }
 
 kotlin {
