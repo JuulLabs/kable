@@ -21,7 +21,7 @@ public class JsCentral internal constructor(
 
     public suspend fun requestPeripheral(options: Options): Peripheral {
         bluetooth ?: error("Bluetooth unavailable")
-        val device = bluetooth.requestDevice(options.toDynamic()).await() // fixme: !!
+        val device = bluetooth.requestDevice(options.toDynamic()).await()
         return scope.peripheral(device)
     }
 
