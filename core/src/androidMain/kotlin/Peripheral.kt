@@ -29,7 +29,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
@@ -52,7 +51,7 @@ public class AndroidPeripheral internal constructor(
     private val context = androidContext.applicationContext
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
-        invokeOnCompletion { _connection?.close() }
+        invokeOnCompletion { dispose() }
     }
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
@@ -78,34 +77,39 @@ public class AndroidPeripheral internal constructor(
         combine(_ready, state) { ready, state -> ready && state == State.Connected }.first { it }
     }
 
+    private fun establishConnection(): Connection =
+        bluetoothDevice.connect(
+            context,
+            _state,
+            invokeOnClose = { connectJob.value = null }
+        ) ?: throw ConnectionRejectedException()
+
+    /** Creates a connect [Job] that completes when connection is established, or failure occurs. */
     private fun createConnectJob(): Job = scope.launch(start = LAZY) {
         _ready.value = false
 
-        val connection =
-            bluetoothDevice.connect(context, _state) ?: throw ConnectionRejectedException()
-        _connection = connection
+        val connection = establishConnection().also { _connection = it }
+        connection
+            .characteristicChanges
+            .onEach(observers.characteristicChanges::emit)
+            .launchIn(scope, start = UNDISPATCHED)
 
         try {
-            connection
-                .characteristicChanges
-                .onEach(observers.characteristicChanges::emit)
-                .catch { cause -> if (cause !is ConnectionLostException) throw cause }
-                .launchIn(scope, start = UNDISPATCHED)
-
             suspendUntilConnected()
             discoverServices()
             observers.rewire()
         } catch (t: Throwable) {
-            connection.close()
-            _connection = null
-            if (t !is ConnectionLostException) throw t
+            dispose()
+            throw t
         }
 
         println("Ready")
         _ready.value = true
-    }.apply {
-        // fixme: Clear on disconnect (not at end of connect).
-        invokeOnCompletion { connectJob.value = null }
+    }
+
+    private fun dispose() {
+        _connection?.close()
+        _connection = null
     }
 
     public override suspend fun connect() {
@@ -115,13 +119,10 @@ public class AndroidPeripheral internal constructor(
 
     public override suspend fun disconnect() {
         try {
-            job.cancelAndJoinChildren()
             connection.bluetoothGatt.disconnect()
             suspendUntilDisconnected()
-            connectJob.value = null
         } finally {
-            _connection?.close()
-            _connection = null
+            dispose()
         }
     }
 

@@ -46,7 +46,7 @@ internal class Callback(
 ) : BluetoothGattCallback() {
 
     private var disconnectedAction: DisconnectedAction? = null
-    fun invokeOnDisconnected(action: () -> Unit) {
+    fun invokeOnDisconnected(action: DisconnectedAction) {
         disconnectedAction = action
     }
 
@@ -92,7 +92,7 @@ internal class Callback(
         }
 
         if (newState == STATE_DISCONNECTING || newState == STATE_DISCONNECTED) {
-            _onCharacteristicChanged.close(ConnectionLostException())
+            _onCharacteristicChanged.close()
             onResponse.close(ConnectionLostException())
         }
     }
