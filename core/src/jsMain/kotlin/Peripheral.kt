@@ -11,12 +11,14 @@ import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.DataView
 import org.khronos.webgl.Int8Array
@@ -38,12 +40,11 @@ public class JsPeripheral internal constructor(
         invokeOnCompletion {
             console.log("Shutting down job")
             console.dir(this@JsPeripheral)
-            observers.clear()
-            disconnectGatt()
-            unregisterDisconnectedListener()
+            dispose()
             console.log("Shutting down job complete")
         }
     }
+
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
     private val _state = MutableStateFlow<State?>(null)
@@ -60,14 +61,17 @@ public class JsPeripheral internal constructor(
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
 
-    public override suspend fun connect() {
-        // todo: Prevent multiple simultaneous connection attempts.
-        _state.value = State.Connecting // todo: Emit **after** triggering connect process.
+    private var connectJob: Job? = null
+
+    private fun createConnectJob() = scope.launch(start = CoroutineStart.LAZY) {
+        _state.value = State.Connecting
 
         try {
-            registerDisconnectedListener() // todo: Unregister on connection drop?
+            registerDisconnectedListener()
+
             gatt.connect().await() // todo: Catch appropriate exception to emit State.Rejected.
             _state.value = State.Connected
+
             val services = discoverServices()
             observers.rewire(services)
         } catch (cancellation: CancellationException) {
@@ -76,9 +80,23 @@ public class JsPeripheral internal constructor(
         }
     }
 
+    private fun dispose() {
+        observers.clear()
+        disconnectGatt()
+        unregisterDisconnectedListener()
+        _state.value = State.Disconnected()
+    }
+
+    public override suspend fun connect() {
+        check(!job.isCancelled) { "Cannot connect, scope is cancelled for $this" }
+        val job = connectJob ?: createConnectJob().also { connectJob = it }
+        job.join()
+    }
+
     public override suspend fun disconnect() {
         console.log("Initiating disconnect")
-        scope.coroutineContext[Job]?.cancelAndJoinChildren()
+        job.cancelAndJoinChildren()
+        connectJob = null
         disconnectGatt()
         console.log("Disconnect complete")
     }
@@ -187,6 +205,8 @@ public class JsPeripheral internal constructor(
         console.dir(event)
         observers.invalidate()
         _state.value = State.Disconnected()
+        unregisterDisconnectedListener()
+        connectJob = null
     }
 
     private fun registerDisconnectedListener() {
