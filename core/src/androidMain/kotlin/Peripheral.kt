@@ -113,7 +113,7 @@ public class AndroidPeripheral internal constructor(
     }
 
     public override suspend fun connect() {
-        check(!job.isCancelled) { "Cannot connect, scope is cancelled for $this" }
+        check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
         connectJob.updateAndGet { it ?: createConnectJob() }!!.join()
     }
 

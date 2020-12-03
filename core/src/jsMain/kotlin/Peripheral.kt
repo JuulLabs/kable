@@ -88,7 +88,7 @@ public class JsPeripheral internal constructor(
     }
 
     public override suspend fun connect() {
-        check(!job.isCancelled) { "Cannot connect, scope is cancelled for $this" }
+        check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
         val job = connectJob ?: createConnectJob().also { connectJob = it }
         job.join()
     }
