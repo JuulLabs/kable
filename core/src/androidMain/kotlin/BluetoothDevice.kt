@@ -16,17 +16,19 @@ import kotlinx.coroutines.newSingleThreadContext
 internal fun BluetoothDevice.connect(
     context: Context,
     state: MutableStateFlow<State>,
+    invokeOnClose: () -> Unit,
 ): Connection? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        connectApi26(context, state)
+        connectApi26(context, state, invokeOnClose)
     } else {
-        connectApi21(context, state)
+        connectApi21(context, state, invokeOnClose)
     }
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 private fun BluetoothDevice.connectApi21(
     context: Context,
     state: MutableStateFlow<State>,
+    invokeOnClose: () -> Unit,
 ): Connection? {
     val callback = Callback(state)
     val bluetoothGatt = connectGatt(context, false, callback) ?: return null
@@ -36,13 +38,22 @@ private fun BluetoothDevice.connectApi21(
     state.value = State.Connecting
 
     val dispatcher = newSingleThreadContext(threadName)
-    return Connection(bluetoothGatt, dispatcher, callback, dispatcher::close)
+    return Connection(
+        bluetoothGatt,
+        dispatcher,
+        callback,
+        invokeOnClose = {
+            dispatcher.close()
+            invokeOnClose.invoke()
+        }
+    )
 }
 
 @TargetApi(Build.VERSION_CODES.O)
 private fun BluetoothDevice.connectApi26(
     context: Context,
     state: MutableStateFlow<State>,
+    invokeOnClose: () -> Unit,
 ): Connection? {
     val thread = HandlerThread(threadName).apply { start() }
     try {
@@ -61,7 +72,15 @@ private fun BluetoothDevice.connectApi26(
         // Disconnected before the connection request has kicked off the Connecting state (via Callback).
         state.value = State.Connecting
 
-        return Connection(bluetoothGatt, dispatcher, callback, thread::quit)
+        return Connection(
+            bluetoothGatt,
+            dispatcher,
+            callback,
+            invokeOnClose = {
+                thread.quit()
+                invokeOnClose.invoke()
+            }
+        )
     } catch (t: Throwable) {
         thread.quit()
         throw t

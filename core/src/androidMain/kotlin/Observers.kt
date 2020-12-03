@@ -52,7 +52,13 @@ internal class Observers(
             }
         } finally {
             if (observers.decrementAndGet(characteristic) < 1) {
-                peripheral.stopNotifications(characteristic)
+                try {
+                    peripheral.stopNotifications(characteristic)
+                } catch (e: NotReadyException) {
+                    // Silently ignore as it is assumed that failure is due to connection drop, in which case Android
+                    // will clear the notifications.
+                    println("Stop notification failure ignored.")
+                }
             }
         }
     }
