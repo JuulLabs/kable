@@ -1,6 +1,12 @@
 package com.juul.kable
 
-public expect open class IOException(
+/** Failure occurred with the underlying Bluetooth Low Energy system. */
+public open class BluetoothLeException internal constructor(
+    message: String? = null,
+    cause: Throwable? = null,
+) : Exception()
+
+public expect open class IOException internal constructor(
     message: String? = null,
     cause: Throwable? = null,
 ) : Exception
