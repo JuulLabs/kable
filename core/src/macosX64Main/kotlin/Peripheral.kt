@@ -6,6 +6,7 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
 import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic
+import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Closed
 import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Data
 import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Error
 import com.juul.kable.PeripheralDelegate.Response
@@ -32,8 +33,6 @@ import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -44,6 +43,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -130,9 +131,12 @@ public class ApplePeripheral internal constructor(
                 _connection.value = it
             }
 
-            connection.characteristicChanges
+            connection
+                .delegate
+                .characteristicChanges
+                .takeWhile { it !== Closed }
                 .mapNotNull { it as? Data }
-                .onEach(observers.characteristicChanges::send)
+                .onEach(observers.characteristicChanges::emit)
                 .onCompletion { println("Peripheral characteristicChanges onCompletion") }
                 .launchIn(scope, start = UNDISPATCHED)
 
@@ -231,15 +235,11 @@ public class ApplePeripheral internal constructor(
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
 
         return connection.semaphore.withPermit {
-            coroutineScope {
-                val response = async(start = UNDISPATCHED) {
-                    connection
-                        .characteristicChanges
-                        .first { it.cbCharacteristic.UUID == cbCharacteristic.UUID }
-                }
-                centralManager.read(cbPeripheral, cbCharacteristic)
-                response.await().getOrThrow()
-            }
+            connection
+                .delegate
+                .characteristicChanges
+                .onSubscription { centralManager.read(cbPeripheral, cbCharacteristic) }
+                .firstOrThrow { it.cbCharacteristic.UUID == cbCharacteristic.UUID }
         }
     }
 
@@ -353,9 +353,12 @@ private fun <T> Response.getOrThrow(): T {
     return this as T
 }
 
-private fun DidUpdateValueForCharacteristic.getOrThrow(): NSData = when (this) {
-    is Data -> data
-    is Error -> throw IOException(error.description, cause = null)
+private suspend fun Flow<DidUpdateValueForCharacteristic>.firstOrThrow(
+    predicate: suspend (Data) -> Boolean
+): NSData = when (val value = first { it !is Data || predicate.invoke(it) }) {
+    is Data -> value.data
+    is Error -> throw IOException(value.error.description, cause = null)
+    Closed -> throw ConnectionLostException()
 }
 
 private fun ConnectionEvent.toState(): State = when (this) {

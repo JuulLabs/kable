@@ -1,6 +1,6 @@
 fun coroutines(
     module: String,
-    version: String = "1.4.1"
+    version: String = "1.4.2"
 ): String = "org.jetbrains.kotlinx:kotlinx-coroutines-$module:$version"
 
 fun atomicfu(

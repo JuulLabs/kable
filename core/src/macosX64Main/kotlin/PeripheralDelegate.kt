@@ -1,17 +1,17 @@
 package com.juul.kable
 
+import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Closed
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
 import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.IsReadyToSendWriteWithoutResponse
-import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBPeripheral
@@ -78,24 +78,22 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
 
     sealed class DidUpdateValueForCharacteristic {
 
-        abstract val cbCharacteristic: CBCharacteristic
-
         data class Data(
-            override val cbCharacteristic: CBCharacteristic,
+            val cbCharacteristic: CBCharacteristic,
             val data: NSData,
         ) : DidUpdateValueForCharacteristic()
 
         data class Error(
-            override val cbCharacteristic: CBCharacteristic,
+            val cbCharacteristic: CBCharacteristic,
             val error: NSError,
         ) : DidUpdateValueForCharacteristic()
+
+        /** Signal to downstream that [PeripheralDelegate] has been [closed][close]. */
+        object Closed : DidUpdateValueForCharacteristic()
     }
 
-    // todo: MutableSharedFlow
-    private val _characteristicChanges = BroadcastChannel<DidUpdateValueForCharacteristic>(BUFFERED)
-    val characteristicChanges: Flow<DidUpdateValueForCharacteristic>
-        // todo: Remove `get()` when `_characteristicChanges` is MutableSharedFlow.
-        get() = _characteristicChanges.openSubscription().consumeAsFlow()
+    private val _characteristicChanges = MutableSharedFlow<DidUpdateValueForCharacteristic>(extraBufferCapacity = 64)
+    val characteristicChanges = _characteristicChanges.asSharedFlow()
 
     /* Discovering Services */
 
@@ -148,7 +146,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
             DidUpdateValueForCharacteristic.Error(cbCharacteristic, error)
         }
 
-        _characteristicChanges.sendBlocking(change)
+        _characteristicChanges.emitBlocking(change)
     }
 
     override fun peripheral(
@@ -235,6 +233,6 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
     fun close() {
         println("PeripheralDelegate close")
         _response.close(ConnectionLostException())
-        _characteristicChanges.close()
+        _characteristicChanges.emitBlocking(Closed)
     }
 }
