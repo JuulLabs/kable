@@ -7,6 +7,8 @@
 **K**otlin **A**synchronous **B**luetooth **L**ow **E**nergy provides a simple Coroutines-powered API for interacting
 with Bluetooth Low Energy devices.
 
+Usage is demonstrated with the [SensorTag sample app].
+
 ## Background
 
 Bluetooth Low Energy devices may operate as one of the following roles:
@@ -261,6 +263,7 @@ _Note that Apple-based targets (e.g. `macosX64`) require [Coroutines with multit
 specifically: Coroutines library artifacts that are suffixed with `-native-mt`)._
 
 
+[SensorTag sample app]: https://github.com/JuulLabs/sensortag
 [`first`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/first.html
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
 [Coroutine scope]: https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope
