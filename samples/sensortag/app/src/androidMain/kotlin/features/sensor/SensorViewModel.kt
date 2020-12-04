@@ -2,11 +2,11 @@ package com.juul.sensortag.features.sensor
 
 import android.app.Application
 import android.bluetooth.BluetoothAdapter
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.juul.kable.Peripheral
 import com.juul.kable.State
+import com.juul.sensortag.Log
 import com.juul.sensortag.SensorTag
 import com.juul.sensortag.TAG
 import com.juul.sensortag.Vector3f
@@ -101,7 +101,7 @@ class SensorViewModel(
     private fun CoroutineScope.connect() {
         connectionAttempt.incrementAndGet()
         launch {
-            Log.d(TAG, "connect")
+            Log.debug("connect")
             peripheral.connect()
             sensorTag.enableGyro()
             sensorTag.writeGyroPeriodProgress(periodProgress.get())
@@ -152,7 +152,7 @@ private fun bluetoothDeviceFrom(macAddress: String) =
 private fun Peripheral.remoteRssi() = flow {
     while (true) {
         val rssi = rssi()
-        Log.d(TAG, "RSSI: $rssi")
+        Log.debug("RSSI: $rssi")
         emit(rssi)
         delay(1_000L)
     }
@@ -160,7 +160,7 @@ private fun Peripheral.remoteRssi() = flow {
 
 private suspend fun SensorTag.writeGyroPeriodProgress(progress: Int) {
     val period = progress / 100f * (2550 - 100) + 100
-    Log.v(TAG, "period = $period")
+    Log.verbose("period = $period")
     writeGyroPeriod(period.toLong())
 }
 
