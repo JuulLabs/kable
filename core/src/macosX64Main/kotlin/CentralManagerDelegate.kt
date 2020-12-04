@@ -4,12 +4,10 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filterNotNull
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCentralManagerDelegateProtocol
@@ -24,11 +22,8 @@ import kotlin.native.concurrent.freeze
 // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate
 internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProtocol {
 
-    // todo: MutableSharedFlow
-    private val _onDisconnected = BroadcastChannel<NSUUID>(1)
-    internal val onDisconnected: Flow<NSUUID>
-        // todo: Drop `get()` when `_onDisconnected` is a MutableSharedFlow.
-        get() = _onDisconnected.openSubscription().consumeAsFlow()
+    private val _onDisconnected = MutableSharedFlow<NSUUID>()
+    internal val onDisconnected = _onDisconnected.asSharedFlow()
 
     private val _state = MutableStateFlow<CBManagerState?>(null)
     val state: Flow<CBManagerState> = _state.filterNotNull()
@@ -42,9 +37,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         ) : Response()
     }
 
-    // todo: MutableSharedFlow when Coroutines 1.4.x-mt is released.
-    private val _response = BroadcastChannel<Response>(BUFFERED)
-    val response: Flow<Response> = _response.asFlow()
+    private val _response = MutableSharedFlow<Response>(extraBufferCapacity = 64)
+    val response: Flow<Response> = _response.asSharedFlow()
 
     sealed class ConnectionEvent {
 
