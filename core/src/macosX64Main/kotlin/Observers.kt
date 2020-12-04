@@ -1,9 +1,9 @@
 package com.juul.kable
 
 import co.touchlab.stately.isolate.IsolateState
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import platform.Foundation.NSData
 
@@ -19,11 +19,11 @@ import platform.Foundation.NSData
  * different changes would be represented as A1, A2 and A3):
  *
  * ```
- *                                                       .--- acquire(A) --> A1, A2, A3
- *                             .----------------------. /
- *  A1, B1, C1, A2, A3, B2 --> | characteristicChange | ----- acquire(B) --> B1, B2
- *                             '----------------------' \
- *                                                       '--- acquire(C) --> C1
+ *                                                        .--- acquire(A) --> A1, A2, A3
+ *                             .-----------------------. /
+ *  A1, B1, C1, A2, A3, B2 --> | characteristicChanges | ----- acquire(B) --> B1, B2
+ *                             '-----------------------' \
+ *                                                        '--- acquire(C) --> C1
  * ```
  *
  * @param peripheral to perform notification actions against to enable/disable the observations.
@@ -32,9 +32,8 @@ internal class Observers(
     private val peripheral: ApplePeripheral,
 ) {
 
-    // todo: MutableSharedFlow when Coroutines 1.4.x-mt is released.
     val characteristicChanges =
-        BroadcastChannel<PeripheralDelegate.DidUpdateValueForCharacteristic.Data>(1)
+        MutableSharedFlow<PeripheralDelegate.DidUpdateValueForCharacteristic.Data>()
 
     private val observers = ObservationCount()
 
@@ -46,11 +45,10 @@ internal class Observers(
 
         if (observers.incrementAndGet(characteristic) == 1) {
             peripheral.startNotifications(characteristic)
-        } else {
         }
 
         try {
-            characteristicChanges.consumeEach {
+            characteristicChanges.collect {
                 if (it.cbCharacteristic.UUID == cbCharacteristicUuid &&
                     it.cbCharacteristic.service.UUID == cbServiceUuid
                 ) emit(it.data)
