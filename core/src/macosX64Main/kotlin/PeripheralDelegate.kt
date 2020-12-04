@@ -146,7 +146,7 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
             DidUpdateValueForCharacteristic.Error(cbCharacteristic, error)
         }
 
-        _characteristicChanges.sendBlocking(change)
+        _characteristicChanges.emitBlocking(change)
     }
 
     override fun peripheral(
@@ -233,6 +233,6 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
     fun close() {
         println("PeripheralDelegate close")
         _response.close(ConnectionLostException())
-        _characteristicChanges.sendBlocking(Closed)
+        _characteristicChanges.emitBlocking(Closed)
     }
 }

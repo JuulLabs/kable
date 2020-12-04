@@ -79,7 +79,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         error: NSError?,
     ) {
         println("<- CentralManagerDelegate didDisconnectPeripheral")
-        _onDisconnected.sendBlocking(didDisconnectPeripheral.identifier) // Used to notify `Peripheral` of disconnect.
+        _onDisconnected.emitBlocking(didDisconnectPeripheral.identifier) // Used to notify `Peripheral` of disconnect.
         _connectionState.value = DidDisconnect(didDisconnectPeripheral.identifier, error)
     }
 
@@ -110,7 +110,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518937-centralmanager
         val data = advertisementData as Map<String, Any>
 
-        _response.sendBlocking(DidDiscoverPeripheral(peripheral, RSSI, data))
+        _response.emitBlocking(DidDiscoverPeripheral(peripheral, RSSI, data))
     }
 
     /* Monitoring the Central Manager’s State */
