@@ -55,8 +55,7 @@ android {
     }
 
     lintOptions {
-        isAbortOnError = true
-        isWarningsAsErrors = true
+        isAbortOnError = false
     }
 
     sourceSets {
