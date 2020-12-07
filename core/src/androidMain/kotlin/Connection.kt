@@ -2,7 +2,6 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
-import android.os.RemoteException
 import com.juul.kable.gatt.Callback
 import com.juul.kable.gatt.GattStatus
 import kotlinx.coroutines.CoroutineDispatcher
@@ -51,14 +50,14 @@ internal class Connection(
      * a single threaded [CoroutineDispatcher] is used, Android O and newer a [CoroutineDispatcher] backed by an Android
      * `Handler` is used (and is also used in the Android BLE [Callback]).
      *
+     * @throws GattRequestRejectedException if underlying `BluetoothGatt` method call returns `false`.
      * @throws GattStatusException if response has a non-`GATT_SUCCESS` status.
      */
     suspend inline fun <reified T> execute(
         crossinline action: BluetoothGatt.() -> Boolean,
     ): T = lock.withLock {
         withContext(dispatcher) {
-            // todo: Exception type (other than RemoteException; that is uniform across platforms) — extend IOException?
-            action.invoke(bluetoothGatt) || throw RemoteException("BluetoothGatt method call returned false")
+            action.invoke(bluetoothGatt) || throw GattRequestRejectedException()
         }
 
         val response = try {
