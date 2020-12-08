@@ -113,6 +113,11 @@ public class AndroidPeripheral internal constructor(
     }
 
     private fun dispose() {
+        // Explicitly emit `Disconnecting` despite Android likely triggering the same state emission from `Callback`.
+        // Only distinct states are emitted and this emission ensures library consumers can get the state **before** the
+        // disconnect process begins (to cancel on-going I/O if needed, prior to connection being lost).
+        _state.value = State.Disconnecting
+
         _connection?.close()
         _connection = null
     }
