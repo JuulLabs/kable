@@ -16,7 +16,8 @@ public class JsCentral internal constructor(
     private val bluetooth: Bluetooth? = js("window.navigator.bluetooth")
 
     public override fun scanner(): Scanner {
-        TODO("Not yet implemented")
+        bluetooth ?: error("Bluetooth unavailable")
+        return JsScanner(bluetooth, Options())
     }
 
     public suspend fun requestPeripheral(options: Options): Peripheral {
@@ -27,17 +28,5 @@ public class JsCentral internal constructor(
 
     public override fun peripheral(advertisement: Advertisement): Peripheral {
         TODO("Not yet implemented")
-    }
-}
-
-private fun Options.toDynamic(): dynamic = if (filters == null) {
-    object {
-        val acceptAllDevices = true
-        val optionalServices = this@toDynamic.optionalServices
-    }
-} else {
-    object {
-        val optionalServices = this@toDynamic.optionalServices
-        val filters = this@toDynamic.filters
     }
 }
