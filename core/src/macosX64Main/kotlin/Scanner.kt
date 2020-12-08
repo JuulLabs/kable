@@ -18,7 +18,7 @@ public class AppleScanner internal constructor(
     services: List<Uuid>?
 ) : Scanner {
 
-    public override val peripherals: Flow<Advertisement> =
+    public override val advertisements: Flow<Advertisement> =
         central.delegate
             .response
             .onStart {

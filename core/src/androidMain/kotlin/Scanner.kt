@@ -13,13 +13,15 @@ public class ScanFailedException internal constructor(
     public val errorCode: Int
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
 
+public fun scanner(): AndroidScanner = AndroidScanner()
+
 public class AndroidScanner internal constructor() : Scanner {
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         ?: error("Bluetooth not supported")
 
-    public override val peripherals: Flow<Advertisement> = callbackFlow {
-        check(bluetoothAdapter.isEnabled) { "Bluetooth is disabled" } // todo: Exception type.
+    public override val advertisements: Flow<Advertisement> = callbackFlow {
+        check(bluetoothAdapter.isEnabled) { "Bluetooth is disabled" }
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {

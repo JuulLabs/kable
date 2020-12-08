@@ -37,7 +37,12 @@ import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
-internal fun CoroutineScope.peripheral(
+public fun CoroutineScope.peripheral(
+    androidContext: Context,
+    advertisement: Advertisement,
+): Peripheral = peripheral(androidContext, advertisement.bluetoothDevice)
+
+public fun CoroutineScope.peripheral(
     androidContext: Context,
     bluetoothDevice: BluetoothDevice,
 ): Peripheral = AndroidPeripheral(coroutineContext, androidContext, bluetoothDevice)
