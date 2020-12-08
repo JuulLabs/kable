@@ -124,8 +124,10 @@ public class AndroidPeripheral internal constructor(
 
     public override suspend fun disconnect() {
         try {
-            connection.bluetoothGatt.disconnect()
-            suspendUntilDisconnected()
+            _connection?.apply {
+                bluetoothGatt.disconnect()
+                suspendUntilDisconnected()
+            }
         } finally {
             dispose()
         }
