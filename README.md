@@ -41,9 +41,9 @@ val peripheral = scope.peripheral(advertisement)
 ### JavaScript
 
 On JavaScript, rather than processing a stream of advertisements, a specific peripheral can be requested using the
-`CoroutineScope.requestPeripheral` extension function. Criterium (`Options`) such as expected service UUIDs on the
+`CoroutineScope.requestPeripheral` extension function. Criteria (`Options`) such as expected service UUIDs on the
 peripheral and/or the peripheral's name may be specified. When `requestPeripheral` is called with the specified options,
-the browser shows the user a list of peripherals matching the criterium. The peripheral chosen by the user is then
+the browser shows the user a list of peripherals matching the criteria. The peripheral chosen by the user is then
 returned (as a `Peripheral` object).
 
 ```kotlin
