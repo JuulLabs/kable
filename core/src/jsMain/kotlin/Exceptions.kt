@@ -1,3 +1,5 @@
+// ktlint-disable filename
+
 package com.juul.kable
 
 public actual open class IOException actual constructor(
