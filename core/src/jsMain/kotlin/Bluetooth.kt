@@ -4,7 +4,7 @@ import com.juul.kable.external.Bluetooth
 import kotlinx.coroutines.CoroutineScope
 import kotlin.js.Promise
 
-private val bluetooth: Bluetooth
+internal val bluetooth: Bluetooth
     get() = js("window.navigator.bluetooth") ?: error("Bluetooth unavailable")
 
 public fun CoroutineScope.requestPeripheral(
