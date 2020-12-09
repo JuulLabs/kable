@@ -4,9 +4,7 @@ package com.juul.kable
 
 import com.juul.kable.external.Bluetooth
 import com.juul.kable.external.BluetoothAdvertisingEvent
-import com.juul.kable.external.BluetoothDevice
 import kotlinx.coroutines.await
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -45,7 +43,8 @@ public class JsScanner internal constructor(
     private val supportsScanning = js("window.navigator.bluetooth.requestLEScan") != null
 }
 
-// TODO: dedicated Options class with the additional properties
+// TODO: dedicated scan options class with the additional properties instead of re-using `Options`
+// https://webbluetoothcg.github.io/web-bluetooth/scanning.html#dictdef-bluetoothlescanoptions
 private fun Options.toDynamic(): dynamic = if (filters == null) {
     object {
         val acceptAllAdvertisements = true
