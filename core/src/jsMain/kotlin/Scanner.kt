@@ -19,9 +19,9 @@ private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
  * See also: [Chrome Platform Status: Web Bluetooth Scanning](https://www.chromestatus.com/feature/5346724402954240)
  */
 public class JsScanner internal constructor(
-        bluetooth: Bluetooth,
-        options: Options
-): Scanner {
+    bluetooth: Bluetooth,
+    options: Options
+) : Scanner {
 
     public override val peripherals: Flow<Advertisement> = callbackFlow {
         check(supportsScanning) { "Scanning unavailable" }
