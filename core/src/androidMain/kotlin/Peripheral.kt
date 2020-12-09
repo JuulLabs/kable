@@ -49,8 +49,6 @@ public class AndroidPeripheral internal constructor(
     private val bluetoothDevice: BluetoothDevice,
 ) : Peripheral {
 
-    private val context = applicationContext
-
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
         invokeOnCompletion { dispose() }
     }
@@ -80,7 +78,7 @@ public class AndroidPeripheral internal constructor(
 
     private fun establishConnection(): Connection =
         bluetoothDevice.connect(
-            context,
+            applicationContext,
             _state,
             invokeOnClose = { connectJob.value = null }
         ) ?: throw ConnectionRejectedException()
