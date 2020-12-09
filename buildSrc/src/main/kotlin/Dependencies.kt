@@ -17,3 +17,9 @@ fun stately(
     module: String,
     version: String = "1.1.1-a1"
 ): String = "co.touchlab:stately-$module:$version"
+
+object androidx {
+    fun startup(
+        version: String = "1.0.0"
+    ) = "androidx.startup:startup-runtime:$version"
+}

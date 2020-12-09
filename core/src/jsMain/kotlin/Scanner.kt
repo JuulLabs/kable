@@ -1,10 +1,8 @@
-// ktlint-disable filename
-
 package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
 
-public fun scanner(): JsScanner = JsScanner()
+public actual fun scanner(): Scanner = JsScanner()
 
 /**
  * Only available on Chrome 79+ with "Experimental Web Platform features" enabled via:

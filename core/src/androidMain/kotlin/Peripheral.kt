@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-import android.content.Context
 import android.util.Log
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteType.WithResponse
@@ -37,23 +36,20 @@ import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
-public fun CoroutineScope.peripheral(
-    androidContext: Context,
+public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
-): Peripheral = peripheral(androidContext, advertisement.bluetoothDevice)
+): Peripheral = peripheral(advertisement.bluetoothDevice)
 
 public fun CoroutineScope.peripheral(
-    androidContext: Context,
     bluetoothDevice: BluetoothDevice,
-): Peripheral = AndroidPeripheral(coroutineContext, androidContext, bluetoothDevice)
+): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice)
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
-    androidContext: Context,
     private val bluetoothDevice: BluetoothDevice,
 ) : Peripheral {
 
-    private val context = androidContext.applicationContext
+    private val context = applicationContext
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
         invokeOnCompletion { dispose() }

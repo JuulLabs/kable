@@ -28,6 +28,10 @@ import org.w3c.dom.events.Event as JsEvent
 
 private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
 
+public actual fun CoroutineScope.peripheral(
+    advertisement: Advertisement,
+): Peripheral = TODO("Not yet implemented")
+
 internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
 ) = JsPeripheral(coroutineContext, bluetoothDevice)
