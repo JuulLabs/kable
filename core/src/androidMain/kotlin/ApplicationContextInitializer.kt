@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.startup.Initializer
 
 internal lateinit var applicationContext: Context
+    private set
 
 public class ApplicationContextInitializer : Initializer<Unit> {
 
