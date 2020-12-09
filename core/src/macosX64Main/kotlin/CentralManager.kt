@@ -17,7 +17,7 @@ private const val DISPATCH_QUEUE_LABEL = "central"
 public class CentralManager internal constructor() {
 
     internal companion object {
-        val Default: CentralManager = CentralManager()
+        val Default: CentralManager by lazy { CentralManager() }
     }
 
     private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
