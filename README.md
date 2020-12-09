@@ -17,10 +17,10 @@ the peripheral's name and RSSI (signal strength).
 
 Scanning begins when the `advertisements` `Flow` is collected and stops when the `Flow` collection is terminated. A
 `Flow` terminal operator (such as [`first`]) may be used to scan until an advertisement is found that matches a desired
-predicated. 
+predicate. 
 
 ```kotlin
-val example = scanner()
+val advertisement = Scanner()
     .advertisements
     .first { it.name?.startsWith("Example") }
 ```
@@ -63,10 +63,10 @@ val peripheral = scope.requestPeripheral(options).await()
 
 Once a `Peripheral` object is acquired, a connection can be established via the `connect` function. The `connect` method
 suspends until a connection is established and ready (or a failure occurs). A connection is considered ready when
-connected, services have been discovered and observations (if any) have been re-wired. _Service discovery occurs
+connected, services have been discovered, and observations (if any) have been re-wired. _Service discovery occurs
 automatically upon connection._
 
-Multiple concurrent calls to `connect` will all suspend until connection is ready.
+_Multiple concurrent calls to `connect` will all suspend until connection is ready._
 
 ```kotlin
 peripheral.connect()
@@ -84,6 +84,7 @@ indefinitely. To prevent this (and ensure underlying resources are cleaned up in
 `disconnect` be wrapped with a timeout, for example:_
 
 ```kotlin
+// Allow 5 seconds for graceful disconnect before forcefully closing `Peripheral`.
 withTimeoutOrNull(5_000L) {
     peripheral.disconnect()
 }
@@ -176,7 +177,7 @@ Peripheral objects/connections are scoped to a [Coroutine scope]. When creating 
 receiver. If the `CoroutineScope` receiver is cancelled then the `Peripheral` will disconnect and be disposed.
 
 ```kotlin
-scanner()
+Scanner()
     .advertisements
     .filter { advertisement -> advertisement.name?.startsWith("Example") }
     .map { advertisement -> scope.peripheral(advertisement) }
@@ -186,6 +187,9 @@ scanner()
 delay(60_000L)
 scope.cancel() // All `peripherals` will implicitly disconnect and be disposed.
 ```
+
+_`Peripheral.disconnect` is the preferred method of disconnecting peripherals, but disposable via Coroutine scope
+cancellation is provided to prevent connection leaks._
 
 ## Setup
 
