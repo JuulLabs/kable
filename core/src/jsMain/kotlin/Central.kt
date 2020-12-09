@@ -30,3 +30,15 @@ public class JsCentral internal constructor(
         TODO("Not yet implemented")
     }
 }
+
+private fun Options.toDynamic(): dynamic = if (filters == null) {
+    object {
+        val acceptAllDevices = true
+        val optionalServices = this@toDynamic.optionalServices
+    }
+} else {
+    object {
+        val optionalServices = this@toDynamic.optionalServices
+        val filters = this@toDynamic.filters
+    }
+}

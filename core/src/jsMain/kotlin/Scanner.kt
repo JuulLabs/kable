@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.w3c.dom.events.Event
 
-private val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
+private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
 
 /**
  * Only available on Chrome 79+ with "Experimental Web Platform features" enabled via:
@@ -33,7 +33,6 @@ public class JsScanner internal constructor(
             val event = it as BluetoothAdvertisingEvent
             offer(Advertisement(event.device, event.rssi))
         }
-
         bluetooth.addEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
 
         awaitClose {
@@ -43,5 +42,18 @@ public class JsScanner internal constructor(
     }
 
     // https://webbluetoothcg.github.io/web-bluetooth/scanning.html#scanning
-    private val supportsScanning = js("window.navigator.bluetooth.requestLEScan") as Boolean
+    private val supportsScanning = js("window.navigator.bluetooth.requestLEScan") != null
+}
+
+// TODO: dedicated Options class with the additional properties
+private fun Options.toDynamic(): dynamic = if (filters == null) {
+    object {
+        val acceptAllAdvertisements = true
+        val keepRepeatedDevices = false
+    }
+} else {
+    object {
+        val keepRepeatedDevices = false
+        val filters = this@toDynamic.filters
+    }
 }

@@ -47,15 +47,3 @@ public data class Options(
         return result
     }
 }
-
-internal fun Options.toDynamic(): dynamic = if (filters == null) {
-    object {
-        val acceptAllDevices = true
-        val optionalServices = this@toDynamic.optionalServices
-    }
-} else {
-    object {
-        val optionalServices = this@toDynamic.optionalServices
-        val filters = this@toDynamic.filters
-    }
-}
