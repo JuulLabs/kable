@@ -72,7 +72,7 @@ _Multiple concurrent calls to `connect` will all suspend until connection is rea
 peripheral.connect()
 ```
 
-To disconnect, the `disconnect` function will disconnect an active connection, or cancel and in-flight connection
+To disconnect, the `disconnect` function will disconnect an active connection, or cancel an in-flight connection
 attempt. The `disconnect` function suspends until the peripheral has settled on a disconnected state.
 
 ```kotlin

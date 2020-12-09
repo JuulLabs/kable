@@ -80,14 +80,12 @@ internal class Observers(
 
     suspend fun rewire(services: List<PlatformService>) {
         if (observers.isEmpty()) return
-        console.log("Rewiring observers")
 
         observers.forEach { (characteristic, _) ->
             val platformCharacteristic =
                 services.first { it.serviceUuid == characteristic.serviceUuid }
                     .characteristics.first { it.characteristicUuid == characteristic.characteristicUuid }
 
-            console.log("Starting notifications for $characteristic")
             platformCharacteristic
                 .bluetoothRemoteGATTCharacteristic
                 .apply {
