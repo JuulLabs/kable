@@ -30,7 +30,7 @@ private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
-): Peripheral = TODO("Not yet implemented")
+): Peripheral = peripheral(advertisement.bluetoothDevice)
 
 internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
