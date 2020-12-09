@@ -1,5 +1,3 @@
-// ktlint-disable filename
-
 package com.juul.kable
 
 import com.juul.kable.external.Bluetooth
@@ -12,6 +10,8 @@ import org.w3c.dom.events.Event
 
 private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
 
+public actual fun Scanner(): Scanner = JsScanner(bluetooth, Options())
+
 /**
  * Only available on Chrome 79+ with "Experimental Web Platform features" enabled via:
  * chrome://flags/#enable-experimental-web-platform-features
@@ -23,7 +23,10 @@ public class JsScanner internal constructor(
     options: Options
 ) : Scanner {
 
-    public override val peripherals: Flow<Advertisement> = callbackFlow {
+    // https://webbluetoothcg.github.io/web-bluetooth/scanning.html#scanning
+    private val supportsScanning = js("window.navigator.bluetooth.requestLEScan") != null
+
+    public override val advertisements: Flow<Advertisement> = callbackFlow {
         check(supportsScanning) { "Scanning unavailable" }
 
         val scan = bluetooth.requestLEScan(options.toDynamic()).await()
@@ -38,9 +41,6 @@ public class JsScanner internal constructor(
             bluetooth.removeEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
         }
     }
-
-    // https://webbluetoothcg.github.io/web-bluetooth/scanning.html#scanning
-    private val supportsScanning = js("window.navigator.bluetooth.requestLEScan") != null
 }
 
 // TODO: dedicated scan options class with the additional properties instead of re-using `Options`

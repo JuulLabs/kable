@@ -9,7 +9,6 @@ import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic
 import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Closed
 import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Data
 import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Error
-import com.juul.kable.PeripheralDelegate.Response
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForService
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
@@ -45,6 +44,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -69,20 +69,20 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.native.concurrent.freeze
 
-internal fun CoroutineScope.peripheral(
-    centralManager: CentralManager,
-    cbPeripheral: CBPeripheral,
-) = ApplePeripheral(coroutineContext, centralManager, cbPeripheral)
+public actual fun CoroutineScope.peripheral(
+    advertisement: Advertisement,
+): Peripheral = ApplePeripheral(coroutineContext, advertisement.cbPeripheral)
 
 @OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
 public class ApplePeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
-    private val centralManager: CentralManager,
     private val cbPeripheral: CBPeripheral,
 ) : Peripheral {
 
-    private val job = Job(parentCoroutineContext[Job])
+    private val job = Job(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
     private val scope = CoroutineScope(parentCoroutineContext + job)
+
+    private val centralManager: CentralManager = CentralManager.Default
 
     public override val state: Flow<State> = centralManager.delegate
         .connectionState
@@ -168,7 +168,7 @@ public class ApplePeripheral internal constructor(
 
     public override suspend fun disconnect() {
         try {
-            scope.coroutineContext[Job]?.cancelAndJoinChildren()
+            scope.coroutineContext.job.cancelAndJoinChildren()
         } finally {
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)
@@ -346,12 +346,6 @@ private val WriteType.cbWriteType: CBCharacteristicWriteType
         WithResponse -> CBCharacteristicWriteWithResponse
         WithoutResponse -> CBCharacteristicWriteWithoutResponse
     }
-
-private fun <T> Response.getOrThrow(): T {
-    val error = this.error
-    if (error != null) throw IOException(error.description, cause = null)
-    return this as T
-}
 
 private suspend fun Flow<DidUpdateValueForCharacteristic>.firstOrThrow(
     predicate: suspend (Data) -> Boolean

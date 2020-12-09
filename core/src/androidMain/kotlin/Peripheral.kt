@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-import android.content.Context
 import android.util.Log
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteType.WithResponse
@@ -37,18 +36,18 @@ import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
-internal fun CoroutineScope.peripheral(
-    androidContext: Context,
+public actual fun CoroutineScope.peripheral(
+    advertisement: Advertisement,
+): Peripheral = peripheral(advertisement.bluetoothDevice)
+
+public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-): Peripheral = AndroidPeripheral(coroutineContext, androidContext, bluetoothDevice)
+): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice)
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
-    androidContext: Context,
     private val bluetoothDevice: BluetoothDevice,
 ) : Peripheral {
-
-    private val context = androidContext.applicationContext
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
         invokeOnCompletion { dispose() }
@@ -79,7 +78,7 @@ public class AndroidPeripheral internal constructor(
 
     private fun establishConnection(): Connection =
         bluetoothDevice.connect(
-            context,
+            applicationContext,
             _state,
             invokeOnClose = { connectJob.value = null }
         ) ?: throw ConnectionRejectedException()
@@ -119,8 +118,10 @@ public class AndroidPeripheral internal constructor(
 
     public override suspend fun disconnect() {
         try {
-            connection.bluetoothGatt.disconnect()
-            suspendUntilDisconnected()
+            _connection?.apply {
+                bluetoothGatt.disconnect()
+                suspendUntilDisconnected()
+            }
         } finally {
             dispose()
         }

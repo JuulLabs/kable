@@ -3,8 +3,13 @@
 package com.juul.kable
 
 import com.juul.kable.WriteType.WithoutResponse
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlin.coroutines.cancellation.CancellationException
+
+public expect fun CoroutineScope.peripheral(
+    advertisement: Advertisement,
+): Peripheral
 
 public enum class WriteType {
     WithResponse,

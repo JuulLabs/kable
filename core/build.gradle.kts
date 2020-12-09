@@ -35,6 +35,7 @@ kotlin {
             dependencies {
                 api(coroutines("android"))
                 implementation(atomicfu("jvm"))
+                implementation(androidx.startup())
             }
         }
 

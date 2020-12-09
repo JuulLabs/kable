@@ -1,9 +1,6 @@
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCharacteristic
@@ -13,44 +10,36 @@ import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSData
-import kotlin.coroutines.CoroutineContext
 import kotlin.native.concurrent.freeze
 
 private const val DISPATCH_QUEUE_LABEL = "central"
 
-internal fun CoroutineScope.centralManager(): CentralManager = CentralManager(coroutineContext)
+public class CentralManager internal constructor() {
 
-internal class CentralManager(
-    parentCoroutineContext: CoroutineContext,
-) {
-
-    private val job = Job(parentCoroutineContext[Job]).apply {
-        invokeOnCompletion {
-            cbCentralManager.delegate = null
-        }
+    internal companion object {
+        val Default: CentralManager by lazy { CentralManager() }
     }
-    private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
-    private val scope = CoroutineScope(parentCoroutineContext + job + dispatcher)
 
+    private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
     internal val delegate = CentralManagerDelegate().freeze()
     private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue)
 
-    fun scanForPeripheralsWithServices(
+    internal suspend fun scanForPeripheralsWithServices(
         services: List<Uuid>?,
         options: Map<Any?, *>?,
     ) {
         println("-> CentralManager.scanForPeripheralsWithServices")
-        scope.launch {
+        withContext(dispatcher) {
             cbCentralManager.scanForPeripheralsWithServices(services, options)
         }
     }
 
-    fun stopScan() {
+    internal fun stopScan() {
         println("-> CentralManager.stopScan")
         cbCentralManager.stopScan()
     }
 
-    suspend fun connectPeripheral(
+    internal suspend fun connectPeripheral(
         cbPeripheral: CBPeripheral,
         delegate: PeripheralDelegate,
         options: Map<Any?, *>? = null,
@@ -63,7 +52,7 @@ internal class CentralManager(
         return Connection(delegate)
     }
 
-    suspend fun cancelPeripheralConnection(
+    internal suspend fun cancelPeripheralConnection(
         cbPeripheral: CBPeripheral,
     ) {
         println("-> CentralManager.cancelPeripheralConnection")
@@ -73,7 +62,7 @@ internal class CentralManager(
         }
     }
 
-    suspend fun readRssi(
+    internal suspend fun readRssi(
         cbPeripheral: CBPeripheral,
     ) {
         println("-> CentralManager CBPeripheral.readRssi")
@@ -82,7 +71,7 @@ internal class CentralManager(
         }
     }
 
-    suspend fun discoverServices(
+    internal suspend fun discoverServices(
         cbPeripheral: CBPeripheral,
         services: List<CBUUID>?,
     ) {
@@ -92,7 +81,7 @@ internal class CentralManager(
         }
     }
 
-    suspend fun discoverCharacteristics(
+    internal suspend fun discoverCharacteristics(
         cbPeripheral: CBPeripheral,
         cbService: CBService,
     ) {
@@ -102,7 +91,7 @@ internal class CentralManager(
         }
     }
 
-    suspend fun write(
+    internal suspend fun write(
         cbPeripheral: CBPeripheral,
         data: NSData,
         cbCharacteristic: CBCharacteristic,
@@ -114,7 +103,7 @@ internal class CentralManager(
         }
     }
 
-    suspend fun read(
+    internal suspend fun read(
         cbPeripheral: CBPeripheral,
         cbCharacteristic: CBCharacteristic,
     ) {
@@ -124,7 +113,7 @@ internal class CentralManager(
         }
     }
 
-    suspend fun write(
+    internal suspend fun write(
         cbPeripheral: CBPeripheral,
         data: NSData,
         cbDescriptor: CBDescriptor,
@@ -135,7 +124,7 @@ internal class CentralManager(
         }
     }
 
-    suspend fun read(
+    internal suspend fun read(
         cbPeripheral: CBPeripheral,
         cbDescriptor: CBDescriptor,
     ) {
@@ -145,7 +134,7 @@ internal class CentralManager(
         }
     }
 
-    suspend fun notify(
+    internal suspend fun notify(
         cbPeripheral: CBPeripheral,
         cbCharacteristic: CBCharacteristic,
     ) {
@@ -155,7 +144,7 @@ internal class CentralManager(
         }
     }
 
-    suspend fun cancelNotify(
+    internal suspend fun cancelNotify(
         cbPeripheral: CBPeripheral,
         cbCharacteristic: CBCharacteristic,
     ) {

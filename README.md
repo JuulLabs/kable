@@ -9,60 +9,42 @@ with Bluetooth Low Energy devices.
 
 Usage is demonstrated with the [SensorTag sample app].
 
-## Background
-
-Bluetooth Low Energy devices may operate as one of the following roles:
-
-- **Central**: The central is often a larger and higher powered device such as a computer or mobile phone.
-  The central scans for and initiates connections with remote peripherals that are advertising.
-- **Peripheral**: Peripherals are commonly smaller, lower powered devices such as heart rate monitors and other sensors.
-  They will advertise their presence so that a central can find and connect to them.
-
-## Central
-
-The `Central` class is the primary entry point and provides capabilities for scanning for nearby peripherals.
-To create a `Central`, simply call the `CoroutineScope.central` extension function.
-
-### Android
-
-On Android, the `central` extension function requires an Android `Context` argument:
-
-```kotlin
-val central = scope.central(context)
-```
-
-### JavaScript & Apple
-
-For both JavaScript and Apple-based targets, the `central` extension function is called without arguments:
-
-```kotlin
-val central = scope.central()
-```
-
 ## Scanning
 
-To scan for nearby peripherals, acquire a `Scanner` from the `Central` via the `scanner` function. To begin scanning,
-simply collect from the `Scanner`'s `peripheral` `Flow`. The `peripheral` `Flow` provides a stream of `Advertisement`
-objects representing advertisements seen from nearby peripherals. When `Flow` collection is terminated, scanning will
-stop. A `Flow` terminal operator (such as [`first`]) may be used to scan until an advertisement is found which matches a
-desired predicated.
+To scan for nearby peripherals, the `Scanner` provides an `advertisements` `Flow` which is a stream of `Advertisement`
+objects representing advertisements seen from nearby peripherals. `Advertisement` objects contain information such as
+the peripheral's name and RSSI (signal strength).
 
-Using an `Advertisement` object, you can acquire a `Peripheral` using the `Central.peripheral` function.
-
-### Android & Apple
+Scanning begins when the `advertisements` `Flow` is collected and stops when the `Flow` collection is terminated. A
+`Flow` terminal operator (such as [`first`]) may be used to scan until an advertisement is found that matches a desired
+predicate. 
 
 ```kotlin
-val scanner = central.scanner()
-val advertisement = scanner.peripherals.first { it.name?.startsWith("Example") }
-val peripheral = central.peripheral(advertisement)
+val advertisement = Scanner()
+    .advertisements
+    .first { it.name?.startsWith("Example") }
+```
+
+_**JavaScript:** Scanning for nearby peripherals is supported, but only available on Chrome 79+ with "Experimental Web
+Platform features" enabled via:_ `chrome://flags/#enable-experimental-web-platform-features`
+
+## Peripheral
+
+Once an `Advertisement` is obtained, it can be converted to a `Peripheral` via the `CoroutineScope.peripheral` extension
+function. `Peripheral` objects represent actions that can be performed against a remote peripheral, such as connection
+handling and I/O operations.
+
+```kotlin
+val peripheral = scope.peripheral(advertisement)
 ```
 
 ### JavaScript
 
-On JavaScript, the standard paradigm is to request a specific peripheral rather than processing a stream of
-advertisements. Criterium (`Options`) such as expected service UUIDs on the peripheral and/or the peripheral's name may
-be specified. When `requestPeripheral` is called with the specified options, the browser shows the user a list of
-peripherals matching the criterium. The peripheral chosen by the user is then returned (as a `Peripheral` object).
+On JavaScript, rather than processing a stream of advertisements, a specific peripheral can be requested using the
+`CoroutineScope.requestPeripheral` extension function. Criteria (`Options`) such as expected service UUIDs on the
+peripheral and/or the peripheral's name may be specified. When `requestPeripheral` is called with the specified options,
+the browser shows the user a list of peripherals matching the criteria. The peripheral chosen by the user is then
+returned (as a `Peripheral` object).
 
 ```kotlin
 val options = Options(
@@ -74,25 +56,17 @@ val options = Options(
         NamePrefix("Example")
     )
 )
-val peripheral = central.requestPeripheral(options)
+val peripheral = scope.requestPeripheral(options).await()
 ```
 
-_Scanning for all nearby peripherals is supported, but is only available on Chrome 79+ with "Experimental Web Platform
-features" enabled via:_ `chrome://flags/#enable-experimental-web-platform-features`
-
-## Peripheral
-
-`Peripheral` objects represent actions that can be performed against a remote peripheral, such as connection handling
-and I/O operations. The `Peripheral` API is the same for all platforms.
-
-### Connectivity
+## Connectivity
 
 Once a `Peripheral` object is acquired, a connection can be established via the `connect` function. The `connect` method
 suspends until a connection is established and ready (or a failure occurs). A connection is considered ready when
-connected, services have been discovered and observations (if any) have been re-wired. _Service discovery occurs
+connected, services have been discovered, and observations (if any) have been re-wired. _Service discovery occurs
 automatically upon connection._
 
-Multiple concurrent calls to `connect` will all suspend until connection is ready.
+_Multiple concurrent calls to `connect` will all suspend until connection is ready._
 
 ```kotlin
 peripheral.connect()
@@ -110,6 +84,7 @@ indefinitely. To prevent this (and ensure underlying resources are cleaned up in
 `disconnect` be wrapped with a timeout, for example:_
 
 ```kotlin
+// Allow 5 seconds for graceful disconnect before forcefully closing `Peripheral`.
 withTimeoutOrNull(5_000L) {
     peripheral.disconnect()
 }
@@ -197,30 +172,24 @@ collected, then notification failures are propagated via the `observe` `Flow`.
 
 ## Structured Concurrency
 
-Central and peripheral objects/connections are scoped to a [Coroutine scope]. When creating a `Central`, the
-`CoroutineScope.central` function is used, which scopes the returned `Central` to the `CoroutineScope` receiver. If the
-`CoroutineScope` receiver is cancelled then the `Central` (and all its children) will be disposed.
-
-![Scopes](artwork/scopes.png)
-
-`Scanner` and `Peripheral` objects are also scoped (to the `Central` object used to acquire them). When their parent
-`Central` is disposed (via their parent `Central`'s `CoroutineScope` being cancelled) then they too will be disposed.
-
-This allows any scans to be stopped, connections to be closed and resources to be released when the root
-`CoroutineScope` (that the `Central` is scoped to) is cancelled:
+Peripheral objects/connections are scoped to a [Coroutine scope]. When creating a `Peripheral`, the
+`CoroutineScope.peripheral` extension function is used, which scopes the returned `Peripheral` to the `CoroutineScope`
+receiver. If the `CoroutineScope` receiver is cancelled then the `Peripheral` will disconnect and be disposed.
 
 ```kotlin
-val central = scope.central()
-val scanner = central.scanner()
-scanner.peripherals
+Scanner()
+    .advertisements
     .filter { advertisement -> advertisement.name?.startsWith("Example") }
-    .map { advertisement -> central.peripheral(advertisement) }
+    .map { advertisement -> scope.peripheral(advertisement) }
     .onEach { peripheral -> peripheral.connect() }
     .launchIn(scope)
 
 delay(60_000L)
 scope.cancel() // All `peripherals` will implicitly disconnect and be disposed.
 ```
+
+_`Peripheral.disconnect` is the preferred method of disconnecting peripherals, but disposable via Coroutine scope
+cancellation is provided to prevent connection leaks._
 
 ## Setup
 
@@ -260,7 +229,8 @@ android {
 ```
 
 _Note that Apple-based targets (e.g. `macosX64`) require [Coroutines with multithread support for Kotlin/Native] (more
-specifically: Coroutines library artifacts that are suffixed with `-native-mt`)._
+specifically: Coroutines library artifacts that are suffixed with `-native-mt`). Kable is configured to use `-native-mt`
+as a transitive dependency for Apple-based targets._
 
 # License
 

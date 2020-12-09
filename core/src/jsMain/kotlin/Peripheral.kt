@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.DataView
@@ -26,6 +27,10 @@ import kotlin.coroutines.CoroutineContext
 import org.w3c.dom.events.Event as JsEvent
 
 private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
+
+public actual fun CoroutineScope.peripheral(
+    advertisement: Advertisement,
+): Peripheral = peripheral(advertisement.bluetoothDevice)
 
 internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
@@ -36,7 +41,7 @@ public class JsPeripheral internal constructor(
     private val bluetoothDevice: BluetoothDevice,
 ) : Peripheral {
 
-    private val job = Job(parentCoroutineContext[Job]).apply {
+    private val job = Job(parentCoroutineContext.job).apply {
         invokeOnCompletion {
             console.log("Shutting down job")
             console.dir(this@JsPeripheral)
