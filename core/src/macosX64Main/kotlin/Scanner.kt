@@ -13,7 +13,7 @@ import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.CoreBluetooth.CBManagerStateUnauthorized
 import platform.CoreBluetooth.CBManagerStateUnsupported
 
-public actual fun scanner(): Scanner = AppleScanner(CentralManager.Default, services = null)
+public actual fun Scanner(): Scanner = AppleScanner(CentralManager.Default, services = null)
 
 public class AppleScanner internal constructor(
     central: CentralManager,

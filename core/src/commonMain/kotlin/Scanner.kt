@@ -7,4 +7,5 @@ public interface Scanner {
 }
 
 // todo: Add support for specifying services to filter against (for platforms that support it).
-public expect fun scanner(): Scanner
+// https://github.com/JuulLabs/kable/issues/22
+public expect fun Scanner(): Scanner

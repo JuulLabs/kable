@@ -10,7 +10,7 @@ import org.w3c.dom.events.Event
 
 private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
 
-public actual fun scanner(): Scanner = JsScanner(bluetooth, Options())
+public actual fun Scanner(): Scanner = JsScanner(bluetooth, Options())
 
 /**
  * Only available on Chrome 79+ with "Experimental Web Platform features" enabled via:

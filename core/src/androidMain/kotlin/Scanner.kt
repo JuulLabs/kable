@@ -13,7 +13,7 @@ public class ScanFailedException internal constructor(
     public val errorCode: Int
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
 
-public actual fun scanner(): Scanner = AndroidScanner()
+public actual fun Scanner(): Scanner = AndroidScanner()
 
 public class AndroidScanner internal constructor() : Scanner {
 
