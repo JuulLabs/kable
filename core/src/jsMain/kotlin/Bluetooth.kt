@@ -5,7 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlin.js.Promise
 
 internal val bluetooth: Bluetooth
-    get() = js("window.navigator.bluetooth") ?: error("Bluetooth unavailable")
+    get() = checkNotNull(js("window.navigator.bluetooth") as? Bluetooth) { "Bluetooth unavailable" }
 
 public fun CoroutineScope.requestPeripheral(
     options: Options
