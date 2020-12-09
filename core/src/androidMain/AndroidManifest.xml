@@ -18,7 +18,7 @@
             >
 
             <meta-data
-                android:name="com.juul.kable.ApplicationContextInitializer"
+                android:name="com.juul.kable.KableInitializer"
                 android:value="androidx.startup"
                 />
         </provider>

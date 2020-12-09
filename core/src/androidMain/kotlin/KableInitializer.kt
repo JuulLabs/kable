@@ -6,10 +6,13 @@ import androidx.startup.Initializer
 internal lateinit var applicationContext: Context
     private set
 
-public class ApplicationContextInitializer : Initializer<Unit> {
+public object Kable
 
-    override fun create(context: Context) {
+public class KableInitializer : Initializer<Kable> {
+
+    override fun create(context: Context): Kable {
         applicationContext = context.applicationContext
+        return Kable
     }
 
     override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
