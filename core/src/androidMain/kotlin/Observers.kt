@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
@@ -57,7 +58,7 @@ internal class Observers(
                 } catch (e: NotReadyException) {
                     // Silently ignore as it is assumed that failure is due to connection drop, in which case Android
                     // will clear the notifications.
-                    println("Stop notification failure ignored.")
+                    Log.d(TAG, "Stop notification failure ignored.")
                 }
             }
         }

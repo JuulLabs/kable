@@ -40,7 +40,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.takeWhile
@@ -137,21 +136,16 @@ public class ApplePeripheral internal constructor(
                 .takeWhile { it !== Closed }
                 .mapNotNull { it as? Data }
                 .onEach(observers.characteristicChanges::emit)
-                .onCompletion { println("Peripheral characteristicChanges onCompletion") }
                 .launchIn(scope, start = UNDISPATCHED)
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
             suspendUntilConnected()
 
-            println("Discovering")
             discoverServices()
-            println("Discovered")
             observers.rewire()
-            println("Rewired")
         } catch (t: Throwable) {
             withContext(NonCancellable) {
-                println("connect cancel")
                 centralManager.cancelPeripheralConnection(cbPeripheral)
                 _connection.value = null
             }
@@ -214,12 +208,10 @@ public class ApplePeripheral internal constructor(
         data: NSData,
         writeType: WriteType,
     ) {
-        println("Peripheral write")
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
         connection.execute<DidWriteValueForCharacteristic> {
             centralManager.write(cbPeripheral, data, cbCharacteristic, writeType.cbWriteType)
         }
-        println("Peripheral write DONE")
     }
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
@@ -285,22 +277,16 @@ public class ApplePeripheral internal constructor(
 
     internal suspend fun startNotifications(characteristic: Characteristic) {
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
-        println("Peripheral startNotifications")
         connection.execute<DidUpdateNotificationStateForCharacteristic> {
-            println("Peripheral startNotifications notify")
             centralManager.notify(cbPeripheral, cbCharacteristic)
         }
-        println("Peripheral startNotifications DONE")
     }
 
     internal suspend fun stopNotifications(characteristic: Characteristic) {
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
-        println("Peripheral stopNotifications")
         connection.execute<DidUpdateNotificationStateForCharacteristic> {
-            println("Peripheral startNotifications cancelNotify")
             centralManager.cancelNotify(cbPeripheral, cbCharacteristic)
         }
-        println("Peripheral stopNotifications DONE")
     }
 
     override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"

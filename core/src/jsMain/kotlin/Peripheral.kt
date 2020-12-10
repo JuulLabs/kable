@@ -42,12 +42,7 @@ public class JsPeripheral internal constructor(
 ) : Peripheral {
 
     private val job = Job(parentCoroutineContext.job).apply {
-        invokeOnCompletion {
-            console.log("Shutting down job")
-            console.dir(this@JsPeripheral)
-            dispose()
-            console.log("Shutting down job complete")
-        }
+        invokeOnCompletion { dispose() }
     }
 
     private val scope = CoroutineScope(parentCoroutineContext + job)
@@ -99,11 +94,9 @@ public class JsPeripheral internal constructor(
     }
 
     public override suspend fun disconnect() {
-        console.log("Initiating disconnect")
         job.cancelAndJoinChildren()
         connectJob = null
         disconnectGatt()
-        console.log("Disconnect complete")
     }
 
     private fun disconnectGatt() {
@@ -112,12 +105,10 @@ public class JsPeripheral internal constructor(
     }
 
     private suspend fun discoverServices(): List<PlatformService> {
-        console.log("Discovering services")
         val services = gatt.getPrimaryServices()
             .await()
             .map { it.toPlatformService() }
         platformServices = services
-        console.log("Service discovery complete")
         return services
     }
 
