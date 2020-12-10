@@ -188,7 +188,7 @@ delay(60_000L)
 scope.cancel() // All `peripherals` will implicitly disconnect and be disposed.
 ```
 
-_`Peripheral.disconnect` is the preferred method of disconnecting peripherals, but disposable via Coroutine scope
+_`Peripheral.disconnect` is the preferred method of disconnecting peripherals, but disposal via Coroutine scope
 cancellation is provided to prevent connection leaks._
 
 ## Setup
