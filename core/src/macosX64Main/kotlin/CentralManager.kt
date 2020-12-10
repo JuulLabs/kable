@@ -28,14 +28,12 @@ public class CentralManager internal constructor() {
         services: List<Uuid>?,
         options: Map<Any?, *>?,
     ) {
-        println("-> CentralManager.scanForPeripheralsWithServices")
         withContext(dispatcher) {
             cbCentralManager.scanForPeripheralsWithServices(services, options)
         }
     }
 
     internal fun stopScan() {
-        println("-> CentralManager.stopScan")
         cbCentralManager.stopScan()
     }
 
@@ -44,7 +42,6 @@ public class CentralManager internal constructor() {
         delegate: PeripheralDelegate,
         options: Map<Any?, *>? = null,
     ): Connection {
-        println("-> CentralManager.connectPeripheral")
         withContext(dispatcher) {
             cbPeripheral.delegate = delegate
             cbCentralManager.connectPeripheral(cbPeripheral, options)
@@ -55,7 +52,6 @@ public class CentralManager internal constructor() {
     internal suspend fun cancelPeripheralConnection(
         cbPeripheral: CBPeripheral,
     ) {
-        println("-> CentralManager.cancelPeripheralConnection")
         withContext(dispatcher) {
             cbCentralManager.cancelPeripheralConnection(cbPeripheral)
             cbPeripheral.delegate = null
@@ -65,7 +61,6 @@ public class CentralManager internal constructor() {
     internal suspend fun readRssi(
         cbPeripheral: CBPeripheral,
     ) {
-        println("-> CentralManager CBPeripheral.readRssi")
         withContext(dispatcher) {
             cbPeripheral.readRSSI()
         }
@@ -75,7 +70,6 @@ public class CentralManager internal constructor() {
         cbPeripheral: CBPeripheral,
         services: List<CBUUID>?,
     ) {
-        println("-> CentralManager CBPeripheral.discoverServices")
         withContext(dispatcher) {
             cbPeripheral.discoverServices(services)
         }
@@ -85,7 +79,6 @@ public class CentralManager internal constructor() {
         cbPeripheral: CBPeripheral,
         cbService: CBService,
     ) {
-        println("-> CentralManager CBPeripheral.discoverCharacteristics")
         withContext(dispatcher) {
             cbPeripheral.discoverCharacteristics(null, cbService)
         }
@@ -97,7 +90,6 @@ public class CentralManager internal constructor() {
         cbCharacteristic: CBCharacteristic,
         cbWriteType: CBCharacteristicWriteType,
     ) {
-        println("-> CentralManager CBPeripheral.writeValue(CBCharacteristic)")
         withContext(dispatcher) {
             cbPeripheral.writeValue(data, cbCharacteristic, cbWriteType)
         }
@@ -107,7 +99,6 @@ public class CentralManager internal constructor() {
         cbPeripheral: CBPeripheral,
         cbCharacteristic: CBCharacteristic,
     ) {
-        println("-> CentralManager CBPeripheral.readValueForCharacteristic")
         withContext(dispatcher) {
             cbPeripheral.readValueForCharacteristic(cbCharacteristic)
         }
@@ -118,7 +109,6 @@ public class CentralManager internal constructor() {
         data: NSData,
         cbDescriptor: CBDescriptor,
     ) {
-        println("-> CentralManager CBPeripheral.writeValue(CBDescriptor)")
         withContext(dispatcher) {
             cbPeripheral.writeValue(data, cbDescriptor)
         }
@@ -129,7 +119,6 @@ public class CentralManager internal constructor() {
         cbDescriptor: CBDescriptor,
     ) {
         withContext(dispatcher) {
-            println("-> CentralManager CBPeripheral.readValueForDescriptor")
             cbPeripheral.readValueForDescriptor(cbDescriptor)
         }
     }
@@ -138,7 +127,6 @@ public class CentralManager internal constructor() {
         cbPeripheral: CBPeripheral,
         cbCharacteristic: CBCharacteristic,
     ) {
-        println("-> CentralManager CBPeripheral.setNotifyValue(true)")
         withContext(dispatcher) {
             cbPeripheral.setNotifyValue(true, cbCharacteristic)
         }
@@ -148,7 +136,6 @@ public class CentralManager internal constructor() {
         cbPeripheral: CBPeripheral,
         cbCharacteristic: CBCharacteristic,
     ) {
-        println("-> CentralManager CBPeripheral.setNotifyValue(false)")
         withContext(dispatcher) {
             cbPeripheral.setNotifyValue(false, cbCharacteristic)
         }
