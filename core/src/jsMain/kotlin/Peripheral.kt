@@ -4,6 +4,7 @@ package com.juul.kable
 
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
+import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import com.juul.kable.external.BluetoothRemoteGATTDescriptor
@@ -14,10 +15,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import org.khronos.webgl.ArrayBuffer
@@ -27,6 +34,7 @@ import kotlin.coroutines.CoroutineContext
 import org.w3c.dom.events.Event as JsEvent
 
 private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
+private const val ADVERTISEMENT_RECEIVED = "advertisementreceived"
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -59,9 +67,7 @@ public class JsPeripheral internal constructor(
     public override val services: List<DiscoveredService>?
         get() = platformServices?.map { it.toDiscoveredService() }
 
-    public override suspend fun rssi(): Int {
-        TODO("Not yet implemented")
-    }
+    public override suspend fun rssi(): Int = advertisements.stateIn(scope).value.rssi
 
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
@@ -223,6 +229,46 @@ public class JsPeripheral internal constructor(
     private fun unregisterDisconnectedListener() {
         isDisconnectedListenerRegistered = false
         bluetoothDevice.removeEventListener(GATT_SERVER_DISCONNECTED, disconnectedListener)
+    }
+
+    private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
+
+    private val _advertisements =
+        MutableSharedFlow<BluetoothAdvertisingEvent>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val advertisements = _advertisements.asSharedFlow()
+        .onStart {
+            check(supportsAdvertisements) { "watchAdvertisements unavailable" }
+            if (!bluetoothDevice.watchingAdvertisements) {
+                console.log("watchAdvertisements")
+                bluetoothDevice.watchAdvertisements().await()
+            }
+            registerAdvertisementListener()
+        }
+        .onCompletion {
+            unregisterAdvertisementListener()
+            // At the time of writing `unwatchAdvertisements()` remains unimplemented
+            if (js("BluetoothDevice.prototype.unwatchAdvertisements") != null) {
+                console.log("unwatchAdvertisements")
+                bluetoothDevice.unwatchAdvertisements()
+            }
+        }
+
+    private var isAdvertisementListenerRegistered = false
+    private val advertisementListener: (JsEvent) -> Unit = {
+        _advertisements.tryEmit(it as BluetoothAdvertisingEvent)
+    }
+
+    private fun registerAdvertisementListener() {
+        console.log("registerAdvertisementListener")
+        if (isAdvertisementListenerRegistered) return
+        isAdvertisementListenerRegistered = true
+        bluetoothDevice.addEventListener(ADVERTISEMENT_RECEIVED, advertisementListener)
+    }
+
+    private fun unregisterAdvertisementListener() {
+        console.log("unregisterAdvertisementListener")
+        isAdvertisementListenerRegistered = false
+        bluetoothDevice.removeEventListener(ADVERTISEMENT_RECEIVED, advertisementListener)
     }
 
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
