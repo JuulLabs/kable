@@ -2,19 +2,17 @@ package com.juul.sensortag
 
 import com.juul.kable.Options
 import com.juul.kable.Options.Filter.NamePrefix
-import com.juul.kable.Peripheral
 import com.juul.kable.State
-import com.juul.kable.central
+import com.juul.kable.requestPeripheral
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.await
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 typealias MessageListener = (message: String) -> Unit
 typealias MovementListener = (x: Float, y: Float, z: Float) -> Unit
@@ -34,7 +32,6 @@ private val clientCharacteristicConfigUuid = canonicalUuid("2902")
 class Script {
 
     private val scope = CoroutineScope(Job())
-    private val central = scope.central()
 
     private val options = Options(
         optionalServices = arrayOf(
@@ -92,7 +89,7 @@ class Script {
         disconnect() // Clean up previous connection, if any.
 
         connection = scope.launch {
-            val sensorTag = SensorTag(central.requestPeripheral(options))
+            val sensorTag = SensorTag(requestPeripheral(options).await())
             sensorTag.establishConnection()
             enableAutoReconnect(sensorTag)
 

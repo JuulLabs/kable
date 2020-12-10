@@ -1,7 +1,8 @@
 package com.juul.sensortag
 
+import com.juul.kable.Scanner
 import com.juul.kable.State
-import com.juul.kable.central
+import com.juul.kable.peripheral
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -9,14 +10,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.runBlocking
 
 fun main() = runBlocking<Unit> {
-    val central = central()
     Log.info("Searching for SensorTag...")
-    val advertisement = central.scanner()
-        .peripherals
+    val advertisement = Scanner()
+        .advertisements
         .first { it.name?.isSensorTag == true }
     Log.info("Found $advertisement")
 
-    val peripheral = central.peripheral(advertisement)
+    val peripheral = peripheral(advertisement)
     val sensorTag = SensorTag(peripheral)
 
     sensorTag.gyro.onEach { Log.info(it.toString()) }.launchIn(this)

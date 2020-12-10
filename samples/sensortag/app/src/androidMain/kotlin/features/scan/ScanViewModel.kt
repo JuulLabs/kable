@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.juul.kable.Advertisement
-import com.juul.sensortag.central
+import com.juul.kable.Scanner
 import com.juul.sensortag.features.scan.ScanStatus.Failed
 import com.juul.sensortag.features.scan.ScanStatus.Started
 import com.juul.sensortag.features.scan.ScanStatus.Stopped
@@ -32,7 +32,7 @@ sealed class ScanStatus {
 
 class ScanViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val scanner = central.scanner()
+    private val scanner = Scanner()
     private val scanScope = viewModelScope.childScope()
     private val found = hashMapOf<String, Advertisement>()
 
@@ -48,7 +48,8 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
 
         scanScope.launch {
             withTimeoutOrNull(SCAN_DURATION_MILLIS) {
-                scanner.peripherals
+                scanner
+                    .advertisements
                     .catch { cause -> _scanStatus.value = Failed(cause.message ?: "Unknown error") }
                     .onCompletion { cause -> if (cause == null) _scanStatus.value = Stopped }
                     .filter { it.isSensorTag }

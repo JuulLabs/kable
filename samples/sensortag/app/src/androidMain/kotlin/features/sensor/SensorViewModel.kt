@@ -4,19 +4,20 @@ import android.app.Application
 import android.bluetooth.BluetoothAdapter
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.juul.kable.NotReadyException
 import com.juul.kable.Peripheral
 import com.juul.kable.State
+import com.juul.kable.peripheral
 import com.juul.sensortag.Log
 import com.juul.sensortag.SensorTag
-import com.juul.sensortag.TAG
 import com.juul.sensortag.Vector3f
-import com.juul.sensortag.central
 import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState
 import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState.AxisState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
@@ -74,7 +75,7 @@ class SensorViewModel(
     macAddress: String
 ) : AndroidViewModel(application) {
 
-    private val peripheral = central.peripheral(bluetoothDeviceFrom(macAddress))
+    private val peripheral = viewModelScope.peripheral(bluetoothDeviceFrom(macAddress))
     private val sensorTag = SensorTag(peripheral)
     private val connectionAttempt = AtomicInteger()
 
@@ -156,6 +157,11 @@ private fun Peripheral.remoteRssi() = flow {
         emit(rssi)
         delay(1_000L)
     }
+}.catch { cause ->
+    // todo: Investigate better way of handling this failure case.
+    // When disconnecting, we may attempt to read `rssi` causing a `NotReadyException` but the hope is that `remoteRssi`
+    // Flow would already be cancelled by the time the `Peripheral` is "not ready" (doesn't seem to be the case).
+    if (cause !is NotReadyException) throw cause
 }
 
 private suspend fun SensorTag.writeGyroPeriodProgress(progress: Int) {
