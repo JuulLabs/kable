@@ -62,7 +62,7 @@ public class JsPeripheral internal constructor(
     public override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
         check(supportsAdvertisements) { "watchAdvertisements unavailable" }
 
-        var listener: ((JsEvent) -> Unit)? = null
+        lateinit var listener: (JsEvent) -> Unit
         val cleanup = {
             bluetoothDevice.removeEventListener(ADVERTISEMENT_RECEIVED, listener)
             // At the time of writing `unwatchAdvertisements()` remains unimplemented
@@ -75,7 +75,7 @@ public class JsPeripheral internal constructor(
             val event = it as BluetoothAdvertisingEvent
             cleanup()
             if (continuation.isActive) {
-                continuation.resume(event.rssi, null)
+                continuation.resume(event.rssi, onCancellation = null)
             }
         }
 
