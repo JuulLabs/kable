@@ -67,12 +67,13 @@ jobs:
           -Psigning.secretKeyRingFile="$HOME/secring.gpg"
 
       - name: PublishDocumentation
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           ./gradlew dokkaHtml
           git config user.email "ci-build@juul.com"
           git config user.name "ci-build"
-          git checkout --orphan test-gh-pages
+          git checkout --orphan gh-pages
           git rm -rf .
           git add ./core/build/dokka/html/core/
           git commit -m 'Updating dokka documentation'
-          git push origin test-gh-pages
+          git push origin gh-pages
