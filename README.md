@@ -234,7 +234,7 @@ _Note that Apple-based targets (e.g. `macosX64`) require [Coroutines with multit
 specifically: Coroutines library artifacts that are suffixed with `-native-mt`). Kable is configured to use `-native-mt`
 as a transitive dependency for Apple-based targets._
 
-#### Individual platforms
+#### Platform-specific
 
 ```kotlin
 repositories {
