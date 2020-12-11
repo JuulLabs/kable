@@ -68,9 +68,9 @@ jobs:
 
       - name: PublishDocumentation
         run: |
+          ./gradlew dokkaHtml
           git checkout --orphan test-gh-pages
           git rm -rf .
-          ./gradlew dokkaHtml
           git add ./core/build/dokka/html/core/
           git commit -m 'Updating dokka documentation'
           git push origin test-gh-pages
