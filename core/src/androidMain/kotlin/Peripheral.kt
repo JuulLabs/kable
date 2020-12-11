@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-import android.util.Log
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
@@ -102,7 +101,6 @@ public class AndroidPeripheral internal constructor(
             throw t
         }
 
-        println("Ready")
         _ready.value = true
     }
 
@@ -138,19 +136,6 @@ public class AndroidPeripheral internal constructor(
         platformServices = connection.bluetoothGatt
             .services
             .map { it.toPlatformService() }
-            .also(::log)
-    }
-
-    private fun log(services: List<PlatformService>) {
-        services.forEach { service ->
-            Log.d(TAG, "• Service: ${service.serviceUuid}")
-            service.characteristics.forEach { characteristic ->
-                Log.d(TAG, "    • Characteristic: ${characteristic.characteristicUuid}")
-                characteristic.descriptors.forEach { descriptor ->
-                    Log.d(TAG, "        • Descriptor: ${descriptor.descriptorUuid}")
-                }
-            }
-        }
     }
 
     public suspend fun requestMtu(mtu: Int): Unit = connection.execute {

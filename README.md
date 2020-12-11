@@ -72,7 +72,7 @@ _Multiple concurrent calls to `connect` will all suspend until connection is rea
 peripheral.connect()
 ```
 
-To disconnect, the `disconnect` function will disconnect an active connection, or cancel and in-flight connection
+To disconnect, the `disconnect` function will disconnect an active connection, or cancel an in-flight connection
 attempt. The `disconnect` function suspends until the peripheral has settled on a disconnected state.
 
 ```kotlin
@@ -188,7 +188,7 @@ delay(60_000L)
 scope.cancel() // All `peripherals` will implicitly disconnect and be disposed.
 ```
 
-_`Peripheral.disconnect` is the preferred method of disconnecting peripherals, but disposable via Coroutine scope
+_`Peripheral.disconnect` is the preferred method of disconnecting peripherals, but disposal via Coroutine scope
 cancellation is provided to prevent connection leaks._
 
 ## Setup

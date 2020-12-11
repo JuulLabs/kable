@@ -68,7 +68,6 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         central: CBCentralManager,
         didConnectPeripheral: CBPeripheral,
     ) {
-        println("<- CentralManagerDelegate didConnect")
         _connectionState.value = DidConnect(didConnectPeripheral.identifier)
     }
 
@@ -78,7 +77,6 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didDisconnectPeripheral: CBPeripheral,
         error: NSError?,
     ) {
-        println("<- CentralManagerDelegate didDisconnectPeripheral")
         _onDisconnected.emitBlocking(didDisconnectPeripheral.identifier) // Used to notify `Peripheral` of disconnect.
         _connectionState.value = DidDisconnect(didDisconnectPeripheral.identifier, error)
     }
@@ -89,7 +87,6 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didFailToConnectPeripheral: CBPeripheral,
         error: NSError?,
     ) {
-        println("<- CentralManagerDelegate didFailToConnectPeripheral")
         _connectionState.value = DidFailToConnect(didFailToConnectPeripheral.identifier, error)
     }
 
@@ -103,7 +100,6 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         advertisementData: Map<Any?, *>,
         RSSI: NSNumber,
     ) {
-        println("<- CentralManagerDelegate didDiscoverPeripheral")
         val peripheral = didDiscoverPeripheral.freeze()
 
         // Per Apple documentation, `advertisementData` is defined as dictionary of `[String : Any]`.
@@ -118,7 +114,6 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     override fun centralManagerDidUpdateState(
         central: CBCentralManager,
     ) {
-        println("<- CentralManagerDelegate didUpdateState")
         _state.value = central.state
     }
 
