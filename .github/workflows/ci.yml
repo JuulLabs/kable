@@ -69,6 +69,8 @@ jobs:
       - name: PublishDocumentation
         run: |
           ./gradlew dokkaHtml
+          git config user.email "ci-build@juul.com"
+          git config user.name "ci-build"
           git checkout --orphan test-gh-pages
           git rm -rf .
           git add ./core/build/dokka/html/core/
