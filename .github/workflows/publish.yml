@@ -6,10 +6,7 @@ on:
 jobs:
   publish:
     runs-on: macos-10.15
-
     env:
-      SONATYPE_NEXUS_USERNAME: ${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
-      SONATYPE_NEXUS_PASSWORD: ${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
       GRADLE_ARGS: >-
         --no-daemon
         --max-workers 2
@@ -40,6 +37,9 @@ jobs:
         run: echo "${{ secrets.SIGNING_SECRET_KEY_RING }}" | base64 --decode > ~/secring.gpg
 
       - name: Publish
+        env:
+          SONATYPE_NEXUS_USERNAME: ${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
+          SONATYPE_NEXUS_PASSWORD: ${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
         run: >-
           ./gradlew
           $GRADLE_ARGS

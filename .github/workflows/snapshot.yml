@@ -8,8 +8,6 @@ jobs:
     runs-on: macos-10.15
 
     env:
-      SONATYPE_NEXUS_USERNAME: ${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
-      SONATYPE_NEXUS_PASSWORD: ${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
       GRADLE_ARGS: >-
         --no-daemon
         --max-workers 2
@@ -37,4 +35,7 @@ jobs:
         run: ./gradlew $GRADLE_ARGS check
 
       - name: Snapshot
+        env:
+          SONATYPE_NEXUS_USERNAME: ${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
+          SONATYPE_NEXUS_PASSWORD: ${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
         run: ./gradlew $GRADLE_ARGS --no-parallel -PVERSION_NAME=main-SNAPSHOT uploadArchives
