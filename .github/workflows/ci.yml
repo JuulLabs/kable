@@ -28,7 +28,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/.gradle
+            ~/.gradle/caches
+            ~/.gradle/wrapper
             ~/.konan
           key: ${{ runner.os }}-build-${{ hashFiles('**/build.gradle.kts') }}
           restore-keys: |
