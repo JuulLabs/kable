@@ -1,27 +1,17 @@
-# Each virtual machine has the same hardware resources available.
-#
-# - 2-core CPU
-# - 7 GB of RAM memory
-# - 14 GB of SSD disk space
-#
-# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners
-
 name: CI
 on:
   push:
 
-env:
-  SONATYPE_NEXUS_USERNAME: ${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
-  SONATYPE_NEXUS_PASSWORD: ${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
-
 jobs:
   build:
-    runs-on: ubuntu-16.04
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.15]
+    runs-on: ${{ matrix.os }}
+
     env:
       GRADLE_ARGS: >-
-        --stacktrace
         --no-daemon
-        --no-parallel
         --max-workers 2
         -Pkotlin.incremental=false
 
@@ -37,34 +27,30 @@ jobs:
       - name: Gradle cache
         uses: actions/cache@v2
         with:
-          path: ~/.gradle
-          key: grade-${{ hashFiles('**/build.gradle') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: ${{ runner.os }}-build-${{ hashFiles('**/build.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
-      - name: Check
+      - name: Compile (macOS)
+        if: runner.os == 'macOS'
+        run: ./gradlew $GRADLE_ARGS compileKotlinMacosX64
+
+      - name: Test (macOS)
+        if: runner.os == 'macOS'
+        run: ./gradlew $GRADLE_ARGS macosX64Test
+
+      - name: Assemble (Linux)
+        if: runner.os == 'Linux'
+        run: ./gradlew $GRADLE_ARGS assemble
+
+      - name: Check (Linux)
+        if: runner.os == 'Linux'
         run: ./gradlew $GRADLE_ARGS check
-
-      - name: Snapshot
-        if: github.ref == 'refs/heads/main'
-        run: >-
-          ./gradlew
-          $GRADLE_ARGS
-          uploadArchives
-          -PVERSION_NAME=main-SNAPSHOT
-
-      - name: Keyring
-        if: startsWith(github.ref, 'refs/tags/')
-        run: echo "${{ secrets.SIGNING_SECRET_KEY_RING }}" | base64 --decode > ~/secring.gpg
-
-      - name: Publish
-        if: startsWith(github.ref, 'refs/tags/')
-        run: >-
-          ./gradlew
-          $GRADLE_ARGS
-          uploadArchives
-          -PVERSION_NAME=${GITHUB_REF/refs\/tags\//}
-          -Psigning.keyId="${{ secrets.SIGNING_KEY_ID }}"
-          -Psigning.password="${{ secrets.SIGNING_PASSWORD }}"
-          -Psigning.secretKeyRingFile="$HOME/secring.gpg"
 
       - name: PublishDocumentation
         if: startsWith(github.ref, 'refs/tags/')
