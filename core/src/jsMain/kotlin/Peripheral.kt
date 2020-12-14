@@ -4,6 +4,7 @@ package com.juul.kable
 
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
+import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import com.juul.kable.external.BluetoothRemoteGATTDescriptor
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.DataView
 import org.khronos.webgl.Int8Array
@@ -27,6 +29,7 @@ import kotlin.coroutines.CoroutineContext
 import org.w3c.dom.events.Event as JsEvent
 
 private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
+private const val ADVERTISEMENT_RECEIVED = "advertisementreceived"
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -54,8 +57,36 @@ public class JsPeripheral internal constructor(
     public override val services: List<DiscoveredService>?
         get() = platformServices?.map { it.toDiscoveredService() }
 
-    public override suspend fun rssi(): Int {
-        TODO("Not yet implemented")
+    private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
+
+    public override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
+        check(supportsAdvertisements) { "watchAdvertisements unavailable" }
+
+        lateinit var listener: (JsEvent) -> Unit
+        val cleanup = {
+            bluetoothDevice.removeEventListener(ADVERTISEMENT_RECEIVED, listener)
+            // At the time of writing `unwatchAdvertisements()` remains unimplemented
+            if (bluetoothDevice.watchingAdvertisements && js("BluetoothDevice.prototype.unwatchAdvertisements") != null) {
+                bluetoothDevice.unwatchAdvertisements()
+            }
+        }
+
+        listener = {
+            val event = it as BluetoothAdvertisingEvent
+            cleanup()
+            if (continuation.isActive) {
+                continuation.resume(event.rssi, onCancellation = null)
+            }
+        }
+
+        if (!bluetoothDevice.watchingAdvertisements) {
+            bluetoothDevice.watchAdvertisements()
+        }
+        bluetoothDevice.addEventListener(ADVERTISEMENT_RECEIVED, listener)
+
+        continuation.invokeOnCancellation {
+            cleanup()
+        }
     }
 
     private val gatt: BluetoothRemoteGATTServer
