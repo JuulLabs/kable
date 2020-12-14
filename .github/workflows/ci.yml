@@ -72,8 +72,12 @@ jobs:
           ./gradlew dokkaHtml
           git config user.email CONX_GH_PAGES_USER_EMAIL
           git config user.name CONX_GH_PAGES_USER_NAME
+          git fetch
           git checkout gh-pages
-          git rm -rf .
-          git add ./core/build/dokka/html/core/
+          rsync -a core/build/dokka/html/core/ .
+          rm -rf core/*
+          git add ./com.juul.kable
+          git add index.html
+          git add package-list
           git commit -m 'Updating dokka documentation'
           git push origin gh-pages
