@@ -1,0 +1,44 @@
+name: Snapshot
+on:
+  push:
+    branches: [ $default-branch ]
+
+jobs:
+  snapshot:
+    runs-on: macos-10.15
+
+    env:
+      GRADLE_ARGS: >-
+        --no-daemon
+        --max-workers 2
+        -Pkotlin.incremental=false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Gradle cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: ${{ runner.os }}-snapshot-${{ hashFiles('**/build.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-snapshot-
+            ${{ runner.os }}-
+
+      - name: Check
+        run: ./gradlew $GRADLE_ARGS check
+
+      - name: Snapshot
+        env:
+          SONATYPE_NEXUS_USERNAME: ${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
+          SONATYPE_NEXUS_PASSWORD: ${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
+        run: ./gradlew $GRADLE_ARGS --no-parallel -PVERSION_NAME=main-SNAPSHOT uploadArchives
