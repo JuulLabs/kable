@@ -197,7 +197,9 @@ cancellation is provided to prevent connection leaks._
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core)
 
-Kable can be configured via Gradle Kotlin DSL (when using the Kotlin `multiplatform` plugin) as follows:
+Kable can be configured via Gradle Kotlin DSL as follows:
+
+#### Multiplatform
 
 ```kotlin
 plugins {
@@ -231,6 +233,20 @@ android {
 _Note that Apple-based targets (e.g. `macosX64`) require [Coroutines with multithread support for Kotlin/Native] (more
 specifically: Coroutines library artifacts that are suffixed with `-native-mt`). Kable is configured to use `-native-mt`
 as a transitive dependency for Apple-based targets._
+
+#### Platform-specific
+
+```kotlin
+repositories {
+    jcenter() // or mavenCentral()
+}
+
+dependencies {
+    implementation("com.juul.kable:core-$platform:$version")
+}
+```
+
+_Where `$platform` represents (should be replaced with) the desired platform dependency (e.g. `android`)._
 
 # License
 
