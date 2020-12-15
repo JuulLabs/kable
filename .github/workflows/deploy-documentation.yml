@@ -12,21 +12,26 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Dokka
-        run: |
-          ./gradlew dokkaHtml
-          ls core/build/dokka/html/
+        run: ./gradlew dokkaHtml
 
-      - name: Deploy
-        run: |
-          git config user.email "${{ secrets.CONX_GH_PAGES_USER_EMAIL }}"
-          git config user.name "${{ secrets.CONX_GH_PAGES_USER_NAME }}"
-          git fetch
-          git checkout gh-pages
-          rsync -av --delete-after core/build/dokka/html/* .
-          git add ./core
-          git add ./images
-          git add navigation.html
-          git add ./scripts
-          git add ./styles
-          git commit -m 'Updating dokka documentation'
-          git push origin gh-pages
+#      - name: Deploy
+#        run: |
+#          git config user.email "${{ secrets.CONX_GH_PAGES_USER_EMAIL }}"
+#          git config user.name "${{ secrets.CONX_GH_PAGES_USER_NAME }}"
+#          git fetch
+#          git checkout gh-pages
+#          rsync -av --delete-after core/build/dokka/html/* .
+#          git add ./core
+#          git add ./images
+#          git add navigation.html
+#          git add ./scripts
+#          git add ./styles
+#          git commit -m 'Updating dokka documentation'
+#          git push origin gh-pages
+
+      - name: Deploy API documentation to Github Pages
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: core/build/dokka/html
