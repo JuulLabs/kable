@@ -22,9 +22,11 @@ jobs:
           git config user.name "${{ secrets.CONX_GH_PAGES_USER_NAME }}"
           git fetch
           git checkout gh-pages
-          rsync -av --delete core/build/dokka/html/core/* .
-          git add ./com.juul.kable
-          git add index.html
-          git add package-list
+          rsync -av --delete core/build/dokka/html/* .
+          git add ./core
+          git add ./images
+          git add navigation.html
+          git add ./scripts
+          git add ./styles
           git commit -m 'Updating dokka documentation'
           git push origin gh-pages
