@@ -22,7 +22,7 @@ jobs:
           git config user.name "${{ secrets.CONX_GH_PAGES_USER_NAME }}"
           git fetch
           git checkout gh-pages
-          rsync -av --delete core/build/dokka/html/ .
+          rsync -avr --delete core/build/dokka/html/* .
           git add ./core
           git add ./images
           git add navigation.html
