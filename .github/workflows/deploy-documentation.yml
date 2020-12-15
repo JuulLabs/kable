@@ -1,28 +1,26 @@
-name: PublishDocumentation
+name: Deploy Documentation
 on:
   push:
+    #branches: [ $default-branch ]
 
 jobs:
-  generate-and-build-documentation:
+  deploy-documentation:
     runs-on: ubuntu-16.04
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: GenerateDocumentation
+      - name: Dokka
         run: ./gradlew dokkaHtml
 
-      - name: PublishDocumentation
+      - name: Deploy
         run: |
           git config user.email "${{ secrets.CONX_GH_PAGES_USER_EMAIL }}"
           git config user.name "${{ secrets.CONX_GH_PAGES_USER_NAME }}"
           git fetch
           git checkout gh-pages
-          mv core/build/dokka/html/core/ temp_core/
-          rm -rf core/
-          rm -rf com.juul.kable/
-          mv -v temp_core/* .
+          rsync -av --delete core/build/dokka/html/core/* .
           git add ./com.juul.kable
           git add index.html
           git add package-list
