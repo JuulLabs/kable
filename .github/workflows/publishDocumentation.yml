@@ -1,0 +1,30 @@
+name: PublishDocumentation
+on:
+  push:
+
+jobs:
+  generate-and-build-documentation:
+    runs-on: ubuntu-16.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: GenerateDocumentation
+        run: ./gradlew dokkaHtml
+
+      - name: PublishDocumentation
+        run: |
+          git config user.email $CONX_GH_PAGES_USER_EMAIL
+          git config user.name $CONX_GH_PAGES_USER_NAME
+          git fetch
+          git checkout gh-pages
+          mv core/build/dokka/html/core/ temp_core/
+          rm -rf core/
+          rm -rf com.juul.kable/
+          mv -v temp_core/* .
+          git add ./com.juul.kable
+          git add index.html
+          git add package-list
+          git commit -m 'Updating dokka documentation'
+          git push origin gh-pages
