@@ -27,8 +27,8 @@ jobs:
 
       - name: PublishDocumentation
         run: |
-          git config user.email $CONX_GH_PAGES_USER_EMAIL
-          git config user.name $CONX_GH_PAGES_USER_NAME
+          git config user.email "${{ secrets.CONX_GH_PAGES_USER_EMAIL }}"
+          git config user.name "${{ secrets.CONX_GH_PAGES_USER_NAME }}"
           git fetch
           git checkout gh-pages
           mv core/build/dokka/html/core/ temp_core/
