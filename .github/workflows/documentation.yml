@@ -1,0 +1,22 @@
+name: Documentation
+on:
+  push:
+    branches: [ $default-branch ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-16.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Dokka
+        run: ./gradlew dokkaHtmlMultiModule
+
+      - name: Deploy to Github Pages
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: build/dokkaHtmlMultiModule
