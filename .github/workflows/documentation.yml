@@ -1,4 +1,4 @@
-name: Deploy Documentation
+name: Documentation
 on:
   push:
     branches: [ $default-branch ]
@@ -14,7 +14,7 @@ jobs:
       - name: Dokka
         run: ./gradlew dokkaHtmlMultimodule
 
-      - name: Deploy API documentation to Github Pages
+      - name: Deploy to Github Pages
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
