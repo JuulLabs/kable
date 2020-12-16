@@ -15,7 +15,7 @@ plugins {
 }
 
 tasks.withType<org.jetbrains.dokka.gradle.DokkaMultiModuleTask>().configureEach {
-    val dokkaDir = buildDir.resolve("dokkaHtmlMultimodule")
+    val dokkaDir = buildDir.resolve("dokkaHtmlMultiModule")
     outputDirectory.set(dokkaDir)
     doLast {
         dokkaDir.resolve("-modules.html").renameTo(dokkaDir.resolve("index.html"))
