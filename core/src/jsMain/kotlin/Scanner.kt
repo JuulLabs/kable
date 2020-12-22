@@ -6,7 +6,11 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.DataView
+import org.khronos.webgl.Int8Array
 import org.w3c.dom.events.Event
+import kotlin.js.Json
 
 private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
 
@@ -31,8 +35,7 @@ public class JsScanner internal constructor(
 
         val scan = bluetooth.requestLEScan(options.toDynamic()).await()
         val listener: (Event) -> Unit = {
-            val event = it as BluetoothAdvertisingEvent
-            offer(Advertisement(event.device, event.rssi))
+            offer((it as BluetoothAdvertisingEvent).toAdvertisement())
         }
         bluetooth.addEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
 
@@ -41,6 +44,16 @@ public class JsScanner internal constructor(
             bluetooth.removeEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
         }
     }
+}
+
+private fun BluetoothAdvertisingEvent.toAdvertisement(): Advertisement {
+    return Advertisement(
+        this.device,
+        this.uuids,
+        this.rssi,
+        this.manufacturerData,
+        this.serviceData,
+    )
 }
 
 // TODO: dedicated scan options class with the additional properties instead of re-using `Options`
