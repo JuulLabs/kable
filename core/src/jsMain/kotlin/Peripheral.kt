@@ -151,7 +151,7 @@ public class JsPeripheral internal constructor(
         bluetoothRemoteGATTCharacteristicFrom(characteristic).run {
             when (writeType) {
                 WithResponse -> writeValueWithResponse(data)
-                WithoutResponse -> writeValueWithResponse(data)
+                WithoutResponse -> writeValueWithoutResponse(data)
             }
         }.await()
     }
