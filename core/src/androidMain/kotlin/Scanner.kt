@@ -25,12 +25,12 @@ public class AndroidScanner internal constructor() : Scanner {
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                sendBlocking(Advertisement(result.rssi, result.device))
+                sendBlocking(Advertisement(result))
             }
 
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
                 results.forEach {
-                    sendBlocking(Advertisement(it.rssi, it.device))
+                    sendBlocking(Advertisement(it))
                 }
             }
 
