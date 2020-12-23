@@ -39,13 +39,16 @@ public actual data class Advertisement(
         val code = bytes?.let {
             (it[0].toInt() + (it[1].toInt() shl 8)).toShort()
         }
-        return if ((bytes != null) && (code == companyIdentifierCode)) {
+        return if (bytes != null && bytes.size > 2 && code == companyIdentifierCode) {
             bytes.slice(2..bytes.size).toByteArray()
         } else {
             null
         }
     }
 
-    public fun rawManufacturerData(): NSData? =
+    public fun manufacturerDataAsNSData(companyIdentifierCode: Short): NSData? =
+        manufacturerData(companyIdentifierCode)?.toNSData()
+
+    private fun rawManufacturerData(): NSData? =
         data[CBAdvertisementDataServiceDataKey] as? NSData
 }
