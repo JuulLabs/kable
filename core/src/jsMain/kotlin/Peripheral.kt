@@ -74,7 +74,7 @@ public class JsPeripheral internal constructor(
         listener = {
             val event = it as BluetoothAdvertisingEvent
             cleanup()
-            if (continuation.isActive) {
+            if (continuation.isActive && event.rssi != null) {
                 continuation.resume(event.rssi, onCancellation = null)
             }
         }
@@ -205,11 +205,13 @@ public class JsPeripheral internal constructor(
     ): BluetoothRemoteGATTCharacteristic {
         val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
         val characteristics = services
-            .first { it.serviceUuid == characteristic.serviceUuid }
-            .characteristics
+            .firstOrNull { it.serviceUuid == characteristic.serviceUuid }
+            ?.characteristics
+            ?: throw IOException("Service ${characteristic.serviceUuid} not found")
         return characteristics
-            .first { it.characteristicUuid == characteristic.characteristicUuid }
-            .bluetoothRemoteGATTCharacteristic
+            .firstOrNull { it.characteristicUuid == characteristic.characteristicUuid }
+            ?.bluetoothRemoteGATTCharacteristic
+            ?: throw IOException("Characteristic ${characteristic.characteristicUuid} not found")
     }
 
     private fun bluetoothRemoteGATTDescriptorFrom(
@@ -250,4 +252,4 @@ public class JsPeripheral internal constructor(
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
 }
 
-private fun ArrayBuffer.toByteArray(): ByteArray = Int8Array(this).unsafeCast<ByteArray>()
+internal fun ArrayBuffer.toByteArray(): ByteArray = Int8Array(this).unsafeCast<ByteArray>()

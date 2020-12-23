@@ -1,6 +1,5 @@
 package com.juul.kable.external
 
-import org.khronos.webgl.DataView
 import org.w3c.dom.events.Event
 
 /**
@@ -10,7 +9,8 @@ internal abstract external class BluetoothAdvertisingEvent : Event {
     val device: BluetoothDevice
     val uuids: Array<String>
     val name: String?
-    val rssi: Int
+    val rssi: Int?
+    val txPower: Int?
     val manufacturerData: Any?
     val serviceData: Any?
 }

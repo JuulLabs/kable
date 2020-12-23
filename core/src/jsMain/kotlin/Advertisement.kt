@@ -1,22 +1,38 @@
 package com.juul.kable
 
+import com.benasher44.uuid.Uuid
+import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
 import org.khronos.webgl.DataView
 
 public actual class Advertisement internal constructor(
-    internal val bluetoothDevice: BluetoothDevice,
-    public val uuids: Array<String>,
-    public actual val rssi: Int,
-    internal val manufacturerData: Any?,
-    internal val serviceData: Any?,
+    private val advertisement: BluetoothAdvertisingEvent,
 ) {
+
+    internal val bluetoothDevice: BluetoothDevice
+        get() = advertisement.device
 
     public actual val name: String?
         get() = bluetoothDevice.name
 
-    public fun getServiceData(key: String): DataView? =
-        serviceData.asDynamic().get(key) as? DataView
+    public actual val rssi: Int
+        get() = advertisement.rssi ?: 0
 
-    public fun getManufacturerData(key: String): DataView? =
-        manufacturerData.asDynamic().get(key) as? DataView
+    public actual val txPower: Int?
+        get() = advertisement.txPower
+
+    public actual val uuids: List<Uuid>
+        get() = advertisement.uuids.map { it.toUuid() }
+
+    public actual fun serviceData(uuid: Uuid): ByteArray? =
+        serviceDataAsDataView(uuid)?.buffer?.toByteArray()
+
+    public actual fun manufacturerData(companyIdentifierCode: Short): ByteArray? =
+        manufacturerDataAsDataView(companyIdentifierCode)?.buffer?.toByteArray()
+
+    public fun serviceDataAsDataView(uuid: Uuid): DataView? =
+        advertisement.serviceData.asDynamic().get(uuid.toString()) as? DataView
+
+    public fun manufacturerDataAsDataView(companyIdentifierCode: Short): DataView? =
+        advertisement.manufacturerData.asDynamic().get(companyIdentifierCode.toString()) as? DataView
 }
