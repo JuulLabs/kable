@@ -34,21 +34,29 @@ public actual data class Advertisement(
     public fun serviceDataAsNSData(uuid: Uuid): NSData? =
         (data[CBAdvertisementDataServiceDataKey] as? Map<CBUUID, NSData>)?.get(uuid.toCBUUID())
 
-    public actual fun manufacturerData(companyIdentifierCode: Short): ByteArray? {
-        val bytes = rawManufacturerData()?.toByteArray()
-        val code = bytes?.let {
-            (it[0].toInt() + (it[1].toInt() shl 8)).toShort()
+    public actual fun manufacturerData(companyIdentifierCode: Short): ByteArray? =
+        manufacturerData?.let {
+            if (it.code == companyIdentifierCode) it.data else null
         }
-        return if (bytes != null && bytes.size > 2 && code == companyIdentifierCode) {
-            bytes.slice(2..bytes.size).toByteArray()
-        } else {
-            null
-        }
-    }
+
+    public actual val manufacturerData: ManufacturerData?
+        get() = manufacturerDataAsNSData?.toByteArray()?.toManufacturerData()
 
     public fun manufacturerDataAsNSData(companyIdentifierCode: Short): NSData? =
         manufacturerData(companyIdentifierCode)?.toNSData()
 
-    private fun rawManufacturerData(): NSData? =
-        data[CBAdvertisementDataServiceDataKey] as? NSData
+    public val manufacturerDataAsNSData: NSData?
+        get() = data[CBAdvertisementDataServiceDataKey] as? NSData
+
 }
+
+private fun ByteArray.firstTwoOctetsAsShort(): Short? =
+    if (size >= 2) (this[0].toInt() + (this[1].toInt() shl 8)).toShort() else null
+
+private fun ByteArray.toManufacturerData(): ManufacturerData? =
+    firstTwoOctetsAsShort()?.let { code ->
+        ManufacturerData(
+            code,
+            if (size > 2) slice(2..size).toByteArray() else byteArrayOf()
+        )
+    }

@@ -35,4 +35,7 @@ public actual class Advertisement internal constructor(
 
     public fun manufacturerDataAsDataView(companyIdentifierCode: Short): DataView? =
         advertisement.manufacturerData.asDynamic().get(companyIdentifierCode.toString()) as? DataView
+
+    public actual val manufacturerData: ManufacturerData?
+        get() = TODO("Not yet implemented")
 }
