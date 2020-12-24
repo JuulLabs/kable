@@ -13,12 +13,12 @@ internal fun <T> JsIterator<T>.iterable(): Iterable<T> {
     return object : Iterable<T> {
         override fun iterator(): Iterator<T> =
             object : Iterator<T> {
-                private var elem = this@iterable.next()
-                override fun hasNext() = !elem.done
+                private var nextElement = this@iterable.next()
+                override fun hasNext() = !nextElement.done
                 override fun next(): T {
-                    val ret = elem.value ?: error("No more values")
-                    elem = this@iterable.next()
-                    return ret
+                    val value = nextElement.value ?: error("No more values")
+                    nextElement = this@iterable.next()
+                    return value
                 }
             }
     }
