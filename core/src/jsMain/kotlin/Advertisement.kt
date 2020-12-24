@@ -3,12 +3,13 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
+import com.juul.kable.external.JsIterator
+import com.juul.kable.external.iterable
 import org.khronos.webgl.DataView
 
 public actual class Advertisement internal constructor(
     private val advertisement: BluetoothAdvertisingEvent,
 ) {
-
     internal val bluetoothDevice: BluetoothDevice
         get() = advertisement.device
 
@@ -37,5 +38,13 @@ public actual class Advertisement internal constructor(
         advertisement.manufacturerData.asDynamic().get(companyIdentifierCode.toString()) as? DataView
 
     public actual val manufacturerData: ManufacturerData?
-        get() = TODO("Not yet implemented")
+        get() = manufacturerDataEntries(advertisement.manufacturerData).firstOrNull()?.let { entry ->
+            ManufacturerData(
+                entry[0] as Short,
+                (entry[1] as DataView).buffer.toByteArray()
+            )
+        }
 }
+
+private fun manufacturerDataEntries(jsObject: dynamic): Iterable<Array<Any?>> =
+    (jsObject.entries() as JsIterator<Array<Any?>>).iterable()

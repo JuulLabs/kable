@@ -35,4 +35,7 @@ public actual class Advertisement(
 
     public actual fun manufacturerData(companyIdentifierCode: Short): ByteArray? =
         scanResult.scanRecord?.getManufacturerSpecificData(companyIdentifierCode.toInt())
+
+    public actual val manufacturerData: ManufacturerData?
+        get() = TODO("Not yet implemented")
 }
