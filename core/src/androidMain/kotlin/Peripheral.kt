@@ -22,15 +22,16 @@ import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
@@ -68,7 +69,7 @@ public class AndroidPeripheral internal constructor(
     private val connection: Connection
         inline get() = _connection ?: throw NotReadyException(toString())
 
-    private val connectJob = atomic<Job?>(null)
+    private val connectJob = atomic<Deferred<Unit>?>(null)
 
     private val _ready = MutableStateFlow(false)
     internal suspend fun suspendUntilReady() {
@@ -83,7 +84,7 @@ public class AndroidPeripheral internal constructor(
         ) ?: throw ConnectionRejectedException()
 
     /** Creates a connect [Job] that completes when connection is established, or failure occurs. */
-    private fun createConnectJob(): Job = scope.launch(start = LAZY) {
+    private fun connectAsync() = scope.async(start = LAZY) {
         _ready.value = false
 
         val connection = establishConnection().also { _connection = it }
@@ -111,7 +112,7 @@ public class AndroidPeripheral internal constructor(
 
     public override suspend fun connect() {
         check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
-        connectJob.updateAndGet { it ?: createConnectJob() }!!.join()
+        connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
     public override suspend fun disconnect() {
