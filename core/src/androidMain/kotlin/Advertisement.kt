@@ -37,5 +37,10 @@ public actual class Advertisement(
         scanResult.scanRecord?.getManufacturerSpecificData(companyIdentifierCode.toInt())
 
     public actual val manufacturerData: ManufacturerData?
-        get() = TODO("Not yet implemented")
+        get() = scanResult.scanRecord?.manufacturerSpecificData?.takeIf { it.size() > 0 }?.let {
+            ManufacturerData(
+                it.keyAt(0).toShort(),
+                it.valueAt(0)
+            )
+        }
 }

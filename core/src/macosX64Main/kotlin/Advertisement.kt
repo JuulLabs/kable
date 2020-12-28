@@ -35,9 +35,7 @@ public actual data class Advertisement(
         (data[CBAdvertisementDataServiceDataKey] as? Map<CBUUID, NSData>)?.get(uuid.toCBUUID())
 
     public actual fun manufacturerData(companyIdentifierCode: Short): ByteArray? =
-        manufacturerData?.let {
-            if (it.code == companyIdentifierCode) it.data else null
-        }
+        manufacturerData?.takeIf { (it.code == companyIdentifierCode) }?.let { it.data }
 
     public actual val manufacturerData: ManufacturerData?
         get() = manufacturerDataAsNSData?.toByteArray()?.toManufacturerData()
