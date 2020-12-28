@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+import android.util.Log
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
@@ -231,12 +232,21 @@ private fun AndroidPeripheral.bluetoothGattCharacteristicFrom(
     val services = checkNotNull(platformServices) {
         "Services have not been discovered for $this"
     }
+    Log.d(TAG, "Looking up $characteristic")
 
     val characteristics = services
-        .first { characteristic.serviceUuid == it.serviceUuid }
+        .first {
+            val match = characteristic.serviceUuid == it.serviceUuid
+            Log.d(TAG, "Lookup service: ${characteristic.serviceUuid} == ${it.serviceUuid} -> $match")
+            match
+        }
         .characteristics
     return characteristics
-        .first { characteristic.characteristicUuid == it.characteristicUuid }
+        .first {
+            val match = characteristic.characteristicUuid == it.characteristicUuid
+            Log.d(TAG, "Lookup characteristic: ${characteristic.characteristicUuid} == ${it.characteristicUuid} -> $match")
+            match
+        }
         .bluetoothGattCharacteristic
 }
 
