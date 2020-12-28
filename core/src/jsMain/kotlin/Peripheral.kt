@@ -205,13 +205,11 @@ public class JsPeripheral internal constructor(
     ): BluetoothRemoteGATTCharacteristic {
         val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
         val characteristics = services
-            .firstOrNull { it.serviceUuid == characteristic.serviceUuid }
-            ?.characteristics
-            ?: throw IOException("Service ${characteristic.serviceUuid} not found")
+            .first { it.serviceUuid == characteristic.serviceUuid }
+            .characteristics
         return characteristics
-            .firstOrNull { it.characteristicUuid == characteristic.characteristicUuid }
-            ?.bluetoothRemoteGATTCharacteristic
-            ?: throw IOException("Characteristic ${characteristic.characteristicUuid} not found")
+            .first { it.characteristicUuid == characteristic.characteristicUuid }
+            .bluetoothRemoteGATTCharacteristic
     }
 
     private fun bluetoothRemoteGATTDescriptorFrom(
