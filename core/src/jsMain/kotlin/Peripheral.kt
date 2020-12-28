@@ -22,9 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.DataView
-import org.khronos.webgl.Int8Array
 import kotlin.coroutines.CoroutineContext
 import org.w3c.dom.events.Event as JsEvent
 
@@ -249,5 +247,3 @@ public class JsPeripheral internal constructor(
 
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
 }
-
-internal fun ArrayBuffer.toByteArray(): ByteArray = Int8Array(this).unsafeCast<ByteArray>()
