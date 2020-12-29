@@ -27,6 +27,7 @@ import com.juul.kable.gatt.Response.OnDescriptorWrite
 import com.juul.kable.gatt.Response.OnMtuChanged
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
+import com.juul.kable.offerCatching
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
@@ -98,7 +99,7 @@ internal class Callback(
     }
 
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-        onResponse.offer(OnServicesDiscovered(GattStatus(status)))
+        onResponse.offerCatching(OnServicesDiscovered(GattStatus(status)))
     }
 
     override fun onCharacteristicRead(
@@ -107,7 +108,7 @@ internal class Callback(
         status: Int,
     ) {
         val value = characteristic.value
-        onResponse.offer(OnCharacteristicRead(characteristic, value, GattStatus(status)))
+        onResponse.offerCatching(OnCharacteristicRead(characteristic, value, GattStatus(status)))
     }
 
     override fun onCharacteristicWrite(
@@ -115,7 +116,7 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic,
         status: Int,
     ) {
-        onResponse.offer(OnCharacteristicWrite(characteristic, GattStatus(status)))
+        onResponse.offerCatching(OnCharacteristicWrite(characteristic, GattStatus(status)))
     }
 
     override fun onCharacteristicChanged(
@@ -123,7 +124,7 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic
     ) {
         val event = OnCharacteristicChanged(characteristic, characteristic.value)
-        _onCharacteristicChanged.offer(event)
+        _onCharacteristicChanged.offerCatching(event)
     }
 
     override fun onDescriptorRead(
@@ -131,7 +132,7 @@ internal class Callback(
         descriptor: BluetoothGattDescriptor,
         status: Int,
     ) {
-        onResponse.offer(OnDescriptorRead(descriptor, descriptor.value, GattStatus(status)))
+        onResponse.offerCatching(OnDescriptorRead(descriptor, descriptor.value, GattStatus(status)))
     }
 
     override fun onDescriptorWrite(
@@ -139,7 +140,7 @@ internal class Callback(
         descriptor: BluetoothGattDescriptor,
         status: Int,
     ) {
-        onResponse.offer(OnDescriptorWrite(descriptor, GattStatus(status)))
+        onResponse.offerCatching(OnDescriptorWrite(descriptor, GattStatus(status)))
     }
 
     override fun onReliableWriteCompleted(
@@ -154,7 +155,7 @@ internal class Callback(
         rssi: Int,
         status: Int,
     ) {
-        onResponse.offer(OnReadRemoteRssi(rssi, GattStatus(status)))
+        onResponse.offerCatching(OnReadRemoteRssi(rssi, GattStatus(status)))
     }
 
     override fun onMtuChanged(
@@ -162,7 +163,7 @@ internal class Callback(
         mtu: Int,
         status: Int,
     ) {
-        onResponse.offer(OnMtuChanged(mtu, GattStatus(status)))
+        onResponse.offerCatching(OnMtuChanged(mtu, GattStatus(status)))
     }
 }
 
