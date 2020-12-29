@@ -1,7 +1,8 @@
 name: Snapshot
 on:
   push:
-    branches: [ $default-branch ]
+    branches:
+      - main
 
 jobs:
   snapshot:
