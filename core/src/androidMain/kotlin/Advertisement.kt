@@ -18,9 +18,6 @@ public actual class Advertisement(
     public val address: String
         get() = bluetoothDevice.address
 
-    override fun toString(): String =
-        "Advertisement(name=$name, rssi=$rssi, bluetoothDevice=$bluetoothDevice)"
-
     public actual val rssi: Int
         get() = scanResult.rssi
 
@@ -43,4 +40,7 @@ public actual class Advertisement(
                 it.valueAt(0)
             )
         }
+
+    override fun toString(): String =
+        "Advertisement(name=$name, bluetoothDevice=$bluetoothDevice, rssi=$rssi, txPower=$txPower)"
 }

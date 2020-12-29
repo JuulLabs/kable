@@ -3,7 +3,6 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
-import com.juul.kable.external.JsIterator
 import com.juul.kable.external.iterable
 import org.khronos.webgl.DataView
 
@@ -44,4 +43,7 @@ public actual class Advertisement internal constructor(
                 (entry[1] as DataView).buffer.toByteArray()
             )
         }
+
+    override fun toString(): String =
+        "Advertisement(name=$name, bluetoothDevice=$bluetoothDevice, rssi=$rssi, txPower=$txPower)"
 }

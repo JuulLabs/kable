@@ -45,6 +45,9 @@ public actual data class Advertisement(
 
     public val manufacturerDataAsNSData: NSData?
         get() = data[CBAdvertisementDataServiceDataKey] as? NSData
+
+    override fun toString(): String =
+        "Advertisement(name=$name, cbPeripheral=$cbPeripheral, rssi=$rssi, txPower=$txPower)"
 }
 
 private fun ByteArray.firstTwoOctetsAsShort(): Short? =
