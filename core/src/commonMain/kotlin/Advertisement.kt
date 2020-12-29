@@ -29,6 +29,7 @@ public expect class Advertisement {
 
     /**
      * Lookup the data associated with a Service
+     *
      * @param uuid the Service UUID
      * @return the data associated with the service or null if not found
      */
@@ -37,6 +38,7 @@ public expect class Advertisement {
     /**
      * Lookup the Manufacturer Specific Data by
      * [Company Identifier Code][https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers/]
+     *
      * @param companyIdentifierCode the two-octet code identifying the manufacturer
      * @return the Manufacturer Data for the given code (does not include the leading two identifier octets)
      */

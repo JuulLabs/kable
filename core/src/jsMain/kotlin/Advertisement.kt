@@ -17,7 +17,7 @@ public actual class Advertisement internal constructor(
         get() = bluetoothDevice.name
 
     public actual val rssi: Int
-        get() = advertisement.rssi ?: 0
+        get() = advertisement.rssi ?: Int.MIN_VALUE
 
     public actual val txPower: Int?
         get() = advertisement.txPower
@@ -38,13 +38,10 @@ public actual class Advertisement internal constructor(
         advertisement.manufacturerData.asDynamic().get(companyIdentifierCode.toString()) as? DataView
 
     public actual val manufacturerData: ManufacturerData?
-        get() = manufacturerDataEntries(advertisement.manufacturerData).firstOrNull()?.let { entry ->
+        get() = advertisement.manufacturerData.entries().iterable().firstOrNull()?.let { entry ->
             ManufacturerData(
                 entry[0] as Short,
                 (entry[1] as DataView).buffer.toByteArray()
             )
         }
 }
-
-private fun manufacturerDataEntries(jsObject: dynamic): Iterable<Array<Any?>> =
-    (jsObject.entries() as JsIterator<Array<Any?>>).iterable()
