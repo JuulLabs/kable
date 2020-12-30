@@ -2,7 +2,7 @@ package com.juul.kable.test
 
 import com.juul.kable.Advertisement
 import com.juul.kable.toNSData
-import platform.CoreBluetooth.CBAdvertisementDataServiceDataKey
+import platform.CoreBluetooth.CBAdvertisementDataManufacturerDataKey
 import platform.CoreBluetooth.CBPeripheral
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -50,10 +50,10 @@ class AdvertisementTest {
 
     private fun fakeAdvertisement(manufacturerBytes: UByteArray): Advertisement =
         Advertisement(
-            0,
-            mapOf(
-                CBAdvertisementDataServiceDataKey to manufacturerBytes.toByteArray().toNSData()
+            rssi = 0,
+            data = mapOf(
+                CBAdvertisementDataManufacturerDataKey to manufacturerBytes.toByteArray().toNSData()
             ),
-            CBPeripheral()
+            cbPeripheral = CBPeripheral()
         )
 }

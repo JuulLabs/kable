@@ -6,7 +6,7 @@ import android.os.ParcelUuid
 import com.benasher44.uuid.Uuid
 
 public actual class Advertisement(
-    internal val scanResult: ScanResult,
+    private val scanResult: ScanResult,
 ) {
 
     internal val bluetoothDevice: BluetoothDevice

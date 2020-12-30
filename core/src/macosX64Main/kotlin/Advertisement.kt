@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
+import platform.CoreBluetooth.CBAdvertisementDataManufacturerDataKey
 import platform.CoreBluetooth.CBAdvertisementDataServiceDataKey
 import platform.CoreBluetooth.CBAdvertisementDataServiceUUIDsKey
 import platform.CoreBluetooth.CBAdvertisementDataTxPowerLevelKey
@@ -35,7 +36,7 @@ public actual data class Advertisement(
         (data[CBAdvertisementDataServiceDataKey] as? Map<CBUUID, NSData>)?.get(uuid.toCBUUID())
 
     public actual fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
-        manufacturerData?.takeIf { (it.code == companyIdentifierCode) }?.let { it.data }
+        manufacturerData?.takeIf { (it.code == companyIdentifierCode) }?.data
 
     public actual val manufacturerData: ManufacturerData?
         get() = manufacturerDataAsNSData?.toByteArray()?.toManufacturerData()
@@ -44,7 +45,7 @@ public actual data class Advertisement(
         manufacturerData(companyIdentifierCode)?.toNSData()
 
     public val manufacturerDataAsNSData: NSData?
-        get() = data[CBAdvertisementDataServiceDataKey] as? NSData
+        get() = data[CBAdvertisementDataManufacturerDataKey] as? NSData
 
     override fun toString(): String =
         "Advertisement(name=$name, cbPeripheral=$cbPeripheral, rssi=$rssi, txPower=$txPower)"

@@ -10,7 +10,9 @@ public expect class Advertisement {
     public val name: String?
 
     /**
-     * The received signal strength, in dBm, of the packet received
+     * The received signal strength, in dBm, of the packet received.
+     *
+     * On JavaScript platform, returns `Int.MIN_VALUE` when RSSI is unavailable.
      */
     public val rssi: Int
 
@@ -31,7 +33,7 @@ public expect class Advertisement {
      * Lookup the data associated with a Service
      *
      * @param uuid the Service UUID
-     * @return the data associated with the service or null if not found
+     * @return the data associated with the service or `null` if not found
      */
     public fun serviceData(uuid: Uuid): ByteArray?
 
@@ -39,8 +41,9 @@ public expect class Advertisement {
      * Lookup the Manufacturer Specific Data by
      * [Company Identifier Code][https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers/]
      *
-     * @param companyIdentifierCode the two-octet code identifying the manufacturer, as an Int
-     * @return the Manufacturer Data for the given code (does not include the leading two identifier octets)
+     * @param companyIdentifierCode the two-octet code identifying the manufacturer
+     * @return the Manufacturer Data for the given code (does not include the leading two identifier octets),
+     * or `null` if not found
      */
     public fun manufacturerData(companyIdentifierCode: Int): ByteArray?
 

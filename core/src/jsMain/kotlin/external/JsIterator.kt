@@ -4,7 +4,7 @@ internal external interface JsIterator<T> {
     fun next(): JsIteratorResult<T>
 }
 
-internal external class JsIteratorResult<T> {
+internal external interface JsIteratorResult<T> {
     val done: Boolean
     val value: T?
 }
