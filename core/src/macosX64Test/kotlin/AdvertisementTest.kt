@@ -21,9 +21,9 @@ class AdvertisementTest {
         )
         val data = advertisement.manufacturerData
         assertNotNull(data)
-        assertEquals(data.code, 0x05c3u.toInt())
+        assertEquals(data.code, 0x05c3)
         assertEquals(data.data.size, 1)
-        assertEquals(data.data[0], 0x042u.toByte())
+        assertEquals(data.data[0], 0x042)
     }
 
     @Test
