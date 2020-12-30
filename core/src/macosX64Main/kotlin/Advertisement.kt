@@ -34,13 +34,13 @@ public actual data class Advertisement(
     public fun serviceDataAsNSData(uuid: Uuid): NSData? =
         (data[CBAdvertisementDataServiceDataKey] as? Map<CBUUID, NSData>)?.get(uuid.toCBUUID())
 
-    public actual fun manufacturerData(companyIdentifierCode: Short): ByteArray? =
+    public actual fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
         manufacturerData?.takeIf { (it.code == companyIdentifierCode) }?.let { it.data }
 
     public actual val manufacturerData: ManufacturerData?
         get() = manufacturerDataAsNSData?.toByteArray()?.toManufacturerData()
 
-    public fun manufacturerDataAsNSData(companyIdentifierCode: Short): NSData? =
+    public fun manufacturerDataAsNSData(companyIdentifierCode: Int): NSData? =
         manufacturerData(companyIdentifierCode)?.toNSData()
 
     public val manufacturerDataAsNSData: NSData?
@@ -50,13 +50,10 @@ public actual data class Advertisement(
         "Advertisement(name=$name, cbPeripheral=$cbPeripheral, rssi=$rssi, txPower=$txPower)"
 }
 
-private fun ByteArray.firstTwoOctetsAsShort(): Short? =
-    if (size >= 2) (this[0].toInt() + (this[1].toInt() shl 8)).toShort() else null
-
 private fun ByteArray.toManufacturerData(): ManufacturerData? =
-    firstTwoOctetsAsShort()?.let { code ->
+    takeIf { size >= 2 }?.getShortAt(0)?.let { code ->
         ManufacturerData(
-            code,
-            if (size > 2) slice(2..size).toByteArray() else byteArrayOf()
+            code.toInt(),
+            if (size > 2) slice(2 until size).toByteArray() else byteArrayOf()
         )
     }

@@ -27,19 +27,19 @@ public actual class Advertisement internal constructor(
     public actual fun serviceData(uuid: Uuid): ByteArray? =
         serviceDataAsDataView(uuid)?.buffer?.toByteArray()
 
-    public actual fun manufacturerData(companyIdentifierCode: Short): ByteArray? =
+    public actual fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
         manufacturerDataAsDataView(companyIdentifierCode)?.buffer?.toByteArray()
 
     public fun serviceDataAsDataView(uuid: Uuid): DataView? =
         advertisement.serviceData.asDynamic().get(uuid.toString()) as? DataView
 
-    public fun manufacturerDataAsDataView(companyIdentifierCode: Short): DataView? =
+    public fun manufacturerDataAsDataView(companyIdentifierCode: Int): DataView? =
         advertisement.manufacturerData.asDynamic().get(companyIdentifierCode.toString()) as? DataView
 
     public actual val manufacturerData: ManufacturerData?
         get() = advertisement.manufacturerData.entries().iterable().firstOrNull()?.let { entry ->
             ManufacturerData(
-                entry[0] as Short,
+                entry[0] as Int,
                 (entry[1] as DataView).buffer.toByteArray()
             )
         }

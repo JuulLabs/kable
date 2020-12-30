@@ -30,13 +30,13 @@ public actual class Advertisement(
     public actual fun serviceData(uuid: Uuid): ByteArray? =
         scanResult.scanRecord?.serviceData?.get(ParcelUuid(uuid))
 
-    public actual fun manufacturerData(companyIdentifierCode: Short): ByteArray? =
-        scanResult.scanRecord?.getManufacturerSpecificData(companyIdentifierCode.toInt())
+    public actual fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
+        scanResult.scanRecord?.getManufacturerSpecificData(companyIdentifierCode)
 
     public actual val manufacturerData: ManufacturerData?
         get() = scanResult.scanRecord?.manufacturerSpecificData?.takeIf { it.size() > 0 }?.let {
             ManufacturerData(
-                it.keyAt(0).toShort(),
+                it.keyAt(0),
                 it.valueAt(0)
             )
         }

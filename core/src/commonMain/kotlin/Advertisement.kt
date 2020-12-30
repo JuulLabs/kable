@@ -39,10 +39,10 @@ public expect class Advertisement {
      * Lookup the Manufacturer Specific Data by
      * [Company Identifier Code][https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers/]
      *
-     * @param companyIdentifierCode the two-octet code identifying the manufacturer
+     * @param companyIdentifierCode the two-octet code identifying the manufacturer, as an Int
      * @return the Manufacturer Data for the given code (does not include the leading two identifier octets)
      */
-    public fun manufacturerData(companyIdentifierCode: Short): ByteArray?
+    public fun manufacturerData(companyIdentifierCode: Int): ByteArray?
 
     /**
      * The Manufacturer Specific Data, or null if none provided in the Advertisement packet.

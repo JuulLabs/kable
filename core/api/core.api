@@ -6,7 +6,7 @@ public final class com/juul/kable/Advertisement {
 	public final fun getRssi ()I
 	public final fun getTxPower ()Ljava/lang/Integer;
 	public final fun getUuids ()Ljava/util/List;
-	public final fun manufacturerData (S)[B
+	public final fun manufacturerData (I)[B
 	public final fun serviceData (Ljava/util/UUID;)[B
 	public fun toString ()Ljava/lang/String;
 }
@@ -134,8 +134,8 @@ public final class com/juul/kable/LazyDescriptor : com/juul/kable/Descriptor {
 }
 
 public final class com/juul/kable/ManufacturerData {
-	public fun <init> (S[B)V
-	public final fun getCode ()S
+	public fun <init> (I[B)V
+	public final fun getCode ()I
 	public final fun getData ()[B
 }
 
