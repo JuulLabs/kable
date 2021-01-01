@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteNotificationDescriptor.Always
 import com.juul.kable.WriteNotificationDescriptor.Auto
+import com.juul.kable.WriteNotificationDescriptor.Never
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
@@ -220,19 +221,19 @@ public class AndroidPeripheral internal constructor(
         characteristic: Characteristic,
         value: ByteArray
     ) {
-        if (writeObserveDescriptor == Auto || writeObserveDescriptor == Always) {
-            val descriptor = LazyDescriptor(
-                serviceUuid = characteristic.serviceUuid,
-                characteristicUuid = characteristic.characteristicUuid,
-                descriptorUuid = clientCharacteristicConfigUuid
-            )
-            val bluetoothGattDescriptor = bluetoothGattDescriptorOrNullFrom(descriptor)
+        if (writeObserveDescriptor == Never) return
 
-            if (bluetoothGattDescriptor != null) {
-                write(bluetoothGattDescriptor, value)
-            } else if (writeObserveDescriptor == Always) {
-                error("Unable to start observation for $characteristic, config descriptor not found.")
-            }
+        val descriptor = LazyDescriptor(
+            serviceUuid = characteristic.serviceUuid,
+            characteristicUuid = characteristic.characteristicUuid,
+            descriptorUuid = clientCharacteristicConfigUuid
+        )
+        val bluetoothGattDescriptor = bluetoothGattDescriptorOrNullFrom(descriptor)
+
+        if (bluetoothGattDescriptor != null) {
+            write(bluetoothGattDescriptor, value)
+        } else if (writeObserveDescriptor == Always) {
+            error("Unable to start observation for $characteristic, config descriptor not found.")
         }
     }
 
