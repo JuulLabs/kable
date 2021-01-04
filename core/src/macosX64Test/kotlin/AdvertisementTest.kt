@@ -10,9 +10,11 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+// Test function naming format:
+// [name of item being tested]_[input conditions]_[expected results]
 class AdvertisementTest {
     @Test
-    fun manufacturerDataCanContainData() {
+    fun manufacturerData_advertisementWithMoreThanTwoBytes_hasCodeAndData() {
         val advertisement = fakeAdvertisement(
             ubyteArrayOf(
                 0xc3u, 0x05u, // little-endian manufacturer id
@@ -27,7 +29,7 @@ class AdvertisementTest {
     }
 
     @Test
-    fun manufacturerDataParsingCanBeEmpty() {
+    fun manufacturerData_advertisementWithTwoBytes_hasCodeAndEmptyData() {
         val advertisement = fakeAdvertisement(
             ubyteArrayOf(
                 0xc3u, 0x05u, // little-endian manufacturer id
@@ -40,7 +42,7 @@ class AdvertisementTest {
     }
 
     @Test
-    fun manufacturerDataParsingWithFewerThan2BytesIsNull() {
+    fun manufacturerData_advertisementWithFewerThanTwoBytes_isNull() {
         val advertisement = fakeAdvertisement(
             ubyteArrayOf(0x01u)
         )
