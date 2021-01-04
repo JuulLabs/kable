@@ -31,8 +31,7 @@ public class JsScanner internal constructor(
 
         val scan = bluetooth.requestLEScan(options.toDynamic()).await()
         val listener: (Event) -> Unit = {
-            val event = it as BluetoothAdvertisingEvent
-            offer(Advertisement(event.device, event.rssi))
+            offer(Advertisement(it as BluetoothAdvertisingEvent))
         }
         bluetooth.addEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
 
