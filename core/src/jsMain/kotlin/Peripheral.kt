@@ -12,15 +12,16 @@ import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineStart.LAZY
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.khronos.webgl.DataView
 import kotlin.coroutines.CoroutineContext
@@ -42,7 +43,7 @@ public class JsPeripheral internal constructor(
     private val bluetoothDevice: BluetoothDevice,
 ) : Peripheral {
 
-    private val job = Job(parentCoroutineContext.job).apply {
+    private val job = SupervisorJob(parentCoroutineContext.job).apply {
         invokeOnCompletion { dispose() }
     }
 
@@ -90,9 +91,9 @@ public class JsPeripheral internal constructor(
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
 
-    private var connectJob: Job? = null
+    private var connectJob: Deferred<Unit>? = null
 
-    private fun createConnectJob() = scope.launch(start = CoroutineStart.LAZY) {
+    private fun connectAsync() = scope.async(start = LAZY) {
         _state.value = State.Connecting
 
         try {
@@ -118,8 +119,8 @@ public class JsPeripheral internal constructor(
 
     public override suspend fun connect() {
         check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
-        val job = connectJob ?: createConnectJob().also { connectJob = it }
-        job.join()
+        val job = connectJob ?: connectAsync().also { connectJob = it }
+        job.await()
     }
 
     public override suspend fun disconnect() {

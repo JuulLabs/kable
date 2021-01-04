@@ -30,8 +30,10 @@ import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -44,7 +46,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCharacteristic
@@ -78,7 +79,7 @@ public class ApplePeripheral internal constructor(
     private val cbPeripheral: CBPeripheral,
 ) : Peripheral {
 
-    private val job = Job(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
+    private val job = SupervisorJob(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
     private val centralManager: CentralManager = CentralManager.Default
@@ -103,7 +104,7 @@ public class ApplePeripheral internal constructor(
     private val connection: Connection
         inline get() = _connection.value ?: throw NotReadyException(toString())
 
-    private val connectJob = atomic<Job?>(null)
+    private val connectJob = atomic<Deferred<Unit>?>(null)
 
     private val _ready = MutableStateFlow(false)
     internal suspend fun suspendUntilReady() {
@@ -117,7 +118,7 @@ public class ApplePeripheral internal constructor(
         _connection.value = null
     }
 
-    private fun createConnectJob(): Job = scope.launch(start = LAZY) {
+    private fun connectAsync() = scope.async(start = LAZY) {
         _ready.value = false
 
         centralManager.delegate.onDisconnected.onEach { identifier ->
@@ -157,7 +158,7 @@ public class ApplePeripheral internal constructor(
 
     public override suspend fun connect() {
         check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
-        connectJob.updateAndGet { it ?: createConnectJob() }!!.join()
+        connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
     public override suspend fun disconnect() {
