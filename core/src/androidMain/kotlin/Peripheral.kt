@@ -9,7 +9,6 @@ import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteNotificationDescriptor.Always
-import com.juul.kable.WriteNotificationDescriptor.Auto
 import com.juul.kable.WriteNotificationDescriptor.Never
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
@@ -38,6 +37,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
+private val writeNotificationDescriptorDefault = Always
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -50,13 +50,13 @@ public fun CoroutineScope.peripheral(
 
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-    writeObserveDescriptor: WriteNotificationDescriptor = Auto,
+    writeObserveDescriptor: WriteNotificationDescriptor = writeNotificationDescriptorDefault,
 ): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice, writeObserveDescriptor)
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
-    private val writeObserveDescriptor: WriteNotificationDescriptor = Auto,
+    private val writeObserveDescriptor: WriteNotificationDescriptor = writeNotificationDescriptorDefault,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
