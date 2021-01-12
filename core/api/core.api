@@ -164,8 +164,10 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 }
 
 public final class com/juul/kable/PeripheralKt {
-	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;)Lcom/juul/kable/Peripheral;
+	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/WriteNotificationDescriptor;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;)Lcom/juul/kable/Peripheral;
+	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/WriteNotificationDescriptor;)Lcom/juul/kable/Peripheral;
+	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/WriteNotificationDescriptor;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 }
 
 public final class com/juul/kable/ScanFailedException : java/lang/IllegalStateException {
@@ -252,6 +254,14 @@ public final class com/juul/kable/State$Disconnected$Status$UnknownDevice : com/
 
 public final class com/juul/kable/State$Disconnecting : com/juul/kable/State {
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnecting;
+}
+
+public final class com/juul/kable/WriteNotificationDescriptor : java/lang/Enum {
+	public static final field Always Lcom/juul/kable/WriteNotificationDescriptor;
+	public static final field Auto Lcom/juul/kable/WriteNotificationDescriptor;
+	public static final field Never Lcom/juul/kable/WriteNotificationDescriptor;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/WriteNotificationDescriptor;
+	public static fun values ()[Lcom/juul/kable/WriteNotificationDescriptor;
 }
 
 public final class com/juul/kable/WriteType : java/lang/Enum {
