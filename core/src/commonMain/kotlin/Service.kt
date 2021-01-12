@@ -10,3 +10,9 @@ public data class DiscoveredService internal constructor(
     override val serviceUuid: Uuid,
     public val characteristics: List<DiscoveredCharacteristic>,
 ) : Service
+
+/** @throws IOException if service is not found. */
+internal fun <T : Service> List<T>.first(
+    serviceUuid: Uuid
+): T = firstOrNull { it.serviceUuid == serviceUuid }
+    ?: throw IOException("Service $serviceUuid not found")

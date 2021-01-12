@@ -24,3 +24,12 @@ public data class LazyDescriptor(
     public override val characteristicUuid: Uuid,
     public override val descriptorUuid: Uuid,
 ) : Descriptor
+
+internal fun <T : Descriptor> List<T>.first(
+    descriptorUuid: Uuid
+): T = firstOrNull(descriptorUuid)
+    ?: throw IOException("Descriptor $descriptorUuid not found")
+
+internal fun <T : Descriptor> List<T>.firstOrNull(
+    descriptorUuid: Uuid
+): T? = firstOrNull { it.descriptorUuid == descriptorUuid }

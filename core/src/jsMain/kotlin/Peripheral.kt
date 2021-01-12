@@ -6,8 +6,6 @@ import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
-import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
-import com.juul.kable.external.BluetoothRemoteGATTDescriptor
 import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
 import kotlinx.coroutines.CancellationException
@@ -52,9 +50,12 @@ public class JsPeripheral internal constructor(
     private val _state = MutableStateFlow<State?>(null)
     public override val state: Flow<State> = _state.filterNotNull()
 
-    private var platformServices: List<PlatformService>? = null
+    private var _platformServices: List<PlatformService>? = null
+    private val platformServices: List<PlatformService>
+        get() = checkNotNull(_platformServices) { "Services have not been discovered for $this" }
+
     public override val services: List<DiscoveredService>?
-        get() = platformServices?.map { it.toDiscoveredService() }
+        get() = _platformServices?.map { it.toDiscoveredService() }
 
     private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
 
@@ -138,7 +139,7 @@ public class JsPeripheral internal constructor(
         val services = gatt.getPrimaryServices()
             .await()
             .map { it.toPlatformService() }
-        platformServices = services
+        _platformServices = services
         return services
     }
 
@@ -199,33 +200,6 @@ public class JsPeripheral internal constructor(
     ): Flow<ByteArray> = observeDataView(characteristic)
         .map { it.buffer.toByteArray() }
 
-    internal fun bluetoothRemoteGATTCharacteristicFrom(
-        characteristic: Characteristic
-    ): BluetoothRemoteGATTCharacteristic {
-        val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
-        val characteristics = services
-            .first { it.serviceUuid == characteristic.serviceUuid }
-            .characteristics
-        return characteristics
-            .first { it.characteristicUuid == characteristic.characteristicUuid }
-            .bluetoothRemoteGATTCharacteristic
-    }
-
-    private fun bluetoothRemoteGATTDescriptorFrom(
-        descriptor: Descriptor
-    ): BluetoothRemoteGATTDescriptor {
-        val services = checkNotNull(platformServices) { "Services have not been discovered for $this" }
-        val characteristics = services
-            .first { service -> service.serviceUuid == descriptor.serviceUuid }
-            .characteristics
-        val descriptors = characteristics
-            .first { it.characteristicUuid == descriptor.characteristicUuid }
-            .descriptors
-        return descriptors
-            .first { it.descriptorUuid == descriptor.descriptorUuid }
-            .bluetoothRemoteGATTDescriptor
-    }
-
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = { event ->
         console.dir(event)
@@ -245,6 +219,14 @@ public class JsPeripheral internal constructor(
         isDisconnectedListenerRegistered = false
         bluetoothDevice.removeEventListener(GATT_SERVER_DISCONNECTED, disconnectedListener)
     }
+
+    internal fun bluetoothRemoteGATTCharacteristicFrom(
+        characteristic: Characteristic
+    ) = platformServices.findCharacteristic(characteristic).bluetoothRemoteGATTCharacteristic
+
+    private fun bluetoothRemoteGATTDescriptorFrom(
+        descriptor: Descriptor
+    ) = platformServices.findDescriptor(descriptor).bluetoothRemoteGATTDescriptor
 
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
 }
