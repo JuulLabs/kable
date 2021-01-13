@@ -4,7 +4,7 @@ package com.juul.kable
 public open class BluetoothLeException internal constructor(
     message: String? = null,
     cause: Throwable? = null,
-) : Exception()
+) : Exception(message, cause)
 
 public expect open class IOException internal constructor(
     message: String? = null,
