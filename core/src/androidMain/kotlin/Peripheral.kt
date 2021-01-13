@@ -240,7 +240,8 @@ public class AndroidPeripheral internal constructor(
         if (bluetoothGattDescriptor != null) {
             write(bluetoothGattDescriptor, value)
         } else if (writeObserveDescriptor == Always) {
-            error("Unable to start observation for characteristic ${characteristic.characteristicUuid}, config descriptor not found.")
+            val uuid = characteristic.characteristicUuid
+            error("Unable to start observation for characteristic $uuid, config descriptor not found.")
         }
     }
 
