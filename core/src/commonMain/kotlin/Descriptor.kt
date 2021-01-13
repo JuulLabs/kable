@@ -28,7 +28,7 @@ public data class LazyDescriptor(
 internal fun <T : Descriptor> List<T>.first(
     descriptorUuid: Uuid
 ): T = firstOrNull(descriptorUuid)
-    ?: throw IOException("Descriptor $descriptorUuid not found")
+    ?: throw NoSuchElementException("Descriptor $descriptorUuid not found")
 
 internal fun <T : Descriptor> List<T>.firstOrNull(
     descriptorUuid: Uuid

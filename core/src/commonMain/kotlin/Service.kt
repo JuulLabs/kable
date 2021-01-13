@@ -15,4 +15,4 @@ public data class DiscoveredService internal constructor(
 internal fun <T : Service> List<T>.first(
     serviceUuid: Uuid
 ): T = firstOrNull { it.serviceUuid == serviceUuid }
-    ?: throw IOException("Service $serviceUuid not found")
+    ?: throw NoSuchElementException("Service $serviceUuid not found")

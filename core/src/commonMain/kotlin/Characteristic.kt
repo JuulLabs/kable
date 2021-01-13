@@ -30,4 +30,4 @@ public data class DiscoveredCharacteristic internal constructor(
 internal fun <T : Characteristic> List<T>.first(
     characteristicUuid: Uuid
 ): T = firstOrNull { it.characteristicUuid == characteristicUuid }
-    ?: throw IOException("Characteristic $characteristicUuid not found")
+    ?: throw NoSuchElementException("Characteristic $characteristicUuid not found")
