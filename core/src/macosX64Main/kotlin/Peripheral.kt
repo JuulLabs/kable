@@ -48,11 +48,9 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
-import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBErrorConnectionFailed
 import platform.CoreBluetooth.CBErrorConnectionLimitReached
 import platform.CoreBluetooth.CBErrorConnectionTimeout
@@ -91,14 +89,14 @@ public class ApplePeripheral internal constructor(
 
     private val observers = Observers(this)
 
-    internal val platformServices: List<PlatformService>?
-        get() = cbPeripheral.services?.map { service ->
-            service as CBService
-            service.toPlatformService()
+    private val _platformServices = atomic<List<PlatformService>?>(null)
+    private val platformServices: List<PlatformService>
+        get() = checkNotNull(_platformServices.value) {
+            "Services have not been discovered for $this"
         }
 
     public override val services: List<DiscoveredService>?
-        get() = platformServices?.map { it.toDiscoveredService() }
+        get() = _platformServices.value?.map { it.toDiscoveredService() }
 
     private val _connection = atomic<Connection?>(null)
     private val connection: Connection
@@ -193,6 +191,10 @@ public class ApplePeripheral internal constructor(
             connection.execute<DidDiscoverCharacteristicsForService> {
                 centralManager.discoverCharacteristics(cbPeripheral, cbService as CBService)
             }
+        }
+
+        _platformServices.value = cbPeripheral.services?.map { service ->
+            (service as CBService).toPlatformService()
         }
     }
 
@@ -290,38 +292,15 @@ public class ApplePeripheral internal constructor(
         }
     }
 
+    private fun cbCharacteristicFrom(
+        characteristic: Characteristic
+    ) = platformServices.findCharacteristic(characteristic).cbCharacteristic
+
+    private fun cbDescriptorFrom(
+        descriptor: Descriptor
+    ) = platformServices.findDescriptor(descriptor).cbDescriptor
+
     override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"
-}
-
-internal fun ApplePeripheral.cbCharacteristicFrom(
-    characteristic: Characteristic,
-): CBCharacteristic {
-    val services = checkNotNull(platformServices) {
-        "Services have not been discovered for $this"
-    }
-    val characteristics = services
-        .first { it.serviceUuid == characteristic.serviceUuid }
-        .characteristics
-    return characteristics
-        .first { it.characteristicUuid == characteristic.characteristicUuid }
-        .cbCharacteristic
-}
-
-private fun ApplePeripheral.cbDescriptorFrom(
-    descriptor: Descriptor,
-): CBDescriptor {
-    val services = checkNotNull(platformServices) {
-        "Services have not been discovered for $this"
-    }
-    val characteristics = services
-        .first { it.serviceUuid == descriptor.serviceUuid }
-        .characteristics
-    val descriptors = characteristics
-        .first { it.characteristicUuid == descriptor.characteristicUuid }
-        .descriptors
-    return descriptors
-        .first { it.descriptorUuid == descriptor.descriptorUuid }
-        .cbDescriptor
 }
 
 private suspend fun Peripheral.suspendUntilConnected() {

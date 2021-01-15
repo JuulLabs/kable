@@ -1,7 +1,6 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor
@@ -70,9 +69,12 @@ public class AndroidPeripheral internal constructor(
     private val observers = Observers(this)
 
     @Volatile
-    internal var platformServices: List<PlatformService>? = null
+    private var _platformServices: List<PlatformService>? = null
+    private val platformServices: List<PlatformService>
+        get() = checkNotNull(_platformServices) { "Services have not been discovered for $this" }
+
     public override val services: List<DiscoveredService>?
-        get() = platformServices?.map { it.toDiscoveredService() }
+        get() = _platformServices?.map { it.toDiscoveredService() }
 
     @Volatile
     private var _connection: Connection? = null
@@ -144,7 +146,7 @@ public class AndroidPeripheral internal constructor(
         connection.execute<OnServicesDiscovered> {
             discoverServices()
         }
-        platformServices = connection.bluetoothGatt
+        _platformServices = connection.bluetoothGatt
             .services
             .map { it.toPlatformService() }
     }
@@ -206,36 +208,50 @@ public class AndroidPeripheral internal constructor(
     ): Flow<ByteArray> = observers.acquire(characteristic)
 
     internal suspend fun startNotifications(characteristic: Characteristic) {
-        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
-        connection.bluetoothGatt.setCharacteristicNotification(bluetoothGattCharacteristic, true)
-        writeConfigDescriptor(characteristic, ENABLE_NOTIFICATION_VALUE)
+        val platformCharacteristic = platformServices.findCharacteristic(characteristic)
+        connection
+            .bluetoothGatt
+            .setCharacteristicNotification(platformCharacteristic.bluetoothGattCharacteristic, true)
+
+        writeConfigDescriptor(platformCharacteristic, ENABLE_NOTIFICATION_VALUE)
     }
 
     internal suspend fun stopNotifications(characteristic: Characteristic) {
-        writeConfigDescriptor(characteristic, DISABLE_NOTIFICATION_VALUE)
-        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
-        connection.bluetoothGatt.setCharacteristicNotification(bluetoothGattCharacteristic, false)
+        val platformCharacteristic = platformServices.findCharacteristic(characteristic)
+        writeConfigDescriptor(platformCharacteristic, DISABLE_NOTIFICATION_VALUE)
+
+        val bluetoothGattCharacteristic = platformCharacteristic.bluetoothGattCharacteristic
+        connection
+            .bluetoothGatt
+            .setCharacteristicNotification(bluetoothGattCharacteristic, false)
     }
 
     private suspend fun writeConfigDescriptor(
-        characteristic: Characteristic,
+        characteristic: PlatformCharacteristic,
         value: ByteArray
     ) {
         if (writeObserveDescriptor == Never) return
 
-        val descriptor = LazyDescriptor(
-            serviceUuid = characteristic.serviceUuid,
-            characteristicUuid = characteristic.characteristicUuid,
-            descriptorUuid = clientCharacteristicConfigUuid
-        )
-        val bluetoothGattDescriptor = bluetoothGattDescriptorOrNullFrom(descriptor)
+        val bluetoothGattDescriptor = characteristic
+            .descriptors
+            .firstOrNull(clientCharacteristicConfigUuid)
+            ?.bluetoothGattDescriptor
 
         if (bluetoothGattDescriptor != null) {
             write(bluetoothGattDescriptor, value)
         } else if (writeObserveDescriptor == Always) {
-            error("Unable to start observation for $characteristic, config descriptor not found.")
+            val uuid = characteristic.characteristicUuid
+            error("Unable to start observation for characteristic $uuid, config descriptor not found.")
         }
     }
+
+    private fun bluetoothGattCharacteristicFrom(
+        characteristic: Characteristic
+    ) = platformServices.findCharacteristic(characteristic).bluetoothGattCharacteristic
+
+    private fun bluetoothGattDescriptorFrom(
+        descriptor: Descriptor
+    ) = platformServices.findDescriptor(descriptor).bluetoothGattDescriptor
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
 }
@@ -248,57 +264,6 @@ private suspend fun Peripheral.suspendUntilConnected() {
 
 private suspend fun Peripheral.suspendUntilDisconnected() {
     state.first { it is State.Disconnected }
-}
-
-private fun AndroidPeripheral.bluetoothGattCharacteristicFrom(
-    characteristic: Characteristic,
-): BluetoothGattCharacteristic {
-    val services = checkNotNull(platformServices) {
-        "Services have not been discovered for $this"
-    }
-
-    val characteristics = services
-        .first { characteristic.serviceUuid == it.serviceUuid }
-        .characteristics
-    return characteristics
-        .first { characteristic.characteristicUuid == it.characteristicUuid }
-        .bluetoothGattCharacteristic
-}
-
-private fun AndroidPeripheral.bluetoothGattDescriptorFrom(
-    descriptor: Descriptor,
-): BluetoothGattDescriptor {
-    val services = checkNotNull(platformServices) {
-        "Services have not been discovered for $this"
-    }
-
-    val characteristics = services
-        .first { descriptor.serviceUuid == it.serviceUuid }
-        .characteristics
-    val descriptors = characteristics
-        .first { descriptor.characteristicUuid == it.characteristicUuid }
-        .descriptors
-    return descriptors
-        .first { descriptor.descriptorUuid == it.descriptorUuid }
-        .bluetoothGattDescriptor
-}
-
-private fun AndroidPeripheral.bluetoothGattDescriptorOrNullFrom(
-    descriptor: Descriptor,
-): BluetoothGattDescriptor? {
-    val services = checkNotNull(platformServices) {
-        "Services have not been discovered for $this"
-    }
-
-    val characteristics = services
-        .firstOrNull { descriptor.serviceUuid == it.serviceUuid }
-        ?.characteristics
-    val descriptors = characteristics
-        ?.firstOrNull { descriptor.characteristicUuid == it.characteristicUuid }
-        ?.descriptors
-    return descriptors
-        ?.firstOrNull { descriptor.descriptorUuid == it.descriptorUuid }
-        ?.bluetoothGattDescriptor
 }
 
 private val WriteType.intValue: Int

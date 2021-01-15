@@ -26,3 +26,8 @@ public data class DiscoveredCharacteristic internal constructor(
     override val characteristicUuid: Uuid,
     public val descriptors: List<Descriptor>,
 ) : Characteristic
+
+internal fun <T : Characteristic> List<T>.first(
+    characteristicUuid: Uuid
+): T = firstOrNull { it.characteristicUuid == characteristicUuid }
+    ?: throw NoSuchElementException("Characteristic $characteristicUuid not found")
