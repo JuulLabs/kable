@@ -36,18 +36,8 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - name: Compile (macOS)
-        if: runner.os == 'macOS'
-        run: ./gradlew $GRADLE_ARGS compileKotlinMacosX64
-
-      - name: Test (macOS)
-        if: runner.os == 'macOS'
-        run: ./gradlew $GRADLE_ARGS macosX64Test
-
-      - name: Assemble (Linux)
-        if: runner.os == 'Linux'
+      - name: Assemble
         run: ./gradlew $GRADLE_ARGS assemble
 
-      - name: Check (Linux)
-        if: runner.os == 'Linux'
+      - name: Check
         run: ./gradlew $GRADLE_ARGS check
