@@ -33,7 +33,9 @@ public class JsScanner internal constructor(
         val listener: (Event) -> Unit = {
             runCatching {
                 offer(Advertisement(it as BluetoothAdvertisingEvent))
-            }.onFailure { cause -> console.warn("Unable to deliver advertisement event due to $cause.") }
+            }.onFailure {
+                console.warn("Unable to deliver advertisement event due to failure in flow or premature closing.")
+            }
         }
         bluetooth.addEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
 

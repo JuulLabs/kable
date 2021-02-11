@@ -28,7 +28,9 @@ public class AndroidScanner internal constructor() : Scanner {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 runCatching {
                     sendBlocking(Advertisement(result))
-                }.onFailure { cause -> Log.w(TAG, "Unable to deliver scan result.", cause) }
+                }.onFailure {
+                    Log.w(TAG, "Unable to deliver scan result due to failure in flow or premature closing.")
+                }
             }
 
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
@@ -36,7 +38,9 @@ public class AndroidScanner internal constructor() : Scanner {
                     results.forEach {
                         sendBlocking(Advertisement(it))
                     }
-                }.onFailure { cause -> Log.w(TAG, "Unable to deliver batch scan results.", cause) }
+                }.onFailure {
+                    Log.w(TAG, "Unable to deliver batch scan results due to failure in flow or premature closing.")
+                }
             }
 
             override fun onScanFailed(errorCode: Int) {
