@@ -31,7 +31,11 @@ public class JsScanner internal constructor(
 
         val scan = bluetooth.requestLEScan(options.toDynamic()).await()
         val listener: (Event) -> Unit = {
-            offer(Advertisement(it as BluetoothAdvertisingEvent))
+            runCatching {
+                offer(Advertisement(it as BluetoothAdvertisingEvent))
+            }.onFailure {
+                console.warn("Unable to deliver advertisement event due to failure in flow or premature closing.")
+            }
         }
         bluetooth.addEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
 
