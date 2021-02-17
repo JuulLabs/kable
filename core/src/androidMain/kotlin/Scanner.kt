@@ -3,6 +3,7 @@ package com.juul.kable
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.util.Log
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
@@ -25,12 +26,20 @@ public class AndroidScanner internal constructor() : Scanner {
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                sendBlocking(Advertisement(result))
+                runCatching {
+                    sendBlocking(Advertisement(result))
+                }.onFailure {
+                    Log.w(TAG, "Unable to deliver scan result due to failure in flow or premature closing.")
+                }
             }
 
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
-                results.forEach {
-                    sendBlocking(Advertisement(it))
+                runCatching {
+                    results.forEach {
+                        sendBlocking(Advertisement(it))
+                    }
+                }.onFailure {
+                    Log.w(TAG, "Unable to deliver batch scan results due to failure in flow or premature closing.")
                 }
             }
 
