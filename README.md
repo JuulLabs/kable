@@ -1,4 +1,5 @@
 ![badge][badge-android]
+![badge][badge-ios]
 ![badge][badge-js]
 ![badge][badge-mac]
 
@@ -217,6 +218,8 @@ kotlin {
     android()
     js().browser() // and/or js().node()
     macosX64()
+    iosX64()
+    iosArm64()
 
     sourceSets {
         val commonMain by getting {
