@@ -247,12 +247,9 @@ repositories {
 }
 
 dependencies {
-    implementation("com.juul.kable:core-$platform:$version")
+    implementation("com.juul.kable:core:$version")
 }
 ```
-
-_Where `$platform` represents (should be replaced with) the desired platform dependency (e.g. `android`)._
-
 # License
 
 ```
