@@ -211,7 +211,7 @@ plugins {
 }
 
 repositories {
-    jcenter() // or mavenCentral()
+    mavenCentral()
 }
 
 kotlin {
@@ -243,7 +243,7 @@ as a transitive dependency for Apple-based targets._
 
 ```kotlin
 repositories {
-    jcenter() // or mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
