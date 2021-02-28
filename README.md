@@ -241,11 +241,21 @@ as a transitive dependency for Apple-based targets._
 
 #### Platform-specific
 
+Gradle will pull in the appropriate platform artifact when the undecorated `core` artifact is specified:
+
 ```kotlin
 repositories {
     jcenter() // or mavenCentral()
 }
 
+dependencies {
+    implementation("com.juul.kable:core:$version")
+}
+```
+
+If a specific platform artifact is needed, then it can be defined as follows:
+
+```
 dependencies {
     implementation("com.juul.kable:core-$platform:$version")
 }
