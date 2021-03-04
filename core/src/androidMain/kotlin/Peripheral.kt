@@ -1,14 +1,17 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_INDICATE
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+import android.util.Log
 import com.benasher44.uuid.uuidFrom
-import com.juul.kable.WriteNotificationDescriptor.Always
-import com.juul.kable.WriteNotificationDescriptor.Never
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
@@ -33,29 +36,42 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
+import kotlin.DeprecationLevel.WARNING
 import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
-private val writeNotificationDescriptorDefault = Always
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
 ): Peripheral = peripheral(advertisement.bluetoothDevice)
 
 public fun CoroutineScope.peripheral(
+    bluetoothDevice: BluetoothDevice,
+): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice)
+
+@Deprecated(
+    message = "'writeObserveDescriptor' parameter is no longer used and is handled automatically by 'observe' function. 'writeObserveDescriptor' argument will be removed in a future release.",
+    replaceWith = ReplaceWith("peripheral(advertisement)"),
+    level = WARNING,
+)
+public fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     writeObserveDescriptor: WriteNotificationDescriptor,
 ): Peripheral = peripheral(advertisement.bluetoothDevice, writeObserveDescriptor)
 
+@Deprecated(
+    message = "'writeObserveDescriptor' parameter is no longer used and is handled automatically by 'observe' function. 'writeObserveDescriptor' argument will be removed in a future release.",
+    replaceWith = ReplaceWith("peripheral(advertisement)"),
+    level = WARNING,
+)
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-    writeObserveDescriptor: WriteNotificationDescriptor = writeNotificationDescriptorDefault,
-): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice, writeObserveDescriptor)
+    writeObserveDescriptor: WriteNotificationDescriptor,
+): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice)
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
-    private val writeObserveDescriptor: WriteNotificationDescriptor = writeNotificationDescriptorDefault,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
@@ -207,41 +223,39 @@ public class AndroidPeripheral internal constructor(
         characteristic: Characteristic,
     ): Flow<ByteArray> = observers.acquire(characteristic)
 
-    internal suspend fun startNotifications(characteristic: Characteristic) {
+    internal suspend fun startObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)
         connection
             .bluetoothGatt
-            .setCharacteristicNotification(platformCharacteristic.bluetoothGattCharacteristic, true)
-
-        writeConfigDescriptor(platformCharacteristic, ENABLE_NOTIFICATION_VALUE)
+            .setCharacteristicNotification(platformCharacteristic, true)
+        setConfigDescriptor(platformCharacteristic, enable = true)
     }
 
-    internal suspend fun stopNotifications(characteristic: Characteristic) {
+    internal suspend fun stopObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)
-        writeConfigDescriptor(platformCharacteristic, DISABLE_NOTIFICATION_VALUE)
-
-        val bluetoothGattCharacteristic = platformCharacteristic.bluetoothGattCharacteristic
+        setConfigDescriptor(platformCharacteristic, enable = false)
         connection
             .bluetoothGatt
-            .setCharacteristicNotification(bluetoothGattCharacteristic, false)
+            .setCharacteristicNotification(platformCharacteristic, false)
     }
 
-    private suspend fun writeConfigDescriptor(
+    private suspend fun setConfigDescriptor(
         characteristic: PlatformCharacteristic,
-        value: ByteArray
+        enable: Boolean,
     ) {
-        if (writeObserveDescriptor == Never) return
+        val configDescriptor = characteristic.configDescriptor
+        if (configDescriptor != null) {
+            if (characteristic.supportsNotify) {
+                val value = if (enable) ENABLE_NOTIFICATION_VALUE else DISABLE_NOTIFICATION_VALUE
+                write(configDescriptor.bluetoothGattDescriptor, value)
+            }
 
-        val bluetoothGattDescriptor = characteristic
-            .descriptors
-            .firstOrNull(clientCharacteristicConfigUuid)
-            ?.bluetoothGattDescriptor
-
-        if (bluetoothGattDescriptor != null) {
-            write(bluetoothGattDescriptor, value)
-        } else if (writeObserveDescriptor == Always) {
-            val uuid = characteristic.characteristicUuid
-            error("Unable to start observation for characteristic $uuid, config descriptor not found.")
+            if (characteristic.supportsIndicate) {
+                val value = if (enable) ENABLE_INDICATION_VALUE else DISABLE_NOTIFICATION_VALUE
+                write(configDescriptor.bluetoothGattDescriptor, value)
+            }
+        } else {
+            Log.w(TAG, "Characteristic ${characteristic.characteristicUuid} is missing config descriptor.")
         }
     }
 
@@ -271,3 +285,17 @@ private val WriteType.intValue: Int
         WithResponse -> WRITE_TYPE_DEFAULT
         WithoutResponse -> WRITE_TYPE_NO_RESPONSE
     }
+
+private fun BluetoothGatt.setCharacteristicNotification(
+    characteristic: PlatformCharacteristic,
+    enable: Boolean,
+) = setCharacteristicNotification(characteristic.bluetoothGattCharacteristic, enable)
+
+private val PlatformCharacteristic.configDescriptor: PlatformDescriptor?
+    get() = descriptors.firstOrNull(clientCharacteristicConfigUuid)
+
+private val PlatformCharacteristic.supportsNotify: Boolean
+    get() = bluetoothGattCharacteristic.properties and PROPERTY_NOTIFY != 0
+
+private val PlatformCharacteristic.supportsIndicate: Boolean
+    get() = bluetoothGattCharacteristic.properties and PROPERTY_INDICATE != 0
