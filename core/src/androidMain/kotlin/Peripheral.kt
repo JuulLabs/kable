@@ -245,14 +245,17 @@ public class AndroidPeripheral internal constructor(
     ) {
         val configDescriptor = characteristic.configDescriptor
         if (configDescriptor != null) {
-            if (characteristic.supportsNotify) {
-                val value = if (enable) ENABLE_NOTIFICATION_VALUE else DISABLE_NOTIFICATION_VALUE
-                write(configDescriptor.bluetoothGattDescriptor, value)
-            }
+            val bluetoothGattDescriptor = configDescriptor.bluetoothGattDescriptor
 
-            if (characteristic.supportsIndicate) {
-                val value = if (enable) ENABLE_INDICATION_VALUE else DISABLE_NOTIFICATION_VALUE
-                write(configDescriptor.bluetoothGattDescriptor, value)
+            if (enable) {
+                if (characteristic.supportsNotify)
+                    write(bluetoothGattDescriptor, ENABLE_NOTIFICATION_VALUE)
+
+                if (characteristic.supportsIndicate)
+                    write(bluetoothGattDescriptor, ENABLE_INDICATION_VALUE)
+            } else {
+                if (characteristic.supportsNotify || characteristic.supportsIndicate)
+                    write(bluetoothGattDescriptor, DISABLE_NOTIFICATION_VALUE)
             }
         } else {
             Log.w(TAG, "Characteristic ${characteristic.characteristicUuid} is missing config descriptor.")
