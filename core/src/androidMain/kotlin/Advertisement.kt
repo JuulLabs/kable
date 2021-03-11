@@ -1,9 +1,18 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothDevice.BOND_BONDED
+import android.bluetooth.BluetoothDevice.BOND_BONDING
+import android.bluetooth.BluetoothDevice.BOND_NONE
 import android.bluetooth.le.ScanResult
 import android.os.ParcelUuid
 import com.benasher44.uuid.Uuid
+
+public enum class BondState {
+    None,
+    Bonding,
+    Bonded,
+}
 
 public actual class Advertisement(
     private val scanResult: ScanResult,
@@ -17,6 +26,14 @@ public actual class Advertisement(
 
     public val address: String
         get() = bluetoothDevice.address
+
+    public val bondState: BondState
+        get() = when (bluetoothDevice.bondState) {
+            BOND_NONE -> BondState.None
+            BOND_BONDING -> BondState.Bonding
+            BOND_BONDED -> BondState.Bonded
+            else -> error("Unknown bond state: ${bluetoothDevice.bondState}")
+        }
 
     public actual val rssi: Int
         get() = scanResult.rssi
