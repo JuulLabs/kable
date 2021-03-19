@@ -29,3 +29,21 @@ allprojects {
         jcenter()
     }
 }
+
+subprojects {
+    afterEvaluate {
+        configure<PublishingExtension> {
+            repositories {
+                maven {
+                    name = "GitHub"
+                    val repo = System.getenv("GITHUB_REPOSITORY")
+                    url = uri("https://maven.pkg.github.com/$repo")
+                    credentials {
+                        username = System.getenv("USERNAME") ?: System.getenv("GITHUB_USERNAME")
+                        password = System.getenv("TOKEN") ?: System.getenv("GITHUB_TOKEN")
+                    }
+                }
+            }
+        }
+    }
+}
