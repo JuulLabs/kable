@@ -189,6 +189,7 @@ public class AndroidPeripheral internal constructor(
         data: ByteArray,
     ) {
         connection.execute<OnDescriptorWrite> {
+            setCharacteristicNotification(bluetoothGattDescriptor.characteristic, true)
             bluetoothGattDescriptor.value = data
             writeDescriptor(bluetoothGattDescriptor)
         }
@@ -213,7 +214,7 @@ public class AndroidPeripheral internal constructor(
             .bluetoothGatt
             .setCharacteristicNotification(platformCharacteristic.bluetoothGattCharacteristic, true)
 
-        writeConfigDescriptor(platformCharacteristic, ENABLE_NOTIFICATION_VALUE)
+        //writeConfigDescriptor(platformCharacteristic, ENABLE_NOTIFICATION_VALUE)
     }
 
     internal suspend fun stopNotifications(characteristic: Characteristic) {
