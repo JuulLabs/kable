@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
-import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteNotificationDescriptor.Always
 import com.juul.kable.WriteNotificationDescriptor.Never
@@ -214,7 +213,7 @@ public class AndroidPeripheral internal constructor(
             .bluetoothGatt
             .setCharacteristicNotification(platformCharacteristic.bluetoothGattCharacteristic, true)
 
-        //writeConfigDescriptor(platformCharacteristic, ENABLE_NOTIFICATION_VALUE)
+        // writeConfigDescriptor(platformCharacteristic, ENABLE_NOTIFICATION_VALUE)
     }
 
     internal suspend fun stopNotifications(characteristic: Characteristic) {
@@ -235,7 +234,7 @@ public class AndroidPeripheral internal constructor(
 
         val bluetoothGattDescriptor = characteristic
             .descriptors
-            //.firstOrNull(clientCharacteristicConfigUuid)
+            // .firstOrNull(clientCharacteristicConfigUuid)
             .firstOrNull()
             ?.bluetoothGattDescriptor
 
