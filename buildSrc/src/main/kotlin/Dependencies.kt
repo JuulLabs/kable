@@ -1,11 +1,11 @@
 fun coroutines(
     module: String,
-    version: String = "1.4.2"
+    version: String = "1.4.3"
 ): String = "org.jetbrains.kotlinx:kotlinx-coroutines-$module:$version"
 
 fun atomicfu(
     module: String,
-    version: String = "0.14.4"
+    version: String = "0.15.1"
 ) = "org.jetbrains.kotlinx:atomicfu-$module:$version"
 
 fun uuid(
