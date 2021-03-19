@@ -234,7 +234,8 @@ public class AndroidPeripheral internal constructor(
 
         val bluetoothGattDescriptor = characteristic
             .descriptors
-            .firstOrNull(clientCharacteristicConfigUuid)
+            //.firstOrNull(clientCharacteristicConfigUuid)
+            .firstOrNull()
             ?.bluetoothGattDescriptor
 
         if (bluetoothGattDescriptor != null) {
