@@ -111,6 +111,10 @@ public interface Peripheral {
      * connected, the observation will automatically start emitting changes. If connection is lost, [Flow] will remain
      * active, once reconnected characteristic changes will begin emitting again.
      *
+     * If characteristic has a Client Characteristic Configuration descriptor (CCCD), then based on bits in the
+     * [characteristic] properties, observe will be configured (CCCD will be written to) as **notification** and/or
+     * **indication**.
+     *
      * Failures related to notifications are propagated via [connect] if the [observe] [Flow] is collected prior to a
      * connection being established. If a connection is already established when an [observe] [Flow] collection begins,
      * then notification failures are propagated via the returned [observe] [Flow].

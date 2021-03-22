@@ -148,13 +148,13 @@ val data = peripheral.read(characteristic)
 peripheral.write(descriptor, byteArrayOf(1, 2, 3))
 ```
 
-### Notifications
+### Observation
 
-Bluetooth Low Energy provides the capability of subscribing to characteristic changes by means of notifications, whereas
-a characteristic change on a connected peripheral is "pushed" to the central via a characteristic notification which
-carries the new value of the characteristic.
+Bluetooth Low Energy provides the capability of subscribing to characteristic changes by means of notifications and/or
+indications, whereas a characteristic change on a connected peripheral is "pushed" to the central via a characteristic
+notification and/or indication which carries the new value of the characteristic.
 
-Characteristic change notifications can be observed/subscribed to via the [`observe`] function which returns a [`Flow`]
+Characteristic change notifications/indications can be observed/subscribed to via the [`observe`] function which returns a [`Flow`]
 of the new characteristic data.
 
 ```kotlin
@@ -169,9 +169,9 @@ established. Once a connection is established then characteristic changes will s
 connection drops, the [`Flow`] will remain active, and upon reconnecting it will resume streaming characteristic
 changes.
 
-Failures related to notifications are propagated via [`connect`] if the [`observe`] [`Flow`] is collected prior to a
-connection being established. If a connection is already established when an [`observe`] [`Flow`] is beginning to be
-collected, then notification failures are propagated via the [`observe`] [`Flow`].
+Failures related to notifications/indications are propagated via [`connect`] if the [`observe`] [`Flow`] is collected
+prior to a connection being established. If a connection is already established when an [`observe`] [`Flow`] is
+beginning to be collected, then notification/indication failures are propagated via the [`observe`] [`Flow`].
 
 ## Structured Concurrency
 
