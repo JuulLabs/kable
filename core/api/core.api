@@ -1,6 +1,7 @@
 public final class com/juul/kable/Advertisement {
 	public fun <init> (Landroid/bluetooth/le/ScanResult;)V
 	public final fun getAddress ()Ljava/lang/String;
+	public final fun getBondState ()Lcom/juul/kable/BondState;
 	public final fun getManufacturerData ()Lcom/juul/kable/ManufacturerData;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getRssi ()I
@@ -32,6 +33,14 @@ public final class com/juul/kable/AndroidScanner : com/juul/kable/Scanner {
 
 public class com/juul/kable/BluetoothLeException : java/lang/Exception {
 	public fun <init> ()V
+}
+
+public final class com/juul/kable/BondState : java/lang/Enum {
+	public static final field Bonded Lcom/juul/kable/BondState;
+	public static final field Bonding Lcom/juul/kable/BondState;
+	public static final field None Lcom/juul/kable/BondState;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/BondState;
+	public static fun values ()[Lcom/juul/kable/BondState;
 }
 
 public abstract interface class com/juul/kable/Characteristic {
