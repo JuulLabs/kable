@@ -2,6 +2,7 @@
 ![badge][badge-ios]
 ![badge][badge-js]
 ![badge][badge-mac]
+[![Slack](https://img.shields.io/badge/Slack-%23juul--libraries-ECB22E.svg?logo=data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTQgNTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTkuNzEyLjEzM2E1LjM4MSA1LjM4MSAwIDAgMC01LjM3NiA1LjM4NyA1LjM4MSA1LjM4MSAwIDAgMCA1LjM3NiA1LjM4Nmg1LjM3NlY1LjUyQTUuMzgxIDUuMzgxIDAgMCAwIDE5LjcxMi4xMzNtMCAxNC4zNjVINS4zNzZBNS4zODEgNS4zODEgMCAwIDAgMCAxOS44ODRhNS4zODEgNS4zODEgMCAwIDAgNS4zNzYgNS4zODdoMTQuMzM2YTUuMzgxIDUuMzgxIDAgMCAwIDUuMzc2LTUuMzg3IDUuMzgxIDUuMzgxIDAgMCAwLTUuMzc2LTUuMzg2IiBmaWxsPSIjMzZDNUYwIi8+PHBhdGggZD0iTTUzLjc2IDE5Ljg4NGE1LjM4MSA1LjM4MSAwIDAgMC01LjM3Ni01LjM4NiA1LjM4MSA1LjM4MSAwIDAgMC01LjM3NiA1LjM4NnY1LjM4N2g1LjM3NmE1LjM4MSA1LjM4MSAwIDAgMCA1LjM3Ni01LjM4N20tMTQuMzM2IDBWNS41MkE1LjM4MSA1LjM4MSAwIDAgMCAzNC4wNDguMTMzYTUuMzgxIDUuMzgxIDAgMCAwLTUuMzc2IDUuMzg3djE0LjM2NGE1LjM4MSA1LjM4MSAwIDAgMCA1LjM3NiA1LjM4NyA1LjM4MSA1LjM4MSAwIDAgMCA1LjM3Ni01LjM4NyIgZmlsbD0iIzJFQjY3RCIvPjxwYXRoIGQ9Ik0zNC4wNDggNTRhNS4zODEgNS4zODEgMCAwIDAgNS4zNzYtNS4zODcgNS4zODEgNS4zODEgMCAwIDAtNS4zNzYtNS4zODZoLTUuMzc2djUuMzg2QTUuMzgxIDUuMzgxIDAgMCAwIDM0LjA0OCA1NG0wLTE0LjM2NWgxNC4zMzZhNS4zODEgNS4zODEgMCAwIDAgNS4zNzYtNS4zODYgNS4zODEgNS4zODEgMCAwIDAtNS4zNzYtNS4zODdIMzQuMDQ4YTUuMzgxIDUuMzgxIDAgMCAwLTUuMzc2IDUuMzg3IDUuMzgxIDUuMzgxIDAgMCAwIDUuMzc2IDUuMzg2IiBmaWxsPSIjRUNCMjJFIi8+PHBhdGggZD0iTTAgMzQuMjQ5YTUuMzgxIDUuMzgxIDAgMCAwIDUuMzc2IDUuMzg2IDUuMzgxIDUuMzgxIDAgMCAwIDUuMzc2LTUuMzg2di01LjM4N0g1LjM3NkE1LjM4MSA1LjM4MSAwIDAgMCAwIDM0LjI1bTE0LjMzNi0uMDAxdjE0LjM2NEE1LjM4MSA1LjM4MSAwIDAgMCAxOS43MTIgNTRhNS4zODEgNS4zODEgMCAwIDAgNS4zNzYtNS4zODdWMzQuMjVhNS4zODEgNS4zODEgMCAwIDAtNS4zNzYtNS4zODcgNS4zODEgNS4zODEgMCAwIDAtNS4zNzYgNS4zODciIGZpbGw9IiNFMDFFNUEiLz48L2c+PC9zdmc+&labelColor=611f69)](https://kotlinlang.slack.com/messages/juul-libraries/)
 
 # Kable
 
@@ -147,13 +148,13 @@ val data = peripheral.read(characteristic)
 peripheral.write(descriptor, byteArrayOf(1, 2, 3))
 ```
 
-### Notifications
+### Observation
 
-Bluetooth Low Energy provides the capability of subscribing to characteristic changes by means of notifications, whereas
-a characteristic change on a connected peripheral is "pushed" to the central via a characteristic notification which
-carries the new value of the characteristic.
+Bluetooth Low Energy provides the capability of subscribing to characteristic changes by means of notifications and/or
+indications, whereas a characteristic change on a connected peripheral is "pushed" to the central via a characteristic
+notification and/or indication which carries the new value of the characteristic.
 
-Characteristic change notifications can be observed/subscribed to via the [`observe`] function which returns a [`Flow`]
+Characteristic change notifications/indications can be observed/subscribed to via the [`observe`] function which returns a [`Flow`]
 of the new characteristic data.
 
 ```kotlin
@@ -168,9 +169,9 @@ established. Once a connection is established then characteristic changes will s
 connection drops, the [`Flow`] will remain active, and upon reconnecting it will resume streaming characteristic
 changes.
 
-Failures related to notifications are propagated via [`connect`] if the [`observe`] [`Flow`] is collected prior to a
-connection being established. If a connection is already established when an [`observe`] [`Flow`] is beginning to be
-collected, then notification failures are propagated via the [`observe`] [`Flow`].
+Failures related to notifications/indications are propagated via [`connect`] if the [`observe`] [`Flow`] is collected
+prior to a connection being established. If a connection is already established when an [`observe`] [`Flow`] is
+beginning to be collected, then notification/indication failures are propagated via the [`observe`] [`Flow`].
 
 ## Structured Concurrency
 
