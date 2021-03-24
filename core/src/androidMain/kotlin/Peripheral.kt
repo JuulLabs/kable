@@ -15,10 +15,12 @@ import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
+import com.juul.kable.gatt.Response
 import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
 import com.juul.kable.gatt.Response.OnDescriptorWrite
+import com.juul.kable.gatt.Response.OnMtuChanged
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.atomicfu.atomic
@@ -167,8 +169,10 @@ public class AndroidPeripheral internal constructor(
             .map { it.toPlatformService() }
     }
 
-    public suspend fun requestMtu(mtu: Int): Unit = connection.execute {
-        this@execute.requestMtu(mtu)
+    public suspend fun requestMtu(mtu: Int) {
+        connection.execute<OnMtuChanged> {
+            this@execute.requestMtu(mtu)
+        }
     }
 
     public override suspend fun write(
