@@ -15,7 +15,6 @@ import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
-import com.juul.kable.gatt.Response
 import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
