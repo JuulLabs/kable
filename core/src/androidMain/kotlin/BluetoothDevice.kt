@@ -2,8 +2,7 @@ package com.juul.kable
 
 import android.annotation.TargetApi
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothDevice.PHY_LE_1M_MASK
-import android.bluetooth.BluetoothDevice.TRANSPORT_AUTO
+import android.bluetooth.BluetoothDevice.*
 import android.content.Context
 import android.os.Build
 import android.os.Handler
@@ -62,7 +61,7 @@ private fun BluetoothDevice.connectApi26(
         val callback = Callback(state)
 
         // todo: Have `transport` and `phy` be configurable.
-        val transport = TRANSPORT_AUTO
+        val transport = TRANSPORT_LE
         val phy = PHY_LE_1M_MASK
 
         val bluetoothGatt =
