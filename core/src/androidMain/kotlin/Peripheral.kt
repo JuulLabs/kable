@@ -42,13 +42,67 @@ import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
+/** Preferred transport for GATT connections to remote dual-mode devices. */
+public enum class Transport {
+
+    /** No preference of physical transport for GATT connections to remote dual-mode devices. */
+    Auto,
+
+    /** Prefer BR/EDR transport for GATT connections to remote dual-mode devices. */
+    BreDr,
+
+    /** Prefer LE transport for GATT connections to remote dual-mode devices. */
+    Le,
+}
+
+/** Preferred Physical Layer (PHY) for connections to remote LE devices. */
+public enum class Phy {
+
+    /** Bluetooth LE 1M PHY. */
+    Le1M,
+
+    /**
+     * Bluetooth LE 2M PHY.
+     *
+     * Per [Exploring Bluetooth 5 – Going the Distance](https://www.bluetooth.com/blog/exploring-bluetooth-5-going-the-distance/#mcetoc_1d7vdh6b25):
+     * "The new LE 2M PHY allows the physical layer to operate at 2 Ms/s and thus enables higher data rates than LE 1M
+     * and Bluetooth 4."
+     */
+    Le2M,
+
+    /**
+     * Bluetooth LE Coded PHY.
+     *
+     * Per [Exploring Bluetooth 5 – Going the Distance](https://www.bluetooth.com/blog/exploring-bluetooth-5-going-the-distance/#mcetoc_1d7vdh6b26):
+     * "The LE Coded PHY allows range to be quadrupled (approximately), compared to Bluetooth® 4 and this has been
+     * accomplished without increasing the transmission power required."
+     */
+    LeCoded,
+}
+
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
 ): Peripheral = peripheral(advertisement.bluetoothDevice)
 
+/**
+ * @param transport preferred transport for GATT connections to remote dual-mode devices.
+ * @param phy preferred PHY for connections to remote LE device.
+ */
+public fun CoroutineScope.peripheral(
+    advertisement: Advertisement,
+    transport: Transport = Transport.Auto,
+    phy: Phy = Phy.Le1M,
+): Peripheral = peripheral(advertisement.bluetoothDevice, transport, phy)
+
+/**
+ * @param transport preferred transport for GATT connections to remote dual-mode devices.
+ * @param phy preferred PHY for connections to remote LE device.
+ */
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice)
+    transport: Transport = Transport.Auto,
+    phy: Phy = Phy.Le1M,
+): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice, transport, phy)
 
 @Deprecated(
     message = "'writeObserveDescriptor' parameter is no longer used and is handled automatically by 'observe' function. 'writeObserveDescriptor' argument will be removed in a future release.",
@@ -68,11 +122,13 @@ public fun CoroutineScope.peripheral(
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
     writeObserveDescriptor: WriteNotificationDescriptor,
-): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice)
+): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice, Transport.Auto, Phy.Le1M)
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
+    private val transport: Transport,
+    private val phy: Phy,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
@@ -108,6 +164,8 @@ public class AndroidPeripheral internal constructor(
     private fun establishConnection(): Connection =
         bluetoothDevice.connect(
             applicationContext,
+            transport,
+            phy,
             _state,
             invokeOnClose = { connectJob.value = null }
         ) ?: throw ConnectionRejectedException()

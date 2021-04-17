@@ -173,10 +173,21 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 }
 
 public final class com/juul/kable/PeripheralKt {
-	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;)Lcom/juul/kable/Peripheral;
+	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/WriteNotificationDescriptor;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;)Lcom/juul/kable/Peripheral;
+	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/WriteNotificationDescriptor;)Lcom/juul/kable/Peripheral;
+	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
+	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
+}
+
+public final class com/juul/kable/Phy : java/lang/Enum {
+	public static final field Le1M Lcom/juul/kable/Phy;
+	public static final field Le2M Lcom/juul/kable/Phy;
+	public static final field LeCoded Lcom/juul/kable/Phy;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Phy;
+	public static fun values ()[Lcom/juul/kable/Phy;
 }
 
 public final class com/juul/kable/ScanFailedException : java/lang/IllegalStateException {
@@ -263,6 +274,14 @@ public final class com/juul/kable/State$Disconnected$Status$UnknownDevice : com/
 
 public final class com/juul/kable/State$Disconnecting : com/juul/kable/State {
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnecting;
+}
+
+public final class com/juul/kable/Transport : java/lang/Enum {
+	public static final field Auto Lcom/juul/kable/Transport;
+	public static final field BreDr Lcom/juul/kable/Transport;
+	public static final field Le Lcom/juul/kable/Transport;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Transport;
+	public static fun values ()[Lcom/juul/kable/Transport;
 }
 
 public final class com/juul/kable/WriteNotificationDescriptor : java/lang/Enum {
