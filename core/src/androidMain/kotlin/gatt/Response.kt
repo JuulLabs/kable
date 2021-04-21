@@ -62,7 +62,7 @@ internal sealed class Response {
 
     data class OnCharacteristicRead(
         val characteristic: BluetoothGattCharacteristic,
-        val value: ByteArray,
+        val value: ByteArray?,
         override val status: GattStatus,
     ) : Response()
 
@@ -73,7 +73,7 @@ internal sealed class Response {
 
     data class OnDescriptorRead(
         val descriptor: BluetoothGattDescriptor,
-        val value: ByteArray,
+        val value: ByteArray?,
         override val status: GattStatus,
     ) : Response()
 
