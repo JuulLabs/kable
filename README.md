@@ -102,7 +102,7 @@ peripheral.state.collect { state ->
 }
 ```
 
-The [`state`] will typically transition through the following [`State`]s:
+The [`state`] will typically transition through the following [`State`][connection-state]s:
 
 ![Connection states](artwork/connection-states.png)
 
@@ -297,7 +297,7 @@ limitations under the License.
 [`requestPeripheral`]: https://juullabs.github.io/kable/core/core/com.juul.kable/request-peripheral.html
 [`Scanner`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-scanner/index.html
 [`state`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fstate%2F%23%2FPointingToDeclaration%2F%5D%2FProperties%2F-328684452
-[`State`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-state/index.html
+[connection-state]: https://juullabs.github.io/kable/core/core/com.juul.kable/-state/index.html
 [`write`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fwrite%2F%23com.juul.kable.Descriptor%23kotlin.ByteArray%2FPointingToDeclaration%2F%2C+com.juul.kable%2FPeripheral%2Fwrite%2F%23com.juul.kable.Characteristic%23kotlin.ByteArray%23com.juul.kable.WriteType%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
 
 [badge-android]: http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat
