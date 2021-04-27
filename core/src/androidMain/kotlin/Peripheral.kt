@@ -90,7 +90,7 @@ public actual fun CoroutineScope.peripheral(
  */
 public fun CoroutineScope.peripheral(
     advertisement: Advertisement,
-    transport: Transport = Transport.Auto,
+    transport: Transport = Transport.Le,
     phy: Phy = Phy.Le1M,
 ): Peripheral = peripheral(advertisement.bluetoothDevice, transport, phy)
 
@@ -100,7 +100,7 @@ public fun CoroutineScope.peripheral(
  */
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-    transport: Transport = Transport.Auto,
+    transport: Transport = Transport.Le,
     phy: Phy = Phy.Le1M,
 ): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice, transport, phy)
 
@@ -122,7 +122,7 @@ public fun CoroutineScope.peripheral(
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
     writeObserveDescriptor: WriteNotificationDescriptor,
-): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice, Transport.Auto, Phy.Le1M)
+): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice, Transport.Le, Phy.Le1M)
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
