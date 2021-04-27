@@ -108,7 +108,7 @@ private val Transport.intValue: Int
     @TargetApi(Build.VERSION_CODES.M)
     get() = when (this) {
         Transport.Auto -> TRANSPORT_AUTO
-        Transport.BreDr -> TRANSPORT_BREDR
+        Transport.BrEdr -> TRANSPORT_BREDR
         Transport.Le -> TRANSPORT_LE
     }
 

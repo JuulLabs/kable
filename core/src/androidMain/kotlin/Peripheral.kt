@@ -49,7 +49,7 @@ public enum class Transport {
     Auto,
 
     /** Prefer BR/EDR transport for GATT connections to remote dual-mode devices. */
-    BreDr,
+    BrEdr,
 
     /** Prefer LE transport for GATT connections to remote dual-mode devices. */
     Le,
