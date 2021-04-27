@@ -278,7 +278,7 @@ public final class com/juul/kable/State$Disconnecting : com/juul/kable/State {
 
 public final class com/juul/kable/Transport : java/lang/Enum {
 	public static final field Auto Lcom/juul/kable/Transport;
-	public static final field BreDr Lcom/juul/kable/Transport;
+	public static final field BrEdr Lcom/juul/kable/Transport;
 	public static final field Le Lcom/juul/kable/Transport;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Transport;
 	public static fun values ()[Lcom/juul/kable/Transport;
