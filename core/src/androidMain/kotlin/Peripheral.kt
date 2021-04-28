@@ -251,7 +251,7 @@ public class AndroidPeripheral internal constructor(
         val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
         return connection.execute<OnCharacteristicRead> {
             readCharacteristic(bluetoothGattCharacteristic)
-        }.value
+        }.value!!
     }
 
     public override suspend fun write(
@@ -277,7 +277,7 @@ public class AndroidPeripheral internal constructor(
         val bluetoothGattDescriptor = bluetoothGattDescriptorFrom(descriptor)
         return connection.execute<OnDescriptorRead> {
             readDescriptor(bluetoothGattDescriptor)
-        }.value
+        }.value!!
     }
 
     public override fun observe(
