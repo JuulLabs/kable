@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
-import kotlinx.coroutines.suspendCancellableCoroutine
 import org.khronos.webgl.DataView
 import kotlin.coroutines.CoroutineContext
 import org.w3c.dom.events.Event as JsEvent
