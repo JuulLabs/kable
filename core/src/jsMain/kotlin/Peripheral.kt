@@ -15,9 +15,12 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.await
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -59,23 +62,14 @@ public class JsPeripheral internal constructor(
 
     private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
 
-    public override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
+    public val advertisements: Flow<Advertisement> = callbackFlow {
         check(supportsAdvertisements) { "watchAdvertisements unavailable" }
 
-        lateinit var listener: (JsEvent) -> Unit
-        val cleanup = {
-            bluetoothDevice.removeEventListener(ADVERTISEMENT_RECEIVED, listener)
-            // At the time of writing `unwatchAdvertisements()` remains unimplemented
-            if (bluetoothDevice.watchingAdvertisements && js("BluetoothDevice.prototype.unwatchAdvertisements") != null) {
-                bluetoothDevice.unwatchAdvertisements()
-            }
-        }
-
-        listener = {
-            val event = it as BluetoothAdvertisingEvent
-            cleanup()
-            if (continuation.isActive && event.rssi != null) {
-                continuation.resume(event.rssi, onCancellation = null)
+        val listener: (JsEvent) -> Unit = {
+            runCatching {
+                offer(Advertisement(it as BluetoothAdvertisingEvent))
+            }.onFailure {
+                console.warn("Unable to deliver advertisement event due to failure in flow or premature closing.")
             }
         }
 
@@ -84,10 +78,17 @@ public class JsPeripheral internal constructor(
         }
         bluetoothDevice.addEventListener(ADVERTISEMENT_RECEIVED, listener)
 
-        continuation.invokeOnCancellation {
-            cleanup()
+        awaitClose {
+            bluetoothDevice.removeEventListener(ADVERTISEMENT_RECEIVED, listener)
+            // At the time of writing `unwatchAdvertisements()` remains unimplemented
+            if (bluetoothDevice.watchingAdvertisements && js("BluetoothDevice.prototype.unwatchAdvertisements") != null) {
+                bluetoothDevice.unwatchAdvertisements()
+            }
         }
     }
+
+    public override suspend fun rssi(): Int =
+        advertisements.first().rssi
 
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
