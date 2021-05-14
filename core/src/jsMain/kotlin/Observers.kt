@@ -57,10 +57,13 @@ internal class Observers(
         } catch (t: Throwable) {
             // Unnecessary `catch` block as workaround for KT-37279 (needed until we switch to IR compiler).
             // https://youtrack.jetbrains.com/issue/KT-37279
+            // Once KT-37279 is fixed, this `catch` should be replaced with `finally`.
+            // See previous logic (before workaround) in:
+            // https://github.com/JuulLabs/kable/blob/151e54d255bf5595c67023927084d083e6180706/core/src/jsMain/kotlin/Observers.kt#L48-L72
             observation.teardown(bluetoothRemoteGATTCharacteristic, characteristic)
-        } finally {
-            observation.teardown(bluetoothRemoteGATTCharacteristic, characteristic)
+            return@flow
         }
+        observation.teardown(bluetoothRemoteGATTCharacteristic, characteristic)
     }
 
     private suspend fun Observation.teardown(
