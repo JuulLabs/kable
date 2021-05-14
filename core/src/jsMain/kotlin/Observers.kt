@@ -54,10 +54,22 @@ internal class Observers(
                     emit(it.data)
                 }
             }
+        } catch (t: Throwable) {
+            // Unnecessary `catch` block as workaround for KT-37279 (needed until we switch to IR compiler).
+            // https://youtrack.jetbrains.com/issue/KT-37279
+            observation.teardown(bluetoothRemoteGATTCharacteristic, characteristic)
         } finally {
-            if (--observation.count < 1) {
-                bluetoothRemoteGATTCharacteristic.apply {
-                    /* Throws `DOMException` if connection is closed:
+            observation.teardown(bluetoothRemoteGATTCharacteristic, characteristic)
+        }
+    }
+
+    private suspend fun Observation.teardown(
+        bluetoothRemoteGATTCharacteristic: BluetoothRemoteGATTCharacteristic,
+        characteristic: Characteristic
+    ) {
+        if (--count < 1) {
+            bluetoothRemoteGATTCharacteristic.apply {
+                /* Throws `DOMException` if connection is closed:
                      *
                      * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
                      * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
@@ -66,16 +78,15 @@ internal class Observers(
                      * Wrapped in `runCatching` to silently ignore failure, as notification will already be
                      * invalidated due to the connection being closed.
                      */
-                    runCatching {
-                        peripheral.ioLock.withLock {
-                            stopNotifications().await()
-                        }
+                runCatching {
+                    peripheral.ioLock.withLock {
+                        stopNotifications().await()
                     }
-
-                    removeEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
                 }
-                observers.remove(characteristic)
+
+                removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
             }
+            observers.remove(characteristic)
         }
     }
 
