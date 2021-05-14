@@ -5,6 +5,7 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.withLock
 import org.khronos.webgl.DataView
 import org.w3c.dom.events.Event
 
@@ -41,7 +42,9 @@ internal class Observers(
         if (++observation.count == 1) {
             bluetoothRemoteGATTCharacteristic.apply {
                 addEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
-                startNotifications().await()
+                peripheral.ioLock.withLock {
+                    startNotifications().await()
+                }
             }
         }
 
@@ -63,7 +66,11 @@ internal class Observers(
                      * Wrapped in `runCatching` to silently ignore failure, as notification will already be
                      * invalidated due to the connection being closed.
                      */
-                    runCatching { stopNotifications().await() }
+                    runCatching {
+                        peripheral.ioLock.withLock {
+                            stopNotifications().await()
+                        }
+                    }
 
                     removeEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
                 }
@@ -89,7 +96,9 @@ internal class Observers(
             platformCharacteristic
                 .bluetoothRemoteGATTCharacteristic
                 .apply {
-                    startNotifications().await()
+                    peripheral.ioLock.withLock {
+                        startNotifications().await()
+                    }
                     addEventListener(CHARACTERISTIC_VALUE_CHANGED, platformCharacteristic.createListener())
                 }
         }
