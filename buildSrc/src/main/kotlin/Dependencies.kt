@@ -1,21 +1,21 @@
 fun coroutines(
     module: String,
-    version: String = "1.4.2"
+    version: String = "1.5.0"
 ): String = "org.jetbrains.kotlinx:kotlinx-coroutines-$module:$version"
 
 fun atomicfu(
     module: String,
-    version: String = "0.14.4"
+    version: String = "0.16.1"
 ) = "org.jetbrains.kotlinx:atomicfu-$module:$version"
 
 fun uuid(
     artifact: String = "uuid",
-    version: String = "0.2.2"
+    version: String = "0.3.0"
 ): String = "com.benasher44:$artifact:$version"
 
 fun stately(
     module: String,
-    version: String = "1.1.1-a1"
+    version: String = "1.1.7-a1"
 ): String = "co.touchlab:stately-$module:$version"
 
 object androidx {

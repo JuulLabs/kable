@@ -6,13 +6,13 @@ buildscript {
 }
 
 plugins {
-    kotlin("multiplatform") version "1.4.20" apply false
-    id("com.android.library") version "4.0.2" apply false
-    id("org.jmailen.kotlinter") version "3.2.0" apply false
-    id("com.vanniktech.maven.publish") version "0.13.0" apply false
-    id("org.jetbrains.dokka") version "1.4.10.2"
-    id("kotlinx-atomicfu") version "0.14.4" apply false
-    id("binary-compatibility-validator") version "0.3.0"
+    kotlin("multiplatform") version "1.5.0" apply false
+    id("com.android.library") version "4.1.3" apply false
+    id("org.jmailen.kotlinter") version "3.4.4" apply false
+    id("com.vanniktech.maven.publish") version "0.15.1" apply false
+    id("org.jetbrains.dokka") version "1.4.32"
+    id("kotlinx-atomicfu") version "0.16.1" apply false
+    id("binary-compatibility-validator") version "0.5.0"
 }
 
 tasks.withType<org.jetbrains.dokka.gradle.DokkaMultiModuleTask>().configureEach {
