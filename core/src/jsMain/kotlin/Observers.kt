@@ -73,14 +73,14 @@ internal class Observers(
         if (--count < 1) {
             bluetoothRemoteGATTCharacteristic.apply {
                 /* Throws `DOMException` if connection is closed:
-                     *
-                     * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
-                     * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
-                     * again after reconnecting.
-                     *
-                     * Wrapped in `runCatching` to silently ignore failure, as notification will already be
-                     * invalidated due to the connection being closed.
-                     */
+                 *
+                 * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
+                 * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
+                 * again after reconnecting.
+                 *
+                 * Wrapped in `runCatching` to silently ignore failure, as notification will already be
+                 * invalidated due to the connection being closed.
+                 */
                 runCatching {
                     peripheral.ioLock.withLock {
                         stopNotifications().await()
