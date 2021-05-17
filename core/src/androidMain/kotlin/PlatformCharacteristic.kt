@@ -9,7 +9,10 @@ internal data class PlatformCharacteristic(
     override val characteristicUuid: Uuid,
     val bluetoothGattCharacteristic: BluetoothGattCharacteristic,
     val descriptors: List<PlatformDescriptor>,
-) : Characteristic
+) : Characteristic {
+    override fun toString(): String =
+        "PlatformCharacteristic(serviceUuid=$serviceUuid, characteristicUuid=$characteristicUuid)"
+}
 
 internal fun PlatformCharacteristic.toDiscoveredCharacteristic() = DiscoveredCharacteristic(
     serviceUuid = serviceUuid,

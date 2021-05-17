@@ -286,6 +286,7 @@ public class AndroidPeripheral internal constructor(
 
     internal suspend fun startObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)
+        Log.d(TAG, "setCharacteristicNotification(true) for $characteristic")
         connection
             .bluetoothGatt
             .setCharacteristicNotification(platformCharacteristic, true)
@@ -295,6 +296,7 @@ public class AndroidPeripheral internal constructor(
     internal suspend fun stopObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)
         setConfigDescriptor(platformCharacteristic, enable = false)
+        Log.d(TAG, "setCharacteristicNotification(false) for $characteristic")
         connection
             .bluetoothGatt
             .setCharacteristicNotification(platformCharacteristic, false)
@@ -310,13 +312,21 @@ public class AndroidPeripheral internal constructor(
 
             if (enable) {
                 if (characteristic.supportsNotify)
-                    write(bluetoothGattDescriptor, ENABLE_NOTIFICATION_VALUE)
+                    write(bluetoothGattDescriptor, ENABLE_NOTIFICATION_VALUE).also {
+                        Log.d(TAG, "Wrote ENABLE_NOTIFICATION_VALUE to config $configDescriptor")
+                    }
+                else Log.d(TAG, "$characteristic does not support Notify")
 
                 if (characteristic.supportsIndicate)
-                    write(bluetoothGattDescriptor, ENABLE_INDICATION_VALUE)
+                    write(bluetoothGattDescriptor, ENABLE_INDICATION_VALUE).also {
+                        Log.d(TAG, "Wrote ENABLE_INDICATION_VALUE to config $configDescriptor")
+                    }
+                else Log.d(TAG, "$characteristic does not support Indicate")
             } else {
                 if (characteristic.supportsNotify || characteristic.supportsIndicate)
-                    write(bluetoothGattDescriptor, DISABLE_NOTIFICATION_VALUE)
+                    write(bluetoothGattDescriptor, DISABLE_NOTIFICATION_VALUE).also {
+                        Log.d(TAG, "Wrote DISABLE_NOTIFICATION_VALUE to config $configDescriptor")
+                    }
             }
         } else {
             Log.w(TAG, "Characteristic ${characteristic.characteristicUuid} is missing config descriptor.")

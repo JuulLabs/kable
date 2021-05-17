@@ -9,7 +9,10 @@ internal data class PlatformDescriptor(
     override val characteristicUuid: Uuid,
     override val descriptorUuid: Uuid,
     val bluetoothGattDescriptor: BluetoothGattDescriptor,
-) : Descriptor
+) : Descriptor {
+    override fun toString(): String =
+        "PlatformDescriptor(serviceUuid=$serviceUuid, characteristicUuid=$characteristicUuid, descriptorUuid=$descriptorUuid)"
+}
 
 internal fun PlatformDescriptor.toLazyDescriptor() = LazyDescriptor(
     serviceUuid = serviceUuid,
