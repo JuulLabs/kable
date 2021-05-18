@@ -274,7 +274,7 @@ public class AndroidPeripheral internal constructor(
     ) {
         connection.execute<OnDescriptorWrite> {
             bluetoothGattDescriptor.value = data
-            Log.d(TAG, "Writing ${data.toHexString()} bytes to descriptor ${bluetoothGattDescriptor.uuid}")
+            Log.d(TAG, "Writing ${data.toHexString()} to descriptor ${bluetoothGattDescriptor.uuid}")
             writeDescriptor(bluetoothGattDescriptor)
         }
         Log.d(TAG, "Write to descriptor ${bluetoothGattDescriptor.uuid} complete")
