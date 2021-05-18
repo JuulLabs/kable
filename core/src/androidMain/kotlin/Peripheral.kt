@@ -181,9 +181,13 @@ public class AndroidPeripheral internal constructor(
             .launchIn(scope, start = UNDISPATCHED)
 
         try {
+            Log.d(TAG, "Connecting to ${connection.bluetoothGatt.device}")
             suspendUntilConnected()
+            Log.d(TAG, "Discovering services for ${connection.bluetoothGatt.device}")
             discoverServices()
+            Log.d(TAG, "Rewiring observers for ${connection.bluetoothGatt.device}")
             observers.rewire()
+            Log.d(TAG, "Connected to ${connection.bluetoothGatt.device}")
         } catch (t: Throwable) {
             dispose()
             throw t
@@ -193,6 +197,7 @@ public class AndroidPeripheral internal constructor(
     }
 
     private fun dispose() {
+        Log.d(TAG, "Disposing of ${_connection?.bluetoothGatt?.device}")
         _connection?.close()
         _connection = null
     }
