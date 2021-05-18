@@ -246,10 +246,10 @@ public class AndroidPeripheral internal constructor(
         connection.execute<OnCharacteristicWrite> {
             bluetoothGattCharacteristic.value = data
             bluetoothGattCharacteristic.writeType = writeType.intValue
-            Log.d(TAG, "Writing ${data.size} bytes to characteristic ${bluetoothGattCharacteristic.uuid}")
+            Log.d(TAG, "Writing ${data.toHexString()} to characteristic ${bluetoothGattCharacteristic.uuid}")
             writeCharacteristic(bluetoothGattCharacteristic)
         }
-        Log.d(TAG, "Write to ${bluetoothGattCharacteristic.uuid} complete")
+        Log.d(TAG, "Write to characteristic ${bluetoothGattCharacteristic.uuid} complete")
     }
 
     public override suspend fun read(
@@ -274,10 +274,10 @@ public class AndroidPeripheral internal constructor(
     ) {
         connection.execute<OnDescriptorWrite> {
             bluetoothGattDescriptor.value = data
-            Log.d(TAG, "Writing ${data.size} bytes to descriptor ${bluetoothGattDescriptor.uuid}")
+            Log.d(TAG, "Writing ${data.toHexString()} bytes to descriptor ${bluetoothGattDescriptor.uuid}")
             writeDescriptor(bluetoothGattDescriptor)
         }
-        Log.d(TAG, "Write to ${bluetoothGattDescriptor.uuid} complete")
+        Log.d(TAG, "Write to descriptor ${bluetoothGattDescriptor.uuid} complete")
     }
 
     public override suspend fun read(
@@ -351,6 +351,24 @@ public class AndroidPeripheral internal constructor(
     ) = platformServices.findDescriptor(descriptor).bluetoothGattDescriptor
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
+}
+
+internal fun ByteArray.toHexString(
+    separator: String? = null,
+    prefix: String? = null,
+    lowerCase: Boolean = false
+): String {
+    if (size == 0) return ""
+    val hexCode = if (lowerCase) "0123456789abcdef" else "0123456789ABCDEF"
+    val capacity = size * (2 + (prefix?.length ?: 0)) + (size - 1) * (separator?.length ?: 0)
+    val r = StringBuilder(capacity)
+    for (b in this) {
+        if (separator != null && r.isNotEmpty()) r.append(separator)
+        if (prefix != null) r.append(prefix)
+        r.append(hexCode[b.toInt() shr 4 and 0xF])
+        r.append(hexCode[b.toInt() and 0xF])
+    }
+    return r.toString()
 }
 
 private suspend fun Peripheral.suspendUntilConnected() {

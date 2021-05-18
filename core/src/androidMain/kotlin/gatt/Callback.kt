@@ -29,6 +29,7 @@ import com.juul.kable.gatt.Response.OnDescriptorWrite
 import com.juul.kable.gatt.Response.OnMtuChanged
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
+import com.juul.kable.toHexString
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
@@ -42,7 +43,7 @@ internal data class OnCharacteristicChanged(
     val characteristic: BluetoothGattCharacteristic,
     val value: ByteArray,
 ) {
-    override fun toString(): String = "OnCharacteristicChanged(characteristic=${characteristic.uuid}, value=${value.size} bytes)"
+    override fun toString(): String = "OnCharacteristicChanged(characteristic=${characteristic.uuid}, value=${value.toHexString()})"
 }
 
 internal class Callback(
@@ -120,7 +121,7 @@ internal class Callback(
         status: Int,
     ) {
         val event = OnCharacteristicWrite(characteristic, GattStatus(status))
-        Log.d(TAG, "Wrote $event")
+        Log.d(TAG, "OnCharacteristicWrite(characteristic=${event.characteristic.uuid}, status=${event.status})")
         onResponse.offer(event)
     }
 
@@ -147,7 +148,7 @@ internal class Callback(
         status: Int,
     ) {
         val event = OnDescriptorWrite(descriptor, GattStatus(status))
-        Log.d(TAG, "Wrote $event")
+        Log.d(TAG, "OnDescriptorWrite(descriptor=${event.descriptor.uuid}, status=${event.status})")
         onResponse.offer(event)
     }
 
