@@ -241,8 +241,10 @@ public class AndroidPeripheral internal constructor(
         connection.execute<OnCharacteristicWrite> {
             bluetoothGattCharacteristic.value = data
             bluetoothGattCharacteristic.writeType = writeType.intValue
+            Log.d(TAG, "Writing ${data.size} bytes to characteristic ${bluetoothGattCharacteristic.uuid}")
             writeCharacteristic(bluetoothGattCharacteristic)
         }
+        Log.d(TAG, "Write to ${bluetoothGattCharacteristic.uuid} complete")
     }
 
     public override suspend fun read(
@@ -267,8 +269,10 @@ public class AndroidPeripheral internal constructor(
     ) {
         connection.execute<OnDescriptorWrite> {
             bluetoothGattDescriptor.value = data
+            Log.d(TAG, "Writing ${data.size} bytes to descriptor ${bluetoothGattDescriptor.uuid}")
             writeDescriptor(bluetoothGattDescriptor)
         }
+        Log.d(TAG, "Write to ${bluetoothGattDescriptor.uuid} complete")
     }
 
     public override suspend fun read(

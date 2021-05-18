@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothProfile.STATE_CONNECTED
 import android.bluetooth.BluetoothProfile.STATE_CONNECTING
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
+import android.util.Log
 import com.juul.kable.ConnectionLostException
 import com.juul.kable.State
 import com.juul.kable.State.Disconnected.Status.Cancelled
@@ -16,6 +17,7 @@ import com.juul.kable.State.Disconnected.Status.Failed
 import com.juul.kable.State.Disconnected.Status.PeripheralDisconnected
 import com.juul.kable.State.Disconnected.Status.Timeout
 import com.juul.kable.State.Disconnected.Status.Unknown
+import com.juul.kable.TAG
 import com.juul.kable.external.GATT_CONN_CANCEL
 import com.juul.kable.external.GATT_CONN_FAIL_ESTABLISH
 import com.juul.kable.external.GATT_CONN_TERMINATE_PEER_USER
@@ -39,7 +41,9 @@ private typealias DisconnectedAction = () -> Unit
 internal data class OnCharacteristicChanged(
     val characteristic: BluetoothGattCharacteristic,
     val value: ByteArray,
-)
+) {
+    override fun toString(): String = "OnCharacteristicChanged(characteristic=${characteristic.uuid}, value=${value.size} bytes)"
+}
 
 internal class Callback(
     private val state: MutableStateFlow<State>
@@ -115,7 +119,9 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic,
         status: Int,
     ) {
-        onResponse.offer(OnCharacteristicWrite(characteristic, GattStatus(status)))
+        val event = OnCharacteristicWrite(characteristic, GattStatus(status))
+        Log.d(TAG, "Wrote $event")
+        onResponse.offer(event)
     }
 
     override fun onCharacteristicChanged(
@@ -123,6 +129,7 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic
     ) {
         val event = OnCharacteristicChanged(characteristic, characteristic.value)
+        Log.d(TAG, "Received $event")
         _onCharacteristicChanged.offer(event)
     }
 
@@ -139,7 +146,9 @@ internal class Callback(
         descriptor: BluetoothGattDescriptor,
         status: Int,
     ) {
-        onResponse.offer(OnDescriptorWrite(descriptor, GattStatus(status)))
+        val event = OnDescriptorWrite(descriptor, GattStatus(status))
+        Log.d(TAG, "Wrote $event")
+        onResponse.offer(event)
     }
 
     override fun onReliableWriteCompleted(
