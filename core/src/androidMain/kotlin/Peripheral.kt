@@ -327,9 +327,10 @@ public class AndroidPeripheral internal constructor(
                 else Log.d(TAG, "$characteristic does not support Notify")
 
                 if (characteristic.supportsIndicate)
-                    write(bluetoothGattDescriptor, ENABLE_INDICATION_VALUE).also {
-                        Log.d(TAG, "Wrote ENABLE_INDICATION_VALUE to config $configDescriptor")
-                    }
+//                    write(bluetoothGattDescriptor, ENABLE_INDICATION_VALUE).also {
+//                        Log.d(TAG, "Wrote ENABLE_INDICATION_VALUE to config $configDescriptor")
+//                    }
+                    Log.d(TAG, "$characteristic supports Indicate, but skipping for testing")
                 else Log.d(TAG, "$characteristic does not support Indicate")
             } else {
                 if (characteristic.supportsNotify || characteristic.supportsIndicate)
