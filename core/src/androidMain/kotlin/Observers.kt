@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -39,18 +41,20 @@ internal class Observers(
     private val lock = Mutex()
 
     fun acquire(characteristic: Characteristic) = flow {
-        peripheral.suspendUntilReady()
-
-        if (observers.incrementAndGet(characteristic) == 1) {
-            peripheral.startObservation(characteristic)
-        }
-
         try {
-            characteristicChanges.collect {
-                if (it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
-                    it.characteristic.serviceUuid == characteristic.serviceUuid
-                ) emit(it.data)
-            }
+            characteristicChanges
+                .onSubscription {
+                    peripheral.suspendUntilReady()
+
+                    if (observers.incrementAndGet(characteristic) == 1) {
+                        peripheral.startObservation(characteristic)
+                    }
+                }
+                .collect {
+                    if (it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
+                        it.characteristic.serviceUuid == characteristic.serviceUuid
+                    ) emit(it.data)
+                }
         } finally {
             if (observers.decrementAndGet(characteristic) < 1) {
                 try {
