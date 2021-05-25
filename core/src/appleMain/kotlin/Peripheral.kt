@@ -114,9 +114,9 @@ public class ApplePeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
-    private val _ready = MutableStateFlow(false)
+    private val ready = MutableStateFlow(false)
     internal suspend fun suspendUntilReady() {
-        combine(_ready, state) { ready, state -> ready && state == State.Connected }.first { it }
+        combine(ready, state) { ready, state -> ready && state == State.Connected }.first { it }
     }
 
     private fun onDisconnected() {
@@ -127,7 +127,7 @@ public class ApplePeripheral internal constructor(
     }
 
     private fun connectAsync() = scope.async(start = LAZY) {
-        _ready.value = false
+        ready.value = false
 
         centralManager.delegate.onDisconnected.onEach { identifier ->
             if (identifier == cbPeripheral.identifier) onDisconnected()
@@ -162,7 +162,7 @@ public class ApplePeripheral internal constructor(
             throw t
         }
 
-        _ready.value = true
+        ready.value = true
     }
 
     public override suspend fun connect() {

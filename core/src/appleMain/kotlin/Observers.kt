@@ -3,8 +3,10 @@ package com.juul.kable
 import co.touchlab.stately.isolate.IsolateState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onSubscription
 import platform.Foundation.NSData
 import platform.Foundation.NSLog
 
@@ -38,33 +40,35 @@ internal class Observers(
 
     private val observers = ObservationCount()
 
-    fun acquire(characteristic: Characteristic): Flow<NSData> = flow {
-        peripheral.suspendUntilReady()
-
+    fun acquire(
+        characteristic: Characteristic
+    ): Flow<NSData> {
         val cbCharacteristicUuid = characteristic.characteristicUuid.toCBUUID()
         val cbServiceUuid = characteristic.serviceUuid.toCBUUID()
 
-        if (observers.incrementAndGet(characteristic) == 1) {
-            peripheral.startNotifications(characteristic)
-        }
-
-        try {
-            characteristicChanges.collect {
-                if (it.cbCharacteristic.UUID == cbCharacteristicUuid &&
-                    it.cbCharacteristic.service.UUID == cbServiceUuid
-                ) emit(it.data)
-            }
-        } finally {
-            if (observers.decrementAndGet(characteristic) < 1) {
-                try {
-                    peripheral.stopNotifications(characteristic)
-                } catch (e: NotReadyException) {
-                    // Silently ignore as it is assumed that failure is due to connection drop, in which case the system
-                    // will clear the notifications.
-                    NSLog("Stop notification failure ignored.")
+        return characteristicChanges
+            .onSubscription {
+                peripheral.suspendUntilReady()
+                if (observers.incrementAndGet(characteristic) == 1) {
+                    peripheral.startNotifications(characteristic)
                 }
             }
-        }
+            .filter {
+                it.cbCharacteristic.UUID == cbCharacteristicUuid &&
+                    it.cbCharacteristic.service.UUID == cbServiceUuid
+            }
+            .onCompletion {
+                if (observers.decrementAndGet(characteristic) < 1) {
+                    try {
+                        peripheral.stopNotifications(characteristic)
+                    } catch (e: NotReadyException) {
+                        // Silently ignore as it is assumed that failure is due to connection drop, in which case the
+                        // system will clear the notifications.
+                        NSLog("Stop notification failure ignored.")
+                    }
+                }
+            }
+            .map { it.data }
     }
 
     suspend fun rewire() {

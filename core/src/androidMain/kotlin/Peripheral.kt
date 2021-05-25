@@ -136,9 +136,13 @@ public class AndroidPeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
-    private val _ready = MutableStateFlow(false)
+    private val ready = MutableStateFlow(false)
     internal suspend fun suspendUntilReady() {
-        combine(_ready, state) { ready, state -> ready && state == State.Connected }.first { it }
+        // fast path
+        if (ready.value && _state.value == State.Connected) return
+
+        // slow path
+        combine(ready, state) { ready, state -> ready && state == State.Connected }.first { it }
     }
 
     private fun establishConnection(): Connection =
@@ -152,7 +156,7 @@ public class AndroidPeripheral internal constructor(
 
     /** Creates a connect [Job] that completes when connection is established, or failure occurs. */
     private fun connectAsync() = scope.async(start = LAZY) {
-        _ready.value = false
+        ready.value = false
 
         val connection = establishConnection().also { _connection = it }
         connection
@@ -170,7 +174,7 @@ public class AndroidPeripheral internal constructor(
             throw t
         }
 
-        _ready.value = true
+        ready.value = true
     }
 
     private fun dispose() {

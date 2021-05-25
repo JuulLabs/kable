@@ -2,9 +2,12 @@ package com.juul.kable
 
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import kotlinx.coroutines.await
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.sync.withLock
 import org.khronos.webgl.DataView
 import org.w3c.dom.events.Event
@@ -28,69 +31,62 @@ internal class Observers(
 ) {
 
     private val observers = mutableMapOf<Characteristic, Observation>()
-    private val changes = MutableSharedFlow<CharacteristicChange>(extraBufferCapacity = 64)
+    private val characteristicChanges =
+        MutableSharedFlow<CharacteristicChange>(extraBufferCapacity = 64)
 
-    fun acquire(characteristic: Characteristic) = flow {
-        val bluetoothRemoteGATTCharacteristic =
-            peripheral.bluetoothRemoteGATTCharacteristicFrom(characteristic)
-        val observation = observers[characteristic] ?: run {
-            Observation(listener = characteristic.createListener()).also {
-                observers[characteristic] = it
-            }
-        }
+    fun acquire(characteristic: Characteristic): Flow<DataView> {
+        lateinit var bluetoothRemoteGATTCharacteristic: BluetoothRemoteGATTCharacteristic
+        lateinit var observation: Observation
 
-        if (++observation.count == 1) {
-            bluetoothRemoteGATTCharacteristic.apply {
-                addEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
-                peripheral.ioLock.withLock {
-                    startNotifications().await()
-                }
-            }
-        }
+        return characteristicChanges
+            .onSubscription {
+                peripheral.suspendUntilReady()
 
-        try {
-            changes.collect {
-                if (it.characteristic.characteristicUuid == characteristic.characteristicUuid) {
-                    emit(it.data)
-                }
-            }
-        } catch (t: Throwable) {
-            // Unnecessary `catch` block as workaround for KT-37279 (needed until we switch to IR compiler).
-            // https://youtrack.jetbrains.com/issue/KT-37279
-            // Once KT-37279 is fixed, this `catch` should be replaced with `finally`.
-            // See previous logic (before workaround) in:
-            // https://github.com/JuulLabs/kable/blob/151e54d255bf5595c67023927084d083e6180706/core/src/jsMain/kotlin/Observers.kt#L48-L72
-            observation.teardown(bluetoothRemoteGATTCharacteristic, characteristic)
-            return@flow
-        }
-        observation.teardown(bluetoothRemoteGATTCharacteristic, characteristic)
-    }
+                bluetoothRemoteGATTCharacteristic =
+                    peripheral.bluetoothRemoteGATTCharacteristicFrom(characteristic)
 
-    private suspend fun Observation.teardown(
-        bluetoothRemoteGATTCharacteristic: BluetoothRemoteGATTCharacteristic,
-        characteristic: Characteristic
-    ) {
-        if (--count < 1) {
-            bluetoothRemoteGATTCharacteristic.apply {
-                /* Throws `DOMException` if connection is closed:
-                 *
-                 * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
-                 * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
-                 * again after reconnecting.
-                 *
-                 * Wrapped in `runCatching` to silently ignore failure, as notification will already be
-                 * invalidated due to the connection being closed.
-                 */
-                runCatching {
-                    peripheral.ioLock.withLock {
-                        stopNotifications().await()
+                observation = observers[characteristic] ?: run {
+                    Observation(listener = characteristic.createListener()).also {
+                        observers[characteristic] = it
                     }
                 }
 
-                removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
+                if (++observation.count == 1) {
+                    bluetoothRemoteGATTCharacteristic.apply {
+                        addEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
+                        peripheral.ioLock.withLock {
+                            startNotifications().await()
+                        }
+                    }
+                }
             }
-            observers.remove(characteristic)
-        }
+            .onCompletion {
+                if (--observation.count < 1) {
+                    bluetoothRemoteGATTCharacteristic.apply {
+                        /* Throws `DOMException` if connection is closed:
+                         *
+                         * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
+                         * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
+                         * again after reconnecting.
+                         *
+                         * Wrapped in `runCatching` to silently ignore failure, as notification will already be
+                         * invalidated due to the connection being closed.
+                         */
+                        runCatching {
+                            peripheral.ioLock.withLock {
+                                stopNotifications().await()
+                            }
+                        }
+
+                        removeEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
+                    }
+                    observers.remove(characteristic)
+                }
+            }
+            .filter {
+                it.characteristic.characteristicUuid == characteristic.characteristicUuid
+            }
+            .map { it.data }
     }
 
     fun invalidate() {
@@ -124,6 +120,6 @@ internal class Observers(
 
     private fun Characteristic.createListener(): ObservationListener = { event ->
         val target = event.target as BluetoothRemoteGATTCharacteristic
-        changes.tryEmit(CharacteristicChange(this, target.value!!))
+        characteristicChanges.tryEmit(CharacteristicChange(this, target.value!!))
     }
 }

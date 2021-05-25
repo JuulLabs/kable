@@ -17,7 +17,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -70,6 +72,15 @@ public class JsPeripheral internal constructor(
 
     private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
 
+    private val ready = MutableStateFlow(false)
+    internal suspend fun suspendUntilReady() {
+        // fast path
+        if (ready.value && _state.value == State.Connected) return
+
+        // slow path
+        combine(ready, state) { ready, state -> ready && state == State.Connected }.first { it }
+    }
+
     public override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
         check(supportsAdvertisements) { "watchAdvertisements unavailable" }
 
@@ -106,6 +117,7 @@ public class JsPeripheral internal constructor(
     private var connectJob: Deferred<Unit>? = null
 
     private fun connectAsync() = scope.async(start = LAZY) {
+        ready.value = false
         _state.value = State.Connecting
 
         try {
@@ -121,6 +133,8 @@ public class JsPeripheral internal constructor(
             disconnectGatt()
             throw cancellation
         }
+
+        ready.value = true
     }
 
     private fun dispose() {

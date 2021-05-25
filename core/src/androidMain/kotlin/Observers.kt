@@ -3,8 +3,10 @@ package com.juul.kable
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -38,20 +40,21 @@ internal class Observers(
     private val observers = HashMap<Characteristic, Int>()
     private val lock = Mutex()
 
-    fun acquire(characteristic: Characteristic) = flow {
-        peripheral.suspendUntilReady()
-
-        if (observers.incrementAndGet(characteristic) == 1) {
-            peripheral.startObservation(characteristic)
-        }
-
-        try {
-            characteristicChanges.collect {
-                if (it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
-                    it.characteristic.serviceUuid == characteristic.serviceUuid
-                ) emit(it.data)
+    fun acquire(
+        characteristic: Characteristic
+    ) = characteristicChanges
+        .onSubscription {
+            peripheral.suspendUntilReady()
+            if (observers.incrementAndGet(characteristic) == 1) {
+                peripheral.startObservation(characteristic)
             }
-        } finally {
+        }
+        .filter {
+            it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
+                it.characteristic.serviceUuid == characteristic.serviceUuid
+        }
+        .map { it.data }
+        .onCompletion {
             if (observers.decrementAndGet(characteristic) < 1) {
                 try {
                     peripheral.stopObservation(characteristic)
@@ -62,7 +65,6 @@ internal class Observers(
                 }
             }
         }
-    }
 
     suspend fun rewire() {
         lock.withLock {
