@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import platform.Foundation.NSData
+import platform.Foundation.NSLog
 
 /**
  * Manages observations for the specified [peripheral].
@@ -55,7 +56,13 @@ internal class Observers(
             }
         } finally {
             if (observers.decrementAndGet(characteristic) < 1) {
-                peripheral.stopNotifications(characteristic)
+                try {
+                    peripheral.stopNotifications(characteristic)
+                } catch (e: NotReadyException) {
+                    // Silently ignore as it is assumed that failure is due to connection drop, in which case the system
+                    // will clear the notifications.
+                    NSLog("Stop notification failure ignored.")
+                }
             }
         }
     }
