@@ -74,7 +74,7 @@ internal class Observers(
     }
 }
 
-private class ObservationCount : IsolateState<MutableMap<Characteristic, Int>>({ mutableMapOf() }) {
+private class ObservationCount : IsolateState<MutableMap<Characteristic, Int>>(producer = { mutableMapOf() }) {
 
     val keys: Set<Characteristic>
         get() = access { it.keys.toSet() }
