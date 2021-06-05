@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.khronos.webgl.DataView
 import kotlin.coroutines.CoroutineContext
 import org.w3c.dom.events.Event as JsEvent
@@ -46,6 +48,8 @@ public class JsPeripheral internal constructor(
     }
 
     private val scope = CoroutineScope(parentCoroutineContext + job)
+
+    internal val ioLock = Mutex()
 
     private val _state = MutableStateFlow<State?>(null)
     public override val state: Flow<State> = _state.filterNotNull()
@@ -136,9 +140,9 @@ public class JsPeripheral internal constructor(
     }
 
     private suspend fun discoverServices(): List<PlatformService> {
-        val services = gatt.getPrimaryServices()
-            .await()
-            .map { it.toPlatformService() }
+        val services = ioLock.withLock {
+            gatt.getPrimaryServices().await()
+        }.map { it.toPlatformService() }
         _platformServices = services
         return services
     }
@@ -148,19 +152,23 @@ public class JsPeripheral internal constructor(
         data: ByteArray,
         writeType: WriteType,
     ) {
-        bluetoothRemoteGATTCharacteristicFrom(characteristic).run {
+        val jsCharacteristic = bluetoothRemoteGATTCharacteristicFrom(characteristic)
+        ioLock.withLock {
             when (writeType) {
-                WithResponse -> writeValueWithResponse(data)
-                WithoutResponse -> writeValueWithoutResponse(data)
-            }
-        }.await()
+                WithResponse -> jsCharacteristic.writeValueWithResponse(data)
+                WithoutResponse -> jsCharacteristic.writeValueWithoutResponse(data)
+            }.await()
+        }
     }
 
     public suspend fun readAsDataView(
         characteristic: Characteristic
-    ): DataView = bluetoothRemoteGATTCharacteristicFrom(characteristic)
-        .readValue()
-        .await()
+    ): DataView {
+        val jsCharacteristic = bluetoothRemoteGATTCharacteristicFrom(characteristic)
+        return ioLock.withLock {
+            jsCharacteristic.readValue().await()
+        }
+    }
 
     public override suspend fun read(
         characteristic: Characteristic
@@ -172,16 +180,20 @@ public class JsPeripheral internal constructor(
         descriptor: Descriptor,
         data: ByteArray
     ) {
-        bluetoothRemoteGATTDescriptorFrom(descriptor)
-            .writeValue(data)
-            .await()
+        val jsDescriptor = bluetoothRemoteGATTDescriptorFrom(descriptor)
+        ioLock.withLock {
+            jsDescriptor.writeValue(data).await()
+        }
     }
 
     public suspend fun readAsDataView(
         descriptor: Descriptor
-    ): DataView = bluetoothRemoteGATTDescriptorFrom(descriptor)
-        .readValue()
-        .await()
+    ): DataView {
+        val jsDescriptor = bluetoothRemoteGATTDescriptorFrom(descriptor)
+        return ioLock.withLock {
+            jsDescriptor.readValue().await()
+        }
+    }
 
     public override suspend fun read(
         descriptor: Descriptor

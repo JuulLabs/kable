@@ -5,6 +5,7 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.withLock
 import org.khronos.webgl.DataView
 import org.w3c.dom.events.Event
 
@@ -41,7 +42,9 @@ internal class Observers(
         if (++observation.count == 1) {
             bluetoothRemoteGATTCharacteristic.apply {
                 addEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
-                startNotifications().await()
+                peripheral.ioLock.withLock {
+                    startNotifications().await()
+                }
             }
         }
 
@@ -51,24 +54,42 @@ internal class Observers(
                     emit(it.data)
                 }
             }
-        } finally {
-            if (--observation.count < 1) {
-                bluetoothRemoteGATTCharacteristic.apply {
-                    /* Throws `DOMException` if connection is closed:
-                     *
-                     * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
-                     * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
-                     * again after reconnecting.
-                     *
-                     * Wrapped in `runCatching` to silently ignore failure, as notification will already be
-                     * invalidated due to the connection being closed.
-                     */
-                    runCatching { stopNotifications().await() }
+        } catch (t: Throwable) {
+            // Unnecessary `catch` block as workaround for KT-37279 (needed until we switch to IR compiler).
+            // https://youtrack.jetbrains.com/issue/KT-37279
+            // Once KT-37279 is fixed, this `catch` should be replaced with `finally`.
+            // See previous logic (before workaround) in:
+            // https://github.com/JuulLabs/kable/blob/151e54d255bf5595c67023927084d083e6180706/core/src/jsMain/kotlin/Observers.kt#L48-L72
+            observation.teardown(bluetoothRemoteGATTCharacteristic, characteristic)
+            return@flow
+        }
+        observation.teardown(bluetoothRemoteGATTCharacteristic, characteristic)
+    }
 
-                    removeEventListener(CHARACTERISTIC_VALUE_CHANGED, observation.listener)
+    private suspend fun Observation.teardown(
+        bluetoothRemoteGATTCharacteristic: BluetoothRemoteGATTCharacteristic,
+        characteristic: Characteristic
+    ) {
+        if (--count < 1) {
+            bluetoothRemoteGATTCharacteristic.apply {
+                /* Throws `DOMException` if connection is closed:
+                 *
+                 * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
+                 * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
+                 * again after reconnecting.
+                 *
+                 * Wrapped in `runCatching` to silently ignore failure, as notification will already be
+                 * invalidated due to the connection being closed.
+                 */
+                runCatching {
+                    peripheral.ioLock.withLock {
+                        stopNotifications().await()
+                    }
                 }
-                observers.remove(characteristic)
+
+                removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
             }
+            observers.remove(characteristic)
         }
     }
 
@@ -89,7 +110,9 @@ internal class Observers(
             platformCharacteristic
                 .bluetoothRemoteGATTCharacteristic
                 .apply {
-                    startNotifications().await()
+                    peripheral.ioLock.withLock {
+                        startNotifications().await()
+                    }
                     addEventListener(CHARACTERISTIC_VALUE_CHANGED, platformCharacteristic.createListener())
                 }
         }
