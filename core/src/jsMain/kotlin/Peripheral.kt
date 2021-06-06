@@ -115,8 +115,8 @@ public class JsPeripheral internal constructor(
             _state.value = State.Connected
 
             val services = discoverServices()
+            onConnect(OnConnectPeripheral(this@JsPeripheral))
             observers.rewire(services)
-            onConnect(this@JsPeripheral)
         } catch (cancellation: CancellationException) {
             disconnectGatt()
             throw cancellation

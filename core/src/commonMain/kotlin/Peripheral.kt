@@ -67,23 +67,17 @@ public interface Peripheral {
     /** @return discovered [services][Service], or `null` until a [connection][connect] has been established. */
     public val services: List<DiscoveredService>?
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun rssi(): Int
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun read(
         characteristic: Characteristic,
     ): ByteArray
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun write(
         characteristic: Characteristic,
@@ -91,17 +85,13 @@ public interface Peripheral {
         writeType: WriteType = WithoutResponse,
     ): Unit
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun read(
         descriptor: Descriptor,
     ): ByteArray
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun write(
         descriptor: Descriptor,

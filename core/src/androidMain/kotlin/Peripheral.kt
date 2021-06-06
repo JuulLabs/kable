@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
@@ -60,7 +61,7 @@ public class AndroidPeripheral internal constructor(
     private val bluetoothDevice: BluetoothDevice,
     private val transport: Transport,
     private val phy: Phy,
-    private val onConnect: OnConnectAction
+    private val onConnect: OnConnectAction,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
@@ -115,8 +116,8 @@ public class AndroidPeripheral internal constructor(
         try {
             suspendUntilConnected()
             discoverServices()
+            onConnect(OnConnectPeripheral(this@AndroidPeripheral))
             observers.rewire()
-            onConnect(this@AndroidPeripheral)
         } catch (t: Throwable) {
             dispose()
             throw t
@@ -159,6 +160,7 @@ public class AndroidPeripheral internal constructor(
             .map { it.toPlatformService() }
     }
 
+    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
     public suspend fun requestMtu(mtu: Int) {
         connection.execute<OnMtuChanged> {
             this@execute.requestMtu(mtu)

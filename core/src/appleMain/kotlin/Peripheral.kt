@@ -148,8 +148,8 @@ public class ApplePeripheral internal constructor(
             suspendUntilConnected()
 
             discoverServices()
+            onConnect(OnConnectPeripheral(this@ApplePeripheral))
             observers.rewire()
-            onConnect(this@ApplePeripheral)
         } catch (t: Throwable) {
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)

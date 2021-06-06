@@ -1,5 +1,7 @@
 package com.juul.kable
 
+import kotlin.coroutines.cancellation.CancellationException
+
 /** Preferred transport for GATT connections to remote dual-mode devices. */
 public enum class Transport {
 
@@ -36,6 +38,45 @@ public enum class Phy {
      * accomplished without increasing the transmission power required."
      */
     LeCoded,
+}
+
+public actual class OnConnectPeripheral internal constructor(
+    private val peripheral: AndroidPeripheral
+) {
+
+    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    public actual suspend fun read(
+        characteristic: Characteristic,
+    ): ByteArray = peripheral.read(characteristic)
+
+    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    public actual suspend fun read(
+        descriptor: Descriptor,
+    ): ByteArray = peripheral.read(descriptor)
+
+    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    public actual suspend fun write(
+        characteristic: Characteristic,
+        data: ByteArray,
+        writeType: WriteType,
+    ) {
+        peripheral.write(characteristic, data, writeType)
+    }
+
+    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    public actual suspend fun write(
+        descriptor: Descriptor,
+        data: ByteArray,
+    ) {
+        peripheral.write(descriptor, data)
+    }
+
+    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
+    public suspend fun requestMtu(mtu: Int): Unit = peripheral.requestMtu(mtu)
 }
 
 public actual class PeripheralBuilder internal actual constructor() {
