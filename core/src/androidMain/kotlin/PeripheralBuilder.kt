@@ -40,7 +40,10 @@ public enum class Phy {
 
 public actual class PeripheralBuilder internal actual constructor() {
 
-    public actual var onConnect: OnConnectAction = {}
+    internal var onConnect: OnConnectAction = {}
+    public actual fun onConnect(action: OnConnectAction) {
+        onConnect = action
+    }
 
     /** Preferred transport for GATT connections to remote dual-mode devices. */
     public var transport: Transport = Transport.Le
