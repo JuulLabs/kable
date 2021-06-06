@@ -21,7 +21,7 @@ public enum class WriteType {
     WithoutResponse,
 }
 
-public interface Peripheral {
+public interface Peripheral : PeripheralIo {
 
     /**
      * Provides a conflated [Flow] of the [Peripheral]'s [State].
@@ -68,47 +68,6 @@ public interface Peripheral {
     public val services: List<DiscoveredService>?
 
     /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public suspend fun rssi(): Int
-
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public suspend fun read(
-        characteristic: Characteristic,
-    ): ByteArray
-
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public suspend fun write(
-        characteristic: Characteristic,
-        data: ByteArray,
-        writeType: WriteType = WithoutResponse,
-    ): Unit
-
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public suspend fun read(
-        descriptor: Descriptor,
-    ): ByteArray
-
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public suspend fun write(
-        descriptor: Descriptor,
-        data: ByteArray,
-    ): Unit
-
-    /**
      * Observes changes to the specified [Characteristic].
      *
      * Observations can be setup ([observe] can be called) prior to a [connection][connect] being established. Once
@@ -128,4 +87,50 @@ public interface Peripheral {
     public fun observe(
         characteristic: Characteristic,
     ): Flow<ByteArray>
+}
+
+public expect interface PeripheralIo : PeripheralIoCommon
+
+public interface PeripheralIoCommon {
+
+    /**
+     * @throws NotReadyException if invoked without an established [connection][Peripheral.connect].
+     */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    public suspend fun rssi(): Int
+
+    /**
+     * @throws NotReadyException if invoked without an established [connection][Peripheral.connect].
+     */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    public suspend fun read(
+        characteristic: Characteristic,
+    ): ByteArray
+
+    /**
+     * @throws NotReadyException if invoked without an established [connection][Peripheral.connect].
+     */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    public suspend fun write(
+        characteristic: Characteristic,
+        data: ByteArray,
+        writeType: WriteType = WithoutResponse,
+    ): Unit
+
+    /**
+     * @throws NotReadyException if invoked without an established [connection][Peripheral.connect].
+     */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    public suspend fun read(
+        descriptor: Descriptor,
+    ): ByteArray
+
+    /**
+     * @throws NotReadyException if invoked without an established [connection][Peripheral.connect].
+     */
+    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    public suspend fun write(
+        descriptor: Descriptor,
+        data: ByteArray,
+    ): Unit
 }

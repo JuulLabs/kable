@@ -55,6 +55,10 @@ public fun CoroutineScope.peripheral(
     return AndroidPeripheral(coroutineContext, bluetoothDevice, builder.transport, builder.phy, builder.onConnect)
 }
 
+public actual interface PeripheralIo : PeripheralIoCommon {
+    public suspend fun requestMtu(mtu: Int)
+}
+
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
@@ -159,7 +163,7 @@ public class AndroidPeripheral internal constructor(
             .map { it.toPlatformService() }
     }
 
-    public suspend fun requestMtu(mtu: Int) {
+    public override suspend fun requestMtu(mtu: Int) {
         connection.execute<OnMtuChanged> {
             this@execute.requestMtu(mtu)
         }

@@ -76,6 +76,8 @@ public actual fun CoroutineScope.peripheral(
     return ApplePeripheral(coroutineContext, advertisement.cbPeripheral, builder.onConnect)
 }
 
+public actual interface PeripheralIo : PeripheralIoCommon
+
 @OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
 public class ApplePeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
