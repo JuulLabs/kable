@@ -44,8 +44,6 @@ internal fun CoroutineScope.peripheral(
     return JsPeripheral(coroutineContext, bluetoothDevice, builder.onConnect)
 }
 
-public actual interface PeripheralIo : PeripheralIoCommon
-
 public class JsPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
