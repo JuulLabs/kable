@@ -29,10 +29,12 @@ public fun CoroutineScope.peripheral(
  */
 @Deprecated(
     message = "Use builder lambda",
-    replaceWith = ReplaceWith("""peripheral(advertisement) {
+    replaceWith = ReplaceWith(
+        """peripheral(advertisement) {
     transport = Transport.Le
     phy = Phy.Le1M
-}"""),
+}"""
+    ),
 )
 public fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -49,10 +51,12 @@ public fun CoroutineScope.peripheral(
  */
 @Deprecated(
     message = "Use builder lambda",
-    replaceWith = ReplaceWith("""peripheral(bluetoothDevice) {
+    replaceWith = ReplaceWith(
+        """peripheral(bluetoothDevice) {
     transport = Transport.Le
     phy = Phy.Le1M
-}"""),
+}"""
+    ),
 )
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
