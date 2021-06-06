@@ -69,12 +69,18 @@ import kotlin.native.concurrent.freeze
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
-): Peripheral = ApplePeripheral(coroutineContext, advertisement.cbPeripheral)
+    builderAction: PeripheralBuilderAction,
+): Peripheral {
+    val builder = PeripheralBuilder()
+    builder.builderAction()
+    return ApplePeripheral(coroutineContext, advertisement.cbPeripheral, builder.onConnect)
+}
 
 @OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
 public class ApplePeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val cbPeripheral: CBPeripheral,
+    private val onConnect: OnConnectAction,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
@@ -143,6 +149,7 @@ public class ApplePeripheral internal constructor(
 
             discoverServices()
             observers.rewire()
+            onConnect(this@ApplePeripheral)
         } catch (t: Throwable) {
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)

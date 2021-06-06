@@ -32,15 +32,22 @@ private const val ADVERTISEMENT_RECEIVED = "advertisementreceived"
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
-): Peripheral = peripheral(advertisement.bluetoothDevice)
+    builderAction: PeripheralBuilderAction,
+): Peripheral = peripheral(advertisement.bluetoothDevice, builderAction)
 
 internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-) = JsPeripheral(coroutineContext, bluetoothDevice)
+    builderAction: PeripheralBuilderAction = {},
+): JsPeripheral {
+    val builder = PeripheralBuilder()
+    builder.builderAction()
+    return JsPeripheral(coroutineContext, bluetoothDevice, builder.onConnect)
+}
 
 public class JsPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
+    private val onConnect: OnConnectAction,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job).apply {
@@ -109,6 +116,7 @@ public class JsPeripheral internal constructor(
 
             val services = discoverServices()
             observers.rewire(services)
+            onConnect(this@JsPeripheral)
         } catch (cancellation: CancellationException) {
             disconnectGatt()
             throw cancellation
