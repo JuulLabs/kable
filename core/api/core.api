@@ -152,15 +152,6 @@ public final class com/juul/kable/NotReadyException : java/io/IOException {
 	public fun <init> ()V
 }
 
-public final class com/juul/kable/OnConnectPeripheral {
-	public final fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun read (Lcom/juul/kable/Descriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun write (Lcom/juul/kable/Characteristic;[BLcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun write (Lcom/juul/kable/Descriptor;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun write$default (Lcom/juul/kable/OnConnectPeripheral;Lcom/juul/kable/Characteristic;[BLcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-}
-
 public final class com/juul/kable/OutOfOrderGattCallbackException : java/lang/IllegalStateException {
 }
 
@@ -184,7 +175,7 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 public final class com/juul/kable/PeripheralBuilder {
 	public final fun getPhy ()Lcom/juul/kable/Phy;
 	public final fun getTransport ()Lcom/juul/kable/Transport;
-	public final fun onConnect (Lkotlin/jvm/functions/Function2;)V
+	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
 	public final fun setPhy (Lcom/juul/kable/Phy;)V
 	public final fun setTransport (Lcom/juul/kable/Transport;)V
 }
@@ -223,6 +214,15 @@ public final class com/juul/kable/ScannerKt {
 
 public abstract interface class com/juul/kable/Service {
 	public abstract fun getServiceUuid ()Ljava/util/UUID;
+}
+
+public final class com/juul/kable/ServicesDiscoveredPeripheral {
+	public final fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun read (Lcom/juul/kable/Descriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun write (Lcom/juul/kable/Characteristic;[BLcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun write (Lcom/juul/kable/Descriptor;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun write$default (Lcom/juul/kable/ServicesDiscoveredPeripheral;Lcom/juul/kable/Characteristic;[BLcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract class com/juul/kable/State {

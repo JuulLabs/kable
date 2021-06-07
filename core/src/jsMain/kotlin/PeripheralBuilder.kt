@@ -1,20 +1,17 @@
 package com.juul.kable
 
-public actual class OnConnectPeripheral internal constructor(
+public actual class ServicesDiscoveredPeripheral internal constructor(
     private val peripheral: JsPeripheral
 ) {
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
     public actual suspend fun read(
         characteristic: Characteristic,
     ): ByteArray = peripheral.read(characteristic)
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
     public actual suspend fun read(
         descriptor: Descriptor,
     ): ByteArray = peripheral.read(descriptor)
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
     public actual suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
@@ -23,7 +20,6 @@ public actual class OnConnectPeripheral internal constructor(
         peripheral.write(characteristic, data, writeType)
     }
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
     public actual suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
@@ -34,8 +30,8 @@ public actual class OnConnectPeripheral internal constructor(
 
 public actual class PeripheralBuilder internal actual constructor() {
 
-    internal var onConnect: OnConnectAction = {}
-    public actual fun onConnect(action: OnConnectAction) {
-        onConnect = action
+    internal var onServicesDiscovered: ServicesDiscoveredAction = {}
+    public actual fun onServicesDiscovered(action: ServicesDiscoveredAction) {
+        onServicesDiscovered = action
     }
 }

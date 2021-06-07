@@ -1,7 +1,5 @@
 package com.juul.kable
 
-import kotlin.coroutines.cancellation.CancellationException
-
 /** Preferred transport for GATT connections to remote dual-mode devices. */
 public enum class Transport {
 
@@ -40,24 +38,18 @@ public enum class Phy {
     LeCoded,
 }
 
-public actual class OnConnectPeripheral internal constructor(
+public actual class ServicesDiscoveredPeripheral internal constructor(
     private val peripheral: AndroidPeripheral
 ) {
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public actual suspend fun read(
         characteristic: Characteristic,
     ): ByteArray = peripheral.read(characteristic)
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public actual suspend fun read(
         descriptor: Descriptor,
     ): ByteArray = peripheral.read(descriptor)
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public actual suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
@@ -66,8 +58,6 @@ public actual class OnConnectPeripheral internal constructor(
         peripheral.write(characteristic, data, writeType)
     }
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public actual suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
@@ -75,15 +65,16 @@ public actual class OnConnectPeripheral internal constructor(
         peripheral.write(descriptor, data)
     }
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
-    public suspend fun requestMtu(mtu: Int): Unit = peripheral.requestMtu(mtu)
+    public suspend fun requestMtu(
+        mtu: Int
+    ): Unit = peripheral.requestMtu(mtu)
 }
 
 public actual class PeripheralBuilder internal actual constructor() {
 
-    internal var onConnect: OnConnectAction = {}
-    public actual fun onConnect(action: OnConnectAction) {
-        onConnect = action
+    internal var onServicesDiscovered: ServicesDiscoveredAction = {}
+    public actual fun onServicesDiscovered(action: ServicesDiscoveredAction) {
+        onServicesDiscovered = action
     }
 
     /** Preferred transport for GATT connections to remote dual-mode devices. */

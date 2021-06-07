@@ -73,14 +73,18 @@ public actual fun CoroutineScope.peripheral(
 ): Peripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
-    return ApplePeripheral(coroutineContext, advertisement.cbPeripheral, builder.onConnect)
+    return ApplePeripheral(
+        coroutineContext,
+        advertisement.cbPeripheral,
+        builder.onServicesDiscovered
+    )
 }
 
 @OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
 public class ApplePeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val cbPeripheral: CBPeripheral,
-    private val onConnect: OnConnectAction,
+    private val onServicesDiscovered: ServicesDiscoveredAction,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
@@ -148,7 +152,7 @@ public class ApplePeripheral internal constructor(
             suspendUntilConnected()
 
             discoverServices()
-            onConnect(OnConnectPeripheral(this@ApplePeripheral))
+            onServicesDiscovered(ServicesDiscoveredPeripheral(this@ApplePeripheral))
             observers.rewire()
         } catch (t: Throwable) {
             withContext(NonCancellable) {

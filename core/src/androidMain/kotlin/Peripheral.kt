@@ -116,7 +116,7 @@ public fun CoroutineScope.peripheral(
 ): Peripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
-    return AndroidPeripheral(coroutineContext, bluetoothDevice, builder.transport, builder.phy, builder.onConnect)
+    return AndroidPeripheral(coroutineContext, bluetoothDevice, builder.transport, builder.phy, builder.onServicesDiscovered)
 }
 
 public class AndroidPeripheral internal constructor(
@@ -124,7 +124,7 @@ public class AndroidPeripheral internal constructor(
     private val bluetoothDevice: BluetoothDevice,
     private val transport: Transport,
     private val phy: Phy,
-    private val onConnect: OnConnectAction,
+    private val onServicesDiscovered: ServicesDiscoveredAction,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
@@ -179,7 +179,7 @@ public class AndroidPeripheral internal constructor(
         try {
             suspendUntilConnected()
             discoverServices()
-            onConnect(OnConnectPeripheral(this@AndroidPeripheral))
+            onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             observers.rewire()
         } catch (t: Throwable) {
             dispose()

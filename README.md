@@ -48,12 +48,12 @@ val peripheral = scope.peripheral(advertisement) {
 }
 ```
 
-All platforms support an `onConnect` action (that is performed after service discovery but before observations are wired
-up):
+All platforms support an `onServicesDiscovered` action (that is performed after service discovery but before
+observations are wired up):
 
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
-    onConnect {
+    onServicesDiscovered {
         // Perform any desired I/O operations.
     }
 }
@@ -65,7 +65,7 @@ On Android targets, additional configuration options are available (all configur
 
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
-    onConnect {
+    onServicesDiscovered {
         requestMtu(...)
     }
     transport = Transport.Auto // Transport.Le is the default (on Android).
