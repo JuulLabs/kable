@@ -64,23 +64,35 @@ internal sealed class Response {
         val characteristic: BluetoothGattCharacteristic,
         val value: ByteArray?,
         override val status: GattStatus,
-    ) : Response()
+    ) : Response() {
+        override fun toString(): String =
+            "OnCharacteristicRead(characteristic=${characteristic.uuid}, value=${value?.size ?: 0} bytes, status=$status)"
+    }
 
     data class OnCharacteristicWrite(
         val characteristic: BluetoothGattCharacteristic,
         override val status: GattStatus,
-    ) : Response()
+    ) : Response() {
+        override fun toString(): String =
+            "OnCharacteristicWrite(characteristic=${characteristic.uuid}, status=$status)"
+    }
 
     data class OnDescriptorRead(
         val descriptor: BluetoothGattDescriptor,
         val value: ByteArray?,
         override val status: GattStatus,
-    ) : Response()
+    ) : Response() {
+        override fun toString(): String =
+            "OnDescriptorRead(descriptor=${descriptor.uuid}, value=${value?.size ?: 0} bytes, status=$status)"
+    }
 
     data class OnDescriptorWrite(
         val descriptor: BluetoothGattDescriptor,
         override val status: GattStatus,
-    ) : Response()
+    ) : Response() {
+        override fun toString(): String =
+            "OnDescriptorWrite(descriptor=${descriptor.uuid}, status=$status)"
+    }
 }
 
 /**
