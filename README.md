@@ -40,6 +40,39 @@ connection handling and I/O operations.
 val peripheral = scope.peripheral(advertisement)
 ```
 
+To configure the `peripheral`, set options in the builder lambda:
+
+```kotlin
+val peripheral = scope.peripheral(advertisement) {
+    // Set peripheral configuration.
+}
+```
+
+All platforms support an `onConnect` action (that is performed after service discovery but before observations are wired
+up):
+
+```kotlin
+val peripheral = scope.peripheral(advertisement) {
+    onConnect {
+        // Perform any desired I/O operations.
+    }
+}
+```
+
+### Android
+
+On Android targets, additional configuration options are available (all configuration directives are optional):
+
+```kotlin
+val peripheral = scope.peripheral(advertisement) {
+    onConnect {
+        requestMtu(...)
+    }
+    transport = Transport.Auto // Transport.Le is the default (on Android).
+    phy = Phy.Le2M // Phy.Le1M is the default.
+}
+```
+
 ### JavaScript
 
 On JavaScript, rather than processing a stream of advertisements, a specific peripheral can be requested using the
