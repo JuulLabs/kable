@@ -183,7 +183,7 @@ private fun Int.toStatus(): State.Disconnected.Status? = when (this) {
 }
 
 private fun <E> SendChannel<E>.trySendOrLog(element: E) {
-    trySend(element).getOrElse {
-        Log.w(TAG, "Callback was unable to deliver $element")
+    trySend(element).getOrElse { cause ->
+        Log.w(TAG, "Callback was unable to deliver $element", cause)
     }
 }
