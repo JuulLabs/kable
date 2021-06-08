@@ -40,7 +40,7 @@ connection handling and I/O operations.
 val peripheral = scope.peripheral(advertisement)
 ```
 
-To configure the `peripheral`, set options in the builder lambda:
+To configure a `peripheral`, options may be set in the builder lambda:
 
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
@@ -48,8 +48,8 @@ val peripheral = scope.peripheral(advertisement) {
 }
 ```
 
-All platforms support an `onServicesDiscovered` action (that is performed after service discovery but before
-observations are wired up):
+All platforms support an `onServicesDiscovered` action (that is executed after service discovery but before observations
+are wired up):
 
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
@@ -58,6 +58,8 @@ val peripheral = scope.peripheral(advertisement) {
     }
 }
 ```
+
+_Exceptions thrown in `onServicesDiscovered` are propagated to the `Peripheral`'s [`connect`] call._
 
 ### Android
 
