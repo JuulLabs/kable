@@ -37,98 +37,78 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
-import kotlin.DeprecationLevel.WARNING
 import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
-/** Preferred transport for GATT connections to remote dual-mode devices. */
-public enum class Transport {
+@Deprecated(
+    message = "'writeObserveDescriptor' parameter is no longer used and is handled automatically by 'observe' function. 'writeObserveDescriptor' argument will be removed in a future release.",
+    replaceWith = ReplaceWith("peripheral(advertisement)"),
+    level = DeprecationLevel.ERROR,
+)
+public fun CoroutineScope.peripheral(
+    bluetoothDevice: BluetoothDevice,
+    writeObserveDescriptor: WriteNotificationDescriptor,
+): Peripheral = throw UnsupportedOperationException()
 
-    /** No preference of physical transport for GATT connections to remote dual-mode devices. */
-    Auto,
+@Deprecated(
+    message = "'writeObserveDescriptor' parameter is no longer used and is handled automatically by 'observe' function. 'writeObserveDescriptor' argument will be removed in a future release.",
+    replaceWith = ReplaceWith("peripheral(advertisement)"),
+    level = DeprecationLevel.ERROR,
+)
+public fun CoroutineScope.peripheral(
+    advertisement: Advertisement,
+    writeObserveDescriptor: WriteNotificationDescriptor,
+): Peripheral = throw UnsupportedOperationException()
 
-    /** Prefer BR/EDR transport for GATT connections to remote dual-mode devices. */
-    BrEdr,
-
-    /** Prefer LE transport for GATT connections to remote dual-mode devices. */
-    Le,
+/**
+ * @param transport preferred transport for GATT connections to remote dual-mode devices.
+ * @param phy preferred PHY for connections to remote LE device.
+ */
+@Deprecated(message = "Use builder lambda.")
+public fun CoroutineScope.peripheral(
+    advertisement: Advertisement,
+    transport: Transport,
+    phy: Phy = Phy.Le1M,
+): Peripheral = peripheral(advertisement) {
+    this.transport = transport
+    this.phy = phy
 }
 
-/** Preferred Physical Layer (PHY) for connections to remote LE devices. */
-public enum class Phy {
-
-    /** Bluetooth LE 1M PHY. */
-    Le1M,
-
-    /**
-     * Bluetooth LE 2M PHY.
-     *
-     * Per [Exploring Bluetooth 5 – Going the Distance](https://www.bluetooth.com/blog/exploring-bluetooth-5-going-the-distance/#mcetoc_1d7vdh6b25):
-     * "The new LE 2M PHY allows the physical layer to operate at 2 Ms/s and thus enables higher data rates than LE 1M
-     * and Bluetooth 4."
-     */
-    Le2M,
-
-    /**
-     * Bluetooth LE Coded PHY.
-     *
-     * Per [Exploring Bluetooth 5 – Going the Distance](https://www.bluetooth.com/blog/exploring-bluetooth-5-going-the-distance/#mcetoc_1d7vdh6b26):
-     * "The LE Coded PHY allows range to be quadrupled (approximately), compared to Bluetooth® 4 and this has been
-     * accomplished without increasing the transmission power required."
-     */
-    LeCoded,
+/**
+ * @param transport preferred transport for GATT connections to remote dual-mode devices.
+ * @param phy preferred PHY for connections to remote LE device.
+ */
+@Deprecated(message = "Use builder lambda.")
+public fun CoroutineScope.peripheral(
+    bluetoothDevice: BluetoothDevice,
+    transport: Transport,
+    phy: Phy = Phy.Le1M,
+): Peripheral = peripheral(bluetoothDevice) {
+    this.transport = transport
+    this.phy = phy
 }
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
-): Peripheral = peripheral(advertisement.bluetoothDevice)
+    builderAction: PeripheralBuilderAction,
+): Peripheral = peripheral(advertisement.bluetoothDevice, builderAction)
 
-/**
- * @param transport preferred transport for GATT connections to remote dual-mode devices.
- * @param phy preferred PHY for connections to remote LE device.
- */
-public fun CoroutineScope.peripheral(
-    advertisement: Advertisement,
-    transport: Transport = Transport.Le,
-    phy: Phy = Phy.Le1M,
-): Peripheral = peripheral(advertisement.bluetoothDevice, transport, phy)
-
-/**
- * @param transport preferred transport for GATT connections to remote dual-mode devices.
- * @param phy preferred PHY for connections to remote LE device.
- */
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-    transport: Transport = Transport.Le,
-    phy: Phy = Phy.Le1M,
-): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice, transport, phy)
-
-@Deprecated(
-    message = "'writeObserveDescriptor' parameter is no longer used and is handled automatically by 'observe' function. 'writeObserveDescriptor' argument will be removed in a future release.",
-    replaceWith = ReplaceWith("peripheral(advertisement)"),
-    level = WARNING,
-)
-public fun CoroutineScope.peripheral(
-    advertisement: Advertisement,
-    writeObserveDescriptor: WriteNotificationDescriptor,
-): Peripheral = peripheral(advertisement.bluetoothDevice, writeObserveDescriptor)
-
-@Deprecated(
-    message = "'writeObserveDescriptor' parameter is no longer used and is handled automatically by 'observe' function. 'writeObserveDescriptor' argument will be removed in a future release.",
-    replaceWith = ReplaceWith("peripheral(advertisement)"),
-    level = WARNING,
-)
-public fun CoroutineScope.peripheral(
-    bluetoothDevice: BluetoothDevice,
-    writeObserveDescriptor: WriteNotificationDescriptor,
-): Peripheral = AndroidPeripheral(coroutineContext, bluetoothDevice, Transport.Le, Phy.Le1M)
+    builderAction: PeripheralBuilderAction = {},
+): Peripheral {
+    val builder = PeripheralBuilder()
+    builder.builderAction()
+    return AndroidPeripheral(coroutineContext, bluetoothDevice, builder.transport, builder.phy, builder.onServicesDiscovered)
+}
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
     private val transport: Transport,
     private val phy: Phy,
+    private val onServicesDiscovered: ServicesDiscoveredAction,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
@@ -183,6 +163,7 @@ public class AndroidPeripheral internal constructor(
         try {
             suspendUntilConnected()
             discoverServices()
+            onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             observers.rewire()
         } catch (t: Throwable) {
             dispose()
@@ -226,6 +207,7 @@ public class AndroidPeripheral internal constructor(
             .map { it.toPlatformService() }
     }
 
+    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
     public suspend fun requestMtu(mtu: Int) {
         connection.execute<OnMtuChanged> {
             this@execute.requestMtu(mtu)

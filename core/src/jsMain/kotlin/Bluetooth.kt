@@ -8,10 +8,11 @@ internal val bluetooth: Bluetooth
     get() = checkNotNull(js("window.navigator.bluetooth") as? Bluetooth) { "Bluetooth unavailable" }
 
 public fun CoroutineScope.requestPeripheral(
-    options: Options
+    options: Options,
+    builderAction: PeripheralBuilderAction = {},
 ): Promise<Peripheral> = bluetooth
     .requestDevice(options.toDynamic())
-    .then { device -> peripheral(device) }
+    .then { device -> peripheral(device, builderAction) }
 
 private fun Options.toDynamic(): dynamic = if (filters == null) {
     object {

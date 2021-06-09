@@ -1,3 +1,4 @@
+@file:JvmName("PeripheralCommon")
 @file:Suppress("RedundantUnitReturnType")
 
 package com.juul.kable
@@ -6,9 +7,13 @@ import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.jvm.JvmName
+
+internal typealias PeripheralBuilderAction = PeripheralBuilder.() -> Unit
 
 public expect fun CoroutineScope.peripheral(
     advertisement: Advertisement,
+    builderAction: PeripheralBuilderAction = {},
 ): Peripheral
 
 public enum class WriteType {
@@ -16,7 +21,6 @@ public enum class WriteType {
     WithoutResponse,
 }
 
-@OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
 public interface Peripheral {
 
     /**
@@ -63,23 +67,17 @@ public interface Peripheral {
     /** @return discovered [services][Service], or `null` until a [connection][connect] has been established. */
     public val services: List<DiscoveredService>?
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun rssi(): Int
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun read(
         characteristic: Characteristic,
     ): ByteArray
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun write(
         characteristic: Characteristic,
@@ -87,17 +85,13 @@ public interface Peripheral {
         writeType: WriteType = WithoutResponse,
     ): Unit
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun read(
         descriptor: Descriptor,
     ): ByteArray
 
-    /**
-     * @throws NotReadyException if invoked without an established [connection][connect].
-     */
+    /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun write(
         descriptor: Descriptor,
