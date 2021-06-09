@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothProfile.STATE_CONNECTED
 import android.bluetooth.BluetoothProfile.STATE_CONNECTING
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
+import android.util.Log
 import com.juul.kable.ConnectionLostException
 import com.juul.kable.State
 import com.juul.kable.State.Disconnected.Status.Cancelled
@@ -16,6 +17,7 @@ import com.juul.kable.State.Disconnected.Status.Failed
 import com.juul.kable.State.Disconnected.Status.PeripheralDisconnected
 import com.juul.kable.State.Disconnected.Status.Timeout
 import com.juul.kable.State.Disconnected.Status.Unknown
+import com.juul.kable.TAG
 import com.juul.kable.external.GATT_CONN_CANCEL
 import com.juul.kable.external.GATT_CONN_FAIL_ESTABLISH
 import com.juul.kable.external.GATT_CONN_TERMINATE_PEER_USER
@@ -30,6 +32,8 @@ import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -39,7 +43,10 @@ private typealias DisconnectedAction = () -> Unit
 internal data class OnCharacteristicChanged(
     val characteristic: BluetoothGattCharacteristic,
     val value: ByteArray,
-)
+) {
+    override fun toString(): String =
+        "OnCharacteristicChanged(characteristic=${characteristic.uuid}, value=${value.size} bytes)"
+}
 
 internal class Callback(
     private val state: MutableStateFlow<State>
@@ -98,7 +105,7 @@ internal class Callback(
     }
 
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-        onResponse.offer(OnServicesDiscovered(GattStatus(status)))
+        onResponse.trySendOrLog(OnServicesDiscovered(GattStatus(status)))
     }
 
     override fun onCharacteristicRead(
@@ -107,7 +114,7 @@ internal class Callback(
         status: Int,
     ) {
         val value = characteristic.value
-        onResponse.offer(OnCharacteristicRead(characteristic, value, GattStatus(status)))
+        onResponse.trySendOrLog(OnCharacteristicRead(characteristic, value, GattStatus(status)))
     }
 
     override fun onCharacteristicWrite(
@@ -115,7 +122,7 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic,
         status: Int,
     ) {
-        onResponse.offer(OnCharacteristicWrite(characteristic, GattStatus(status)))
+        onResponse.trySendOrLog(OnCharacteristicWrite(characteristic, GattStatus(status)))
     }
 
     override fun onCharacteristicChanged(
@@ -123,7 +130,7 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic
     ) {
         val event = OnCharacteristicChanged(characteristic, characteristic.value)
-        _onCharacteristicChanged.offer(event)
+        _onCharacteristicChanged.trySendOrLog(event)
     }
 
     override fun onDescriptorRead(
@@ -131,7 +138,7 @@ internal class Callback(
         descriptor: BluetoothGattDescriptor,
         status: Int,
     ) {
-        onResponse.offer(OnDescriptorRead(descriptor, descriptor.value, GattStatus(status)))
+        onResponse.trySendOrLog(OnDescriptorRead(descriptor, descriptor.value, GattStatus(status)))
     }
 
     override fun onDescriptorWrite(
@@ -139,7 +146,7 @@ internal class Callback(
         descriptor: BluetoothGattDescriptor,
         status: Int,
     ) {
-        onResponse.offer(OnDescriptorWrite(descriptor, GattStatus(status)))
+        onResponse.trySendOrLog(OnDescriptorWrite(descriptor, GattStatus(status)))
     }
 
     override fun onReliableWriteCompleted(
@@ -154,7 +161,7 @@ internal class Callback(
         rssi: Int,
         status: Int,
     ) {
-        onResponse.offer(OnReadRemoteRssi(rssi, GattStatus(status)))
+        onResponse.trySendOrLog(OnReadRemoteRssi(rssi, GattStatus(status)))
     }
 
     override fun onMtuChanged(
@@ -162,7 +169,7 @@ internal class Callback(
         mtu: Int,
         status: Int,
     ) {
-        onResponse.offer(OnMtuChanged(mtu, GattStatus(status)))
+        onResponse.trySendOrLog(OnMtuChanged(mtu, GattStatus(status)))
     }
 }
 
@@ -173,4 +180,10 @@ private fun Int.toStatus(): State.Disconnected.Status? = when (this) {
     GATT_CONN_FAIL_ESTABLISH -> Failed
     GATT_CONN_CANCEL -> Cancelled
     else -> Unknown(this)
+}
+
+private fun <E> SendChannel<E>.trySendOrLog(element: E) {
+    trySend(element).getOrElse { cause ->
+        Log.w(TAG, "Callback was unable to deliver $element", cause)
+    }
 }

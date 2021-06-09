@@ -4,6 +4,7 @@ import com.juul.kable.external.Bluetooth
 import com.juul.kable.external.BluetoothAdvertisingEvent
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.w3c.dom.events.Event
@@ -31,9 +32,7 @@ public class JsScanner internal constructor(
 
         val scan = bluetooth.requestLEScan(options.toDynamic()).await()
         val listener: (Event) -> Unit = {
-            runCatching {
-                offer(Advertisement(it as BluetoothAdvertisingEvent))
-            }.onFailure {
+            trySend(Advertisement(it as BluetoothAdvertisingEvent)).getOrElse {
                 console.warn("Unable to deliver advertisement event due to failure in flow or premature closing.")
             }
         }
