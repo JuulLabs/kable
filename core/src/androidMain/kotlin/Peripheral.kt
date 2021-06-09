@@ -65,18 +65,10 @@ public fun CoroutineScope.peripheral(
  * @param transport preferred transport for GATT connections to remote dual-mode devices.
  * @param phy preferred PHY for connections to remote LE device.
  */
-@Deprecated(
-    message = "Use builder lambda",
-    replaceWith = ReplaceWith(
-        """peripheral(advertisement) {
-    transport = Transport.Le
-    phy = Phy.Le1M
-}"""
-    ),
-)
+@Deprecated(message = "Use builder lambda.")
 public fun CoroutineScope.peripheral(
     advertisement: Advertisement,
-    transport: Transport = Transport.Le,
+    transport: Transport,
     phy: Phy = Phy.Le1M,
 ): Peripheral = peripheral(advertisement) {
     this.transport = transport
@@ -87,18 +79,10 @@ public fun CoroutineScope.peripheral(
  * @param transport preferred transport for GATT connections to remote dual-mode devices.
  * @param phy preferred PHY for connections to remote LE device.
  */
-@Deprecated(
-    message = "Use builder lambda",
-    replaceWith = ReplaceWith(
-        """peripheral(bluetoothDevice) {
-    transport = Transport.Le
-    phy = Phy.Le1M
-}"""
-    ),
-)
+@Deprecated(message = "Use builder lambda.")
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-    transport: Transport = Transport.Le,
+    transport: Transport,
     phy: Phy = Phy.Le1M,
 ): Peripheral = peripheral(bluetoothDevice) {
     this.transport = transport
@@ -112,7 +96,7 @@ public actual fun CoroutineScope.peripheral(
 
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
-    builderAction: PeripheralBuilderAction,
+    builderAction: PeripheralBuilderAction = {},
 ): Peripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
