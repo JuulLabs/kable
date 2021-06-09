@@ -70,8 +70,8 @@ val peripheral = scope.peripheral(advertisement) {
     onServicesDiscovered {
         requestMtu(...)
     }
-    transport = Transport.Auto // Transport.Le is the default (on Android).
-    phy = Phy.Le2M // Phy.Le1M is the default.
+    transport = Transport.Le // default
+    phy = Phy.Le1M // default
 }
 ```
 
