@@ -16,7 +16,7 @@ kotlin {
         publishAllLibraryVariants()
     }
     iosX64()
-	iosArm32()
+    iosArm32()
     iosArm64()
     macosX64()
 
