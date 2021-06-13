@@ -16,6 +16,7 @@ kotlin {
         publishAllLibraryVariants()
     }
     iosX64()
+	iosArm32()
     iosArm64()
     macosX64()
 
@@ -52,6 +53,13 @@ kotlin {
             dependencies {
                 api(coroutines("core", version = "1.5.0-native-mt!!"))
                 implementation(stately("isolate-iosx64"))
+            }
+        }
+
+        val iosArm32Main by getting {
+            dependencies {
+                api(coroutines("core", version = "1.5.0-native-mt!!"))
+                implementation(stately("isolate-iosarm32"))
             }
         }
 
