@@ -41,12 +41,14 @@ internal class Observers(
     private val lock = Mutex()
 
     fun acquire(
-        characteristic: Characteristic
+        characteristic: Characteristic,
+        onObservationStarted: ObservationStartedAction,
     ) = characteristicChanges
         .onSubscription {
             peripheral.suspendUntilReady()
             if (observers.incrementAndGet(characteristic) == 1) {
                 peripheral.startObservation(characteristic)
+                onObservationStarted()
             }
         }
         .filter {

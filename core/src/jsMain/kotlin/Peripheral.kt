@@ -226,11 +226,13 @@ public class JsPeripheral internal constructor(
     private val observers = Observers(this)
 
     public fun observeDataView(
-        characteristic: Characteristic
-    ): Flow<DataView> = observers.acquire(characteristic)
+        characteristic: Characteristic,
+        onObservationStarted: ObservationStartedAction = {},
+    ): Flow<DataView> = observers.acquire(characteristic, onObservationStarted)
 
     public override fun observe(
-        characteristic: Characteristic
+        characteristic: Characteristic,
+        onObservationStarted: ObservationStartedAction,
     ): Flow<ByteArray> = observeDataView(characteristic)
         .map { it.buffer.toByteArray() }
 

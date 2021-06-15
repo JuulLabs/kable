@@ -41,7 +41,8 @@ internal class Observers(
     private val observers = ObservationCount()
 
     fun acquire(
-        characteristic: Characteristic
+        characteristic: Characteristic,
+        onObservationStarted: ObservationStartedAction,
     ): Flow<NSData> {
         val cbCharacteristicUuid = characteristic.characteristicUuid.toCBUUID()
         val cbServiceUuid = characteristic.serviceUuid.toCBUUID()
@@ -51,6 +52,7 @@ internal class Observers(
                 peripheral.suspendUntilReady()
                 if (observers.incrementAndGet(characteristic) == 1) {
                     peripheral.startNotifications(characteristic)
+                    onObservationStarted()
                 }
             }
             .filter {

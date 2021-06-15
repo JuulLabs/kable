@@ -34,7 +34,10 @@ internal class Observers(
     private val characteristicChanges =
         MutableSharedFlow<CharacteristicChange>(extraBufferCapacity = 64)
 
-    fun acquire(characteristic: Characteristic): Flow<DataView> {
+    fun acquire(
+        characteristic: Characteristic,
+        onObservationStarted: ObservationStartedAction,
+    ): Flow<DataView> {
         lateinit var bluetoothRemoteGATTCharacteristic: BluetoothRemoteGATTCharacteristic
         lateinit var observation: Observation
 
@@ -58,6 +61,7 @@ internal class Observers(
                             startNotifications().await()
                         }
                     }
+                    onObservationStarted()
                 }
             }
             .onCompletion {

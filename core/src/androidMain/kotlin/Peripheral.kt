@@ -268,7 +268,8 @@ public class AndroidPeripheral internal constructor(
 
     public override fun observe(
         characteristic: Characteristic,
-    ): Flow<ByteArray> = observers.acquire(characteristic)
+        onObservationStarted: ObservationStartedAction,
+    ): Flow<ByteArray> = observers.acquire(characteristic, onObservationStarted)
 
     internal suspend fun startObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)

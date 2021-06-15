@@ -10,6 +10,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
 
 internal typealias PeripheralBuilderAction = PeripheralBuilder.() -> Unit
+internal typealias ObservationStartedAction = suspend () -> Unit
 
 public expect fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -117,5 +118,6 @@ public interface Peripheral {
      */
     public fun observe(
         characteristic: Characteristic,
+        onObservationStarted: ObservationStartedAction = {},
     ): Flow<ByteArray>
 }
