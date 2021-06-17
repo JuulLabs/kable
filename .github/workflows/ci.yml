@@ -1,7 +1,6 @@
 name: CI
 on:
   pull_request:
-  push:
 
 env:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
