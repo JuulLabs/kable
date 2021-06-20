@@ -2,21 +2,26 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
+import android.os.ParcelUuid
 import android.util.Log
+import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
+
 public class ScanFailedException internal constructor(
-    public val errorCode: Int
+    public val errorCode: Int,
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
 
-public actual fun Scanner(): Scanner = AndroidScanner()
+public actual fun Scanner(services:List<Uuid>?): Scanner = AndroidScanner(services)
 
-public class AndroidScanner internal constructor() : Scanner {
+public class AndroidScanner internal constructor(private val filterServices: List<Uuid>?) : Scanner {
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         ?: error("Bluetooth not supported")
@@ -47,7 +52,13 @@ public class AndroidScanner internal constructor() : Scanner {
                 cancel("Bluetooth scan failed", ScanFailedException(errorCode))
             }
         }
-        bluetoothAdapter.bluetoothLeScanner.startScan(callback)
+
+        val scanFilter =
+            filterServices?.map { ScanFilter.Builder().setServiceUuid(ParcelUuid(it)).build() }
+                ?.toMutableList()
+        bluetoothAdapter.bluetoothLeScanner.startScan(scanFilter,
+            ScanSettings.Builder().build(),
+            callback)
         awaitClose {
             bluetoothAdapter.bluetoothLeScanner.stopScan(callback)
         }
