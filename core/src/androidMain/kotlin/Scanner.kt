@@ -14,12 +14,11 @@ import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-
 public class ScanFailedException internal constructor(
     public val errorCode: Int,
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
 
-public actual fun Scanner(services:List<Uuid>?): Scanner = AndroidScanner(services)
+public actual fun Scanner(services: List<Uuid>?): Scanner = AndroidScanner(services)
 
 public class AndroidScanner internal constructor(private val filterServices: List<Uuid>?) : Scanner {
 
@@ -56,9 +55,12 @@ public class AndroidScanner internal constructor(private val filterServices: Lis
         val scanFilter =
             filterServices?.map { ScanFilter.Builder().setServiceUuid(ParcelUuid(it)).build() }
                 ?.toMutableList()
-        bluetoothAdapter.bluetoothLeScanner.startScan(scanFilter,
+        bluetoothAdapter.bluetoothLeScanner.startScan(
+            scanFilter,
             ScanSettings.Builder().build(),
-            callback)
+            callback
+        )
+
         awaitClose {
             bluetoothAdapter.bluetoothLeScanner.stopScan(callback)
         }

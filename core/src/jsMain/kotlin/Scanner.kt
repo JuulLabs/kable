@@ -8,23 +8,17 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import org.w3c.dom.Option
 import org.w3c.dom.events.Event
 
 private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
 
-public actual fun Scanner(services: List<Uuid>?): Scanner{
-    //Below is a bit hacky
-    //TODO make more general and have more options
+public actual fun Scanner(services: List<Uuid>?): Scanner {
+    // Below is a bit hacky
+    // TODO make more general and have more options
     val serviceArray = services?.map { it.toString() }?.toTypedArray()
-    val filter = if(serviceArray !=null) Options.Filter.Services(serviceArray) as Options.Filter else null
-    val filterArray = if (filter!=null) arrayOf(filter) else null
-    return  JsScanner(
-       bluetooth = bluetooth,
-       options = Options(
-           filters = filterArray
-       )
-    )
+    val filter = if (serviceArray != null) Options.Filter.Services(serviceArray) as Options.Filter else null
+    val filterArray = if (filter != null) arrayOf(filter) else null
+    return JsScanner(bluetooth = bluetooth, options = Options(filters = filterArray))
 }
 
 /**
