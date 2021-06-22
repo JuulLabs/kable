@@ -9,6 +9,22 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.coroutines.cancellation.CancellationException
+
+internal sealed class AndroidObservationEvent {
+
+    abstract val characteristic: Characteristic
+
+    data class CharacteristicChange(
+        override val characteristic: Characteristic,
+        val data: ByteArray,
+    ) : AndroidObservationEvent()
+
+    data class Error(
+        override val characteristic: Characteristic,
+        val cause: Throwable,
+    ) : AndroidObservationEvent()
+}
 
 /**
  * Manages observations for the specified [peripheral].
@@ -35,13 +51,13 @@ internal class Observers(
     private val peripheral: AndroidPeripheral,
 ) {
 
-    val characteristicChanges = MutableSharedFlow<CharacteristicChange>()
+    val characteristicChanges = MutableSharedFlow<AndroidObservationEvent>()
     private val observations = Observations()
 
     fun acquire(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
-    ) = characteristicChanges
+    ): Flow<ByteArray> = characteristicChanges
         .onSubscription {
             peripheral.suspendUntilReady()
             if (observations.add(characteristic, onSubscription) == 1) {
@@ -53,7 +69,12 @@ internal class Observers(
             it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
                 it.characteristic.serviceUuid == characteristic.serviceUuid
         }
-        .map { it.data }
+        .map {
+            when (it) {
+                is AndroidObservationEvent.Error -> throw it.cause
+                is AndroidObservationEvent.CharacteristicChange -> it.data
+            }
+        }
         .onCompletion {
             if (observations.remove(characteristic, onSubscription) < 1) {
                 try {
@@ -68,8 +89,14 @@ internal class Observers(
 
     suspend fun rewire() {
         observations.forEach { characteristic, onSubscriptionActions ->
-            peripheral.startObservation(characteristic)
-            onSubscriptionActions.forEach { it() }
+            try {
+                peripheral.startObservation(characteristic)
+                onSubscriptionActions.forEach { it() }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (t: Throwable) {
+                characteristicChanges.emit(AndroidObservationEvent.Error(characteristic, t))
+            }
         }
     }
 }

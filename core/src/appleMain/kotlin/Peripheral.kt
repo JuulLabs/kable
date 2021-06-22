@@ -144,6 +144,12 @@ public class ApplePeripheral internal constructor(
                 .characteristicChanges
                 .takeWhile { it !== Closed }
                 .mapNotNull { it as? Data }
+                .map {
+                    AppleObservationEvent.CharacteristicChange(
+                        characteristic = it.cbCharacteristic.toLazyCharacteristic(),
+                        data = it.data
+                    )
+                }
                 .onEach(observers.characteristicChanges::emit)
                 .launchIn(scope, start = UNDISPATCHED)
 
