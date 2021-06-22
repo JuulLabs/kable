@@ -10,7 +10,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
 
 internal typealias PeripheralBuilderAction = PeripheralBuilder.() -> Unit
-internal typealias ObservationStartedAction = suspend () -> Unit
+internal typealias OnSubscriptionAction = suspend () -> Unit
 
 public expect fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -115,9 +115,23 @@ public interface Peripheral {
      * then notification failures are propagated via the returned [observe] [Flow].
      *
      * If the specified [characteristic] is invalid or cannot be found then a [NoSuchElementException] is propagated.
+     *
+     * The optional [onSubscription] parameter is functionally identical to using the
+     * [onSubscription][kotlinx.coroutines.flow.onSubscription] operator on the returned [Flow] except it has the
+     * following special properties:
+     *
+     * - It will be executed whenever [connection][connect] is established (while the returned [Flow] is active); and
+     * - It will be executed _after_ the observation is spun up (i.e. after enabling notifications or indications)
+     *
+     * The [onSubscription] action is useful in situations where an initial operation is needed when starting an
+     * observation (such as writing a configuration to the peripheral and expecting the response to come back in the
+     * form of a characteristic change). The [onSubscription] is invoked for every new subscriber; if it is desirable to
+     * only invoke the [onSubscription] once per connection (for the specified [characteristic]) then you can either
+     * use the [shareIn][kotlinx.coroutines.flow.shareIn] [Flow] operator on the returned [Flow], or call [observe]
+     * again with the same [characteristic] and without specifying an [onSubscription] action.
      */
     public fun observe(
         characteristic: Characteristic,
-        onObservationStarted: ObservationStartedAction = {},
+        onSubscription: OnSubscriptionAction = {},
     ): Flow<ByteArray>
 }

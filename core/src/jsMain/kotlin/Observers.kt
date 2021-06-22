@@ -23,7 +23,8 @@ private data class CharacteristicChange(
 
 private data class Observation(
     var count: Int = 0,
-    var listener: ObservationListener?,
+    val listener: ObservationListener,
+    val onSubscription: OnSubscriptionAction,
 )
 
 internal class Observers(
@@ -36,7 +37,7 @@ internal class Observers(
 
     fun acquire(
         characteristic: Characteristic,
-        onObservationStarted: ObservationStartedAction,
+        onSubscription: OnSubscriptionAction,
     ): Flow<DataView> {
         lateinit var bluetoothRemoteGATTCharacteristic: BluetoothRemoteGATTCharacteristic
         lateinit var observation: Observation
@@ -49,7 +50,10 @@ internal class Observers(
                     peripheral.bluetoothRemoteGATTCharacteristicFrom(characteristic)
 
                 observation = observers[characteristic] ?: run {
-                    Observation(listener = characteristic.createListener()).also {
+                    Observation(
+                        listener = characteristic.createListener(),
+                        onSubscription = onSubscription,
+                    ).also {
                         observers[characteristic] = it
                     }
                 }
@@ -61,9 +65,13 @@ internal class Observers(
                             startNotifications().await()
                         }
                     }
-                    onObservationStarted()
                 }
+                onSubscription()
             }
+            .filter {
+                it.characteristic.characteristicUuid == characteristic.characteristicUuid
+            }
+            .map { it.data }
             .onCompletion {
                 if (--observation.count < 1) {
                     bluetoothRemoteGATTCharacteristic.apply {
@@ -87,22 +95,12 @@ internal class Observers(
                     observers.remove(characteristic)
                 }
             }
-            .filter {
-                it.characteristic.characteristicUuid == characteristic.characteristicUuid
-            }
-            .map { it.data }
-    }
-
-    fun invalidate() {
-        observers.forEach { (_, observation) ->
-            observation.listener = null
-        }
     }
 
     suspend fun rewire(services: List<PlatformService>) {
         if (observers.isEmpty()) return
 
-        observers.forEach { (characteristic, _) ->
+        observers.forEach { (characteristic, observation) ->
             val platformCharacteristic =
                 services.first { it.serviceUuid == characteristic.serviceUuid }
                     .characteristics.first { it.characteristicUuid == characteristic.characteristicUuid }
@@ -115,6 +113,8 @@ internal class Observers(
                     }
                     addEventListener(CHARACTERISTIC_VALUE_CHANGED, platformCharacteristic.createListener())
                 }
+
+            observation.onSubscription()
         }
     }
 

@@ -227,19 +227,18 @@ public class JsPeripheral internal constructor(
 
     public fun observeDataView(
         characteristic: Characteristic,
-        onObservationStarted: ObservationStartedAction = {},
-    ): Flow<DataView> = observers.acquire(characteristic, onObservationStarted)
+        onSubscription: OnSubscriptionAction = {},
+    ): Flow<DataView> = observers.acquire(characteristic, onSubscription)
 
     public override fun observe(
         characteristic: Characteristic,
-        onObservationStarted: ObservationStartedAction,
+        onSubscription: OnSubscriptionAction,
     ): Flow<ByteArray> = observeDataView(characteristic)
         .map { it.buffer.toByteArray() }
 
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = { event ->
         console.dir(event)
-        observers.invalidate()
         _state.value = State.Disconnected()
         unregisterDisconnectedListener()
         connectJob = null

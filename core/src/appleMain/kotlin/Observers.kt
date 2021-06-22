@@ -38,11 +38,11 @@ internal class Observers(
     val characteristicChanges =
         MutableSharedFlow<PeripheralDelegate.DidUpdateValueForCharacteristic.Data>()
 
-    private val observers = ObservationCount()
+    private val observations = Observations()
 
     fun acquire(
         characteristic: Characteristic,
-        onObservationStarted: ObservationStartedAction,
+        onSubscription: OnSubscriptionAction,
     ): Flow<NSData> {
         val cbCharacteristicUuid = characteristic.characteristicUuid.toCBUUID()
         val cbServiceUuid = characteristic.serviceUuid.toCBUUID()
@@ -50,17 +50,18 @@ internal class Observers(
         return characteristicChanges
             .onSubscription {
                 peripheral.suspendUntilReady()
-                if (observers.incrementAndGet(characteristic) == 1) {
+                if (observations.add(characteristic, onSubscription) == 1) {
                     peripheral.startNotifications(characteristic)
-                    onObservationStarted()
                 }
+                onSubscription()
             }
             .filter {
                 it.cbCharacteristic.UUID == cbCharacteristicUuid &&
                     it.cbCharacteristic.service.UUID == cbServiceUuid
             }
+            .map { it.data }
             .onCompletion {
-                if (observers.decrementAndGet(characteristic) < 1) {
+                if (observations.remove(characteristic, onSubscription) < 1) {
                     try {
                         peripheral.stopNotifications(characteristic)
                     } catch (e: NotReadyException) {
@@ -70,30 +71,50 @@ internal class Observers(
                     }
                 }
             }
-            .map { it.data }
     }
 
     suspend fun rewire() {
-        observers.keys.forEach { characteristic ->
+        observations.entries.forEach { (characteristic, observationStartedActions) ->
             peripheral.startNotifications(characteristic)
+            observationStartedActions.forEach { it() }
         }
     }
 }
 
-private class ObservationCount : IsolateState<MutableMap<Characteristic, Int>>(producer = { mutableMapOf() }) {
+private class Observations : IsolateState<MutableMap<Characteristic, MutableList<OnSubscriptionAction>>>(
+    producer = { mutableMapOf() }
+) {
 
-    val keys: Set<Characteristic>
-        get() = access { it.keys.toSet() }
+    val entries: Map<Characteristic, List<OnSubscriptionAction>>
+        get() = access {
+            it.toMap()
+        }
 
-    fun incrementAndGet(characteristic: Characteristic): Int = access {
-        val newValue = (it[characteristic] ?: 0) + 1
-        it[characteristic] = newValue
-        newValue
+    fun add(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction
+    ): Int = access {
+        val actions = it[characteristic]
+        if (actions == null) {
+            val newActions = mutableListOf(onSubscription)
+            it[characteristic] = newActions
+            1
+        } else {
+            actions += onSubscription
+            actions.count()
+        }
     }
 
-    fun decrementAndGet(characteristic: Characteristic): Int = access {
-        val newValue = (it[characteristic] ?: 0) - 1
-        if (newValue < 1) it -= characteristic else it[characteristic] = newValue
-        newValue
+    fun remove(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction
+    ): Int = access {
+        val actions = it[characteristic]
+        if (actions == null) {
+            0
+        } else {
+            actions -= onSubscription
+            actions.count()
+        }
     }
 }

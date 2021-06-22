@@ -283,13 +283,13 @@ public class ApplePeripheral internal constructor(
 
     public override fun observe(
         characteristic: Characteristic,
-        onObservationStarted: ObservationStartedAction,
-    ): Flow<ByteArray> = observeAsNSData(characteristic, onObservationStarted).map { it.toByteArray() }
+        onSubscription: OnSubscriptionAction,
+    ): Flow<ByteArray> = observeAsNSData(characteristic, onSubscription).map { it.toByteArray() }
 
     public fun observeAsNSData(
         characteristic: Characteristic,
-        onObservationStarted: ObservationStartedAction = {},
-    ): Flow<NSData> = observers.acquire(characteristic, onObservationStarted)
+        onSubscription: OnSubscriptionAction = {},
+    ): Flow<NSData> = observers.acquire(characteristic, onSubscription)
 
     internal suspend fun startNotifications(characteristic: Characteristic) {
         val cbCharacteristic = cbCharacteristicFrom(characteristic)

@@ -36,20 +36,18 @@ internal class Observers(
 ) {
 
     val characteristicChanges = MutableSharedFlow<CharacteristicChange>()
-
-    private val observers = HashMap<Characteristic, Int>()
-    private val lock = Mutex()
+    private val observations = Observations()
 
     fun acquire(
         characteristic: Characteristic,
-        onObservationStarted: ObservationStartedAction,
+        onSubscription: OnSubscriptionAction,
     ) = characteristicChanges
         .onSubscription {
             peripheral.suspendUntilReady()
-            if (observers.incrementAndGet(characteristic) == 1) {
+            if (observations.add(characteristic, onSubscription) == 1) {
                 peripheral.startObservation(characteristic)
-                onObservationStarted()
             }
+            onSubscription()
         }
         .filter {
             it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
@@ -57,7 +55,7 @@ internal class Observers(
         }
         .map { it.data }
         .onCompletion {
-            if (observers.decrementAndGet(characteristic) < 1) {
+            if (observations.remove(characteristic, onSubscription) < 1) {
                 try {
                     peripheral.stopObservation(characteristic)
                 } catch (e: NotReadyException) {
@@ -69,26 +67,51 @@ internal class Observers(
         }
 
     suspend fun rewire() {
-        lock.withLock {
-            observers.keys.forEach { characteristic ->
-                peripheral.startObservation(characteristic)
-            }
+        observations.forEach { characteristic, onSubscriptionActions ->
+            peripheral.startObservation(characteristic)
+            onSubscriptionActions.forEach { it() }
+        }
+    }
+}
+
+private class Observations {
+
+    private val lock = Mutex()
+    private val collection = HashMap<Characteristic, MutableList<OnSubscriptionAction>>()
+
+    suspend inline fun forEach(
+        action: (Characteristic, List<OnSubscriptionAction>) -> Unit
+    ) = lock.withLock {
+        collection.forEach { (characteristic, onSubscriptionActions) ->
+            action(characteristic, onSubscriptionActions)
         }
     }
 
-    private suspend fun <K> MutableMap<K, Int>.incrementAndGet(
-        key: K
-    ) = lock.withLock {
-        val newValue = (get(key) ?: 0) + 1
-        put(key, newValue)
-        newValue
+    suspend fun add(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction
+    ): Int = lock.withLock {
+        val actions = collection[characteristic]
+        if (actions == null) {
+            val newActions = mutableListOf(onSubscription)
+            collection[characteristic] = newActions
+            1
+        } else {
+            actions += onSubscription
+            actions.count()
+        }
     }
 
-    private suspend fun <K> MutableMap<K, Int>.decrementAndGet(
-        key: K
-    ) = lock.withLock {
-        val newValue = (get(key) ?: 0) - 1
-        if (newValue < 1) remove(key) else put(key, newValue)
-        newValue
+    suspend fun remove(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction
+    ): Int = lock.withLock {
+        val actions = collection[characteristic]
+        if (actions == null) {
+            0
+        } else {
+            actions -= onSubscription
+            actions.count()
+        }
     }
 }
