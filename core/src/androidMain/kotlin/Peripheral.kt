@@ -281,10 +281,14 @@ public class AndroidPeripheral internal constructor(
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)
-        setConfigDescriptor(platformCharacteristic, enable = false)
-        connection
-            .bluetoothGatt
-            .setCharacteristicNotification(platformCharacteristic, false)
+
+        try {
+            setConfigDescriptor(platformCharacteristic, enable = false)
+        } finally {
+            connection
+                .bluetoothGatt
+                .setCharacteristicNotification(platformCharacteristic, false)
+        }
     }
 
     private suspend fun setConfigDescriptor(

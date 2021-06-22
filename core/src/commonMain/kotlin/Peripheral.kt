@@ -129,6 +129,10 @@ public interface Peripheral {
      * only invoke the [onSubscription] once per connection (for the specified [characteristic]) then you can either
      * use the [shareIn][kotlinx.coroutines.flow.shareIn] [Flow] operator on the returned [Flow], or call [observe]
      * again with the same [characteristic] and without specifying an [onSubscription] action.
+     *
+     * If multiple [observations][observe] are created for the same [characteristic] but with different [onSubscription]
+     * actions, then the [onSubscription] actions will be executed in the order in which the returned [Flow]s are
+     * subscribed to.
      */
     public fun observe(
         characteristic: Characteristic,

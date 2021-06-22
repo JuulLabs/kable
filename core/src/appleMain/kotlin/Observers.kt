@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import co.touchlab.stately.ensureNeverFrozen
 import co.touchlab.stately.isolate.IsolateState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -87,7 +88,11 @@ private class Observations : IsolateState<MutableMap<Characteristic, MutableList
 
     val entries: Map<Characteristic, List<OnSubscriptionAction>>
         get() = access {
-            it.toMap()
+            mutableMapOf<Characteristic, List<OnSubscriptionAction>>().also { copy ->
+                it.forEach { (key, value) ->
+                    copy[key] = value.toList()
+                }
+            }.toMap()
         }
 
     fun add(
@@ -97,6 +102,7 @@ private class Observations : IsolateState<MutableMap<Characteristic, MutableList
         val actions = it[characteristic]
         if (actions == null) {
             val newActions = mutableListOf(onSubscription)
+            newActions.ensureNeverFrozen()
             it[characteristic] = newActions
             1
         } else {
@@ -110,11 +116,16 @@ private class Observations : IsolateState<MutableMap<Characteristic, MutableList
         onSubscription: OnSubscriptionAction
     ): Int = access {
         val actions = it[characteristic]
-        if (actions == null) {
-            0
-        } else {
-            actions -= onSubscription
-            actions.count()
+        when {
+            actions == null -> 0
+            actions.count() == 1 -> {
+                it -= characteristic
+                0
+            }
+            else -> {
+                actions -= onSubscription
+                actions.count()
+            }
         }
     }
 }

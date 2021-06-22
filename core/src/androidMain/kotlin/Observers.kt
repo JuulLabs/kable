@@ -3,6 +3,7 @@ package com.juul.kable
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
@@ -77,24 +78,24 @@ internal class Observers(
 private class Observations {
 
     private val lock = Mutex()
-    private val collection = HashMap<Characteristic, MutableList<OnSubscriptionAction>>()
+    private val observations = mutableMapOf<Characteristic, MutableList<OnSubscriptionAction>>()
 
     suspend inline fun forEach(
         action: (Characteristic, List<OnSubscriptionAction>) -> Unit
     ) = lock.withLock {
-        collection.forEach { (characteristic, onSubscriptionActions) ->
+        observations.forEach { (characteristic, onSubscriptionActions) ->
             action(characteristic, onSubscriptionActions)
         }
     }
 
     suspend fun add(
         characteristic: Characteristic,
-        onSubscription: OnSubscriptionAction
+        onSubscription: OnSubscriptionAction,
     ): Int = lock.withLock {
-        val actions = collection[characteristic]
+        val actions = observations[characteristic]
         if (actions == null) {
             val newActions = mutableListOf(onSubscription)
-            collection[characteristic] = newActions
+            observations[characteristic] = newActions
             1
         } else {
             actions += onSubscription
@@ -104,14 +105,19 @@ private class Observations {
 
     suspend fun remove(
         characteristic: Characteristic,
-        onSubscription: OnSubscriptionAction
+        onSubscription: OnSubscriptionAction,
     ): Int = lock.withLock {
-        val actions = collection[characteristic]
-        if (actions == null) {
-            0
-        } else {
-            actions -= onSubscription
-            actions.count()
+        val actions = observations[characteristic]
+        when {
+            actions == null -> 0
+            actions.count() == 1 -> {
+                observations -= characteristic
+                0
+            }
+            else -> {
+                actions -= onSubscription
+                actions.count()
+            }
         }
     }
 }
