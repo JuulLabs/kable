@@ -107,8 +107,9 @@ public interface Peripheral {
      * active, once reconnected characteristic changes will begin emitting again.
      *
      * If characteristic has a Client Characteristic Configuration descriptor (CCCD), then based on bits in the
-     * [characteristic] properties, observe will be configured (CCCD will be written to) as **notification** and/or
-     * **indication**.
+     * [characteristic] properties, observe will be configured (CCCD will be written to) as **notification** or
+     * **indication** (if [characteristic] supports both notifications and indications, then only **notification** is
+     * used).
      *
      * Failures related to notifications are propagated via the returned [observe] [Flow], for example, if the specified
      * [characteristic] is invalid or cannot be found then a [NoSuchElementException] is propagated via the returned
