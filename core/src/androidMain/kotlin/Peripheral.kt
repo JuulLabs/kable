@@ -300,11 +300,11 @@ public class AndroidPeripheral internal constructor(
             val bluetoothGattDescriptor = configDescriptor.bluetoothGattDescriptor
 
             if (enable) {
-                if (characteristic.supportsNotify)
-                    write(bluetoothGattDescriptor, ENABLE_NOTIFICATION_VALUE)
-
-                if (characteristic.supportsIndicate)
-                    write(bluetoothGattDescriptor, ENABLE_INDICATION_VALUE)
+                when {
+                    characteristic.supportsNotify -> write(bluetoothGattDescriptor, ENABLE_NOTIFICATION_VALUE)
+                    characteristic.supportsIndicate -> write(bluetoothGattDescriptor, ENABLE_INDICATION_VALUE)
+                    else -> Log.w(TAG, "Characteristic ${characteristic.characteristicUuid} supports neither notification nor indication")
+                }
             } else {
                 if (characteristic.supportsNotify || characteristic.supportsIndicate)
                     write(bluetoothGattDescriptor, DISABLE_NOTIFICATION_VALUE)
