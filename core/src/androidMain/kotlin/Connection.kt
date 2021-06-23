@@ -2,6 +2,7 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
+import com.juul.kable.AndroidObservationEvent.CharacteristicChange
 import com.juul.kable.gatt.Callback
 import com.juul.kable.gatt.GattStatus
 import kotlinx.coroutines.CoroutineDispatcher
@@ -13,11 +14,6 @@ import kotlinx.coroutines.withContext
 public class OutOfOrderGattCallbackException internal constructor(
     message: String,
 ) : IllegalStateException(message)
-
-internal data class CharacteristicChange(
-    val characteristic: Characteristic,
-    val data: ByteArray,
-)
 
 private val GattSuccess = GattStatus(GATT_SUCCESS)
 

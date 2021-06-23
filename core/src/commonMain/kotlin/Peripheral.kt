@@ -111,11 +111,9 @@ public interface Peripheral {
      * **indication** (if [characteristic] supports both notifications and indications, then only **notification** is
      * used).
      *
-     * Failures related to notifications are propagated via [connect] if the [observe] [Flow] is collected prior to a
-     * connection being established. If a connection is already established when an [observe] [Flow] collection begins,
-     * then notification failures are propagated via the returned [observe] [Flow].
-     *
-     * If the specified [characteristic] is invalid or cannot be found then a [NoSuchElementException] is propagated.
+     * Failures related to notifications are propagated via the returned [observe] [Flow], for example, if the specified
+     * [characteristic] is invalid or cannot be found then a [NoSuchElementException] is propagated via the returned
+     * [Flow].
      *
      * The optional [onSubscription] parameter is functionally identical to using the
      * [onSubscription][kotlinx.coroutines.flow.onSubscription] operator on the returned [Flow] except it has the
