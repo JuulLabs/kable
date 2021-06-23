@@ -3,8 +3,10 @@ package com.juul.kable
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -34,25 +36,26 @@ internal class Observers(
 ) {
 
     val characteristicChanges = MutableSharedFlow<CharacteristicChange>()
+    private val observations = Observations()
 
-    private val observers = HashMap<Characteristic, Int>()
-    private val lock = Mutex()
-
-    fun acquire(characteristic: Characteristic) = flow {
-        peripheral.suspendUntilReady()
-
-        if (observers.incrementAndGet(characteristic) == 1) {
-            peripheral.startObservation(characteristic)
-        }
-
-        try {
-            characteristicChanges.collect {
-                if (it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
-                    it.characteristic.serviceUuid == characteristic.serviceUuid
-                ) emit(it.data)
+    fun acquire(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction,
+    ) = characteristicChanges
+        .onSubscription {
+            peripheral.suspendUntilReady()
+            if (observations.add(characteristic, onSubscription) == 1) {
+                peripheral.startObservation(characteristic)
             }
-        } finally {
-            if (observers.decrementAndGet(characteristic) < 1) {
+            onSubscription()
+        }
+        .filter {
+            it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
+                it.characteristic.serviceUuid == characteristic.serviceUuid
+        }
+        .map { it.data }
+        .onCompletion {
+            if (observations.remove(characteristic, onSubscription) < 1) {
                 try {
                     peripheral.stopObservation(characteristic)
                 } catch (e: NotReadyException) {
@@ -62,29 +65,58 @@ internal class Observers(
                 }
             }
         }
-    }
 
     suspend fun rewire() {
-        lock.withLock {
-            observers.keys.forEach { characteristic ->
-                peripheral.startObservation(characteristic)
-            }
+        observations.forEach { characteristic, onSubscriptionActions ->
+            peripheral.startObservation(characteristic)
+            onSubscriptionActions.forEach { it() }
+        }
+    }
+}
+
+private class Observations {
+
+    private val lock = Mutex()
+    private val observations = mutableMapOf<Characteristic, MutableList<OnSubscriptionAction>>()
+
+    suspend inline fun forEach(
+        action: (Characteristic, List<OnSubscriptionAction>) -> Unit
+    ) = lock.withLock {
+        observations.forEach { (characteristic, onSubscriptionActions) ->
+            action(characteristic, onSubscriptionActions)
         }
     }
 
-    private suspend fun <K> MutableMap<K, Int>.incrementAndGet(
-        key: K
-    ) = lock.withLock {
-        val newValue = (get(key) ?: 0) + 1
-        put(key, newValue)
-        newValue
+    suspend fun add(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction,
+    ): Int = lock.withLock {
+        val actions = observations[characteristic]
+        if (actions == null) {
+            val newActions = mutableListOf(onSubscription)
+            observations[characteristic] = newActions
+            1
+        } else {
+            actions += onSubscription
+            actions.count()
+        }
     }
 
-    private suspend fun <K> MutableMap<K, Int>.decrementAndGet(
-        key: K
-    ) = lock.withLock {
-        val newValue = (get(key) ?: 0) - 1
-        if (newValue < 1) remove(key) else put(key, newValue)
-        newValue
+    suspend fun remove(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction,
+    ): Int = lock.withLock {
+        val actions = observations[characteristic]
+        when {
+            actions == null -> 0
+            actions.count() == 1 -> {
+                observations -= characteristic
+                0
+            }
+            else -> {
+                actions -= onSubscription
+                actions.count()
+            }
+        }
     }
 }
