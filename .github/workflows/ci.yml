@@ -34,7 +34,9 @@ jobs:
       - run: ./gradlew assemble
       - run: ./gradlew check
 
-      - if: runner.os == 'macOS'
+      - run: echo "repository_owner='${{ github.repository_owner }}'"
+
+      - if: runner.os == 'macOS' && github.repository_owner == 'JuulLabs'
         run: >
           ./gradlew
           --no-parallel
