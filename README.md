@@ -208,6 +208,28 @@ Failures related to notifications/indications are propagated via [`connect`] if 
 prior to a connection being established. If a connection is already established when an [`observe`] [`Flow`] is
 beginning to be collected, then notification/indication failures are propagated via the [`observe`] [`Flow`].
 
+In scenarios where an I/O operation needs to be performed upon subscribing to the [`observe`] [`Flow`], an `onSubscribe`
+action may be specified:
+
+```kotlin
+val observation = peripheral.observe(characteristic) {
+    // Perform desired I/O operations upon collecting from the `observe` Flow, for example:
+    peripheral.write(descriptor, "ping".toByteArray())
+}
+observation.collect { data ->
+    // Process data.
+}
+```
+
+In the above example, `"ping"` will be written to the `descriptor` when:
+
+- [Connection][`connect`] is established (while the returned [`Flow`] is active); and
+- _After_ the observation is spun up (i.e. after enabling notifications or indications)
+
+The `onSubscription` action is useful in situations where an initial operation is needed when starting an observation
+(such as writing a configuration to the peripheral and expecting the response to come back in the form of a
+characteristic change).
+
 ## Structured Concurrency
 
 Peripheral objects/connections are scoped to a [Coroutine scope]. When creating a [`Peripheral`], the

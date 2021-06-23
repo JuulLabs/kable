@@ -136,9 +136,13 @@ public class AndroidPeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
-    private val _ready = MutableStateFlow(false)
+    private val ready = MutableStateFlow(false)
     internal suspend fun suspendUntilReady() {
-        combine(_ready, state) { ready, state -> ready && state == State.Connected }.first { it }
+        // fast path
+        if (ready.value && _state.value == State.Connected) return
+
+        // slow path
+        combine(ready, state) { ready, state -> ready && state == State.Connected }.first { it }
     }
 
     private fun establishConnection(): Connection =
@@ -152,7 +156,7 @@ public class AndroidPeripheral internal constructor(
 
     /** Creates a connect [Job] that completes when connection is established, or failure occurs. */
     private fun connectAsync() = scope.async(start = LAZY) {
-        _ready.value = false
+        ready.value = false
 
         val connection = establishConnection().also { _connection = it }
         connection
@@ -170,7 +174,7 @@ public class AndroidPeripheral internal constructor(
             throw t
         }
 
-        _ready.value = true
+        ready.value = true
     }
 
     private fun dispose() {
@@ -264,7 +268,8 @@ public class AndroidPeripheral internal constructor(
 
     public override fun observe(
         characteristic: Characteristic,
-    ): Flow<ByteArray> = observers.acquire(characteristic)
+        onSubscription: OnSubscriptionAction,
+    ): Flow<ByteArray> = observers.acquire(characteristic, onSubscription)
 
     internal suspend fun startObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)
@@ -276,10 +281,14 @@ public class AndroidPeripheral internal constructor(
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)
-        setConfigDescriptor(platformCharacteristic, enable = false)
-        connection
-            .bluetoothGatt
-            .setCharacteristicNotification(platformCharacteristic, false)
+
+        try {
+            setConfigDescriptor(platformCharacteristic, enable = false)
+        } finally {
+            connection
+                .bluetoothGatt
+                .setCharacteristicNotification(platformCharacteristic, false)
+        }
     }
 
     private suspend fun setConfigDescriptor(
