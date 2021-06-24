@@ -59,7 +59,7 @@ public class AndroidScanner internal constructor(private val filterServices: Lis
         bluetoothAdapter.bluetoothLeScanner.startScan(
             scanFilter,
             ScanSettings.Builder().build(),
-            callback
+            callback,
         )
 
         awaitClose {
