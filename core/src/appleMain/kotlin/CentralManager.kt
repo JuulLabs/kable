@@ -31,7 +31,7 @@ public class CentralManager internal constructor() {
         withContext(dispatcher) {
             cbCentralManager.scanForPeripheralsWithServices(
                 serviceUUIDs = services?.map { it.toCBUUID() },
-                options = options
+                options = options,
             )
         }
     }
