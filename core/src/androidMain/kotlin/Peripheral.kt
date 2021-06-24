@@ -103,6 +103,8 @@ public fun CoroutineScope.peripheral(
     return AndroidPeripheral(coroutineContext, bluetoothDevice, builder.transport, builder.phy, builder.onServicesDiscovered)
 }
 
+public enum class Priority { Low, Balanced, High }
+
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
@@ -197,6 +199,9 @@ public class AndroidPeripheral internal constructor(
             dispose()
         }
     }
+
+    public fun requestConnectionPriority(priority: Priority): Boolean =
+        connection.bluetoothGatt.requestConnectionPriority(priority.intValue)
 
     public override suspend fun rssi(): Int = connection.execute<OnReadRemoteRssi> {
         readRemoteRssi()
@@ -339,6 +344,13 @@ private val WriteType.intValue: Int
     get() = when (this) {
         WithResponse -> WRITE_TYPE_DEFAULT
         WithoutResponse -> WRITE_TYPE_NO_RESPONSE
+    }
+
+private val Priority.intValue: Int
+    get() = when (this) {
+        Priority.Low -> BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER
+        Priority.Balanced -> BluetoothGatt.CONNECTION_PRIORITY_BALANCED
+        Priority.High -> BluetoothGatt.CONNECTION_PRIORITY_HIGH
     }
 
 private fun BluetoothGatt.setCharacteristicNotification(
