@@ -52,9 +52,10 @@ public class AndroidScanner internal constructor(private val filterServices: Lis
             }
         }
 
-        val scanFilter =
-            filterServices?.map { ScanFilter.Builder().setServiceUuid(ParcelUuid(it)).build() }
-                ?.toMutableList()
+    val scanFilter =
+        filterServices
+            ?.map { ScanFilter.Builder().setServiceUuid(ParcelUuid(it)).build() }
+            ?.toList()
         bluetoothAdapter.bluetoothLeScanner.startScan(
             scanFilter,
             ScanSettings.Builder().build(),
