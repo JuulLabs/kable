@@ -15,7 +15,7 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 
 public actual fun Scanner(services: List<Uuid>?): Scanner = AppleScanner(
     central = CentralManager.Default,
-    services = services
+    services = services,
 )
 
 public class AppleScanner internal constructor(
