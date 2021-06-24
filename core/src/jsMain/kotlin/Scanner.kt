@@ -13,12 +13,14 @@ import org.w3c.dom.events.Event
 private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
 
 public actual fun Scanner(services: List<Uuid>?): Scanner {
-    // Below is a bit hacky
-    // TODO make more general and have more options
-    val serviceArray = services?.map { it.toString() }?.toTypedArray()
-    val filter = if (serviceArray != null) Options.Filter.Services(serviceArray) as Options.Filter else null
-    val filterArray = if (filter != null) arrayOf(filter) else null
-    return JsScanner(bluetooth = bluetooth, options = Options(filters = filterArray))
+    val filters = services
+        ?.map { it.toString() }
+        ?.toTypedArray()
+        ?.let { arrayOf<Options.Filter>(Options.Filter.Services(it)) }
+    return JsScanner(
+        bluetooth = bluetooth,
+        options = Options(filters = filters),
+    )
 }
 
 /**
