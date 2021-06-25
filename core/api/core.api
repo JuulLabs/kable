@@ -220,7 +220,8 @@ public abstract interface class com/juul/kable/Scanner {
 }
 
 public final class com/juul/kable/ScannerKt {
-	public static final fun Scanner ()Lcom/juul/kable/Scanner;
+	public static final fun Scanner (Ljava/util/List;)Lcom/juul/kable/Scanner;
+	public static synthetic fun Scanner$default (Ljava/util/List;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
 }
 
 public abstract interface class com/juul/kable/Service {

@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import com.benasher44.uuid.Uuid
 import com.juul.kable.external.Bluetooth
 import com.juul.kable.external.BluetoothAdvertisingEvent
 import kotlinx.coroutines.await
@@ -11,7 +12,16 @@ import org.w3c.dom.events.Event
 
 private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
 
-public actual fun Scanner(): Scanner = JsScanner(bluetooth, Options())
+public actual fun Scanner(services: List<Uuid>?): Scanner {
+    val filters = services
+        ?.map { it.toString() }
+        ?.toTypedArray()
+        ?.let { arrayOf<Options.Filter>(Options.Filter.Services(it)) }
+    return JsScanner(
+        bluetooth = bluetooth,
+        options = Options(filters = filters),
+    )
+}
 
 /**
  * Only available on Chrome 79+ with "Experimental Web Platform features" enabled via:
