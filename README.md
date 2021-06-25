@@ -162,7 +162,7 @@ For example, a peripheral might have the following structure:
 
 To access a characteristic or descriptor, use the [`charactisticOf`] or [`descriptorOf`] functions, respectively.
 
-In the above example, to access "Descriptor D2":
+In the above example, to access "Descriptor D3":
 
 ```kotlin
 val descriptor = descriptorOf(
