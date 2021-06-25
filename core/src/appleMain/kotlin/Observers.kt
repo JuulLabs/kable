@@ -10,6 +10,22 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onSubscription
 import platform.Foundation.NSData
 import platform.Foundation.NSLog
+import kotlin.coroutines.cancellation.CancellationException
+
+internal sealed class AppleObservationEvent {
+
+    abstract val characteristic: Characteristic
+
+    data class CharacteristicChange(
+        override val characteristic: Characteristic,
+        val data: NSData,
+    ) : AppleObservationEvent()
+
+    data class Error(
+        override val characteristic: Characteristic,
+        val cause: Throwable,
+    ) : AppleObservationEvent()
+}
 
 /**
  * Manages observations for the specified [peripheral].
@@ -36,18 +52,13 @@ internal class Observers(
     private val peripheral: ApplePeripheral,
 ) {
 
-    val characteristicChanges =
-        MutableSharedFlow<PeripheralDelegate.DidUpdateValueForCharacteristic.Data>()
-
+    val characteristicChanges = MutableSharedFlow<AppleObservationEvent>()
     private val observations = Observations()
 
     fun acquire(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
     ): Flow<NSData> {
-        val cbCharacteristicUuid = characteristic.characteristicUuid.toCBUUID()
-        val cbServiceUuid = characteristic.serviceUuid.toCBUUID()
-
         return characteristicChanges
             .onSubscription {
                 peripheral.suspendUntilReady()
@@ -57,10 +68,15 @@ internal class Observers(
                 onSubscription()
             }
             .filter {
-                it.cbCharacteristic.UUID == cbCharacteristicUuid &&
-                    it.cbCharacteristic.service.UUID == cbServiceUuid
+                it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
+                    it.characteristic.serviceUuid == characteristic.serviceUuid
             }
-            .map { it.data }
+            .map {
+                when (it) {
+                    is AppleObservationEvent.Error -> throw it.cause
+                    is AppleObservationEvent.CharacteristicChange -> it.data
+                }
+            }
             .onCompletion {
                 if (observations.remove(characteristic, onSubscription) < 1) {
                     try {
@@ -76,8 +92,14 @@ internal class Observers(
 
     suspend fun rewire() {
         observations.entries.forEach { (characteristic, observationStartedActions) ->
-            peripheral.startNotifications(characteristic)
-            observationStartedActions.forEach { it() }
+            try {
+                peripheral.startNotifications(characteristic)
+                observationStartedActions.forEach { it() }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (t: Throwable) {
+                characteristicChanges.emit(AppleObservationEvent.Error(characteristic, t))
+            }
         }
     }
 }

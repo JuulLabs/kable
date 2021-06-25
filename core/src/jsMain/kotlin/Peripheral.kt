@@ -291,7 +291,7 @@ public class JsPeripheral internal constructor(
 
     private fun Characteristic.createListener(): ObservationListener = { event ->
         val target = event.target as BluetoothRemoteGATTCharacteristic
-        val characteristicChange = CharacteristicChange(this, target.value!!)
+        val characteristicChange = JsObservationEvent.CharacteristicChange(this, target.value!!)
 
         if (!observers.characteristicChanges.tryEmit(characteristicChange))
             console.error("Failed to emit $characteristicChange")

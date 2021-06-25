@@ -7,17 +7,28 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onSubscription
 import org.khronos.webgl.DataView
+import kotlin.coroutines.cancellation.CancellationException
 
-internal data class CharacteristicChange(
-    val characteristic: Characteristic,
-    val data: DataView,
-)
+internal sealed class JsObservationEvent {
+
+    abstract val characteristic: Characteristic
+
+    data class CharacteristicChange(
+        override val characteristic: Characteristic,
+        val data: DataView,
+    ) : JsObservationEvent()
+
+    data class Error(
+        override val characteristic: Characteristic,
+        val cause: Throwable,
+    ) : JsObservationEvent()
+}
 
 internal class Observers(
     private val peripheral: JsPeripheral
 ) {
 
-    val characteristicChanges = MutableSharedFlow<CharacteristicChange>(extraBufferCapacity = 64)
+    val characteristicChanges = MutableSharedFlow<JsObservationEvent>(extraBufferCapacity = 64)
     private val observations = Observations()
 
     fun acquire(
@@ -32,9 +43,15 @@ internal class Observers(
             onSubscription()
         }
         .filter {
-            it.characteristic.characteristicUuid == characteristic.characteristicUuid
+            it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
+                it.characteristic.serviceUuid == characteristic.serviceUuid
         }
-        .map { it.data }
+        .map {
+            when (it) {
+                is JsObservationEvent.Error -> throw it.cause
+                is JsObservationEvent.CharacteristicChange -> it.data
+            }
+        }
         .onCompletion {
             if (observations.remove(characteristic, onSubscription) < 1) {
                 peripheral.stopObservation(characteristic)
@@ -43,8 +60,14 @@ internal class Observers(
 
     suspend fun rewire() {
         observations.entries.forEach { (characteristic, onSubscriptionActions) ->
-            peripheral.startObservation(characteristic)
-            onSubscriptionActions.forEach { it() }
+            try {
+                peripheral.startObservation(characteristic)
+                onSubscriptionActions.forEach { it() }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (t: Throwable) {
+                characteristicChanges.emit(JsObservationEvent.Error(characteristic, t))
+            }
         }
     }
 }
