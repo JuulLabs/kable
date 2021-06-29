@@ -2,10 +2,7 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_INDICATE
-import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
-import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+import android.bluetooth.BluetoothGattCharacteristic.*
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
@@ -228,7 +225,9 @@ public class AndroidPeripheral internal constructor(
         data: ByteArray,
         writeType: WriteType,
     ) {
-        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
+        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(
+            characteristic,
+            PROPERTY_WRITE or PROPERTY_WRITE_NO_RESPONSE)
         connection.execute<OnCharacteristicWrite> {
             bluetoothGattCharacteristic.value = data
             bluetoothGattCharacteristic.writeType = writeType.intValue
@@ -277,7 +276,9 @@ public class AndroidPeripheral internal constructor(
     ): Flow<ByteArray> = observers.acquire(characteristic, onSubscription)
 
     internal suspend fun startObservation(characteristic: Characteristic) {
-        val platformCharacteristic = platformServices.findCharacteristic(characteristic)
+        val platformCharacteristic = platformServices.findCharacteristic(
+            characteristic,
+            PROPERTY_NOTIFY or PROPERTY_INDICATE)
         connection
             .bluetoothGatt
             .setCharacteristicNotification(platformCharacteristic, true)
@@ -320,8 +321,8 @@ public class AndroidPeripheral internal constructor(
     }
 
     private fun bluetoothGattCharacteristicFrom(
-        characteristic: Characteristic
-    ) = platformServices.findCharacteristic(characteristic).bluetoothGattCharacteristic
+        characteristic: Characteristic, propertyMask: Int = Int.MIN_VALUE
+    ) = platformServices.findCharacteristic(characteristic, propertyMask).bluetoothGattCharacteristic
 
     private fun bluetoothGattDescriptorFrom(
         descriptor: Descriptor
