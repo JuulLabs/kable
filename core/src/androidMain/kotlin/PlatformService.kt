@@ -29,21 +29,25 @@ internal fun BluetoothGattService.toPlatformService(): PlatformService {
 
 /** @throws NoSuchElementException if service or characteristic is not found. */
 internal fun List<PlatformService>.findCharacteristic(
-    characteristic: Characteristic
+    characteristic: Characteristic, propertyMask: Int = Int.MIN_VALUE
 ): PlatformCharacteristic =
     findCharacteristic(
         serviceUuid = characteristic.serviceUuid,
-        characteristicUuid = characteristic.characteristicUuid
+        characteristicUuid = characteristic.characteristicUuid,
+        propertyMask = propertyMask
     )
 
-/** @throws NoSuchElementException if service or characteristic is not found. */
 private fun List<PlatformService>.findCharacteristic(
     serviceUuid: Uuid,
-    characteristicUuid: Uuid
+    characteristicUuid: Uuid,
+    propertyMask: Int = Int.MIN_VALUE
 ): PlatformCharacteristic =
     first(serviceUuid)
         .characteristics
-        .first(characteristicUuid)
+        .first { platformCharacteristic ->
+            platformCharacteristic.characteristicUuid == characteristicUuid
+                    && platformCharacteristic.bluetoothGattCharacteristic.properties and propertyMask != 0
+        }
 
 /** @throws NoSuchElementException if service, characteristic or descriptor is not found. */
 internal fun List<PlatformService>.findDescriptor(
@@ -63,5 +67,5 @@ private fun List<PlatformService>.findDescriptor(
 ): PlatformDescriptor =
     findCharacteristic(
         serviceUuid = serviceUuid,
-        characteristicUuid = characteristicUuid
+        characteristicUuid = characteristicUuid,
     ).descriptors.first(descriptorUuid)
