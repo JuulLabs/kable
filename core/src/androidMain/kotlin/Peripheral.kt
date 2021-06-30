@@ -321,7 +321,7 @@ public class AndroidPeripheral internal constructor(
     }
 
     private fun bluetoothGattCharacteristicFrom(
-        characteristic: Characteristic, propertyMask: Int = Int.MIN_VALUE
+        characteristic: Characteristic, propertyMask: Int = -1
     ) = platformServices.findCharacteristic(characteristic, propertyMask).bluetoothGattCharacteristic
 
     private fun bluetoothGattDescriptorFrom(
