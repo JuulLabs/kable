@@ -17,9 +17,10 @@ public final class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral 
 	public fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getServices ()Ljava/util/List;
 	public fun getState ()Lkotlinx/coroutines/flow/Flow;
-	public fun observe (Lcom/juul/kable/Characteristic;)Lkotlinx/coroutines/flow/Flow;
+	public fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun read (Lcom/juul/kable/Descriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun requestConnectionPriority (Lcom/juul/kable/Priority;)Z
 	public final fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun rssi (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun toString ()Ljava/lang/String;
@@ -160,7 +161,7 @@ public abstract interface class com/juul/kable/Peripheral {
 	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getServices ()Ljava/util/List;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/Flow;
-	public abstract fun observe (Lcom/juul/kable/Characteristic;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun read (Lcom/juul/kable/Descriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun rssi (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -169,6 +170,7 @@ public abstract interface class com/juul/kable/Peripheral {
 }
 
 public final class com/juul/kable/Peripheral$DefaultImpls {
+	public static synthetic fun observe$default (Lcom/juul/kable/Peripheral;Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun write$default (Lcom/juul/kable/Peripheral;Lcom/juul/kable/Characteristic;[BLcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -201,6 +203,14 @@ public final class com/juul/kable/Phy : java/lang/Enum {
 	public static fun values ()[Lcom/juul/kable/Phy;
 }
 
+public final class com/juul/kable/Priority : java/lang/Enum {
+	public static final field Balanced Lcom/juul/kable/Priority;
+	public static final field High Lcom/juul/kable/Priority;
+	public static final field Low Lcom/juul/kable/Priority;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Priority;
+	public static fun values ()[Lcom/juul/kable/Priority;
+}
+
 public final class com/juul/kable/ScanFailedException : java/lang/IllegalStateException {
 	public final fun getErrorCode ()I
 }
@@ -210,7 +220,8 @@ public abstract interface class com/juul/kable/Scanner {
 }
 
 public final class com/juul/kable/ScannerKt {
-	public static final fun Scanner ()Lcom/juul/kable/Scanner;
+	public static final fun Scanner (Ljava/util/List;)Lcom/juul/kable/Scanner;
+	public static synthetic fun Scanner$default (Ljava/util/List;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
 }
 
 public abstract interface class com/juul/kable/Service {

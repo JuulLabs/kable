@@ -162,7 +162,7 @@ For example, a peripheral might have the following structure:
 
 To access a characteristic or descriptor, use the [`charactisticOf`] or [`descriptorOf`] functions, respectively.
 
-In the above example, to access "Descriptor D2":
+In the above example, to access "Descriptor D3":
 
 ```kotlin
 val descriptor = descriptorOf(
@@ -189,8 +189,8 @@ Bluetooth Low Energy provides the capability of subscribing to characteristic ch
 indications, whereas a characteristic change on a connected peripheral is "pushed" to the central via a characteristic
 notification and/or indication which carries the new value of the characteristic.
 
-Characteristic change notifications/indications can be observed/subscribed to via the [`observe`] function which returns a [`Flow`]
-of the new characteristic data.
+Characteristic change notifications/indications can be observed/subscribed to via the [`observe`] function which returns
+a [`Flow`] of the new characteristic data.
 
 ```kotlin
 val observation = peripheral.observe(characteristic)
@@ -204,9 +204,31 @@ established. Once a connection is established then characteristic changes will s
 connection drops, the [`Flow`] will remain active, and upon reconnecting it will resume streaming characteristic
 changes.
 
-Failures related to notifications/indications are propagated via [`connect`] if the [`observe`] [`Flow`] is collected
-prior to a connection being established. If a connection is already established when an [`observe`] [`Flow`] is
-beginning to be collected, then notification/indication failures are propagated via the [`observe`] [`Flow`].
+Failures related to notifications/indications are propagated via the [`observe`] [`Flow`], for example, if the
+associated characteristic is invalid or cannot be found, then a `NoSuchElementException` is propagated via the
+[`observe`] [`Flow`].
+
+In scenarios where an I/O operation needs to be performed upon subscribing to the [`observe`] [`Flow`], an `onSubscribe`
+action may be specified:
+
+```kotlin
+val observation = peripheral.observe(characteristic) {
+    // Perform desired I/O operations upon collecting from the `observe` Flow, for example:
+    peripheral.write(descriptor, "ping".toByteArray())
+}
+observation.collect { data ->
+    // Process data.
+}
+```
+
+In the above example, `"ping"` will be written to the `descriptor` when:
+
+- [Connection][`connect`] is established (while the returned [`Flow`] is active); and
+- _After_ the observation is spun up (i.e. after enabling notifications or indications)
+
+The `onSubscription` action is useful in situations where an initial operation is needed when starting an observation
+(such as writing a configuration to the peripheral and expecting the response to come back in the form of a
+characteristic change).
 
 ## Structured Concurrency
 

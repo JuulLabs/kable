@@ -29,7 +29,10 @@ public class CentralManager internal constructor() {
         options: Map<Any?, *>?,
     ) {
         withContext(dispatcher) {
-            cbCentralManager.scanForPeripheralsWithServices(services, options)
+            cbCentralManager.scanForPeripheralsWithServices(
+                serviceUUIDs = services?.map { it.toCBUUID() },
+                options = options,
+            )
         }
     }
 

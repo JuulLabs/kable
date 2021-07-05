@@ -1,12 +1,31 @@
 package com.juul.kable
 
+import co.touchlab.stately.ensureNeverFrozen
 import co.touchlab.stately.isolate.IsolateState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onSubscription
 import platform.Foundation.NSData
 import platform.Foundation.NSLog
+import kotlin.coroutines.cancellation.CancellationException
+
+internal sealed class AppleObservationEvent {
+
+    abstract val characteristic: Characteristic
+
+    data class CharacteristicChange(
+        override val characteristic: Characteristic,
+        val data: NSData,
+    ) : AppleObservationEvent()
+
+    data class Error(
+        override val characteristic: Characteristic,
+        val cause: Throwable,
+    ) : AppleObservationEvent()
+}
 
 /**
  * Manages observations for the specified [peripheral].
@@ -33,61 +52,102 @@ internal class Observers(
     private val peripheral: ApplePeripheral,
 ) {
 
-    val characteristicChanges =
-        MutableSharedFlow<PeripheralDelegate.DidUpdateValueForCharacteristic.Data>()
+    val characteristicChanges = MutableSharedFlow<AppleObservationEvent>()
+    private val observations = Observations()
 
-    private val observers = ObservationCount()
-
-    fun acquire(characteristic: Characteristic): Flow<NSData> = flow {
-        peripheral.suspendUntilReady()
-
-        val cbCharacteristicUuid = characteristic.characteristicUuid.toCBUUID()
-        val cbServiceUuid = characteristic.serviceUuid.toCBUUID()
-
-        if (observers.incrementAndGet(characteristic) == 1) {
-            peripheral.startNotifications(characteristic)
-        }
-
-        try {
-            characteristicChanges.collect {
-                if (it.cbCharacteristic.UUID == cbCharacteristicUuid &&
-                    it.cbCharacteristic.service.UUID == cbServiceUuid
-                ) emit(it.data)
+    fun acquire(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction,
+    ): Flow<NSData> {
+        return characteristicChanges
+            .onSubscription {
+                peripheral.suspendUntilReady()
+                if (observations.add(characteristic, onSubscription) == 1) {
+                    peripheral.startNotifications(characteristic)
+                }
+                onSubscription()
             }
-        } finally {
-            if (observers.decrementAndGet(characteristic) < 1) {
-                try {
-                    peripheral.stopNotifications(characteristic)
-                } catch (e: NotReadyException) {
-                    // Silently ignore as it is assumed that failure is due to connection drop, in which case the system
-                    // will clear the notifications.
-                    NSLog("Stop notification failure ignored.")
+            .filter {
+                it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
+                    it.characteristic.serviceUuid == characteristic.serviceUuid
+            }
+            .map {
+                when (it) {
+                    is AppleObservationEvent.Error -> throw it.cause
+                    is AppleObservationEvent.CharacteristicChange -> it.data
                 }
             }
-        }
+            .onCompletion {
+                if (observations.remove(characteristic, onSubscription) < 1) {
+                    try {
+                        peripheral.stopNotifications(characteristic)
+                    } catch (e: NotReadyException) {
+                        // Silently ignore as it is assumed that failure is due to connection drop, in which case the
+                        // system will clear the notifications.
+                        NSLog("Stop notification failure ignored.")
+                    }
+                }
+            }
     }
 
     suspend fun rewire() {
-        observers.keys.forEach { characteristic ->
-            peripheral.startNotifications(characteristic)
+        observations.entries.forEach { (characteristic, observationStartedActions) ->
+            try {
+                peripheral.startNotifications(characteristic)
+                observationStartedActions.forEach { it() }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (t: Throwable) {
+                characteristicChanges.emit(AppleObservationEvent.Error(characteristic, t))
+            }
         }
     }
 }
 
-private class ObservationCount : IsolateState<MutableMap<Characteristic, Int>>(producer = { mutableMapOf() }) {
+private class Observations : IsolateState<MutableMap<Characteristic, MutableList<OnSubscriptionAction>>>(
+    producer = { mutableMapOf() }
+) {
 
-    val keys: Set<Characteristic>
-        get() = access { it.keys.toSet() }
+    val entries: Map<Characteristic, List<OnSubscriptionAction>>
+        get() = access {
+            mutableMapOf<Characteristic, List<OnSubscriptionAction>>().also { copy ->
+                it.forEach { (key, value) ->
+                    copy[key] = value.toList()
+                }
+            }.toMap()
+        }
 
-    fun incrementAndGet(characteristic: Characteristic): Int = access {
-        val newValue = (it[characteristic] ?: 0) + 1
-        it[characteristic] = newValue
-        newValue
+    fun add(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction
+    ): Int = access {
+        val actions = it[characteristic]
+        if (actions == null) {
+            val newActions = mutableListOf(onSubscription)
+            newActions.ensureNeverFrozen()
+            it[characteristic] = newActions
+            1
+        } else {
+            actions += onSubscription
+            actions.count()
+        }
     }
 
-    fun decrementAndGet(characteristic: Characteristic): Int = access {
-        val newValue = (it[characteristic] ?: 0) - 1
-        if (newValue < 1) it -= characteristic else it[characteristic] = newValue
-        newValue
+    fun remove(
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction
+    ): Int = access {
+        val actions = it[characteristic]
+        when {
+            actions == null -> 0
+            actions.count() == 1 -> {
+                it -= characteristic
+                0
+            }
+            else -> {
+                actions -= onSubscription
+                actions.count()
+            }
+        }
     }
 }

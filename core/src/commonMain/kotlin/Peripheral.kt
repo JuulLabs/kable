@@ -10,6 +10,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
 
 internal typealias PeripheralBuilderAction = PeripheralBuilder.() -> Unit
+internal typealias OnSubscriptionAction = suspend () -> Unit
 
 public expect fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -106,16 +107,34 @@ public interface Peripheral {
      * active, once reconnected characteristic changes will begin emitting again.
      *
      * If characteristic has a Client Characteristic Configuration descriptor (CCCD), then based on bits in the
-     * [characteristic] properties, observe will be configured (CCCD will be written to) as **notification** and/or
-     * **indication**.
+     * [characteristic] properties, observe will be configured (CCCD will be written to) as **notification** or
+     * **indication** (if [characteristic] supports both notifications and indications, then only **notification** is
+     * used).
      *
-     * Failures related to notifications are propagated via [connect] if the [observe] [Flow] is collected prior to a
-     * connection being established. If a connection is already established when an [observe] [Flow] collection begins,
-     * then notification failures are propagated via the returned [observe] [Flow].
+     * Failures related to notifications are propagated via the returned [observe] [Flow], for example, if the specified
+     * [characteristic] is invalid or cannot be found then a [NoSuchElementException] is propagated via the returned
+     * [Flow].
      *
-     * If the specified [characteristic] is invalid or cannot be found then a [NoSuchElementException] is propagated.
+     * The optional [onSubscription] parameter is functionally identical to using the
+     * [onSubscription][kotlinx.coroutines.flow.onSubscription] operator on the returned [Flow] except it has the
+     * following special properties:
+     *
+     * - It will be executed whenever [connection][connect] is established (while the returned [Flow] is active); and
+     * - It will be executed _after_ the observation is spun up (i.e. after enabling notifications or indications)
+     *
+     * The [onSubscription] action is useful in situations where an initial operation is needed when starting an
+     * observation (such as writing a configuration to the peripheral and expecting the response to come back in the
+     * form of a characteristic change). The [onSubscription] is invoked for every new subscriber; if it is desirable to
+     * only invoke the [onSubscription] once per connection (for the specified [characteristic]) then you can either
+     * use the [shareIn][kotlinx.coroutines.flow.shareIn] [Flow] operator on the returned [Flow], or call [observe]
+     * again with the same [characteristic] and without specifying an [onSubscription] action.
+     *
+     * If multiple [observations][observe] are created for the same [characteristic] but with different [onSubscription]
+     * actions, then the [onSubscription] actions will be executed in the order in which the returned [Flow]s are
+     * subscribed to.
      */
     public fun observe(
         characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction = {},
     ): Flow<ByteArray>
 }

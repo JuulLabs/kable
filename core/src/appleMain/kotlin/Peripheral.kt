@@ -114,9 +114,9 @@ public class ApplePeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
-    private val _ready = MutableStateFlow(false)
+    private val ready = MutableStateFlow(false)
     internal suspend fun suspendUntilReady() {
-        combine(_ready, state) { ready, state -> ready && state == State.Connected }.first { it }
+        combine(ready, state) { ready, state -> ready && state == State.Connected }.first { it }
     }
 
     private fun onDisconnected() {
@@ -127,7 +127,7 @@ public class ApplePeripheral internal constructor(
     }
 
     private fun connectAsync() = scope.async(start = LAZY) {
-        _ready.value = false
+        ready.value = false
 
         centralManager.delegate.onDisconnected.onEach { identifier ->
             if (identifier == cbPeripheral.identifier) onDisconnected()
@@ -144,6 +144,12 @@ public class ApplePeripheral internal constructor(
                 .characteristicChanges
                 .takeWhile { it !== Closed }
                 .mapNotNull { it as? Data }
+                .map {
+                    AppleObservationEvent.CharacteristicChange(
+                        characteristic = it.cbCharacteristic.toLazyCharacteristic(),
+                        data = it.data
+                    )
+                }
                 .onEach(observers.characteristicChanges::emit)
                 .launchIn(scope, start = UNDISPATCHED)
 
@@ -162,7 +168,7 @@ public class ApplePeripheral internal constructor(
             throw t
         }
 
-        _ready.value = true
+        ready.value = true
     }
 
     public override suspend fun connect() {
@@ -282,12 +288,14 @@ public class ApplePeripheral internal constructor(
     }
 
     public override fun observe(
-        characteristic: Characteristic
-    ): Flow<ByteArray> = observeAsNSData(characteristic).map { it.toByteArray() }
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction,
+    ): Flow<ByteArray> = observeAsNSData(characteristic, onSubscription).map { it.toByteArray() }
 
     public fun observeAsNSData(
-        characteristic: Characteristic
-    ): Flow<NSData> = observers.acquire(characteristic)
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction = {},
+    ): Flow<NSData> = observers.acquire(characteristic, onSubscription)
 
     internal suspend fun startNotifications(characteristic: Characteristic) {
         val cbCharacteristic = cbCharacteristicFrom(characteristic)

@@ -6,6 +6,7 @@ import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
+import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
 import kotlinx.coroutines.CancellationException
@@ -17,7 +18,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -29,6 +32,9 @@ import org.w3c.dom.events.Event as JsEvent
 
 private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
 private const val ADVERTISEMENT_RECEIVED = "advertisementreceived"
+private const val CHARACTERISTIC_VALUE_CHANGED = "characteristicvaluechanged"
+
+private typealias ObservationListener = (JsEvent) -> Unit
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -56,7 +62,7 @@ public class JsPeripheral internal constructor(
 
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
-    internal val ioLock = Mutex()
+    private val ioLock = Mutex()
 
     private val _state = MutableStateFlow<State?>(null)
     public override val state: Flow<State> = _state.filterNotNull()
@@ -68,7 +74,18 @@ public class JsPeripheral internal constructor(
     public override val services: List<DiscoveredService>?
         get() = _platformServices?.map { it.toDiscoveredService() }
 
+    private val observationListeners = mutableMapOf<Characteristic, ObservationListener>()
+
     private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
+
+    private val ready = MutableStateFlow(false)
+    internal suspend fun suspendUntilReady() {
+        // fast path
+        if (ready.value && _state.value == State.Connected) return
+
+        // slow path
+        combine(ready, state) { ready, state -> ready && state == State.Connected }.first { it }
+    }
 
     public override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
         check(supportsAdvertisements) { "watchAdvertisements unavailable" }
@@ -106,6 +123,7 @@ public class JsPeripheral internal constructor(
     private var connectJob: Deferred<Unit>? = null
 
     private fun connectAsync() = scope.async(start = LAZY) {
+        ready.value = false
         _state.value = State.Connecting
 
         try {
@@ -114,17 +132,19 @@ public class JsPeripheral internal constructor(
             gatt.connect().await() // todo: Catch appropriate exception to emit State.Rejected.
             _state.value = State.Connected
 
-            val services = discoverServices()
+            discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@JsPeripheral))
-            observers.rewire(services)
+            observers.rewire()
         } catch (cancellation: CancellationException) {
             disconnectGatt()
             throw cancellation
         }
+
+        ready.value = true
     }
 
     private fun dispose() {
-        observers.clear()
+        observationListeners.clear()
         disconnectGatt()
         unregisterDisconnectedListener()
         _state.value = State.Disconnected()
@@ -147,12 +167,11 @@ public class JsPeripheral internal constructor(
         bluetoothDevice.gatt?.disconnect()
     }
 
-    private suspend fun discoverServices(): List<PlatformService> {
+    private suspend fun discoverServices() {
         val services = ioLock.withLock {
             gatt.getPrimaryServices().await()
         }.map { it.toPlatformService() }
         _platformServices = services
-        return services
     }
 
     public override suspend fun write(
@@ -212,21 +231,70 @@ public class JsPeripheral internal constructor(
     private val observers = Observers(this)
 
     public fun observeDataView(
-        characteristic: Characteristic
-    ): Flow<DataView> = observers.acquire(characteristic)
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction = {},
+    ): Flow<DataView> = observers.acquire(characteristic, onSubscription)
 
     public override fun observe(
-        characteristic: Characteristic
+        characteristic: Characteristic,
+        onSubscription: OnSubscriptionAction,
     ): Flow<ByteArray> = observeDataView(characteristic)
         .map { it.buffer.toByteArray() }
 
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = { event ->
         console.dir(event)
-        observers.invalidate()
         _state.value = State.Disconnected()
         unregisterDisconnectedListener()
+        observationListeners.clear()
         connectJob = null
+    }
+
+    internal suspend fun startObservation(characteristic: Characteristic) {
+        if (characteristic in observationListeners) return
+
+        val listener = characteristic.createListener()
+        observationListeners[characteristic] = listener
+
+        bluetoothRemoteGATTCharacteristicFrom(characteristic).apply {
+            addEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
+            ioLock.withLock {
+                startNotifications().await()
+            }
+        }
+    }
+
+    internal suspend fun stopObservation(characteristic: Characteristic) {
+        val listener = observationListeners[characteristic] ?: return
+
+        bluetoothRemoteGATTCharacteristicFrom(characteristic).apply {
+            /* Throws `DOMException` if connection is closed:
+             *
+             * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
+             * Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
+             * again after reconnecting.
+             *
+             * Wrapped in `runCatching` to silently ignore failure, as notification will already be
+             * invalidated due to the connection being closed.
+             */
+            runCatching {
+                ioLock.withLock {
+                    stopNotifications().await()
+                }
+            }.onFailure {
+                console.warn("Stop notification failure ignored.")
+            }
+
+            removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
+        }
+    }
+
+    private fun Characteristic.createListener(): ObservationListener = { event ->
+        val target = event.target as BluetoothRemoteGATTCharacteristic
+        val characteristicChange = JsObservationEvent.CharacteristicChange(this, target.value!!)
+
+        if (!observers.characteristicChanges.tryEmit(characteristicChange))
+            console.error("Failed to emit $characteristicChange")
     }
 
     private fun registerDisconnectedListener() {
@@ -240,7 +308,7 @@ public class JsPeripheral internal constructor(
         bluetoothDevice.removeEventListener(GATT_SERVER_DISCONNECTED, disconnectedListener)
     }
 
-    internal fun bluetoothRemoteGATTCharacteristicFrom(
+    private fun bluetoothRemoteGATTCharacteristicFrom(
         characteristic: Characteristic
     ) = platformServices.findCharacteristic(characteristic).bluetoothRemoteGATTCharacteristic
 
