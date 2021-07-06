@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_INDICATE
@@ -10,6 +11,10 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteType.WithResponse
@@ -113,8 +118,21 @@ public class AndroidPeripheral internal constructor(
     private val onServicesDiscovered: ServicesDiscoveredAction,
 ) : Peripheral {
 
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
+            if (state == BluetoothAdapter.STATE_OFF) {
+                closeConnection()
+                _state.value = State.Disconnected()
+            }
+        }
+    }.also { applicationContext.registerReceiver(it, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)) }
+
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
-        invokeOnCompletion { dispose() }
+        invokeOnCompletion {
+            closeConnection()
+            applicationContext.unregisterReceiver(receiver)
+        }
     }
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
@@ -172,14 +190,14 @@ public class AndroidPeripheral internal constructor(
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             observers.rewire()
         } catch (t: Throwable) {
-            dispose()
+            closeConnection()
             throw t
         }
 
         ready.value = true
     }
 
-    private fun dispose() {
+    private fun closeConnection() {
         _connection?.close()
         _connection = null
     }
@@ -196,7 +214,7 @@ public class AndroidPeripheral internal constructor(
                 suspendUntilDisconnected()
             }
         } finally {
-            dispose()
+            closeConnection()
         }
     }
 
