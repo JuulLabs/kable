@@ -6,12 +6,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
+import com.juul.exercise.annotations.Exercise
+import com.juul.exercise.annotations.Extra
 import com.juul.sensortag.databinding.SensorBinding
 import com.juul.sensortag.features.sensor.ViewState.Connected
 import com.juul.sensortag.observe
 import com.juul.sensortag.onStopTracking
-import com.juullabs.exercise.annotations.Exercise
-import com.juullabs.exercise.annotations.Extra
 
 @Exercise(Extra("macAddress", String::class))
 class SensorActivity : AppCompatActivity() {

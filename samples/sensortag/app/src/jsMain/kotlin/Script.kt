@@ -2,8 +2,11 @@ package com.juul.sensortag
 
 import com.juul.kable.Options
 import com.juul.kable.Options.Filter.NamePrefix
-import com.juul.kable.State
+import com.juul.kable.State.Disconnected
 import com.juul.kable.requestPeripheral
+import com.juul.tuulbox.logging.ConsoleLogger
+import com.juul.tuulbox.logging.ConstantTagGenerator
+import com.juul.tuulbox.logging.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
@@ -30,6 +33,11 @@ private const val movementPeriodUuid = "f000aa83-0451-4000-b000-000000000000"
 private val clientCharacteristicConfigUuid = canonicalUuid("2902")
 
 class Script {
+
+    init {
+        Log.tagGenerator = ConstantTagGenerator(tag = "SensorTag")
+        Log.dispatcher.install(ConsoleLogger)
+    }
 
     private val scope = CoroutineScope(Job())
 
@@ -61,7 +69,7 @@ class Script {
     }
 
     private fun emitStatus(status: String) {
-        console.log(status)
+        Log.verbose { status }
         statusListeners.forEach { it.invoke(status) }
     }
 
@@ -100,8 +108,8 @@ class Script {
             }
         }.apply {
             invokeOnCompletion { cause ->
-                console.log("invokeOnCompletion $cause")
-                emitStatus("Disconnected: ${cause?.message}")
+                Log.info { "invokeOnCompletion $cause" }
+                emitStatus("Disconnected")
             }
         }
     }
@@ -121,10 +129,10 @@ class Script {
 
     private fun CoroutineScope.enableAutoReconnect(
         sensorTag: SensorTag
-    ) = sensorTag.state.onEach {
-        Log.info("State: $it")
-        if (it is State.Disconnected) {
-            Log.info("Waiting 5 seconds to reconnect...")
+    ) = sensorTag.state.onEach { state ->
+        Log.info { "State: ${state::class.simpleName}" }
+        if (state is Disconnected) {
+            Log.info { "Waiting 5 seconds to reconnect..." }
             delay(5_000L)
             sensorTag.establishConnection()
         }

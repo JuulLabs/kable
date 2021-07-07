@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -24,13 +23,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.juul.kable.Advertisement
 import com.juul.sensortag.R
-import com.juul.sensortag.TAG
 import com.juul.sensortag.databinding.ScanBinding
 import com.juul.sensortag.features.scan.ScanStatus.Failed
 import com.juul.sensortag.features.scan.ScanStatus.Started
 import com.juul.sensortag.features.scan.ScanStatus.Stopped
 import com.juul.sensortag.features.sensor.SensorActivityIntent
 import com.juul.sensortag.observe
+import com.juul.tuulbox.logging.Log
 
 class ScanActivity : AppCompatActivity() {
 
@@ -58,7 +57,7 @@ class ScanActivity : AppCompatActivity() {
         }
 
         observe(viewModel.scanStatus.asLiveData()) { status ->
-            Log.d(TAG, "Scan status: $status")
+            Log.debug { "Scan status: $status" }
 
             when (status) {
                 Started -> showSnackbar("Scanning")

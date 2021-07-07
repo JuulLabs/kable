@@ -1,26 +1,25 @@
-import java.net.URI
-
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:4.0.2")
+        classpath("com.android.tools.build:gradle:4.1.3")
     }
 }
 
 plugins {
-    kotlin("kapt") version "1.4.20" apply false
-    id("net.mbonnin.one.eight") version "0.1"
+    kotlin("multiplatform") version "1.5.20" apply false
+    kotlin("kapt") version "1.5.20" apply false
+    id("net.mbonnin.one.eight") version "0.2"
 }
 
 subprojects {
     repositories {
         mavenLocal()
         google()
-        jcenter()
-        maven { url = URI("https://oss.sonatype.org/content/repositories/snapshots") }
+        mavenCentral()
+        maven("https://oss.sonatype.org/content/repositories/snapshots")
     }
 }

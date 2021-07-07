@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
+        android:name=".App"
         android:label="SensorTag Example"
         android:theme="@style/Theme.AppCompat"
         >

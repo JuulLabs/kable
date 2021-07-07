@@ -20,6 +20,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(kable())
+                implementation(tuulbox("logging"))
+                implementation(tuulbox("encoding"))
             }
         }
 
@@ -61,7 +63,6 @@ android {
     sourceSets {
         val main by getting {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
-            res.srcDirs("src/androidMain/resources")
         }
     }
 }

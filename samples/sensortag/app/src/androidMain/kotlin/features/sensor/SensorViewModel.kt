@@ -4,15 +4,16 @@ import android.app.Application
 import android.bluetooth.BluetoothAdapter
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.juul.kable.ConnectionLostException
 import com.juul.kable.NotReadyException
 import com.juul.kable.Peripheral
 import com.juul.kable.State
 import com.juul.kable.peripheral
-import com.juul.sensortag.Log
 import com.juul.sensortag.SensorTag
 import com.juul.sensortag.Vector3f
 import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState
 import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState.AxisState
+import com.juul.tuulbox.logging.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -64,7 +65,7 @@ sealed class ViewState {
 
 val ViewState.label: CharSequence
     get() = when (this) {
-        is ViewState.Connecting -> "Connecting"
+        ViewState.Connecting -> "Connecting"
         is ViewState.Connected -> "Connected"
         is ViewState.Disconnecting -> "Disconnecting"
         is ViewState.Disconnected -> "Disconnected"
@@ -92,7 +93,7 @@ class SensorViewModel(
             .onEach {
                 val timeMillis =
                     backoff(base = 500L, multiplier = 2f, retry = connectionAttempt.getAndIncrement())
-                Log.info("Waiting $timeMillis ms to reconnect...")
+                Log.info { "Waiting $timeMillis ms to reconnect..." }
                 delay(timeMillis)
                 connect()
             }
@@ -102,11 +103,15 @@ class SensorViewModel(
     private fun CoroutineScope.connect() {
         connectionAttempt.incrementAndGet()
         launch {
-            Log.debug("connect")
-            peripheral.connect()
-            sensorTag.enableGyro()
-            sensorTag.writeGyroPeriodProgress(periodProgress.get())
-            connectionAttempt.set(0)
+            Log.debug { "connect" }
+            try {
+                peripheral.connect()
+                sensorTag.enableGyro()
+                sensorTag.writeGyroPeriodProgress(periodProgress.get())
+                connectionAttempt.set(0)
+            } catch (e: ConnectionLostException) {
+                Log.warn(e) { "Connection attempt failed" }
+            }
         }
     }
 
@@ -153,7 +158,7 @@ private fun bluetoothDeviceFrom(macAddress: String) =
 private fun Peripheral.remoteRssi() = flow {
     while (true) {
         val rssi = rssi()
-        Log.debug("RSSI: $rssi")
+        Log.debug { "RSSI: $rssi" }
         emit(rssi)
         delay(1_000L)
     }
@@ -166,7 +171,7 @@ private fun Peripheral.remoteRssi() = flow {
 
 private suspend fun SensorTag.writeGyroPeriodProgress(progress: Int) {
     val period = progress / 100f * (2550 - 100) + 100
-    Log.verbose("period = $period")
+    Log.verbose { "period = $period" }
     writeGyroPeriod(period.toLong())
 }
 

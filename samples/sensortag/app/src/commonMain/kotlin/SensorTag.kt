@@ -2,7 +2,10 @@ package com.juul.sensortag
 
 import com.juul.kable.Peripheral
 import com.juul.kable.characteristicOf
+import com.juul.tuulbox.encoding.toHexString
+import com.juul.tuulbox.logging.Log
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 
 private const val MOVEMENT_SENSOR_SERVICE_UUID = "F000AA80-0451-4000-B000-000000000000"
@@ -44,22 +47,22 @@ class SensorTag(
         val value = periodMillis / 10
         val data = byteArrayOf(value.toByte())
 
-        Log.info("movement → writePeriod → data = $value (${data.hex()})")
+        Log.info { "movement → writePeriod → data = $value (${data.toHexString()})" }
         peripheral.write(movementPeriodCharacteristic, data)
-        Log.info("writeGyroPeriod complete")
+        Log.info { "writeGyroPeriod complete" }
     }
 
     /** Period (in milliseconds) within the range 100-2550 ms. */
     suspend fun readGyroPeriod(): Int {
         val value = peripheral.read(movementPeriodCharacteristic)
-        Log.info("movement → readPeriod → value = ${value.hex()}")
+        Log.info { "movement → readPeriod → value = ${value.toHexString()}" }
         return value[0] * 10
     }
 
     suspend fun enableGyro() {
-        Log.info("Enabling gyro")
+        Log.info { "Enabling gyro" }
         peripheral.write(movementConfigCharacteristic, byteArrayOf(0x7F, 0x0))
-        Log.info("Gyro enabled")
+        Log.info { "Gyro enabled" }
     }
 
     suspend fun disableGyro() {
@@ -75,15 +78,4 @@ private inline infix fun Byte.and(other: Int): Int = toInt() and other
 private inline fun ByteArray.readShort(offset: Int): Short {
     val value = get(offset) and 0xff or (get(offset + 1) and 0xff shl 8)
     return value.toShort()
-}
-
-// Adapted from: https://github.com/Kotlin/kotlinx.serialization/blob/4bd949b0634fd498f847b1e059826cc7e67adf07/formats/protobuf/commonTest/src/kotlinx/serialization/HexConverter.kt
-private const val hexCode = "0123456789ABCDEF"
-private fun ByteArray.hex(lowerCase: Boolean = false): String {
-    val r = StringBuilder(size * 2)
-    for (b in this) {
-        r.append(hexCode[b.toInt() shr 4 and 0xF])
-        r.append(hexCode[b.toInt() and 0xF])
-    }
-    return if (lowerCase) r.toString().toLowerCase() else r.toString()
 }

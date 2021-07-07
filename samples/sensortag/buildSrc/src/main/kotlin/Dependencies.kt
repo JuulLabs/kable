@@ -1,21 +1,26 @@
 fun stately(
     module: String,
-    version: String = "1.1.1-a1"
+    version: String = "1.1.7-a1"
 ): String = "co.touchlab:stately-$module:$version"
 
 fun kable(
     artifact: String = "core",
-    version: String = "0.1.0"
+    version: String = "0.6.0"
 ): String = "com.juul.kable:$artifact:$version"
 
 fun exercise(
     artifact: String,
-    version: String = "0.6.1"
+    version: String = "0.7.0"
 ): String = "com.juul.exercise:$artifact:$version"
 
 fun material(
     version: String = "1.1.0"
 ) = "com.google.android.material:material:$version"
+
+fun tuulbox(
+    artifactId: String,
+    version: String = "4.1.0"
+) = "com.juul.tuulbox:$artifactId:$version"
 
 object androidx {
 
