@@ -288,7 +288,7 @@ kotlin {
 
         val nativeMain by creating {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-${coroutinesVersion}-native-mt")) {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}-native-mt")) {
                     version {
                         strictly("${coroutinesVersion}-native-mt")
                     }
