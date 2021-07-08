@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import android.bluetooth.BluetoothAdapter.STATE_OFF
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_INDICATE
@@ -113,8 +114,18 @@ public class AndroidPeripheral internal constructor(
     private val onServicesDiscovered: ServicesDiscoveredAction,
 ) : Peripheral {
 
+    private val receiver = registerBluetoothStateBroadcastReceiver { state ->
+        if (state == STATE_OFF) {
+            closeConnection()
+            _state.value = State.Disconnected()
+        }
+    }
+
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
-        invokeOnCompletion { dispose() }
+        invokeOnCompletion {
+            applicationContext.unregisterReceiver(receiver)
+            closeConnection()
+        }
     }
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
@@ -172,14 +183,14 @@ public class AndroidPeripheral internal constructor(
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             observers.rewire()
         } catch (t: Throwable) {
-            dispose()
+            closeConnection()
             throw t
         }
 
         ready.value = true
     }
 
-    private fun dispose() {
+    private fun closeConnection() {
         _connection?.close()
         _connection = null
     }
@@ -196,7 +207,7 @@ public class AndroidPeripheral internal constructor(
                 suspendUntilDisconnected()
             }
         } finally {
-            dispose()
+            closeConnection()
         }
     }
 
