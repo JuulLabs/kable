@@ -1,3 +1,5 @@
+@file:JvmName("AndroidExceptionsKt") // Removes conflict with commonMain Exceptions.kt
+
 package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
