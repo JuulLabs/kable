@@ -18,4 +18,4 @@ public actual typealias IOException = java.io.IOException
 public class GattRequestRejectedException internal constructor(
     message: String? = null,
     cause: Throwable? = null,
-) : BluetoothLeException(message, cause)
+) : BluetoothException(message, cause)

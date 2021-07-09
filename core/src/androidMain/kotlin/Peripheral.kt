@@ -1,6 +1,10 @@
 package com.juul.kable
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothAdapter.STATE_OFF
+import android.bluetooth.BluetoothAdapter.STATE_ON
+import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
+import android.bluetooth.BluetoothAdapter.STATE_TURNING_ON
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_INDICATE
@@ -197,6 +201,21 @@ public class AndroidPeripheral internal constructor(
 
     public override suspend fun connect() {
         check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
+
+        // Explicitly check the adapter state before connecting in order to respect system settings.
+        // Android doesn't actually turn bluetooth off when the setting is disabled, so without this
+        // check we're able to reconnect the device illegally.
+        val adapterState = BluetoothAdapter.getDefaultAdapter().state
+        if (adapterState != STATE_ON) {
+            val stateName = when (adapterState) {
+                STATE_OFF -> "Off"
+                STATE_TURNING_OFF -> "TurningOff"
+                STATE_TURNING_ON -> "TurningOn"
+                else -> "Unknown"
+            }
+            throw BluetoothDisabledException("Cannot connect to device while bluetooth adapter state is $stateName.")
+        }
+
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
