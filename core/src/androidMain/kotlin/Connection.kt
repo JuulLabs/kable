@@ -72,6 +72,31 @@ internal class Connection(
             )
     }
 
+    /**
+     * Mimics [execute] in order to uphold the same sequential execution behavior, while having a dedicated channel for
+     * receiving MTU change events (so that peripheral initiated MTU changes don't result in
+     * [OutOfOrderGattCallbackException]).
+     *
+     * See https://github.com/JuulLabs/kable/issues/86 for more details.
+     *
+     * @throws GattRequestRejectedException if underlying `BluetoothGatt` method call returns `false`.
+     * @throws GattStatusException if response has a non-`GATT_SUCCESS` status.
+     */
+    suspend fun requestMtu(mtu: Int): Int = lock.withLock {
+        withContext(dispatcher) {
+            if (!bluetoothGatt.requestMtu(mtu)) throw GattRequestRejectedException()
+        }
+
+        val response = try {
+            callback.onMtuChanged.receive()
+        } catch (e: ConnectionLostException) {
+            throw ConnectionLostException(cause = e)
+        }
+
+        if (response.status != GattSuccess) throw GattStatusException(response.toString())
+        response.mtu
+    }
+
     fun close() {
         bluetoothGatt.close()
         invokeOnClose.invoke()

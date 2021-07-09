@@ -67,7 +67,7 @@ public actual class ServicesDiscoveredPeripheral internal constructor(
 
     public suspend fun requestMtu(
         mtu: Int
-    ): Unit = peripheral.requestMtu(mtu)
+    ): Int = peripheral.requestMtu(mtu)
 }
 
 public actual class PeripheralBuilder internal actual constructor() {
