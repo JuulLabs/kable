@@ -282,8 +282,19 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
                 implementation("com.juul.kable:core:${kableVersion}")
+            }
+        }
+
+        val androidMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
+            }
+        }
+
+        val jsMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
             }
         }
 
