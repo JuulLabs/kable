@@ -282,8 +282,31 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("com.juul.kable:core:$version")
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
+                implementation("com.juul.kable:core:${kableVersion}")
             }
+        }
+
+        val nativeMain by creating {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}-native-mt") {
+                    version {
+                        strictly("${coroutinesVersion}-native-mt")
+                    }
+                }
+            }
+        }
+
+        val macosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+
+        val iosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        
+        val iosArm64Main by getting {
+            dependsOn(nativeMain)
         }
     }
 }
@@ -293,9 +316,9 @@ android {
 }
 ```
 
-_Note that Apple-based targets (e.g. `macosX64`) require [Coroutines with multithread support for Kotlin/Native] (more
-specifically: Coroutines library artifacts that are suffixed with `-native-mt`). Kable is configured to use `-native-mt`
-as a transitive dependency for Apple-based targets._
+_Note that for compatibility with Kable, Native targets (e.g. `macosX64`) require
+[Coroutines with multithread support for Kotlin/Native] (more specifically: Coroutines library artifacts that are
+suffixed with `-native-mt`)._
 
 #### Platform-specific
 
