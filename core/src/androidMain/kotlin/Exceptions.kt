@@ -1,3 +1,5 @@
+@file:JvmName("AndroidExceptionsKt") // Removes conflict with commonMain Exceptions.kt
+
 package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
@@ -18,4 +20,4 @@ public actual typealias IOException = java.io.IOException
 public class GattRequestRejectedException internal constructor(
     message: String? = null,
     cause: Throwable? = null,
-) : BluetoothLeException(message, cause)
+) : BluetoothException(message, cause)
