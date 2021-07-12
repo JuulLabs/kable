@@ -24,7 +24,6 @@ import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
 import com.juul.kable.gatt.Response.OnDescriptorWrite
-import com.juul.kable.gatt.Response.OnMtuChanged
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.atomicfu.atomic
@@ -38,6 +37,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -136,6 +136,15 @@ public class AndroidPeripheral internal constructor(
     private val _state = MutableStateFlow<State>(State.Disconnected())
     public override val state: Flow<State> = _state.asStateFlow()
 
+    private val _mtu = MutableStateFlow<Int?>(null)
+
+    /**
+     * [StateFlow] of the most recently negotiated MTU. The MTU will change upon a successful request to change the MTU
+     * (via [requestMtu]), or if the peripheral initiates an MTU change. [StateFlow]'s `value` will be `null` until MTU
+     * is negotiated.
+     */
+    public val mtu: StateFlow<Int?> = _mtu.asStateFlow()
+
     private val observers = Observers(this)
 
     @Volatile
@@ -168,6 +177,7 @@ public class AndroidPeripheral internal constructor(
             transport,
             phy,
             _state,
+            _mtu,
             invokeOnClose = { connectJob.value = null }
         ) ?: throw ConnectionRejectedException()
 
@@ -232,12 +242,16 @@ public class AndroidPeripheral internal constructor(
             .map { it.toPlatformService() }
     }
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
-    public suspend fun requestMtu(mtu: Int) {
-        connection.execute<OnMtuChanged> {
-            this@execute.requestMtu(mtu)
-        }
-    }
+    /**
+     * Requests that the current connection's MTU be changed. Suspends until the MTU changes, or failure occurs. The
+     * negotiated MTU value is returned, which may not be [mtu] value requested if the remote peripheral negotiated an
+     * alternate MTU.
+     *
+     * @throws NotReadyException if invoked without an established [connection][Peripheral.connect].
+     * @throws GattRequestRejectedException if Android was unable to fulfill the MTU change request.
+     * @throws GattStatusException if MTU change request failed.
+     */
+    public suspend fun requestMtu(mtu: Int): Int = connection.requestMtu(mtu)
 
     public override suspend fun write(
         characteristic: Characteristic,
