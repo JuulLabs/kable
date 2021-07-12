@@ -27,12 +27,13 @@ internal fun BluetoothDevice.connect(
     phy: Phy,
     state: MutableStateFlow<State>,
     mtu: MutableStateFlow<Int?>,
+    logging: Logging,
     invokeOnClose: () -> Unit,
 ): Connection? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        connectApi26(context, transport, phy, state, mtu, invokeOnClose)
+        connectApi26(context, transport, phy, state, mtu, logging, invokeOnClose)
     } else {
-        connectApi21(context, transport, state, mtu, invokeOnClose)
+        connectApi21(context, transport, state, mtu, logging, invokeOnClose)
     }
 
 /**
@@ -44,9 +45,10 @@ private fun BluetoothDevice.connectApi21(
     transport: Transport,
     state: MutableStateFlow<State>,
     mtu: MutableStateFlow<Int?>,
+    logging: Logging,
     invokeOnClose: () -> Unit,
 ): Connection? {
-    val callback = Callback(state, mtu)
+    val callback = Callback(state, mtu, logging, address)
     val bluetoothGatt = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         connectGatt(context, false, callback, transport.intValue)
     } else {
@@ -76,13 +78,14 @@ private fun BluetoothDevice.connectApi26(
     phy: Phy,
     state: MutableStateFlow<State>,
     mtu: MutableStateFlow<Int?>,
+    logging: Logging,
     invokeOnClose: () -> Unit,
 ): Connection? {
     val thread = HandlerThread(threadName).apply { start() }
     try {
         val handler = Handler(thread.looper)
         val dispatcher = handler.asCoroutineDispatcher()
-        val callback = Callback(state, mtu)
+        val callback = Callback(state, mtu, logging, address)
 
         val bluetoothGatt =
             connectGatt(context, false, callback, transport.intValue, phy.intValue, handler)

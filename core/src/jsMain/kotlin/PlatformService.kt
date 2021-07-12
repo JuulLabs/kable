@@ -15,13 +15,12 @@ internal fun PlatformService.toDiscoveredService() = DiscoveredService(
     characteristics = characteristics.map { it.toDiscoveredCharacteristic() },
 )
 
-internal suspend fun BluetoothRemoteGATTService.toPlatformService(): PlatformService {
+internal suspend fun BluetoothRemoteGATTService.toPlatformService(logger: Logger): PlatformService {
     val serviceUuid = uuid.toUuid()
     val characteristics = getCharacteristics()
         .await()
         .map { characteristic ->
-            console.dir(characteristic)
-            characteristic.toPlatformCharacteristic(serviceUuid)
+            characteristic.toPlatformCharacteristic(serviceUuid, logger)
         }
 
     return PlatformService(

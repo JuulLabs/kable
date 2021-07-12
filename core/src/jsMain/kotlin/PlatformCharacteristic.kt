@@ -19,13 +19,18 @@ internal fun PlatformCharacteristic.toDiscoveredCharacteristic() = DiscoveredCha
 
 internal suspend fun BluetoothRemoteGATTCharacteristic.toPlatformCharacteristic(
     serviceUuid: Uuid,
+    logger: Logger,
 ): PlatformCharacteristic {
     val characteristicUuid = uuid.toUuid()
     val descriptors = runCatching { getDescriptors().await() }
-        .onFailure { console.warn(it) }
+        .onFailure { cause ->
+            logger.error(cause) {
+                message = "Unable to retrieve descriptor."
+                detail(this@toPlatformCharacteristic)
+            }
+        }
         .getOrDefault(emptyArray())
     val platformDescriptors = descriptors.map { descriptor ->
-        console.dir(descriptor)
         descriptor.toPlatformDescriptor(serviceUuid, characteristicUuid)
     }
 

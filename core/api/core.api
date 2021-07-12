@@ -148,6 +148,38 @@ public final class com/juul/kable/LazyDescriptor : com/juul/kable/Descriptor {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/juul/kable/Logging {
+	public fun <init> ()V
+	public final fun data (Lkotlin/jvm/functions/Function1;)V
+	public final fun getFormat ()Lcom/juul/kable/Logging$Format;
+	public final fun getLevel ()Lcom/juul/kable/Logging$Level;
+	public final fun setFormat (Lcom/juul/kable/Logging$Format;)V
+	public final fun setLevel (Lcom/juul/kable/Logging$Level;)V
+}
+
+public final class com/juul/kable/Logging$Data {
+	public fun <init> ()V
+	public final fun getLowerCase ()Z
+	public final fun getSeparator ()Ljava/lang/String;
+	public final fun setLowerCase (Z)V
+	public final fun setSeparator (Ljava/lang/String;)V
+}
+
+public final class com/juul/kable/Logging$Format : java/lang/Enum {
+	public static final field Compact Lcom/juul/kable/Logging$Format;
+	public static final field Multiline Lcom/juul/kable/Logging$Format;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Logging$Format;
+	public static fun values ()[Lcom/juul/kable/Logging$Format;
+}
+
+public final class com/juul/kable/Logging$Level : java/lang/Enum {
+	public static final field Data Lcom/juul/kable/Logging$Level;
+	public static final field Events Lcom/juul/kable/Logging$Level;
+	public static final field Warnings Lcom/juul/kable/Logging$Level;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Logging$Level;
+	public static fun values ()[Lcom/juul/kable/Logging$Level;
+}
+
 public final class com/juul/kable/ManufacturerData {
 	public fun <init> (I[B)V
 	public final fun getCode ()I
@@ -182,6 +214,7 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 public final class com/juul/kable/PeripheralBuilder {
 	public final fun getPhy ()Lcom/juul/kable/Phy;
 	public final fun getTransport ()Lcom/juul/kable/Transport;
+	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
 	public final fun setPhy (Lcom/juul/kable/Phy;)V
 	public final fun setTransport (Lcom/juul/kable/Transport;)V
@@ -273,6 +306,10 @@ public final class com/juul/kable/State$Disconnected$Status$Cancelled : com/juul
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$Cancelled;
 }
 
+public final class com/juul/kable/State$Disconnected$Status$CentralDisconnected : com/juul/kable/State$Disconnected$Status {
+	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$CentralDisconnected;
+}
+
 public final class com/juul/kable/State$Disconnected$Status$ConnectionLimitReached : com/juul/kable/State$Disconnected$Status {
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$ConnectionLimitReached;
 }
@@ -283,6 +320,14 @@ public final class com/juul/kable/State$Disconnected$Status$EncryptionTimedOut :
 
 public final class com/juul/kable/State$Disconnected$Status$Failed : com/juul/kable/State$Disconnected$Status {
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$Failed;
+}
+
+public final class com/juul/kable/State$Disconnected$Status$L2CapFailure : com/juul/kable/State$Disconnected$Status {
+	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$L2CapFailure;
+}
+
+public final class com/juul/kable/State$Disconnected$Status$LinkManagerProtocolTimeout : com/juul/kable/State$Disconnected$Status {
+	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$LinkManagerProtocolTimeout;
 }
 
 public final class com/juul/kable/State$Disconnected$Status$PeripheralDisconnected : com/juul/kable/State$Disconnected$Status {

@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onSubscription
 import platform.Foundation.NSData
-import platform.Foundation.NSLog
 import kotlin.coroutines.cancellation.CancellationException
 
 internal sealed class AppleObservationEvent {
@@ -50,6 +49,7 @@ internal sealed class AppleObservationEvent {
  */
 internal class Observers(
     private val peripheral: ApplePeripheral,
+    private val logger: Logger,
 ) {
 
     val characteristicChanges = MutableSharedFlow<AppleObservationEvent>()
@@ -84,7 +84,10 @@ internal class Observers(
                     } catch (e: NotReadyException) {
                         // Silently ignore as it is assumed that failure is due to connection drop, in which case the
                         // system will clear the notifications.
-                        NSLog("Stop notification failure ignored.")
+                        logger.warn(e) {
+                            message = "Stop notification failure ignored."
+                            detail(characteristic)
+                        }
                     }
                 }
             }

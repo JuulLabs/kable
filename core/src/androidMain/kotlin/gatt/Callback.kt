@@ -11,15 +11,24 @@ import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
 import android.util.Log
 import com.juul.kable.ConnectionLostException
+import com.juul.kable.Logger
+import com.juul.kable.Logging
 import com.juul.kable.State
 import com.juul.kable.State.Disconnected.Status.Cancelled
+import com.juul.kable.State.Disconnected.Status.CentralDisconnected
 import com.juul.kable.State.Disconnected.Status.Failed
+import com.juul.kable.State.Disconnected.Status.L2CapFailure
+import com.juul.kable.State.Disconnected.Status.LinkManagerProtocolTimeout
 import com.juul.kable.State.Disconnected.Status.PeripheralDisconnected
 import com.juul.kable.State.Disconnected.Status.Timeout
 import com.juul.kable.State.Disconnected.Status.Unknown
 import com.juul.kable.TAG
+import com.juul.kable.detail
 import com.juul.kable.external.GATT_CONN_CANCEL
 import com.juul.kable.external.GATT_CONN_FAIL_ESTABLISH
+import com.juul.kable.external.GATT_CONN_L2C_FAILURE
+import com.juul.kable.external.GATT_CONN_LMP_TIMEOUT
+import com.juul.kable.external.GATT_CONN_TERMINATE_LOCAL_HOST
 import com.juul.kable.external.GATT_CONN_TERMINATE_PEER_USER
 import com.juul.kable.external.GATT_CONN_TIMEOUT
 import com.juul.kable.gatt.Response.OnCharacteristicRead
@@ -42,15 +51,16 @@ private typealias DisconnectedAction = () -> Unit
 internal data class OnCharacteristicChanged(
     val characteristic: BluetoothGattCharacteristic,
     val value: ByteArray,
-) {
-    override fun toString(): String =
-        "OnCharacteristicChanged(characteristic=${characteristic.uuid}, value=${value.size} bytes)"
-}
+)
 
 internal class Callback(
     private val state: MutableStateFlow<State>,
     private val mtu: MutableStateFlow<Int?>,
+    logging: Logging,
+    macAddress: String,
 ) : BluetoothGattCallback() {
+
+    private val logger = Logger(logging, tag = "$TAG/Callback", prefix = "$macAddress ")
 
     private var disconnectedAction: DisconnectedAction? = null
     fun invokeOnDisconnected(action: DisconnectedAction) {
@@ -70,6 +80,12 @@ internal class Callback(
         rxPhy: Int,
         status: Int
     ) {
+        logger.debug {
+            message = "onPhyUpdate"
+            detail("txPhy", txPhy)
+            detail("rxPhy", rxPhy)
+            detail("status", status)
+        }
         // todo
     }
 
@@ -79,6 +95,12 @@ internal class Callback(
         rxPhy: Int,
         status: Int
     ) {
+        logger.debug {
+            message = "onPhyRead"
+            detail("txPhy", txPhy)
+            detail("rxPhy", rxPhy)
+            detail("status", status)
+        }
         // todo
     }
 
@@ -87,6 +109,12 @@ internal class Callback(
         status: Int,
         newState: Int
     ) {
+        logger.debug {
+            message = "onConnectionStateChange"
+            detail("status", status.disconnectedConnectionStatusString)
+            detail("newState", newState.connectionStateString)
+        }
+
         if (newState == STATE_DISCONNECTED) {
             gatt.close()
             disconnectedAction?.invoke()
@@ -96,7 +124,7 @@ internal class Callback(
             STATE_CONNECTING -> state.value = State.Connecting
             STATE_CONNECTED -> state.value = State.Connected
             STATE_DISCONNECTING -> state.value = State.Disconnecting
-            STATE_DISCONNECTED -> state.value = State.Disconnected(status.toStatus())
+            STATE_DISCONNECTED -> state.value = State.Disconnected(status.disconnectedConnectionStatus)
         }
 
         if (newState == STATE_DISCONNECTING || newState == STATE_DISCONNECTED) {
@@ -106,7 +134,12 @@ internal class Callback(
     }
 
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-        onResponse.trySendOrLog(OnServicesDiscovered(GattStatus(status)))
+        val event = OnServicesDiscovered(GattStatus(status))
+        logger.debug {
+            message = "onServicesDiscovered"
+            detail(event.status)
+        }
+        onResponse.trySendOrLog(event)
     }
 
     override fun onCharacteristicRead(
@@ -115,7 +148,14 @@ internal class Callback(
         status: Int,
     ) {
         val value = characteristic.value
-        onResponse.trySendOrLog(OnCharacteristicRead(characteristic, value, GattStatus(status)))
+        val event = OnCharacteristicRead(characteristic, value, GattStatus(status))
+        logger.debug {
+            message = "onCharacteristicRead"
+            detail(characteristic)
+            detail(event.status)
+            detail(value)
+        }
+        onResponse.trySendOrLog(event)
     }
 
     override fun onCharacteristicWrite(
@@ -123,14 +163,26 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic,
         status: Int,
     ) {
-        onResponse.trySendOrLog(OnCharacteristicWrite(characteristic, GattStatus(status)))
+        val event = OnCharacteristicWrite(characteristic, GattStatus(status))
+        logger.debug {
+            message = "onCharacteristicWrite"
+            detail(characteristic)
+            detail(event.status)
+        }
+        onResponse.trySendOrLog(event)
     }
 
     override fun onCharacteristicChanged(
         gatt: BluetoothGatt,
         characteristic: BluetoothGattCharacteristic
     ) {
-        val event = OnCharacteristicChanged(characteristic, characteristic.value)
+        val value = characteristic.value
+        val event = OnCharacteristicChanged(characteristic, value)
+        logger.debug {
+            message = "onCharacteristicChanged"
+            detail(characteristic)
+            detail(value)
+        }
         _onCharacteristicChanged.trySendOrLog(event)
     }
 
@@ -139,7 +191,15 @@ internal class Callback(
         descriptor: BluetoothGattDescriptor,
         status: Int,
     ) {
-        onResponse.trySendOrLog(OnDescriptorRead(descriptor, descriptor.value, GattStatus(status)))
+        val value = descriptor.value
+        val event = OnDescriptorRead(descriptor, value, GattStatus(status))
+        logger.debug {
+            message = "onDescriptorRead"
+            detail(descriptor)
+            detail(event.status)
+            detail(value)
+        }
+        onResponse.trySendOrLog(event)
     }
 
     override fun onDescriptorWrite(
@@ -147,13 +207,23 @@ internal class Callback(
         descriptor: BluetoothGattDescriptor,
         status: Int,
     ) {
-        onResponse.trySendOrLog(OnDescriptorWrite(descriptor, GattStatus(status)))
+        val event = OnDescriptorWrite(descriptor, GattStatus(status))
+        logger.debug {
+            message = "onDescriptorWrite"
+            detail(descriptor)
+            detail(event.status)
+        }
+        onResponse.trySendOrLog(event)
     }
 
     override fun onReliableWriteCompleted(
         gatt: BluetoothGatt,
         status: Int
     ) {
+        logger.debug {
+            message = "onReliableWriteCompleted"
+            detail(GattStatus(status))
+        }
         // todo
     }
 
@@ -162,7 +232,13 @@ internal class Callback(
         rssi: Int,
         status: Int,
     ) {
-        onResponse.trySendOrLog(OnReadRemoteRssi(rssi, GattStatus(status)))
+        val event = OnReadRemoteRssi(rssi, GattStatus(status))
+        logger.debug {
+            message = "onReadRemoteRssi"
+            detail("rssi", event.rssi)
+            detail(event.status)
+        }
+        onResponse.trySendOrLog(event)
     }
 
     override fun onMtuChanged(
@@ -170,19 +246,45 @@ internal class Callback(
         mtu: Int,
         status: Int,
     ) {
-        onMtuChanged.trySendOrLog(OnMtuChanged(mtu, GattStatus(status)))
+        val event = OnMtuChanged(mtu, GattStatus(status))
+        logger.debug {
+            message = "onMtuChanged"
+            detail("mtu", event.mtu)
+            detail(event.status)
+        }
+        onMtuChanged.trySendOrLog(event)
         if (status == GATT_SUCCESS) this.mtu.value = mtu
     }
 }
 
-private fun Int.toStatus(): State.Disconnected.Status? = when (this) {
-    GATT_SUCCESS -> null
-    GATT_CONN_TIMEOUT -> Timeout
-    GATT_CONN_TERMINATE_PEER_USER -> PeripheralDisconnected
-    GATT_CONN_FAIL_ESTABLISH -> Failed
-    GATT_CONN_CANCEL -> Cancelled
-    else -> Unknown(this)
-}
+private val Int.disconnectedConnectionStatus: State.Disconnected.Status?
+    get() = when (this) {
+        GATT_SUCCESS -> null
+        GATT_CONN_L2C_FAILURE -> L2CapFailure
+        GATT_CONN_TIMEOUT -> Timeout
+        GATT_CONN_TERMINATE_PEER_USER -> PeripheralDisconnected
+        GATT_CONN_TERMINATE_LOCAL_HOST -> CentralDisconnected
+        GATT_CONN_FAIL_ESTABLISH -> Failed
+        GATT_CONN_LMP_TIMEOUT -> LinkManagerProtocolTimeout
+        GATT_CONN_CANCEL -> Cancelled
+        else -> Unknown(this)
+    }
+
+private val Int.disconnectedConnectionStatusString: String
+    get() = when (val status = disconnectedConnectionStatus) {
+        null -> "Success"
+        is Unknown -> "Unknown($status)"
+        else -> toString()
+    }
+
+private val Int.connectionStateString: String
+    get() = when (this) {
+        STATE_CONNECTING -> "Connecting"
+        STATE_CONNECTED -> "Connected"
+        STATE_DISCONNECTING -> "Disconnecting"
+        STATE_DISCONNECTED -> "Disconnected"
+        else -> "Unknown($this)"
+    }
 
 private fun <E> SendChannel<E>.trySendOrLog(element: E) {
     trySend(element).getOrElse { cause ->

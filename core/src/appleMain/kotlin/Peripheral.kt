@@ -76,7 +76,8 @@ public actual fun CoroutineScope.peripheral(
     return ApplePeripheral(
         coroutineContext,
         advertisement.cbPeripheral,
-        builder.onServicesDiscovered
+        builder.onServicesDiscovered,
+        builder.logging,
     )
 }
 
@@ -85,6 +86,7 @@ public class ApplePeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val cbPeripheral: CBPeripheral,
     private val onServicesDiscovered: ServicesDiscoveredAction,
+    private val logging: Logging,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
@@ -92,12 +94,14 @@ public class ApplePeripheral internal constructor(
 
     private val centralManager: CentralManager = CentralManager.Default
 
+    private val logger = Logger(logging, prefix = "${cbPeripheral.identifier} ")
+
     public override val state: Flow<State> = centralManager.delegate
         .connectionState
         .filter { event -> event.identifier == cbPeripheral.identifier }
         .map { event -> event.toState() }
 
-    private val observers = Observers(this)
+    private val observers = Observers(this, logger)
 
     private val _platformServices = atomic<List<PlatformService>?>(null)
     private val platformServices: List<PlatformService>
@@ -120,6 +124,7 @@ public class ApplePeripheral internal constructor(
     }
 
     private fun onDisconnected() {
+        logger.info { message = "Disconnected" }
         connectJob.value?.cancel()
         connectJob.value = null
         _connection.value?.close()
@@ -133,8 +138,9 @@ public class ApplePeripheral internal constructor(
             if (identifier == cbPeripheral.identifier) onDisconnected()
         }.launchIn(scope)
 
+        logger.info { message = "Connecting" }
         try {
-            val delegate = PeripheralDelegate().freeze() // todo: Create in `connectPeripheral`.
+            val delegate = PeripheralDelegate(logging).freeze() // todo: Create in `connectPeripheral`.
             val connection = centralManager.connectPeripheral(cbPeripheral, delegate).also {
                 _connection.value = it
             }
@@ -159,8 +165,10 @@ public class ApplePeripheral internal constructor(
 
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@ApplePeripheral))
+            logger.verbose { message = "rewire" }
             observers.rewire()
         } catch (t: Throwable) {
+            logger.error(t) { message = "Failed to connect" }
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)
                 _connection.value = null
@@ -168,6 +176,7 @@ public class ApplePeripheral internal constructor(
             throw t
         }
 
+        logger.info { message = "Connected" }
         ready.value = true
     }
 
@@ -198,6 +207,7 @@ public class ApplePeripheral internal constructor(
     private suspend fun discoverServices(
         services: List<Uuid>?,
     ) {
+        logger.verbose { message = "discoverServices" }
         val servicesToDiscover = services?.map { CBUUID.UUIDWithNSUUID(it.toNSUUID()) }
 
         connection.execute<DidDiscoverServices> {
@@ -228,6 +238,13 @@ public class ApplePeripheral internal constructor(
         data: NSData,
         writeType: WriteType,
     ) {
+        logger.debug {
+            message = "write"
+            detail(characteristic)
+            detail(writeType)
+            detail(data)
+        }
+
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
         connection.execute<DidWriteValueForCharacteristic> {
             centralManager.write(cbPeripheral, data, cbCharacteristic, writeType.cbWriteType)
@@ -243,6 +260,11 @@ public class ApplePeripheral internal constructor(
     public suspend fun readAsNSData(
         characteristic: Characteristic,
     ): NSData {
+        logger.debug {
+            message = "read"
+            detail(characteristic)
+        }
+
         val connection = this.connection
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
 
@@ -266,6 +288,12 @@ public class ApplePeripheral internal constructor(
         descriptor: Descriptor,
         data: NSData,
     ) {
+        logger.debug {
+            message = "write"
+            detail(descriptor)
+            detail(data)
+        }
+
         val cbDescriptor = cbDescriptorFrom(descriptor)
         connection.execute<DidUpdateValueForDescriptor> {
             centralManager.write(cbPeripheral, data, cbDescriptor)
@@ -281,6 +309,11 @@ public class ApplePeripheral internal constructor(
     public suspend fun readAsNSData(
         descriptor: Descriptor,
     ): NSData {
+        logger.debug {
+            message = "read"
+            detail(descriptor)
+        }
+
         val cbDescriptor = cbDescriptorFrom(descriptor)
         return connection.execute<DidUpdateValueForDescriptor> {
             centralManager.read(cbPeripheral, cbDescriptor)
@@ -298,6 +331,11 @@ public class ApplePeripheral internal constructor(
     ): Flow<NSData> = observers.acquire(characteristic, onSubscription)
 
     internal suspend fun startNotifications(characteristic: Characteristic) {
+        logger.debug {
+            message = "notify"
+            detail(characteristic)
+        }
+
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
         connection.execute<DidUpdateNotificationStateForCharacteristic> {
             centralManager.notify(cbPeripheral, cbCharacteristic)
@@ -305,6 +343,11 @@ public class ApplePeripheral internal constructor(
     }
 
     internal suspend fun stopNotifications(characteristic: Characteristic) {
+        logger.debug {
+            message = "cancelNotify"
+            detail(characteristic)
+        }
+
         val cbCharacteristic = cbCharacteristicFrom(characteristic)
         connection.execute<DidUpdateNotificationStateForCharacteristic> {
             centralManager.cancelNotify(cbPeripheral, cbCharacteristic)

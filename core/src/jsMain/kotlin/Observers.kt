@@ -25,7 +25,7 @@ internal sealed class JsObservationEvent {
 }
 
 internal class Observers(
-    private val peripheral: JsPeripheral
+    private val peripheral: JsPeripheral,
 ) {
 
     val characteristicChanges = MutableSharedFlow<JsObservationEvent>(extraBufferCapacity = 64)

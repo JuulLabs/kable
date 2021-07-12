@@ -40,6 +40,8 @@ connection handling and I/O operations.
 val peripheral = scope.peripheral(advertisement)
 ```
 
+### Configuration
+
 To configure a `peripheral`, options may be set in the builder lambda:
 
 ```kotlin
@@ -47,6 +49,52 @@ val peripheral = scope.peripheral(advertisement) {
     // Set peripheral configuration.
 }
 ```
+
+#### Logging
+
+By default, Kable only logs a small number of warnings when unexpected failures occur. To aid in debugging, additional
+logging may be enabled and configured via the `logging` DSL lambda, for example:
+
+```kotlin
+val peripheral = scope.peripheral(advertisment) {
+    logging {
+        level = Events // or Data
+    }
+}
+```
+
+The available log levels are:
+
+- `Disabled`: Disables all logging
+- `Warnings`: Logs warnings when unexpected failures occur _(default)_
+- `Events`: Same as `Warnings` plus logs all events (e.g. writing to a characteristic)
+- `Data`: Same as `Events` plus hex representation of I/O data
+
+Available logging settings are as follows (all settings are optional; shown are defaults, when not specified):
+
+```kotlin
+val peripheral = scope.peripheral(advertisement) {
+    logging {
+        level = Warnings
+        format = Multiline
+        data {
+            separator = " "
+            lowerCase = false
+        }
+    }
+}
+```
+
+The format of the logs can be either `Compact` (on a single line per log) or `Multiline` (spanning multiple lines for
+details):
+
+| `Compact` | `Multiline` _(default)_ |
+|-----------|-------------------------|
+| <pre>example message(detail1=value1, detail2=value2, ...)</pre> | <pre>example message<br/>  detail1: value1<br/>  detail2: value2<br/>  ...</pre> |
+
+The `data` lambda can be used for configuring the hex representation of I/O data (when logging `level` is set to `Data`).
+
+#### Service Discovery
 
 All platforms support an `onServicesDiscovered` action (that is executed after service discovery but before observations
 are wired up):

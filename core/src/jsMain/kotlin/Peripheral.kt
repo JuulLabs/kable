@@ -9,7 +9,6 @@ import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.Deferred
@@ -47,13 +46,19 @@ internal fun CoroutineScope.peripheral(
 ): JsPeripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
-    return JsPeripheral(coroutineContext, bluetoothDevice, builder.onServicesDiscovered)
+    return JsPeripheral(
+        coroutineContext,
+        bluetoothDevice,
+        builder.onServicesDiscovered,
+        builder.logging,
+    )
 }
 
 public class JsPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
     private val onServicesDiscovered: ServicesDiscoveredAction,
+    logging: Logging,
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job).apply {
@@ -61,6 +66,8 @@ public class JsPeripheral internal constructor(
     }
 
     private val scope = CoroutineScope(parentCoroutineContext + job)
+
+    private val logger = Logger(logging, prefix = "${bluetoothDevice.id} ")
 
     private val ioLock = Mutex()
 
@@ -125,6 +132,7 @@ public class JsPeripheral internal constructor(
     private fun connectAsync() = scope.async(start = LAZY) {
         ready.value = false
         _state.value = State.Connecting
+        logger.info { message = "Connecting" }
 
         try {
             registerDisconnectedListener()
@@ -134,12 +142,15 @@ public class JsPeripheral internal constructor(
 
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@JsPeripheral))
+            logger.verbose { message = "rewire" }
             observers.rewire()
-        } catch (cancellation: CancellationException) {
+        } catch (t: Throwable) {
+            logger.error(t) { message = "Failed to connect" }
             disconnectGatt()
-            throw cancellation
+            throw t
         }
 
+        logger.info { message = "Connected" }
         ready.value = true
     }
 
@@ -168,9 +179,10 @@ public class JsPeripheral internal constructor(
     }
 
     private suspend fun discoverServices() {
+        logger.verbose { message = "discover services" }
         val services = ioLock.withLock {
             gatt.getPrimaryServices().await()
-        }.map { it.toPlatformService() }
+        }.map { it.toPlatformService(logger) }
         _platformServices = services
     }
 
@@ -179,6 +191,12 @@ public class JsPeripheral internal constructor(
         data: ByteArray,
         writeType: WriteType,
     ) {
+        logger.debug {
+            message = "write"
+            detail(characteristic)
+            detail(data)
+        }
+
         val jsCharacteristic = bluetoothRemoteGATTCharacteristicFrom(characteristic)
         ioLock.withLock {
             when (writeType) {
@@ -192,9 +210,15 @@ public class JsPeripheral internal constructor(
         characteristic: Characteristic
     ): DataView {
         val jsCharacteristic = bluetoothRemoteGATTCharacteristicFrom(characteristic)
-        return ioLock.withLock {
+        val value = ioLock.withLock {
             jsCharacteristic.readValue().await()
         }
+        logger.debug {
+            message = "read"
+            detail(characteristic)
+            detail(value)
+        }
+        return value
     }
 
     public override suspend fun read(
@@ -207,6 +231,12 @@ public class JsPeripheral internal constructor(
         descriptor: Descriptor,
         data: ByteArray
     ) {
+        logger.debug {
+            message = "write"
+            detail(descriptor)
+            detail(data)
+        }
+
         val jsDescriptor = bluetoothRemoteGATTDescriptorFrom(descriptor)
         ioLock.withLock {
             jsDescriptor.writeValue(data).await()
@@ -217,9 +247,15 @@ public class JsPeripheral internal constructor(
         descriptor: Descriptor
     ): DataView {
         val jsDescriptor = bluetoothRemoteGATTDescriptorFrom(descriptor)
-        return ioLock.withLock {
+        val value = ioLock.withLock {
             jsDescriptor.readValue().await()
         }
+        logger.debug {
+            message = "read"
+            detail(descriptor)
+            detail(value)
+        }
+        return value
     }
 
     public override suspend fun read(
@@ -242,8 +278,8 @@ public class JsPeripheral internal constructor(
         .map { it.buffer.toByteArray() }
 
     private var isDisconnectedListenerRegistered = false
-    private val disconnectedListener: (JsEvent) -> Unit = { event ->
-        console.dir(event)
+    private val disconnectedListener: (JsEvent) -> Unit = {
+        logger.debug { message = GATT_SERVER_DISCONNECTED }
         _state.value = State.Disconnected()
         unregisterDisconnectedListener()
         observationListeners.clear()
@@ -252,6 +288,10 @@ public class JsPeripheral internal constructor(
 
     internal suspend fun startObservation(characteristic: Characteristic) {
         if (characteristic in observationListeners) return
+        logger.debug {
+            message = "observe start"
+            detail(characteristic)
+        }
 
         val listener = characteristic.createListener()
         observationListeners[characteristic] = listener
@@ -266,6 +306,10 @@ public class JsPeripheral internal constructor(
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
         val listener = observationListeners[characteristic] ?: return
+        logger.verbose {
+            message = "observe stop"
+            detail(characteristic)
+        }
 
         bluetoothRemoteGATTCharacteristicFrom(characteristic).apply {
             /* Throws `DOMException` if connection is closed:
@@ -282,7 +326,10 @@ public class JsPeripheral internal constructor(
                     stopNotifications().await()
                 }
             }.onFailure {
-                console.warn("Stop notification failure ignored.")
+                logger.warn {
+                    message = "Stop notification failure ignored."
+                    detail(characteristic)
+                }
             }
 
             removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
@@ -291,7 +338,13 @@ public class JsPeripheral internal constructor(
 
     private fun Characteristic.createListener(): ObservationListener = { event ->
         val target = event.target as BluetoothRemoteGATTCharacteristic
-        val characteristicChange = JsObservationEvent.CharacteristicChange(this, target.value!!)
+        val data = target.value!!
+        logger.debug {
+            message = CHARACTERISTIC_VALUE_CHANGED
+            detail(this@createListener)
+            detail(data)
+        }
+        val characteristicChange = JsObservationEvent.CharacteristicChange(this, data)
 
         if (!observers.characteristicChanges.tryEmit(characteristicChange))
             console.error("Failed to emit $characteristicChange")
