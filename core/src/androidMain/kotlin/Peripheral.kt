@@ -201,21 +201,7 @@ public class AndroidPeripheral internal constructor(
 
     public override suspend fun connect() {
         check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
-
-        // Explicitly check the adapter state before connecting in order to respect system settings.
-        // Android doesn't actually turn bluetooth off when the setting is disabled, so without this
-        // check we're able to reconnect the device illegally.
-        val adapterState = BluetoothAdapter.getDefaultAdapter().state
-        if (adapterState != STATE_ON) {
-            val stateName = when (adapterState) {
-                STATE_OFF -> "Off"
-                STATE_TURNING_OFF -> "TurningOff"
-                STATE_TURNING_ON -> "TurningOn"
-                else -> "Unknown"
-            }
-            throw BluetoothDisabledException("Cannot connect to device while bluetooth adapter state is $stateName.")
-        }
-
+        checkBluetoothAdapterState(expected = STATE_ON)
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
@@ -396,3 +382,26 @@ private val PlatformCharacteristic.supportsNotify: Boolean
 
 private val PlatformCharacteristic.supportsIndicate: Boolean
     get() = bluetoothGattCharacteristic.properties and PROPERTY_INDICATE != 0
+
+/**
+ * Explicitly check the adapter state before connecting in order to respect system settings.
+ * Android doesn't actually turn bluetooth off when the setting is disabled, so without this
+ * check we're able to reconnect the device illegally.
+ */
+private fun checkBluetoothAdapterState(
+    expected: Int,
+) {
+    fun nameFor(value: Int) = when (value) {
+        STATE_OFF -> "Off"
+        STATE_ON -> "On"
+        STATE_TURNING_OFF -> "TurningOff"
+        STATE_TURNING_ON -> "TurningOn"
+        else -> "Unknown"
+    }
+    val actual = BluetoothAdapter.getDefaultAdapter().state
+    if (expected != actual) {
+        val actualName = nameFor(actual)
+        val expectedName = nameFor(expected)
+        throw BluetoothDisabledException("Bluetooth adapter state is $actualName ($actual), but $expectedName ($expected) was required.")
+    }
+}
