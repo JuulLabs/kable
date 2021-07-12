@@ -10,7 +10,8 @@ import android.util.Log
 import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.onFailure
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
@@ -30,17 +31,16 @@ public class AndroidScanner internal constructor(private val filterServices: Lis
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                runCatching {
-                    sendBlocking(Advertisement(result))
-                }.onFailure {
-                    Log.w(TAG, "Unable to deliver scan result due to failure in flow or premature closing.")
-                }
+                trySendBlocking(Advertisement(result))
+                    .onFailure {
+                        Log.w(TAG, "Unable to deliver scan result due to failure in flow or premature closing.")
+                    }
             }
 
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
                 runCatching {
                     results.forEach {
-                        sendBlocking(Advertisement(it))
+                        trySendBlocking(Advertisement(it)).getOrThrow()
                     }
                 }.onFailure {
                     Log.w(TAG, "Unable to deliver batch scan results due to failure in flow or premature closing.")

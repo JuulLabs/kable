@@ -33,7 +33,11 @@ public final class com/juul/kable/AndroidScanner : com/juul/kable/Scanner {
 	public fun getAdvertisements ()Lkotlinx/coroutines/flow/Flow;
 }
 
-public class com/juul/kable/BluetoothLeException : java/lang/Exception {
+public final class com/juul/kable/BluetoothDisabledException : com/juul/kable/BluetoothException {
+	public fun <init> ()V
+}
+
+public class com/juul/kable/BluetoothException : java/lang/Exception {
 	public fun <init> ()V
 }
 
@@ -98,7 +102,7 @@ public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/juul/kable/GattRequestRejectedException : com/juul/kable/BluetoothLeException {
+public final class com/juul/kable/GattRequestRejectedException : com/juul/kable/BluetoothException {
 	public fun <init> ()V
 }
 
