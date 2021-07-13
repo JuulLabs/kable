@@ -57,7 +57,7 @@ public class JsPeripheral internal constructor(
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job).apply {
-        invokeOnCompletion { dispose() }
+        invokeOnCompletion { closeConnection() }
     }
 
     private val scope = CoroutineScope(parentCoroutineContext + job)
@@ -143,7 +143,7 @@ public class JsPeripheral internal constructor(
         ready.value = true
     }
 
-    private fun dispose() {
+    private fun closeConnection() {
         observationListeners.clear()
         disconnectGatt()
         unregisterDisconnectedListener()

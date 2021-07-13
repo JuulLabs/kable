@@ -15,6 +15,7 @@ public final class com/juul/kable/Advertisement {
 public final class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral {
 	public fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getServices ()Ljava/util/List;
 	public fun getState ()Lkotlinx/coroutines/flow/Flow;
 	public fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
@@ -32,7 +33,11 @@ public final class com/juul/kable/AndroidScanner : com/juul/kable/Scanner {
 	public fun getAdvertisements ()Lkotlinx/coroutines/flow/Flow;
 }
 
-public class com/juul/kable/BluetoothLeException : java/lang/Exception {
+public final class com/juul/kable/BluetoothDisabledException : com/juul/kable/BluetoothException {
+	public fun <init> ()V
+}
+
+public class com/juul/kable/BluetoothException : java/lang/Exception {
 	public fun <init> ()V
 }
 
@@ -97,7 +102,7 @@ public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/juul/kable/GattRequestRejectedException : com/juul/kable/BluetoothLeException {
+public final class com/juul/kable/GattRequestRejectedException : com/juul/kable/BluetoothException {
 	public fun <init> ()V
 }
 
