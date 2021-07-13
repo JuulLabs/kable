@@ -7,7 +7,6 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.usePinned
 import platform.Foundation.NSData
 import platform.Foundation.create
-import platform.darwin.NSUInteger
 import platform.posix.memcpy
 
 // https://stackoverflow.com/a/58521109
