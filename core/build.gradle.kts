@@ -50,7 +50,6 @@ kotlin {
 
         val iosArm32Main by getting {
             dependencies {
-                api(coroutines("core", version = "1.5.0-native-mt!!"))
                 implementation(stately("isolate-iosarm32"))
             }
         }
