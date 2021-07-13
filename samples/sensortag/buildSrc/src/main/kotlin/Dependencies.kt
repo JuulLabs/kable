@@ -1,3 +1,8 @@
+fun coroutines(
+    module: String = "core",
+    version: String = "1.5.1"
+): String = "org.jetbrains.kotlinx:kotlinx-coroutines-$module:$version"
+
 fun stately(
     module: String,
     version: String = "1.1.7-a1"
@@ -5,7 +10,7 @@ fun stately(
 
 fun kable(
     artifact: String = "core",
-    version: String = "0.6.0"
+    version: String = "0.7.0"
 ): String = "com.juul.kable:$artifact:$version"
 
 fun exercise(

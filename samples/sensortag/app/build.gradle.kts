@@ -19,6 +19,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(coroutines())
                 implementation(kable())
                 implementation(tuulbox("logging"))
                 implementation(tuulbox("encoding"))
@@ -37,10 +38,19 @@ kotlin {
             }
         }
 
-        val macosX64Main by getting {
+        val nativeMain by creating {
             dependencies {
-                implementation(stately("isolate-macosx64"))
+                implementation(coroutines(module = "core-macosx64", version = "1.5.0-native-mt")) {
+                    version {
+                        strictly("1.5.0-native-mt")
+                    }
+                }
+                implementation(stately("isolate"))
             }
+        }
+
+        val macosX64Main by getting {
+            dependsOn(nativeMain)
         }
     }
 }
