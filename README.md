@@ -282,25 +282,14 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
                 implementation("com.juul.kable:core:${kableVersion}")
             }
         }
 
-        val androidMain by getting {
+        val macosX64Main by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
-            }
-        }
-
-        val jsMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
-            }
-        }
-
-        val nativeMain by creating {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}-native-mt") {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64:${coroutinesVersion}-native-mt") {
                     version {
                         strictly("${coroutinesVersion}-native-mt")
                     }
@@ -308,16 +297,24 @@ kotlin {
             }
         }
 
-        val macosX64Main by getting {
-            dependsOn(nativeMain)
+        val iosX64Main by getting {
+            dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosx64:${coroutinesVersion}-native-mt") {
+                    version {
+                        strictly("${coroutinesVersion}-native-mt")
+                    }
+                }
+            }
         }
 
-        val iosX64Main by getting {
-            dependsOn(nativeMain)
-        }
-        
         val iosArm64Main by getting {
-            dependsOn(nativeMain)
+            dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosarm64:${coroutinesVersion}-native-mt") {
+                    version {
+                        strictly("${coroutinesVersion}-native-mt")
+                    }
+                }
+            }
         }
     }
 }
