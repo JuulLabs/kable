@@ -295,7 +295,7 @@ kotlin {
 
         val macosX64Main by getting {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64:${coroutinesVersion}-native-mt") {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64:${coroutinesVersion}-native-mt") {
                     version {
                         strictly("${coroutinesVersion}-native-mt")
                     }
@@ -305,7 +305,7 @@ kotlin {
 
         val iosX64Main by getting {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosx64:${coroutinesVersion}-native-mt") {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosx64:${coroutinesVersion}-native-mt") {
                     version {
                         strictly("${coroutinesVersion}-native-mt")
                     }
@@ -315,7 +315,7 @@ kotlin {
 
         val iosArm64Main by getting {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosarm64:${coroutinesVersion}-native-mt") {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosarm64:${coroutinesVersion}-native-mt") {
                     version {
                         strictly("${coroutinesVersion}-native-mt")
                     }
