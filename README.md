@@ -295,8 +295,10 @@ kotlin {
 
         val macosX64Main by getting {
             dependencies {
+                // Need to specify the Coroutines artifact specific for the target platform (`-macosx64`):
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64:${coroutinesVersion}-native-mt") {
                     version {
+                        // `strictly` needed to make sure Gradle uses `-native-mt` version.
                         strictly("${coroutinesVersion}-native-mt")
                     }
                 }
@@ -305,8 +307,10 @@ kotlin {
 
         val iosX64Main by getting {
             dependencies {
+                // Need to specify the Coroutines artifact specific for the target platform (`-iosx64`):
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosx64:${coroutinesVersion}-native-mt") {
                     version {
+                        // `strictly` needed to make sure Gradle uses `-native-mt` version.
                         strictly("${coroutinesVersion}-native-mt")
                     }
                 }
@@ -315,8 +319,10 @@ kotlin {
 
         val iosArm64Main by getting {
             dependencies {
+                // Need to specify the Coroutines artifact specific for the target platform (`-iosarm64`):
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosarm64:${coroutinesVersion}-native-mt") {
                     version {
+                        // `strictly` needed to make sure Gradle uses `-native-mt` version.
                         strictly("${coroutinesVersion}-native-mt")
                     }
                 }
