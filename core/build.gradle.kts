@@ -16,6 +16,7 @@ kotlin {
         publishAllLibraryVariants()
     }
     iosX64()
+    iosArm32()
     iosArm64()
     macosX64()
 
@@ -44,6 +45,12 @@ kotlin {
         val iosX64Main by getting {
             dependencies {
                 implementation(stately("isolate-iosx64"))
+            }
+        }
+
+        val iosArm32Main by getting {
+            dependencies {
+                implementation(stately("isolate-iosarm32"))
             }
         }
 
