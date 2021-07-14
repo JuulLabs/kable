@@ -274,7 +274,7 @@ repositories {
 
 kotlin {
     android()
-    js().browser() // and/or js().node()
+    js().browser()
     macosX64()
     iosX64()
     iosArm64()
@@ -282,42 +282,51 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
                 implementation("com.juul.kable:core:${kableVersion}")
             }
         }
 
         val androidMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}")
             }
         }
 
-        val jsMain by getting {
+        val macosX64Main by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
-            }
-        }
-
-        val nativeMain by creating {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}-native-mt") {
+                // Need to specify the Coroutines artifact specific for the target platform (`-macosx64`):
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64:${coroutinesVersion}-native-mt") {
                     version {
+                        // `strictly` needed to make sure Gradle uses `-native-mt` version.
                         strictly("${coroutinesVersion}-native-mt")
                     }
                 }
             }
         }
 
-        val macosX64Main by getting {
-            dependsOn(nativeMain)
+        val iosX64Main by getting {
+            dependencies {
+                // Need to specify the Coroutines artifact specific for the target platform (`-iosx64`):
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosx64:${coroutinesVersion}-native-mt") {
+                    version {
+                        // `strictly` needed to make sure Gradle uses `-native-mt` version.
+                        strictly("${coroutinesVersion}-native-mt")
+                    }
+                }
+            }
         }
 
-        val iosX64Main by getting {
-            dependsOn(nativeMain)
-        }
-        
         val iosArm64Main by getting {
-            dependsOn(nativeMain)
+            dependencies {
+                // Need to specify the Coroutines artifact specific for the target platform (`-iosarm64`):
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosarm64:${coroutinesVersion}-native-mt") {
+                    version {
+                        // `strictly` needed to make sure Gradle uses `-native-mt` version.
+                        strictly("${coroutinesVersion}-native-mt")
+                    }
+                }
+            }
         }
     }
 }
