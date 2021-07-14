@@ -274,7 +274,7 @@ repositories {
 
 kotlin {
     android()
-    js().browser() // and/or js().node()
+    js().browser()
     macosX64()
     iosX64()
     iosArm64()
