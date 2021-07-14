@@ -287,6 +287,12 @@ kotlin {
             }
         }
 
+        val androidMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}")
+            }
+        }
+
         val macosX64Main by getting {
             dependencies {
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64:${coroutinesVersion}-native-mt") {
