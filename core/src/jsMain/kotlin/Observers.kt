@@ -53,7 +53,7 @@ internal class Observers(
             }
         }
         .onCompletion {
-            if (observations.remove(characteristic, onSubscription) < 1) {
+            if (observations.remove(characteristic, onSubscription) == 0) {
                 peripheral.stopObservation(characteristic)
             }
         }
@@ -98,7 +98,7 @@ private class Observations {
     ): Int {
         val actions = observations[characteristic]
         return when {
-            actions == null -> 0
+            actions == null -> -1 // No previous observation existed for characteristic.
             actions.count() == 1 -> {
                 observations -= characteristic
                 0
