@@ -98,7 +98,7 @@ private class Observations {
     ): Int {
         val actions = observations[characteristic]
         return when {
-            actions == null -> -1 // -1 signifies that no previous observation existed for characteristic.
+            actions == null -> -1 // No previous observation existed for characteristic.
             actions.count() == 1 -> {
                 observations -= characteristic
                 0

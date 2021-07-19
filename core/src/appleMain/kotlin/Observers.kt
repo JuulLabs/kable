@@ -139,7 +139,7 @@ private class Observations : IsolateState<MutableMap<Characteristic, MutableList
     ): Int = access {
         val actions = it[characteristic]
         when {
-            actions == null -> -1 // -1 signifies that no previous observation existed for characteristic.
+            actions == null -> -1 // No previous observation existed for characteristic.
             actions.count() == 1 -> {
                 it -= characteristic
                 0
