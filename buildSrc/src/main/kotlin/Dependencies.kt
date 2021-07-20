@@ -18,6 +18,10 @@ fun stately(
     version: String = "1.1.7-a1"
 ): String = "co.touchlab:stately-$module:$version"
 
+fun wrappers(
+    version: String = "1.0.1-pre.213-kotlin-1.5.10"
+) = "org.jetbrains.kotlin-wrappers:kotlin-extensions:$version"
+
 object androidx {
     fun startup(
         version: String = "1.0.0"

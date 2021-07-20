@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.juul.kable.external.Bluetooth
+import kotlinext.js.jsObject
 import kotlinx.coroutines.CoroutineScope
 import kotlin.js.Promise
 
@@ -15,13 +16,13 @@ public fun CoroutineScope.requestPeripheral(
     .then { device -> peripheral(device, builderAction) }
 
 private fun Options.toDynamic(): dynamic = if (filters == null) {
-    object {
-        val acceptAllDevices = true
-        val optionalServices = this@toDynamic.optionalServices
+    jsObject {
+        this.acceptAllDevices = true
+        this.optionalServices = optionalServices
     }
 } else {
-    object {
-        val optionalServices = this@toDynamic.optionalServices
-        val filters = this@toDynamic.filters
+    jsObject {
+        this.optionalServices = optionalServices
+        this.filters = filters
     }
 }
