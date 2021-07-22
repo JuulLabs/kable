@@ -78,7 +78,7 @@ internal class Observers(
                 }
             }
             .onCompletion {
-                if (observations.remove(characteristic, onSubscription) < 1) {
+                if (observations.remove(characteristic, onSubscription) == 0) {
                     try {
                         peripheral.stopNotifications(characteristic)
                     } catch (e: NotReadyException) {
@@ -139,7 +139,7 @@ private class Observations : IsolateState<MutableMap<Characteristic, MutableList
     ): Int = access {
         val actions = it[characteristic]
         when {
-            actions == null -> 0
+            actions == null -> -1 // No previous observation existed for characteristic.
             actions.count() == 1 -> {
                 it -= characteristic
                 0

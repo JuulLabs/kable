@@ -16,20 +16,15 @@ kotlin {
         publishAllLibraryVariants()
     }
     iosX64()
+    iosArm32()
     iosArm64()
     macosX64()
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(coroutines("core", version = "1.5.0-native-mt"))
+                api(coroutines())
                 api(uuid())
-            }
-        }
-
-        val jsMain by getting {
-            dependencies {
-                api(coroutines("core"))
             }
         }
 
@@ -43,21 +38,24 @@ kotlin {
 
         val macosX64Main by getting {
             dependencies {
-                api(coroutines("core", version = "1.5.0-native-mt!!"))
                 implementation(stately("isolate-macosx64"))
             }
         }
 
         val iosX64Main by getting {
             dependencies {
-                api(coroutines("core", version = "1.5.0-native-mt!!"))
                 implementation(stately("isolate-iosx64"))
+            }
+        }
+
+        val iosArm32Main by getting {
+            dependencies {
+                implementation(stately("isolate-iosarm32"))
             }
         }
 
         val iosArm64Main by getting {
             dependencies {
-                api(coroutines("core", version = "1.5.0-native-mt!!"))
                 implementation(stately("isolate-iosarm64"))
             }
         }

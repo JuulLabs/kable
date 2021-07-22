@@ -26,7 +26,6 @@ import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
 import com.juul.kable.gatt.Response.OnDescriptorWrite
-import com.juul.kable.gatt.Response.OnMtuChanged
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.coroutines.channels.Channel
@@ -49,7 +48,8 @@ internal data class OnCharacteristicChanged(
 }
 
 internal class Callback(
-    private val state: MutableStateFlow<State>
+    private val state: MutableStateFlow<State>,
+    private val mtu: MutableStateFlow<Int?>,
 ) : BluetoothGattCallback() {
 
     private var disconnectedAction: DisconnectedAction? = null
@@ -62,6 +62,7 @@ internal class Callback(
         _onCharacteristicChanged.consumeAsFlow()
 
     val onResponse = Channel<Response>(CONFLATED)
+    val onMtuChanged = Channel<OnMtuChanged>(CONFLATED)
 
     override fun onPhyUpdate(
         gatt: BluetoothGatt,
@@ -169,7 +170,8 @@ internal class Callback(
         mtu: Int,
         status: Int,
     ) {
-        onResponse.trySendOrLog(OnMtuChanged(mtu, GattStatus(status)))
+        onMtuChanged.trySendOrLog(OnMtuChanged(mtu, GattStatus(status)))
+        if (status == GATT_SUCCESS) this.mtu.value = mtu
     }
 }
 

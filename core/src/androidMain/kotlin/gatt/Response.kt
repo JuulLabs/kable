@@ -51,11 +51,6 @@ internal sealed class Response {
         override val status: GattStatus,
     ) : Response()
 
-    data class OnMtuChanged(
-        val mtu: Int,
-        override val status: GattStatus,
-    ) : Response()
-
     data class OnServicesDiscovered(
         override val status: GattStatus,
     ) : Response()
@@ -94,6 +89,11 @@ internal sealed class Response {
             "OnDescriptorWrite(descriptor=${descriptor.uuid}, status=$status)"
     }
 }
+
+internal data class OnMtuChanged(
+    val mtu: Int,
+    override val status: GattStatus,
+) : Response()
 
 /**
  * Represents the possible GATT statuses as defined in [BluetoothGatt]:

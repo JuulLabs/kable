@@ -1,5 +1,10 @@
 package com.juul.kable
 
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothAdapter.STATE_OFF
+import android.bluetooth.BluetoothAdapter.STATE_ON
+import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
+import android.bluetooth.BluetoothAdapter.STATE_TURNING_ON
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic.*
@@ -16,7 +21,6 @@ import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
 import com.juul.kable.gatt.Response.OnDescriptorWrite
-import com.juul.kable.gatt.Response.OnMtuChanged
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
 import kotlinx.atomicfu.atomic
@@ -30,6 +34,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -110,13 +115,32 @@ public class AndroidPeripheral internal constructor(
     private val onServicesDiscovered: ServicesDiscoveredAction,
 ) : Peripheral {
 
+    private val receiver = registerBluetoothStateBroadcastReceiver { state ->
+        if (state == STATE_OFF) {
+            closeConnection()
+            _state.value = State.Disconnected()
+        }
+    }
+
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
-        invokeOnCompletion { dispose() }
+        invokeOnCompletion {
+            applicationContext.unregisterReceiver(receiver)
+            closeConnection()
+        }
     }
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
     public override val state: Flow<State> = _state.asStateFlow()
+
+    private val _mtu = MutableStateFlow<Int?>(null)
+
+    /**
+     * [StateFlow] of the most recently negotiated MTU. The MTU will change upon a successful request to change the MTU
+     * (via [requestMtu]), or if the peripheral initiates an MTU change. [StateFlow]'s `value` will be `null` until MTU
+     * is negotiated.
+     */
+    public val mtu: StateFlow<Int?> = _mtu.asStateFlow()
 
     private val observers = Observers(this)
 
@@ -150,6 +174,7 @@ public class AndroidPeripheral internal constructor(
             transport,
             phy,
             _state,
+            _mtu,
             invokeOnClose = { connectJob.value = null }
         ) ?: throw ConnectionRejectedException()
 
@@ -169,20 +194,21 @@ public class AndroidPeripheral internal constructor(
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             observers.rewire()
         } catch (t: Throwable) {
-            dispose()
+            closeConnection()
             throw t
         }
 
         ready.value = true
     }
 
-    private fun dispose() {
+    private fun closeConnection() {
         _connection?.close()
         _connection = null
     }
 
     public override suspend fun connect() {
         check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
+        checkBluetoothAdapterState(expected = STATE_ON)
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
@@ -193,7 +219,7 @@ public class AndroidPeripheral internal constructor(
                 suspendUntilDisconnected()
             }
         } finally {
-            dispose()
+            closeConnection()
         }
     }
 
@@ -213,12 +239,16 @@ public class AndroidPeripheral internal constructor(
             .map { it.toPlatformService() }
     }
 
-    /** @throws NotReadyException if invoked without an established [connection][Peripheral.connect]. */
-    public suspend fun requestMtu(mtu: Int) {
-        connection.execute<OnMtuChanged> {
-            this@execute.requestMtu(mtu)
-        }
-    }
+    /**
+     * Requests that the current connection's MTU be changed. Suspends until the MTU changes, or failure occurs. The
+     * negotiated MTU value is returned, which may not be [mtu] value requested if the remote peripheral negotiated an
+     * alternate MTU.
+     *
+     * @throws NotReadyException if invoked without an established [connection][Peripheral.connect].
+     * @throws GattRequestRejectedException if Android was unable to fulfill the MTU change request.
+     * @throws GattStatusException if MTU change request failed.
+     */
+    public suspend fun requestMtu(mtu: Int): Int = connection.requestMtu(mtu)
 
     public override suspend fun write(
         characteristic: Characteristic,
@@ -367,3 +397,26 @@ private val PlatformCharacteristic.supportsNotify: Boolean
 
 private val PlatformCharacteristic.supportsIndicate: Boolean
     get() = bluetoothGattCharacteristic.properties and PROPERTY_INDICATE != 0
+
+/**
+ * Explicitly check the adapter state before connecting in order to respect system settings.
+ * Android doesn't actually turn bluetooth off when the setting is disabled, so without this
+ * check we're able to reconnect the device illegally.
+ */
+private fun checkBluetoothAdapterState(
+    expected: Int,
+) {
+    fun nameFor(value: Int) = when (value) {
+        STATE_OFF -> "Off"
+        STATE_ON -> "On"
+        STATE_TURNING_OFF -> "TurningOff"
+        STATE_TURNING_ON -> "TurningOn"
+        else -> "Unknown"
+    }
+    val actual = BluetoothAdapter.getDefaultAdapter().state
+    if (expected != actual) {
+        val actualName = nameFor(actual)
+        val expectedName = nameFor(expected)
+        throw BluetoothDisabledException("Bluetooth adapter state is $actualName ($actual), but $expectedName ($expected) was required.")
+    }
+}
