@@ -49,7 +49,7 @@ private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONF
 @Deprecated(
     message = "'writeObserveDescriptor' parameter is no longer used and is handled automatically by 'observe' function. 'writeObserveDescriptor' argument will be removed in a future release.",
     replaceWith = ReplaceWith("peripheral(advertisement)"),
-    level = DeprecationLevel.ERROR,
+    level = DeprecationLevel.HIDDEN,
 )
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
@@ -59,7 +59,7 @@ public fun CoroutineScope.peripheral(
 @Deprecated(
     message = "'writeObserveDescriptor' parameter is no longer used and is handled automatically by 'observe' function. 'writeObserveDescriptor' argument will be removed in a future release.",
     replaceWith = ReplaceWith("peripheral(advertisement)"),
-    level = DeprecationLevel.ERROR,
+    level = DeprecationLevel.HIDDEN,
 )
 public fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -70,7 +70,10 @@ public fun CoroutineScope.peripheral(
  * @param transport preferred transport for GATT connections to remote dual-mode devices.
  * @param phy preferred PHY for connections to remote LE device.
  */
-@Deprecated(message = "Use builder lambda.")
+@Deprecated(
+    message = "Use builder lambda. This method will be removed in a future release.",
+    level = DeprecationLevel.ERROR,
+)
 public fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     transport: Transport,
@@ -84,7 +87,10 @@ public fun CoroutineScope.peripheral(
  * @param transport preferred transport for GATT connections to remote dual-mode devices.
  * @param phy preferred PHY for connections to remote LE device.
  */
-@Deprecated(message = "Use builder lambda.")
+@Deprecated(
+    message = "Use builder lambda. This method will be removed in a future release.",
+    level = DeprecationLevel.ERROR,
+)
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
     transport: Transport,
