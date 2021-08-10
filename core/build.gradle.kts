@@ -11,10 +11,10 @@ plugins {
 kotlin {
     explicitApi()
 
-    js().browser()
     android {
         publishAllLibraryVariants()
     }
+    js().browser()
     iosX64()
     iosArm32()
     iosArm64()
@@ -25,6 +25,12 @@ kotlin {
             dependencies {
                 api(coroutines())
                 api(uuid())
+            }
+        }
+
+        val jsMain by getting {
+            dependencies {
+                implementation(wrappers())
             }
         }
 
