@@ -265,8 +265,7 @@ public class JsPeripheral internal constructor(
     }
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
-        val listener = observationListeners[characteristic] ?: return
-        observationListeners.remove(characteristic)
+        val listener = observationListeners.remove(characteristic) ?: return
 
         bluetoothRemoteGATTCharacteristicFrom(characteristic).apply {
             /* Throws `DOMException` if connection is closed:
