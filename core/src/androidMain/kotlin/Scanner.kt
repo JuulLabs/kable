@@ -6,8 +6,10 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.os.ParcelUuid
-import android.util.Log
 import com.benasher44.uuid.Uuid
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.LoggingBuilder
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
@@ -19,9 +21,17 @@ public class ScanFailedException internal constructor(
     public val errorCode: Int,
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
 
-public actual fun Scanner(services: List<Uuid>?): Scanner = AndroidScanner(services)
+public actual fun Scanner(services: List<Uuid>?): Scanner = Scanner(services) { }
 
-public class AndroidScanner internal constructor(private val filterServices: List<Uuid>?) : Scanner {
+public fun Scanner(services: List<Uuid>?, configureLogging: LoggingBuilder): Scanner =
+    AndroidScanner(services, Logging().apply(configureLogging))
+
+public class AndroidScanner internal constructor(
+    private val filterServices: List<Uuid>?,
+    logging: Logging,
+) : Scanner {
+
+    private val logger = Logger(logging, tag = "Kable/Scanner")
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         ?: error("Bluetooth not supported")
@@ -33,7 +43,7 @@ public class AndroidScanner internal constructor(private val filterServices: Lis
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 trySendBlocking(Advertisement(result))
                     .onFailure {
-                        Log.w(TAG, "Unable to deliver scan result due to failure in flow or premature closing.")
+                        logger.warn { message = "Unable to deliver scan result due to failure in flow or premature closing." }
                     }
             }
 
@@ -43,7 +53,7 @@ public class AndroidScanner internal constructor(private val filterServices: Lis
                         trySendBlocking(Advertisement(it)).getOrThrow()
                     }
                 }.onFailure {
-                    Log.w(TAG, "Unable to deliver batch scan results due to failure in flow or premature closing.")
+                    logger.warn { message = "Unable to deliver batch scan results due to failure in flow or premature closing." }
                 }
             }
 

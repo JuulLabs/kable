@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothRemoteGATTService
+import com.juul.kable.logs.Logger
 import kotlinx.coroutines.await
 
 internal data class PlatformService(

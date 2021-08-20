@@ -7,6 +7,10 @@ import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForC
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
 import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.IsReadyToSendWriteWithoutResponse
+import com.juul.kable.logs.LogMessage
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.detail
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.ReceiveChannel

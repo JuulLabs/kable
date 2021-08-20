@@ -1,5 +1,8 @@
 package com.juul.kable
 
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.LoggingBuilder
+
 public actual class ServicesDiscoveredPeripheral internal constructor(
     private val peripheral: JsPeripheral
 ) {

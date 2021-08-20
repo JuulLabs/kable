@@ -25,6 +25,9 @@ import com.juul.kable.gatt.Response.OnDescriptorRead
 import com.juul.kable.gatt.Response.OnDescriptorWrite
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.detail
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineScope
@@ -125,7 +128,7 @@ public class AndroidPeripheral internal constructor(
     private val logging: Logging,
 ) : Peripheral {
 
-    private val logger = Logger(logging, tag = "$TAG/Peripheral", prefix = "$bluetoothDevice ")
+    private val logger = Logger(logging, tag = "Kable/Peripheral", prefix = "$bluetoothDevice ")
 
     private val receiver = registerBluetoothStateBroadcastReceiver { state ->
         if (state == STATE_OFF) {
@@ -154,7 +157,7 @@ public class AndroidPeripheral internal constructor(
      */
     public val mtu: StateFlow<Int?> = _mtu.asStateFlow()
 
-    private val observers = Observers(this)
+    private val observers = Observers(this, logging)
 
     @Volatile
     private var _platformServices: List<PlatformService>? = null
