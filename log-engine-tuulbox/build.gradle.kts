@@ -24,7 +24,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(project(":core"))
-                implementation(tuulbox("logging"))
+                api(tuulbox("logging"))
             }
         }
 
