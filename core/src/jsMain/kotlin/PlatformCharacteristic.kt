@@ -2,6 +2,8 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.detail
 import kotlinx.coroutines.await
 
 internal data class PlatformCharacteristic(

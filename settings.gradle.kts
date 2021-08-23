@@ -21,4 +21,7 @@ pluginManagement {
     }
 }
 
-include("core")
+include(
+    "core",
+    "log-engine-tuulbox",
+)

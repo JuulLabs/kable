@@ -1,5 +1,8 @@
 package com.juul.kable
 
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.LoggingBuilder
+
 /** Preferred transport for GATT connections to remote dual-mode devices. */
 public enum class Transport {
 

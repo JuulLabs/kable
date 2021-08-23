@@ -1,0 +1,10 @@
+public final class com/juul/kable/logs/TuulboxLogEngine : com/juul/kable/logs/LogEngine, com/juul/tuulbox/logging/HideFromStackTraceTag {
+	public static final field INSTANCE Lcom/juul/kable/logs/TuulboxLogEngine;
+	public fun assert (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun debug (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun error (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun info (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun verbose (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun warn (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+}
+

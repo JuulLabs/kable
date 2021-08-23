@@ -7,4 +7,13 @@ public interface Scanner {
     public val advertisements: Flow<Advertisement>
 }
 
-public expect fun Scanner(services: List<Uuid>? = null): Scanner
+@Deprecated(
+    "Replaced with ScannerBuilder DSL",
+    ReplaceWith("Scanner { this.services = services }")
+)
+public fun Scanner(services: List<Uuid>? = null): Scanner =
+    ScannerBuilder().apply { this.services = services }.build()
+
+public fun Scanner(
+    builderAction: ScannerBuilder.() -> Unit
+): Scanner = ScannerBuilder().apply(builderAction).build()

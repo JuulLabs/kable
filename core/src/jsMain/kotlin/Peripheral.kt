@@ -9,6 +9,9 @@ import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.Deferred

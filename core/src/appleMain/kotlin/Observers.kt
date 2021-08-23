@@ -2,6 +2,8 @@ package com.juul.kable
 
 import co.touchlab.stately.ensureNeverFrozen
 import co.touchlab.stately.isolate.IsolateState
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.detail
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter

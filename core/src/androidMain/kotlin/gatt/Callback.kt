@@ -9,10 +9,7 @@ import android.bluetooth.BluetoothProfile.STATE_CONNECTED
 import android.bluetooth.BluetoothProfile.STATE_CONNECTING
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
-import android.util.Log
 import com.juul.kable.ConnectionLostException
-import com.juul.kable.Logger
-import com.juul.kable.Logging
 import com.juul.kable.State
 import com.juul.kable.State.Disconnected.Status.Cancelled
 import com.juul.kable.State.Disconnected.Status.CentralDisconnected
@@ -22,8 +19,6 @@ import com.juul.kable.State.Disconnected.Status.LinkManagerProtocolTimeout
 import com.juul.kable.State.Disconnected.Status.PeripheralDisconnected
 import com.juul.kable.State.Disconnected.Status.Timeout
 import com.juul.kable.State.Disconnected.Status.Unknown
-import com.juul.kable.TAG
-import com.juul.kable.detail
 import com.juul.kable.external.GATT_CONN_CANCEL
 import com.juul.kable.external.GATT_CONN_FAIL_ESTABLISH
 import com.juul.kable.external.GATT_CONN_L2C_FAILURE
@@ -37,6 +32,9 @@ import com.juul.kable.gatt.Response.OnDescriptorRead
 import com.juul.kable.gatt.Response.OnDescriptorWrite
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.detail
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
@@ -60,7 +58,7 @@ internal class Callback(
     macAddress: String,
 ) : BluetoothGattCallback() {
 
-    private val logger = Logger(logging, tag = "$TAG/Callback", prefix = "$macAddress ")
+    private val logger = Logger(logging, tag = "Kable/Callback", prefix = "$macAddress ")
 
     private var disconnectedAction: DisconnectedAction? = null
     fun invokeOnDisconnected(action: DisconnectedAction) {
@@ -255,6 +253,14 @@ internal class Callback(
         onMtuChanged.trySendOrLog(event)
         if (status == GATT_SUCCESS) this.mtu.value = mtu
     }
+
+    private fun <E> SendChannel<E>.trySendOrLog(element: E) {
+        trySend(element).getOrElse { cause ->
+            logger.warn(cause) {
+                message = "Callback was unable to deliver $element"
+            }
+        }
+    }
 }
 
 private val Int.disconnectedConnectionStatus: State.Disconnected.Status?
@@ -285,9 +291,3 @@ private val Int.connectionStateString: String
         STATE_DISCONNECTED -> "Disconnected"
         else -> "Unknown($this)"
     }
-
-private fun <E> SendChannel<E>.trySendOrLog(element: E) {
-    trySend(element).getOrElse { cause ->
-        Log.w(TAG, "Callback was unable to deliver $element", cause)
-    }
-}

@@ -25,6 +25,9 @@ import com.juul.kable.State.Disconnected.Status.Unknown
 import com.juul.kable.State.Disconnected.Status.UnknownDevice
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.detail
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineScope
