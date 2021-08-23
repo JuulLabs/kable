@@ -84,10 +84,6 @@ android {
         minSdkVersion(21)
     }
 
-    buildFeatures {
-        buildConfig = false
-    }
-
     lintOptions {
         isAbortOnError = true
         isWarningsAsErrors = true

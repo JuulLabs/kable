@@ -50,7 +50,7 @@ internal sealed class AndroidObservationEvent {
  */
 internal class Observers(
     private val peripheral: AndroidPeripheral,
-    logging: Logging
+    logging: Logging,
 ) {
 
     private val logger = Logger(logging, tag = "Kable/Observers")

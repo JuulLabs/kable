@@ -137,7 +137,7 @@ internal class Callback(
             message = "onServicesDiscovered"
             detail(event.status)
         }
-        logger.trySendOrLog(onResponse, event)
+        onResponse.trySendOrLog(event)
     }
 
     override fun onCharacteristicRead(
@@ -153,7 +153,7 @@ internal class Callback(
             detail(event.status)
             detail(value)
         }
-        logger.trySendOrLog(onResponse, event)
+        onResponse.trySendOrLog(event)
     }
 
     override fun onCharacteristicWrite(
@@ -167,7 +167,7 @@ internal class Callback(
             detail(characteristic)
             detail(event.status)
         }
-        logger.trySendOrLog(onResponse, event)
+        onResponse.trySendOrLog(event)
     }
 
     override fun onCharacteristicChanged(
@@ -181,7 +181,7 @@ internal class Callback(
             detail(characteristic)
             detail(value)
         }
-        logger.trySendOrLog(_onCharacteristicChanged, event)
+        _onCharacteristicChanged.trySendOrLog(event)
     }
 
     override fun onDescriptorRead(
@@ -197,7 +197,7 @@ internal class Callback(
             detail(event.status)
             detail(value)
         }
-        logger.trySendOrLog(onResponse, event)
+        onResponse.trySendOrLog(event)
     }
 
     override fun onDescriptorWrite(
@@ -211,7 +211,7 @@ internal class Callback(
             detail(descriptor)
             detail(event.status)
         }
-        logger.trySendOrLog(onResponse, event)
+        onResponse.trySendOrLog(event)
     }
 
     override fun onReliableWriteCompleted(
@@ -236,7 +236,7 @@ internal class Callback(
             detail("rssi", event.rssi)
             detail(event.status)
         }
-        logger.trySendOrLog(onResponse, event)
+        onResponse.trySendOrLog(event)
     }
 
     override fun onMtuChanged(
@@ -250,8 +250,16 @@ internal class Callback(
             detail("mtu", event.mtu)
             detail(event.status)
         }
-        logger.trySendOrLog(onMtuChanged, event)
+        onMtuChanged.trySendOrLog(event)
         if (status == GATT_SUCCESS) this.mtu.value = mtu
+    }
+
+    private fun <E> SendChannel<E>.trySendOrLog(element: E) {
+        trySend(element).getOrElse { cause ->
+            logger.warn(cause) {
+                message = "Callback was unable to deliver $element"
+            }
+        }
     }
 }
 
@@ -283,11 +291,3 @@ private val Int.connectionStateString: String
         STATE_DISCONNECTED -> "Disconnected"
         else -> "Unknown($this)"
     }
-
-private fun <E> Logger.trySendOrLog(channel: SendChannel<E>, element: E) {
-    channel.trySend(element).getOrElse { cause ->
-        warn(cause) {
-            message = "Callback was unable to deliver $element"
-        }
-    }
-}
