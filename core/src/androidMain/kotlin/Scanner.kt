@@ -9,7 +9,6 @@ import android.os.ParcelUuid
 import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import com.juul.kable.logs.LoggingBuilder
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
@@ -20,11 +19,6 @@ import kotlinx.coroutines.flow.callbackFlow
 public class ScanFailedException internal constructor(
     public val errorCode: Int,
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
-
-public actual fun Scanner(services: List<Uuid>?): Scanner = Scanner(services) { }
-
-public fun Scanner(services: List<Uuid>?, configureLogging: LoggingBuilder): Scanner =
-    AndroidScanner(services, Logging().apply(configureLogging))
 
 public class AndroidScanner internal constructor(
     private val filterServices: List<Uuid>?,
