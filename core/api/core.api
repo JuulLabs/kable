@@ -235,7 +235,7 @@ public final class com/juul/kable/ScannerBuilder {
 public final class com/juul/kable/ScannerKt {
 	public static final fun Scanner (Ljava/util/List;)Lcom/juul/kable/Scanner;
 	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Scanner;
-	public static synthetic fun Scanner$default (Ljava/util/List;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
+	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
 }
 
 public abstract interface class com/juul/kable/Service {
@@ -356,6 +356,19 @@ public final class com/juul/kable/WriteType : java/lang/Enum {
 	public static fun values ()[Lcom/juul/kable/WriteType;
 }
 
+public final class com/juul/kable/logs/HexBuilder {
+	public final fun getLowerCase ()Z
+	public final fun getSeparator ()Ljava/lang/String;
+	public final fun setLowerCase (Z)V
+	public final fun setSeparator (Ljava/lang/String;)V
+}
+
+public final class com/juul/kable/logs/HexKt {
+	public static final fun Hex (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/logs/Logging$DataProcessor;
+	public static synthetic fun Hex$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/logs/Logging$DataProcessor;
+	public static final fun getHex ()Lcom/juul/kable/logs/Logging$DataProcessor;
+}
+
 public abstract interface class com/juul/kable/logs/LogEngine {
 	public abstract fun assert (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
 	public abstract fun debug (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
@@ -367,21 +380,18 @@ public abstract interface class com/juul/kable/logs/LogEngine {
 
 public final class com/juul/kable/logs/Logging {
 	public fun <init> ()V
-	public final fun data (Lkotlin/jvm/functions/Function1;)V
+	public final fun getData ()Lcom/juul/kable/logs/Logging$DataProcessor;
 	public final fun getEngine ()Lcom/juul/kable/logs/LogEngine;
 	public final fun getFormat ()Lcom/juul/kable/logs/Logging$Format;
 	public final fun getLevel ()Lcom/juul/kable/logs/Logging$Level;
+	public final fun setData (Lcom/juul/kable/logs/Logging$DataProcessor;)V
 	public final fun setEngine (Lcom/juul/kable/logs/LogEngine;)V
 	public final fun setFormat (Lcom/juul/kable/logs/Logging$Format;)V
 	public final fun setLevel (Lcom/juul/kable/logs/Logging$Level;)V
 }
 
-public final class com/juul/kable/logs/Logging$Data {
-	public fun <init> ()V
-	public final fun getLowerCase ()Z
-	public final fun getSeparator ()Ljava/lang/String;
-	public final fun setLowerCase (Z)V
-	public final fun setSeparator (Ljava/lang/String;)V
+public abstract interface class com/juul/kable/logs/Logging$DataProcessor {
+	public abstract fun process ([B)Ljava/lang/String;
 }
 
 public final class com/juul/kable/logs/Logging$Format : java/lang/Enum {
