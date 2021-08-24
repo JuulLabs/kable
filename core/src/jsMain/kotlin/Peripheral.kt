@@ -308,7 +308,7 @@ public class JsPeripheral internal constructor(
     }
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
-        val listener = observationListeners[characteristic] ?: return
+        val listener = observationListeners.remove(characteristic) ?: return
         logger.verbose {
             message = "observe stop"
             detail(characteristic)
