@@ -17,6 +17,31 @@ To scan for nearby peripherals, the [`Scanner`] provides an [`advertisements`] [
 [`Advertisement`] objects representing advertisements seen from nearby peripherals. [`Advertisement`] objects contain
 information such as the peripheral's name and RSSI (signal strength).
 
+The [`Scanner`] may be configured via the following DSL (shown are defaults, when not specified):
+
+```kotlin
+val scanner = Scanner {
+    services = null,
+    logging {
+        engine = SystemLogEngine,
+        level = Warnings,
+        format = Multiline,
+    }
+}
+```
+
+To filter scan results at the system level (recommended), specify a list of services the remote peripheral is
+advertising, for example:
+
+```kotlin
+val scanner = Scanner {
+    services = listOf(
+        uuidFrom("f000aa80-0451-4000-b000-000000000000"),
+        uuidFrom("f000aa81-0451-4000-b000-000000000000"),
+    ),
+}
+```
+
 Scanning begins when the [`advertisements`] [`Flow`] is collected and stops when the [`Flow`] collection is terminated.
 A [`Flow`] terminal operator (such as [`first`]) may be used to scan until an advertisement is found that matches a
 desired predicate. 
@@ -53,10 +78,10 @@ val peripheral = scope.peripheral(advertisement) {
 #### Logging
 
 By default, Kable only logs a small number of warnings when unexpected failures occur. To aid in debugging, additional
-logging may be enabled and configured via the `logging` DSL lambda, for example:
+logging may be enabled and configured via the `logging` DSL, for example:
 
 ```kotlin
-val peripheral = scope.peripheral(advertisment) {
+val peripheral = scope.peripheral(advertisement) {
     logging {
         level = Events // or Data
     }
@@ -65,7 +90,6 @@ val peripheral = scope.peripheral(advertisment) {
 
 The available log levels are:
 
-- `Disabled`: Disables all logging
 - `Warnings`: Logs warnings when unexpected failures occur _(default)_
 - `Events`: Same as `Warnings` plus logs all events (e.g. writing to a characteristic)
 - `Data`: Same as `Events` plus hex representation of I/O data
@@ -75,6 +99,7 @@ Available logging settings are as follows (all settings are optional; shown are 
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
     logging {
+        engine = SystemLogEngine,
         level = Warnings
         format = Multiline
         data {
