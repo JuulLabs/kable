@@ -8,12 +8,12 @@ public interface Scanner {
 }
 
 @Deprecated(
-    "Replaced with ScannerBuilder DSL",
-    ReplaceWith("Scanner { this.services = services }")
+    message = "Replaced with ScannerBuilder DSL",
+    replaceWith = ReplaceWith("Scanner { this.services = services }"),
 )
 public fun Scanner(services: List<Uuid>? = null): Scanner =
     ScannerBuilder().apply { this.services = services }.build()
 
 public fun Scanner(
-    builderAction: ScannerBuilder.() -> Unit
+    builderAction: ScannerBuilder.() -> Unit = {},
 ): Scanner = ScannerBuilder().apply(builderAction).build()
