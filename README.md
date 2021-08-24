@@ -102,9 +102,27 @@ val peripheral = scope.peripheral(advertisement) {
         engine = SystemLogEngine
         level = Warnings
         format = Multiline
-        data {
+        data = Hex
+    }
+}
+```
+
+Display format of I/O data may be customized, either by configuring the `Hex` representation, or by providing a
+`DataProcessor`, for example:
+
+```kotlin
+val peripheral = scope.peripheral(advertisement) {
+    logging {
+        data = Hex {
             separator = " "
             lowerCase = false
+        }
+
+        // or...
+
+        data = DataProcessor { bytes ->
+            // todo: Convert `bytes` to desired String representation, for example:
+            bytes.joinToString { byte -> byte.toString() } // Show data as integer representation of bytes.
         }
     }
 }
