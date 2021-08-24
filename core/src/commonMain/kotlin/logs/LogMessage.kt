@@ -42,24 +42,26 @@ internal class LogMessage {
         details.forEachIndexed { index, detail ->
             val (key, value) = detail
 
-            if (logging.format == Logging.Format.Multiline && LOG_INDENT != null) append(LOG_INDENT)
-            append(key)
-            when (logging.format) {
-                Logging.Format.Compact -> append("=")
-                Logging.Format.Multiline -> append(": ")
-            }
+            if (value !is ByteArray || logging.level == Logging.Level.Data) {
+                if (index > 0) {
+                    when (logging.format) {
+                        Logging.Format.Compact -> append(", ")
+                        Logging.Format.Multiline -> appendLine()
+                    }
+                }
 
-            if (value is ByteArray) {
-                if (logging.level == Logging.Level.Data) append(logging.data.process(value))
-            } else {
-                append(value)
-            }
+                if (logging.format == Logging.Format.Multiline && LOG_INDENT != null) append(LOG_INDENT)
 
-            when (logging.format) {
-                Logging.Format.Compact -> if (index < details.lastIndex) append(", ") else append(')')
-                Logging.Format.Multiline -> if (index < details.lastIndex) appendLine()
+                append(key)
+                when (logging.format) {
+                    Logging.Format.Compact -> append("=")
+                    Logging.Format.Multiline -> append(": ")
+                }
+                if (value is ByteArray) append(logging.data.process(value)) else append(value)
             }
         }
+
+        if (logging.format == Logging.Format.Compact && details.isNotEmpty()) append(')')
     }
 }
 
