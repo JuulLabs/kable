@@ -92,7 +92,7 @@ The available log levels are:
 
 - `Warnings`: Logs warnings when unexpected failures occur _(default)_
 - `Events`: Same as `Warnings` plus logs all events (e.g. writing to a characteristic)
-- `Data`: Same as `Events` plus hex representation of I/O data
+- `Data`: Same as `Events` plus string representation of I/O data
 
 Available logging settings are as follows (all settings are optional; shown are defaults, when not specified):
 
@@ -106,6 +106,13 @@ val peripheral = scope.peripheral(advertisement) {
     }
 }
 ```
+
+The format of the logs can be either `Compact` (on a single line per log) or `Multiline` (spanning multiple lines for
+details):
+
+| `Compact` | `Multiline` _(default)_ |
+|-----------|-------------------------|
+| <pre>example message(detail1=value1, detail2=value2, ...)</pre> | <pre>example message<br/>  detail1: value1<br/>  detail2: value2<br/>  ...</pre> |
 
 Display format of I/O data may be customized, either by configuring the `Hex` representation, or by providing a
 `DataProcessor`, for example:
@@ -128,14 +135,7 @@ val peripheral = scope.peripheral(advertisement) {
 }
 ```
 
-The format of the logs can be either `Compact` (on a single line per log) or `Multiline` (spanning multiple lines for
-details):
-
-| `Compact` | `Multiline` _(default)_ |
-|-----------|-------------------------|
-| <pre>example message(detail1=value1, detail2=value2, ...)</pre> | <pre>example message<br/>  detail1: value1<br/>  detail2: value2<br/>  ...</pre> |
-
-The `data` lambda can be used for configuring the hex representation of I/O data (when logging `level` is set to `Data`).
+_I/O data is only shown in logs when logging `level` is set to `Data`._
 
 #### Service Discovery
 
