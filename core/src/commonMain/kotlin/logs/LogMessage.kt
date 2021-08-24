@@ -5,7 +5,6 @@ import com.juul.kable.Characteristic
 import com.juul.kable.Descriptor
 import com.juul.kable.Service
 import com.juul.kable.WriteType
-import com.juul.kable.toHexString
 
 internal expect val LOG_INDENT: String?
 
@@ -51,11 +50,7 @@ internal class LogMessage {
             }
 
             if (value is ByteArray) {
-                if (logging.level == Logging.Level.Data) {
-                    val separator = logging.data.separator
-                    val lowerCase = logging.data.lowerCase
-                    append(value.toHexString(separator = separator, lowerCase = lowerCase))
-                }
+                if (logging.level == Logging.Level.Data) append(logging.data.process(value))
             } else {
                 append(value)
             }

@@ -40,23 +40,12 @@ public class Logging {
         Multiline,
     }
 
-    public class Data {
-
-        /** Separator between each byte in the hex representation of data (when [Data][Level.Data] log level is used). */
-        public var separator: String = " "
-
-        /** Configures if hex representation of data (when [Data][Level.Data] log level is used) should be lower-case. */
-        public var lowerCase: Boolean = false
-    }
-
-    internal var data: Data = Data()
-    public fun data(init: Data.() -> Unit) {
-        val data = Data()
-        data.init()
-        this.data = data
+    public fun interface DataProcessor {
+        public fun process(data: ByteArray): String
     }
 
     public var engine: LogEngine = SystemLogEngine
     public var level: Level = Level.Warnings
     public var format: Format = Format.Multiline
+    public var data: DataProcessor = Hex
 }
