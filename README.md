@@ -21,11 +21,11 @@ The [`Scanner`] may be configured via the following DSL (shown are defaults, whe
 
 ```kotlin
 val scanner = Scanner {
-    services = null,
+    services = null
     logging {
-        engine = SystemLogEngine,
-        level = Warnings,
-        format = Multiline,
+        engine = SystemLogEngine
+        level = Warnings
+        format = Multiline
     }
 }
 ```
@@ -38,7 +38,7 @@ val scanner = Scanner {
     services = listOf(
         uuidFrom("f000aa80-0451-4000-b000-000000000000"),
         uuidFrom("f000aa81-0451-4000-b000-000000000000"),
-    ),
+    )
 }
 ```
 
@@ -99,7 +99,7 @@ Available logging settings are as follows (all settings are optional; shown are 
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
     logging {
-        engine = SystemLogEngine,
+        engine = SystemLogEngine
         level = Warnings
         format = Multiline
         data {
