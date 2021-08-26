@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
+import com.juul.kable.logs.Logging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -13,14 +14,10 @@ import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.CoreBluetooth.CBManagerStateUnauthorized
 import platform.CoreBluetooth.CBManagerStateUnsupported
 
-public actual fun Scanner(services: List<Uuid>?): Scanner = AppleScanner(
-    central = CentralManager.Default,
-    services = services,
-)
-
 public class AppleScanner internal constructor(
     central: CentralManager,
-    services: List<Uuid>?
+    services: List<Uuid>?,
+    logging: Logging,
 ) : Scanner {
 
     public override val advertisements: Flow<Advertisement> =

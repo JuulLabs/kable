@@ -1,5 +1,7 @@
 package com.juul.kable
 
+import com.juul.kable.logs.LoggingBuilder
+
 public expect class ServicesDiscoveredPeripheral {
 
     public suspend fun read(
@@ -25,5 +27,6 @@ public expect class ServicesDiscoveredPeripheral {
 internal typealias ServicesDiscoveredAction = suspend ServicesDiscoveredPeripheral.() -> Unit
 
 public expect class PeripheralBuilder internal constructor() {
+    public fun logging(init: LoggingBuilder)
     public fun onServicesDiscovered(action: ServicesDiscoveredAction)
 }

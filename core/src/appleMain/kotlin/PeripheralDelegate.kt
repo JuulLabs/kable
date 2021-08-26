@@ -7,6 +7,10 @@ import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForC
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
 import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.IsReadyToSendWriteWithoutResponse
+import com.juul.kable.logs.LogMessage
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.detail
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -14,6 +18,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
+import platform.CoreBluetooth.CBL2CAPChannel
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBPeripheralDelegateProtocol
 import platform.CoreBluetooth.CBService
@@ -25,7 +30,7 @@ import platform.darwin.NSObject
 import kotlin.native.concurrent.freeze
 
 // https://developer.apple.com/documentation/corebluetooth/cbperipheraldelegate
-internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
+internal class PeripheralDelegate(logging: Logging) : NSObject(), CBPeripheralDelegateProtocol {
 
     sealed class Response {
 
@@ -95,24 +100,48 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
     private val _characteristicChanges = MutableSharedFlow<DidUpdateValueForCharacteristic>(extraBufferCapacity = 64)
     val characteristicChanges = _characteristicChanges.asSharedFlow()
 
+    private val logger = Logger(logging)
+
     /* Discovering Services */
 
     override fun peripheral(
         peripheral: CBPeripheral,
         didDiscoverServices: NSError?,
     ) {
+        logger.debug {
+            message = "${peripheral.identifier} didDiscoverServices"
+            detail(didDiscoverServices)
+        }
         _response.sendBlocking(DidDiscoverServices(peripheral.identifier, didDiscoverServices))
     }
 
-    // todo: func peripheral(CBPeripheral, didDiscoverIncludedServicesFor: CBService, error: Error?)
+    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
+    @Suppress("CONFLICTING_OVERLOADS")
+    override fun peripheral(
+        peripheral: CBPeripheral,
+        didDiscoverIncludedServicesForService: CBService,
+        error: NSError?,
+    ) {
+        logger.debug(error) {
+            message = "${peripheral.identifier} didDiscoverIncludedServicesForService"
+            detail(didDiscoverIncludedServicesForService)
+        }
+        // todo
+    }
 
     /* Discovering Characteristics and their Descriptors */
 
+    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
+    @Suppress("CONFLICTING_OVERLOADS")
     override fun peripheral(
         peripheral: CBPeripheral,
         didDiscoverCharacteristicsForService: CBService,
         error: NSError?
     ) {
+        logger.debug(error) {
+            message = "${peripheral.identifier} didDiscoverCharacteristicsForService"
+            detail(didDiscoverCharacteristicsForService)
+        }
         _response.sendBlocking(
             Response.DidDiscoverCharacteristicsForService(
                 peripheral.identifier,
@@ -122,7 +151,19 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         )
     }
 
-    // todo: func peripheral(CBPeripheral, didDiscoverDescriptorsFor: CBCharacteristic, error: Error?)
+    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
+    @Suppress("CONFLICTING_OVERLOADS")
+    override fun peripheral(
+        peripheral: CBPeripheral,
+        didDiscoverDescriptorsForCharacteristic: CBCharacteristic,
+        error: NSError?,
+    ) {
+        logger.debug(error) {
+            message = "${peripheral.identifier} didDiscoverDescriptorsForCharacteristic"
+            detail(didDiscoverDescriptorsForCharacteristic)
+        }
+        // todo
+    }
 
     /* Retrieving Characteristic and Descriptor Values */
 
@@ -131,14 +172,21 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
     override fun peripheral(
         peripheral: CBPeripheral,
         didUpdateValueForCharacteristic: CBCharacteristic,
-        error: NSError?
+        error: NSError?,
     ) {
         val cbCharacteristic = didUpdateValueForCharacteristic.freeze()
+
+        logger.debug(error) {
+            message = "${peripheral.identifier} didUpdateValueForCharacteristic"
+            detail(didUpdateValueForCharacteristic)
+            detail(cbCharacteristic.value)
+        }
 
         val change = if (error == null) {
             // Assumption: `value == null` and `error == null` are mutually exclusive.
             // i.e. When `error == null` then `CBCharacteristic`'s `value` is non-null.
-            DidUpdateValueForCharacteristic.Data(cbCharacteristic, cbCharacteristic.value!!)
+            val data = cbCharacteristic.value!!
+            DidUpdateValueForCharacteristic.Data(cbCharacteristic, data)
         } else {
             DidUpdateValueForCharacteristic.Error(cbCharacteristic, error)
         }
@@ -146,11 +194,17 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         _characteristicChanges.emitBlocking(change)
     }
 
+    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
+    @Suppress("CONFLICTING_OVERLOADS")
     override fun peripheral(
         peripheral: CBPeripheral,
         didUpdateValueForDescriptor: CBDescriptor,
-        error: NSError?
+        error: NSError?,
     ) {
+        logger.debug(error) {
+            message = "${peripheral.identifier} didUpdateValueForDescriptor"
+            detail(didUpdateValueForDescriptor)
+        }
         _response.sendBlocking(
             DidUpdateValueForDescriptor(peripheral.identifier, didUpdateValueForDescriptor, error)
         )
@@ -165,6 +219,10 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         didWriteValueForCharacteristic: CBCharacteristic,
         error: NSError?
     ) {
+        logger.debug(error) {
+            message = "${peripheral.identifier} didWriteValueForCharacteristic"
+            detail(didWriteValueForCharacteristic)
+        }
         _response.sendBlocking(
             DidWriteValueForCharacteristic(
                 peripheral.identifier,
@@ -174,11 +232,26 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         )
     }
 
-    // todo: func peripheral(CBPeripheral, didWriteValueFor: CBDescriptor, error: Error?)
+    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
+    @Suppress("CONFLICTING_OVERLOADS")
+    override fun peripheral(
+        peripheral: CBPeripheral,
+        didWriteValueForDescriptor: CBDescriptor,
+        error: NSError?,
+    ) {
+        logger.debug(error) {
+            message = "${peripheral.identifier} didWriteValueForDescriptor"
+            detail(didWriteValueForDescriptor)
+        }
+        // todo
+    }
 
     override fun peripheralIsReadyToSendWriteWithoutResponse(
         peripheral: CBPeripheral
     ) {
+        logger.debug {
+            message = "${peripheral.identifier} peripheralIsReadyToSendWriteWithoutResponse"
+        }
         _response.sendBlocking(
             IsReadyToSendWriteWithoutResponse(peripheral.identifier, error = null)
         )
@@ -193,6 +266,10 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         didUpdateNotificationStateForCharacteristic: CBCharacteristic,
         error: NSError?
     ) {
+        logger.debug(error) {
+            message = "${peripheral.identifier} didUpdateNotificationStateForCharacteristic"
+            detail(didUpdateNotificationStateForCharacteristic)
+        }
         _response.sendBlocking(
             DidUpdateNotificationStateForCharacteristic(
                 peripheral.identifier,
@@ -209,21 +286,58 @@ internal class PeripheralDelegate : NSObject(), CBPeripheralDelegateProtocol {
         didReadRSSI: NSNumber,
         error: NSError?,
     ) {
+        logger.debug(error) {
+            message = "${peripheral.identifier} didReadRSSI"
+            detail("rssi", didReadRSSI.stringValue)
+        }
         _response.sendBlocking(DidReadRssi(peripheral.identifier, didReadRSSI, error))
     }
 
     /* Monitoring Changes to a Peripheral’s Name or Services */
 
-    // todo: func peripheralDidUpdateName(CBPeripheral)
+    override fun peripheralDidUpdateName(peripheral: CBPeripheral) {
+        logger.debug {
+            message = "${peripheral.identifier} peripheralDidUpdateName"
+        }
+        // todo
+    }
 
-    // todo: func peripheral(CBPeripheral, didModifyServices: [CBService])
+    override fun peripheral(
+        peripheral: CBPeripheral,
+        didModifyServices: List<*>,
+    ) {
+        logger.debug {
+            message = "${peripheral.identifier} didModifyServices"
+        }
+        // todo
+    }
 
     /* Monitoring L2CAP Channels */
 
-    // todo: func peripheral(CBPeripheral, didOpen: CBL2CAPChannel?, error: Error?)
+    override fun peripheral(
+        peripheral: CBPeripheral,
+        didOpenL2CAPChannel: CBL2CAPChannel?,
+        error: NSError?,
+    ) {
+        logger.debug(error) {
+            message = "${peripheral.identifier} didOpenL2CAPChannel"
+        }
+        // todo
+    }
 
     fun close() {
         _response.close(ConnectionLostException())
         _characteristicChanges.emitBlocking(Closed)
+    }
+}
+
+private inline fun Logger.debug(error: NSError?, crossinline init: LogMessage.() -> Unit) {
+    if (error == null) {
+        debug(init = init)
+    } else {
+        warn {
+            init()
+            detail(error)
+        }
     }
 }

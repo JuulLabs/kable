@@ -2,6 +2,8 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.detail
 import kotlinx.coroutines.await
 
 internal data class PlatformCharacteristic(
@@ -19,13 +21,18 @@ internal fun PlatformCharacteristic.toDiscoveredCharacteristic() = DiscoveredCha
 
 internal suspend fun BluetoothRemoteGATTCharacteristic.toPlatformCharacteristic(
     serviceUuid: Uuid,
+    logger: Logger,
 ): PlatformCharacteristic {
     val characteristicUuid = uuid.toUuid()
     val descriptors = runCatching { getDescriptors().await() }
-        .onFailure { console.warn(it) }
+        .onFailure { cause ->
+            logger.error(cause) {
+                message = "Unable to retrieve descriptor."
+                detail(this@toPlatformCharacteristic)
+            }
+        }
         .getOrDefault(emptyArray())
     val platformDescriptors = descriptors.map { descriptor ->
-        console.dir(descriptor)
         descriptor.toPlatformDescriptor(serviceUuid, characteristicUuid)
     }
 

@@ -30,16 +30,31 @@ public sealed class State {
             public object PeripheralDisconnected : Status()
 
             /**
+             * - Android: `GATT_CONN_TERMINATE_LOCAL_HOST`
+             */
+            public object CentralDisconnected : Status()
+
+            /**
              * - Android: `GATT_CONN_FAIL_ESTABLISH`
              * - Apple: `CBErrorConnectionFailed`
              */
             public object Failed : Status()
 
             /**
+             * - Android: `GATT_CONN_L2C_FAILURE`
+             */
+            public object L2CapFailure : Status()
+
+            /**
              * - Android: `GATT_CONN_TIMEOUT`
              * - Apple: `CBErrorConnectionTimeout`
              */
             public object Timeout : Status()
+
+            /**
+             * - Android: `GATT_CONN_LMP_TIMEOUT`
+             */
+            public object LinkManagerProtocolTimeout : Status()
 
             /**
              * - Apple: `CBErrorUnknownDevice`

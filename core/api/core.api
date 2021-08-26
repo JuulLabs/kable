@@ -182,6 +182,7 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 public final class com/juul/kable/PeripheralBuilder {
 	public final fun getPhy ()Lcom/juul/kable/Phy;
 	public final fun getTransport ()Lcom/juul/kable/Transport;
+	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
 	public final fun setPhy (Lcom/juul/kable/Phy;)V
 	public final fun setTransport (Lcom/juul/kable/Transport;)V
@@ -224,9 +225,17 @@ public abstract interface class com/juul/kable/Scanner {
 	public abstract fun getAdvertisements ()Lkotlinx/coroutines/flow/Flow;
 }
 
+public final class com/juul/kable/ScannerBuilder {
+	public fun <init> ()V
+	public final fun getServices ()Ljava/util/List;
+	public final fun logging (Lkotlin/jvm/functions/Function1;)V
+	public final fun setServices (Ljava/util/List;)V
+}
+
 public final class com/juul/kable/ScannerKt {
 	public static final fun Scanner (Ljava/util/List;)Lcom/juul/kable/Scanner;
-	public static synthetic fun Scanner$default (Ljava/util/List;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
+	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Scanner;
+	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
 }
 
 public abstract interface class com/juul/kable/Service {
@@ -273,6 +282,10 @@ public final class com/juul/kable/State$Disconnected$Status$Cancelled : com/juul
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$Cancelled;
 }
 
+public final class com/juul/kable/State$Disconnected$Status$CentralDisconnected : com/juul/kable/State$Disconnected$Status {
+	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$CentralDisconnected;
+}
+
 public final class com/juul/kable/State$Disconnected$Status$ConnectionLimitReached : com/juul/kable/State$Disconnected$Status {
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$ConnectionLimitReached;
 }
@@ -283,6 +296,14 @@ public final class com/juul/kable/State$Disconnected$Status$EncryptionTimedOut :
 
 public final class com/juul/kable/State$Disconnected$Status$Failed : com/juul/kable/State$Disconnected$Status {
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$Failed;
+}
+
+public final class com/juul/kable/State$Disconnected$Status$L2CapFailure : com/juul/kable/State$Disconnected$Status {
+	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$L2CapFailure;
+}
+
+public final class com/juul/kable/State$Disconnected$Status$LinkManagerProtocolTimeout : com/juul/kable/State$Disconnected$Status {
+	public static final field INSTANCE Lcom/juul/kable/State$Disconnected$Status$LinkManagerProtocolTimeout;
 }
 
 public final class com/juul/kable/State$Disconnected$Status$PeripheralDisconnected : com/juul/kable/State$Disconnected$Status {
@@ -333,5 +354,68 @@ public final class com/juul/kable/WriteType : java/lang/Enum {
 	public static final field WithoutResponse Lcom/juul/kable/WriteType;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/WriteType;
 	public static fun values ()[Lcom/juul/kable/WriteType;
+}
+
+public final class com/juul/kable/logs/HexBuilder {
+	public final fun getLowerCase ()Z
+	public final fun getSeparator ()Ljava/lang/String;
+	public final fun setLowerCase (Z)V
+	public final fun setSeparator (Ljava/lang/String;)V
+}
+
+public final class com/juul/kable/logs/HexKt {
+	public static final fun Hex (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/logs/Logging$DataProcessor;
+	public static synthetic fun Hex$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/logs/Logging$DataProcessor;
+	public static final fun getHex ()Lcom/juul/kable/logs/Logging$DataProcessor;
+}
+
+public abstract interface class com/juul/kable/logs/LogEngine {
+	public abstract fun assert (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun debug (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun error (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun info (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun verbose (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun warn (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class com/juul/kable/logs/Logging {
+	public fun <init> ()V
+	public final fun getData ()Lcom/juul/kable/logs/Logging$DataProcessor;
+	public final fun getEngine ()Lcom/juul/kable/logs/LogEngine;
+	public final fun getFormat ()Lcom/juul/kable/logs/Logging$Format;
+	public final fun getLevel ()Lcom/juul/kable/logs/Logging$Level;
+	public final fun setData (Lcom/juul/kable/logs/Logging$DataProcessor;)V
+	public final fun setEngine (Lcom/juul/kable/logs/LogEngine;)V
+	public final fun setFormat (Lcom/juul/kable/logs/Logging$Format;)V
+	public final fun setLevel (Lcom/juul/kable/logs/Logging$Level;)V
+}
+
+public abstract interface class com/juul/kable/logs/Logging$DataProcessor {
+	public abstract fun process ([B)Ljava/lang/String;
+}
+
+public final class com/juul/kable/logs/Logging$Format : java/lang/Enum {
+	public static final field Compact Lcom/juul/kable/logs/Logging$Format;
+	public static final field Multiline Lcom/juul/kable/logs/Logging$Format;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/logs/Logging$Format;
+	public static fun values ()[Lcom/juul/kable/logs/Logging$Format;
+}
+
+public final class com/juul/kable/logs/Logging$Level : java/lang/Enum {
+	public static final field Data Lcom/juul/kable/logs/Logging$Level;
+	public static final field Events Lcom/juul/kable/logs/Logging$Level;
+	public static final field Warnings Lcom/juul/kable/logs/Logging$Level;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/logs/Logging$Level;
+	public static fun values ()[Lcom/juul/kable/logs/Logging$Level;
+}
+
+public final class com/juul/kable/logs/SystemLogEngine : com/juul/kable/logs/LogEngine {
+	public static final field INSTANCE Lcom/juul/kable/logs/SystemLogEngine;
+	public fun assert (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun debug (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun error (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun info (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun verbose (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
+	public fun warn (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
 }
 

@@ -27,3 +27,8 @@ object androidx {
         version: String = "1.0.0"
     ) = "androidx.startup:startup-runtime:$version"
 }
+
+fun tuulbox(
+    module: String,
+    version: String = "4.3.0"
+) = "com.juul.tuulbox:$module:$version"

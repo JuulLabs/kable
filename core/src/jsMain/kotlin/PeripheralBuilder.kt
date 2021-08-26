@@ -1,5 +1,8 @@
 package com.juul.kable
 
+import com.juul.kable.logs.Logging
+import com.juul.kable.logs.LoggingBuilder
+
 public actual class ServicesDiscoveredPeripheral internal constructor(
     private val peripheral: JsPeripheral
 ) {
@@ -29,6 +32,13 @@ public actual class ServicesDiscoveredPeripheral internal constructor(
 }
 
 public actual class PeripheralBuilder internal actual constructor() {
+
+    internal var logging: Logging = Logging()
+    public actual fun logging(init: LoggingBuilder) {
+        val logging = Logging()
+        logging.init()
+        this.logging = logging
+    }
 
     internal var onServicesDiscovered: ServicesDiscoveredAction = {}
     public actual fun onServicesDiscovered(action: ServicesDiscoveredAction) {
