@@ -2,7 +2,7 @@ package com.juul.kable
 
 public sealed class State {
 
-    public sealed class Connecting : State()  {
+    public sealed class Connecting : State() {
         public object Bluetooth : Connecting()
         public object Services : Connecting()
         public object Observers : Connecting()
