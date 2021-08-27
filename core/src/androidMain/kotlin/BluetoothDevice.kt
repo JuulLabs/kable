@@ -30,12 +30,17 @@ internal fun BluetoothDevice.connect(
     mtu: MutableStateFlow<Int?>,
     logging: Logging,
     invokeOnClose: () -> Unit,
-): Connection? =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+): Connection? {
+    // Explicitly set Connecting state so when Peripheral is suspending until Connected, it doesn't incorrectly see
+    // Disconnected before the connection request has kicked off the Connecting state (via Callback).
+    state.value = State.Connecting.Bluetooth
+
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         connectApi26(context, transport, phy, state, mtu, logging, invokeOnClose)
     } else {
         connectApi21(context, transport, state, mtu, logging, invokeOnClose)
     }
+}
 
 /**
  * @param transport is only used on API level >= 23.
@@ -55,10 +60,6 @@ private fun BluetoothDevice.connectApi21(
     } else {
         connectGatt(context, false, callback)
     } ?: return null
-
-    // Explicitly set Connecting state so when Peripheral is suspending until Connected, it doesn't incorrectly see
-    // Disconnected before the connection request has kicked off the Connecting state (via Callback).
-    state.value = State.Connecting
 
     val dispatcher = newSingleThreadContext(threadName)
     return Connection(
@@ -91,10 +92,6 @@ private fun BluetoothDevice.connectApi26(
         val bluetoothGatt =
             connectGatt(context, false, callback, transport.intValue, phy.intValue, handler)
                 ?: return null
-
-        // Explicitly set Connecting state so when Peripheral is suspending until Connected, it doesn't incorrectly see
-        // Disconnected before the connection request has kicked off the Connecting state (via Callback).
-        state.value = State.Connecting
 
         return Connection(
             bluetoothGatt,

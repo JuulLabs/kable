@@ -119,8 +119,8 @@ internal class Callback(
         }
 
         when (newState) {
-            STATE_CONNECTING -> state.value = State.Connecting
-            STATE_CONNECTED -> state.value = State.Connected
+            STATE_CONNECTING -> state.value = State.Connecting.Bluetooth
+            STATE_CONNECTED -> state.value = State.Connecting.Services
             STATE_DISCONNECTING -> state.value = State.Disconnecting
             STATE_DISCONNECTED -> state.value = State.Disconnected(status.disconnectedConnectionStatus)
         }

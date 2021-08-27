@@ -258,8 +258,19 @@ public final class com/juul/kable/State$Connected : com/juul/kable/State {
 	public static final field INSTANCE Lcom/juul/kable/State$Connected;
 }
 
-public final class com/juul/kable/State$Connecting : com/juul/kable/State {
-	public static final field INSTANCE Lcom/juul/kable/State$Connecting;
+public abstract class com/juul/kable/State$Connecting : com/juul/kable/State {
+}
+
+public final class com/juul/kable/State$Connecting$Bluetooth : com/juul/kable/State$Connecting {
+	public static final field INSTANCE Lcom/juul/kable/State$Connecting$Bluetooth;
+}
+
+public final class com/juul/kable/State$Connecting$Observers : com/juul/kable/State$Connecting {
+	public static final field INSTANCE Lcom/juul/kable/State$Connecting$Observers;
+}
+
+public final class com/juul/kable/State$Connecting$Services : com/juul/kable/State$Connecting {
+	public static final field INSTANCE Lcom/juul/kable/State$Connecting$Services;
 }
 
 public final class com/juul/kable/State$Disconnected : com/juul/kable/State {

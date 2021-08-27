@@ -63,7 +63,7 @@ internal class Observers(
     ): Flow<NSData> {
         return characteristicChanges
             .onSubscription {
-                peripheral.suspendUntilReady()
+                peripheral.suspendUntilConnected()
                 if (observations.add(characteristic, onSubscription) == 1) {
                     peripheral.startNotifications(characteristic)
                 }

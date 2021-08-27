@@ -36,7 +36,7 @@ internal class Observers(
         onSubscription: OnSubscriptionAction,
     ): Flow<DataView> = characteristicChanges
         .onSubscription {
-            peripheral.suspendUntilReady()
+            peripheral.suspendUntilConnected()
             if (observations.add(characteristic, onSubscription) == 1) {
                 peripheral.startObservation(characteristic)
             }

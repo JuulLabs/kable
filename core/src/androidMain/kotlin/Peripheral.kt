@@ -41,7 +41,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.CoroutineContext
@@ -136,6 +135,9 @@ public class AndroidPeripheral internal constructor(
 
     private val logger = Logger(logging, tag = "Kable/Peripheral", prefix = "$bluetoothDevice ")
 
+    private val _state = MutableStateFlow<State>(State.Disconnected())
+    public override val state: Flow<State> = _state.asStateFlow()
+
     private val receiver = registerBluetoothStateBroadcastReceiver { state ->
         if (state == STATE_OFF) {
             closeConnection()
@@ -150,9 +152,6 @@ public class AndroidPeripheral internal constructor(
         }
     }
     private val scope = CoroutineScope(parentCoroutineContext + job)
-
-    private val _state = MutableStateFlow<State>(State.Disconnected())
-    public override val state: Flow<State> = _state.asStateFlow()
 
     private val _mtu = MutableStateFlow<Int?>(null)
 
@@ -180,15 +179,6 @@ public class AndroidPeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
-    private val ready = MutableStateFlow(false)
-    internal suspend fun suspendUntilReady() {
-        // fast path
-        if (ready.value && _state.value == State.Connected) return
-
-        // slow path
-        combine(ready, state) { ready, state -> ready && state == State.Connected }.first { it }
-    }
-
     private fun establishConnection(): Connection {
         logger.info { message = "Connecting" }
         return bluetoothDevice.connect(
@@ -204,18 +194,18 @@ public class AndroidPeripheral internal constructor(
 
     /** Creates a connect [Job] that completes when connection is established, or failure occurs. */
     private fun connectAsync() = scope.async(start = LAZY) {
-        ready.value = false
-
         val connection = establishConnection().also { _connection = it }
+
         connection
             .characteristicChanges
             .onEach(observers.characteristicChanges::emit)
             .launchIn(scope, start = UNDISPATCHED)
 
         try {
-            suspendUntilConnected()
+            suspendUntilConnectingServicesOrThrow()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
+            _state.value = State.Connecting.Observers
             logger.verbose { message = "rewire" }
             observers.rewire()
         } catch (t: Throwable) {
@@ -225,7 +215,7 @@ public class AndroidPeripheral internal constructor(
         }
 
         logger.info { message = "Connected" }
-        ready.value = true
+        _state.value = State.Connected
     }
 
     private fun closeConnection() {
@@ -455,12 +445,6 @@ public class AndroidPeripheral internal constructor(
     ) = platformServices.findDescriptor(descriptor).bluetoothGattDescriptor
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
-}
-
-private suspend fun Peripheral.suspendUntilConnected() {
-    state
-        .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
-        .first { it == State.Connected }
 }
 
 private suspend fun Peripheral.suspendUntilDisconnected() {

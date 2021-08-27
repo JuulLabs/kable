@@ -6,6 +6,8 @@ package com.juul.kable
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
 
@@ -137,4 +139,20 @@ public interface Peripheral {
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction = {},
     ): Flow<ByteArray>
+}
+
+/** Remember the bluetooth connected is not the same thing as Kable's [State.Connected]. */
+internal suspend fun Peripheral.suspendUntilConnectingServices() {
+    state.first { it == State.Connecting.Services }
+}
+
+/** Remember the bluetooth connected is not the same thing as Kable's [State.Connected]. */
+internal suspend fun Peripheral.suspendUntilConnectingServicesOrThrow() {
+    state
+        .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
+        .first { it == State.Connecting.Services }
+}
+
+internal suspend fun Peripheral.suspendUntilConnected() {
+    state.first { it == State.Connected }
 }
