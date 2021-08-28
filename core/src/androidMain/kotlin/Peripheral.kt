@@ -205,7 +205,7 @@ public class AndroidPeripheral internal constructor(
             suspendUntilOrThrow(State.Connected)
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
-            _state.value = State.Connecting.Observers
+            _state.value = State.Connecting.Observes
             logger.verbose { message = "rewire" }
             observers.rewire()
         } catch (t: Throwable) {

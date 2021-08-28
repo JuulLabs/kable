@@ -16,7 +16,7 @@ public sealed class State {
         /**
          * Peripheral is wiring up Observers.
          */
-        public object Observers : Connecting()
+        public object Observes : Connecting()
     }
 
     /**
