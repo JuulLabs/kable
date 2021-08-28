@@ -185,7 +185,7 @@ public class AndroidPeripheral internal constructor(
             transport,
             phy,
             _state,
-            _mtu,
+            _mtu,x
             logging,
             invokeOnClose = { connectJob.value = null }
         ) ?: throw ConnectionRejectedException()
@@ -201,7 +201,7 @@ public class AndroidPeripheral internal constructor(
             .launchIn(scope, start = UNDISPATCHED)
 
         try {
-            suspendUntilOrThrow<State.Connected>()
+            suspendUntilOrThrow<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             _state.value = State.Connecting.Observes
