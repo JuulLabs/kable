@@ -133,7 +133,7 @@ public class JsPeripheral internal constructor(
 
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@JsPeripheral))
-            _state.value = State.Connecting.Observers
+            _state.value = State.Connecting.Observes
             logger.verbose { message = "rewire" }
             observers.rewire()
         } catch (t: Throwable) {
