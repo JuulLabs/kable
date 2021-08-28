@@ -233,7 +233,7 @@ public class AndroidPeripheral internal constructor(
         try {
             _connection?.apply {
                 bluetoothGatt.disconnect()
-                suspendUntilDisconnected()
+                suspendUntil(State.Disconnected())
             }
         } finally {
             closeConnection()
@@ -445,10 +445,6 @@ public class AndroidPeripheral internal constructor(
     ) = platformServices.findDescriptor(descriptor).bluetoothGattDescriptor
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
-}
-
-private suspend fun Peripheral.suspendUntilDisconnected() {
-    state.first { it is State.Disconnected }
 }
 
 private val WriteType.intValue: Int
