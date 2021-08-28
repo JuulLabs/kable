@@ -141,18 +141,30 @@ public interface Peripheral {
     ): Flow<ByteArray>
 }
 
-/** Remember the bluetooth connected is not the same thing as Kable's [State.Connected]. */
-internal suspend fun Peripheral.suspendUntilConnectingServices() {
-    state.first { it == State.Connecting.Services }
+/**
+ * Suspends until [Peripheral] receiver arrives at the state provider with [awaitingState] at the bluetooth layer.
+ *
+ * See: [State] for a description of the potential states.
+ */
+internal suspend fun Peripheral.suspendUntil(awaitingState: State) {
+    state.first {
+        return@first if (awaitingState is State.Disconnected) {
+            it is State.Disconnected
+        } else {
+            it == awaitingState
+        }
+    }
 }
 
-/** Remember the bluetooth connected is not the same thing as Kable's [State.Connected]. */
-internal suspend fun Peripheral.suspendUntilConnectingServicesOrThrow() {
+/**
+ * Suspends until [Peripheral] receiver arrives at the state provider with [awaitingState] at the bluetooth layer. Throws [ConnectionLostException]
+ * if peripheral state arrives at State.Disconnected.
+ *
+ * See: [State] for a description of the potential states.
+ */
+internal suspend fun Peripheral.suspendUntilOrThrow(awaitingState: State) {
+    require(awaitingState !is State.Disconnected) { "Peripheral.suspendUntilThrow() throws on State.Disconnected, not intended for use with that State." }
     state
         .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
         .first { it == State.Connecting.Services }
-}
-
-internal suspend fun Peripheral.suspendUntilConnected() {
-    state.first { it == State.Connected }
 }

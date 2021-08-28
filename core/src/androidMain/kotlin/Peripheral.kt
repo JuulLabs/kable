@@ -202,7 +202,7 @@ public class AndroidPeripheral internal constructor(
             .launchIn(scope, start = UNDISPATCHED)
 
         try {
-            suspendUntilConnectingServicesOrThrow()
+            suspendUntilOrThrow(State.Connected)
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             _state.value = State.Connecting.Observers

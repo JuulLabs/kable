@@ -3,11 +3,25 @@ package com.juul.kable
 public sealed class State {
 
     public sealed class Connecting : State() {
+        /**
+         * Peripheral is in the process of connecting,  via Bluetooth.
+         */
         public object Bluetooth : Connecting()
+
+        /**
+         * Peripheral has connected, but is discovering services.
+         */
         public object Services : Connecting()
+
+        /**
+         * Peripheral is wiring up Observers.
+         */
         public object Observers : Connecting()
     }
 
+    /**
+     * Peripheral is ready (i.e. has connected, discovered services and wired up the Observers).
+     */
     public object Connected : State()
 
     public object Disconnecting : State()
