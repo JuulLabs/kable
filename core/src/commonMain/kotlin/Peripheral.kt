@@ -146,7 +146,7 @@ public interface Peripheral {
  *
  * See: [State] for a description of the potential states.
  */
-internal suspend inline fun <reified T: State> Peripheral.suspendUntil() {
+internal suspend inline fun <reified T : State> Peripheral.suspendUntil() {
     state.first {
         it is T
     }
@@ -158,7 +158,7 @@ internal suspend inline fun <reified T: State> Peripheral.suspendUntil() {
  *
  * See: [State] for a description of the potential states.
  */
-internal suspend inline fun <reified T: State> Peripheral.suspendUntilOrThrow() {
+internal suspend inline fun <reified T : State> Peripheral.suspendUntilOrThrow() {
     require(T::class != State.Disconnected::class) { "Peripheral.suspendUntilThrow() throws on State.Disconnected, not intended for use with that State." }
     state
         .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
