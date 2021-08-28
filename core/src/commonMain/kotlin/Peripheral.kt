@@ -170,7 +170,7 @@ internal suspend inline fun <reified T : State> Peripheral.suspendUntil() {
  */
 internal suspend inline fun <reified T : State> Peripheral.suspendUntilOrThrow() {
     require(T::class != State.Disconnected::class) {
-        "Peripheral.suspendUntilThrow() throws on State.Disconnected, not intended for use with that State."
+        "Peripheral.suspendUntilOrThrow() throws on State.Disconnected, not intended for use with that State."
     }
     state
         .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
