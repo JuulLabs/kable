@@ -142,29 +142,25 @@ public interface Peripheral {
 }
 
 /**
- * Suspends until [Peripheral] receiver arrives at the state provider with [awaitingState] at the bluetooth layer.
+ * Suspends until [Peripheral] receiver arrives at the [State] provided at the bluetooth layer.
  *
  * See: [State] for a description of the potential states.
  */
-internal suspend fun Peripheral.suspendUntil(awaitingState: State) {
+internal suspend inline fun <reified T: State> Peripheral.suspendUntil() {
     state.first {
-        return@first if (awaitingState is State.Disconnected) {
-            it is State.Disconnected
-        } else {
-            it == awaitingState
-        }
+        it is T
     }
 }
 
 /**
- * Suspends until [Peripheral] receiver arrives at the state provider with [awaitingState] at the bluetooth layer. Throws [ConnectionLostException]
+ * Suspends until [Peripheral] receiver arrives at the [State] provided at the bluetooth layer. Throws [ConnectionLostException]
  * if peripheral state arrives at State.Disconnected.
  *
  * See: [State] for a description of the potential states.
  */
-internal suspend fun Peripheral.suspendUntilOrThrow(awaitingState: State) {
-    require(awaitingState !is State.Disconnected) { "Peripheral.suspendUntilThrow() throws on State.Disconnected, not intended for use with that State." }
+internal suspend inline fun <reified T: State> Peripheral.suspendUntilOrThrow() {
+    require(T::class != State.Disconnected::class) { "Peripheral.suspendUntilThrow() throws on State.Disconnected, not intended for use with that State." }
     state
         .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
-        .first { it == State.Connecting.Services }
+        .first { it is T }
 }

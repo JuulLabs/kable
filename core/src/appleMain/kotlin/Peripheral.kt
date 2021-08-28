@@ -166,7 +166,7 @@ public class ApplePeripheral internal constructor(
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
-            suspendUntil(State.Connecting.Observes)
+            suspendUntil<State.Connecting.Observes>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@ApplePeripheral))
             _state.value = State.Connecting.Observers

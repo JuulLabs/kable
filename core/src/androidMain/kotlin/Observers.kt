@@ -63,7 +63,7 @@ internal class Observers(
         onSubscription: OnSubscriptionAction,
     ): Flow<ByteArray> = characteristicChanges
         .onSubscription {
-            peripheral.suspendUntil(State.Connecting.Observes)
+            peripheral.suspendUntil<State.Connecting.Observes>()
             if (observations.add(characteristic, onSubscription) == 1) {
                 peripheral.startObservation(characteristic)
             }

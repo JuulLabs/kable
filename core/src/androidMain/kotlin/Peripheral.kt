@@ -202,7 +202,7 @@ public class AndroidPeripheral internal constructor(
             .launchIn(scope, start = UNDISPATCHED)
 
         try {
-            suspendUntilOrThrow(State.Connected)
+            suspendUntilOrThrow<State.Connected>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             _state.value = State.Connecting.Observes
@@ -233,7 +233,7 @@ public class AndroidPeripheral internal constructor(
         try {
             _connection?.apply {
                 bluetoothGatt.disconnect()
-                suspendUntil(State.Disconnected())
+                suspendUntil<State.Disconnected>()
             }
         } finally {
             closeConnection()
