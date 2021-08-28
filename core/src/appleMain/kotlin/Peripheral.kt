@@ -169,7 +169,7 @@ public class ApplePeripheral internal constructor(
             suspendUntil<State.Connecting.Observes>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@ApplePeripheral))
-            _state.value = State.Connecting.Observers
+            _state.value = State.Connecting.Observes
             logger.verbose { message = "rewire" }
             observers.rewire()
         } catch (t: Throwable) {
