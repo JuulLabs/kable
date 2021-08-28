@@ -265,8 +265,8 @@ public final class com/juul/kable/State$Connecting$Bluetooth : com/juul/kable/St
 	public static final field INSTANCE Lcom/juul/kable/State$Connecting$Bluetooth;
 }
 
-public final class com/juul/kable/State$Connecting$Observers : com/juul/kable/State$Connecting {
-	public static final field INSTANCE Lcom/juul/kable/State$Connecting$Observers;
+public final class com/juul/kable/State$Connecting$Observes : com/juul/kable/State$Connecting {
+	public static final field INSTANCE Lcom/juul/kable/State$Connecting$Observes;
 }
 
 public final class com/juul/kable/State$Connecting$Services : com/juul/kable/State$Connecting {
