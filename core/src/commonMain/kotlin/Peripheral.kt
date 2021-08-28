@@ -6,6 +6,8 @@ package com.juul.kable
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
 
@@ -30,20 +32,30 @@ public interface Peripheral {
      * After [connect] is called, the [state] will typically transition through the following [states][State]:
      *
      * ```
-     *     connect()
-     *         :
-     *         v
-     *   .------------.       .-----------.
-     *   | Connecting | ----> | Connected |
-     *   '------------'       '-----------'
-     *                              :
-     *                       disconnect() or
-     *                       connection drop
-     *                              :
-     *                              v
-     *                      .---------------.       .--------------.
-     *                      | Disconnecting | ----> | Disconnected |
-     *                      '---------------'       '--------------'
+     *           connect()
+     *               :
+     *               v
+     *   .----------------------.
+     *   | Connecting.Bluetooth |
+     *   '----------------------'
+     *               |
+     *               v
+     *    .---------------------.
+     *    | Connecting.Services |
+     *    '---------------------'
+     *               |
+     *               v
+     *    .---------------------.      .-----------.
+     *    | Connecting.Observes | ---> | Connected |
+     *    '---------------------'      '-----------'
+     *                                       :
+     *                                disconnect() or
+     *                                connection drop
+     *                                       :
+     *                                       v
+     *                               .---------------.       .--------------.
+     *                               | Disconnecting | ----> | Disconnected |
+     *                               '---------------'       '--------------'
      * ```
      */
     public val state: Flow<State>
@@ -137,4 +149,30 @@ public interface Peripheral {
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction = {},
     ): Flow<ByteArray>
+}
+
+/**
+ * Suspends until [Peripheral] receiver arrives at the [State] specified.
+ *
+ * @see [State] for a description of the potential states.
+ */
+internal suspend inline fun <reified T : State> Peripheral.suspendUntil() {
+    state.first {
+        it is T
+    }
+}
+
+/**
+ * Suspends until [Peripheral] receiver arrives at the [State] specified.
+ *
+ * @see State for a description of the potential states.
+ * @throws ConnectionLostException if peripheral state arrives at [State.Disconnected].
+ */
+internal suspend inline fun <reified T : State> Peripheral.suspendUntilOrThrow() {
+    require(T::class != State.Disconnected::class) {
+        "Peripheral.suspendUntilOrThrow() throws on State.Disconnected, not intended for use with that State."
+    }
+    state
+        .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
+        .first { it is T }
 }

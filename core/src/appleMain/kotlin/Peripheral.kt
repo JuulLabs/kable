@@ -39,7 +39,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -99,10 +99,17 @@ public class ApplePeripheral internal constructor(
 
     private val logger = Logger(logging, prefix = "${cbPeripheral.identifier} ")
 
-    public override val state: Flow<State> = centralManager.delegate
-        .connectionState
-        .filter { event -> event.identifier == cbPeripheral.identifier }
-        .map { event -> event.toState() }
+    private val _state = MutableStateFlow<State>(State.Disconnected())
+    override val state: Flow<State> = _state.asStateFlow()
+
+    init {
+        centralManager.delegate
+            .connectionState
+            .filter { event -> event.identifier == cbPeripheral.identifier }
+            .map { event -> event.toState() }
+            .onEach { _state.value = it }
+            .launchIn(scope)
+    }
 
     private val observers = Observers(this, logger)
 
@@ -121,11 +128,6 @@ public class ApplePeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
-    private val ready = MutableStateFlow(false)
-    internal suspend fun suspendUntilReady() {
-        combine(ready, state) { ready, state -> ready && state == State.Connected }.first { it }
-    }
-
     private fun onDisconnected() {
         logger.info { message = "Disconnected" }
         connectJob.value?.cancel()
@@ -135,13 +137,13 @@ public class ApplePeripheral internal constructor(
     }
 
     private fun connectAsync() = scope.async(start = LAZY) {
-        ready.value = false
+        logger.info { message = "Connecting" }
+        _state.value = State.Connecting.Bluetooth
 
         centralManager.delegate.onDisconnected.onEach { identifier ->
             if (identifier == cbPeripheral.identifier) onDisconnected()
         }.launchIn(scope)
 
-        logger.info { message = "Connecting" }
         try {
             val delegate = PeripheralDelegate(logging).freeze() // todo: Create in `connectPeripheral`.
             val connection = centralManager.connectPeripheral(cbPeripheral, delegate).also {
@@ -164,10 +166,10 @@ public class ApplePeripheral internal constructor(
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
-            suspendUntilConnected()
-
+            suspendUntil<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@ApplePeripheral))
+            _state.value = State.Connecting.Observes
             logger.verbose { message = "rewire" }
             observers.rewire()
         } catch (t: Throwable) {
@@ -180,7 +182,7 @@ public class ApplePeripheral internal constructor(
         }
 
         logger.info { message = "Connected" }
-        ready.value = true
+        _state.value = State.Connected
     }
 
     public override suspend fun connect() {
@@ -358,18 +360,14 @@ public class ApplePeripheral internal constructor(
     }
 
     private fun cbCharacteristicFrom(
-        characteristic: Characteristic
+        characteristic: Characteristic,
     ) = platformServices.findCharacteristic(characteristic).cbCharacteristic
 
     private fun cbDescriptorFrom(
-        descriptor: Descriptor
+        descriptor: Descriptor,
     ) = platformServices.findDescriptor(descriptor).cbDescriptor
 
     override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"
-}
-
-private suspend fun Peripheral.suspendUntilConnected() {
-    state.first { it == State.Connected }
 }
 
 private val WriteType.cbWriteType: CBCharacteristicWriteType
@@ -379,7 +377,7 @@ private val WriteType.cbWriteType: CBCharacteristicWriteType
     }
 
 private suspend fun Flow<DidUpdateValueForCharacteristic>.firstOrThrow(
-    predicate: suspend (Data) -> Boolean
+    predicate: suspend (Data) -> Boolean,
 ): NSData = when (val value = first { it !is Data || predicate.invoke(it) }) {
     is Data -> value.data
     is Error -> throw IOException(value.error.description, cause = null)
@@ -387,7 +385,7 @@ private suspend fun Flow<DidUpdateValueForCharacteristic>.firstOrThrow(
 }
 
 private fun ConnectionEvent.toState(): State = when (this) {
-    is DidConnect -> State.Connected
+    is DidConnect -> State.Connecting.Services
     is DidFailToConnect -> State.Disconnected(error?.toStatus())
     is DidDisconnect -> State.Disconnected(error?.toStatus())
 }

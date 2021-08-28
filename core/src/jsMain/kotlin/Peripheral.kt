@@ -20,9 +20,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -74,8 +72,8 @@ public class JsPeripheral internal constructor(
 
     private val ioLock = Mutex()
 
-    private val _state = MutableStateFlow<State?>(null)
-    public override val state: Flow<State> = _state.filterNotNull()
+    private val _state = MutableStateFlow<State>(State.Disconnected())
+    public override val state: Flow<State> = _state.asStateFlow()
 
     private var _platformServices: List<PlatformService>? = null
     private val platformServices: List<PlatformService>
@@ -87,15 +85,6 @@ public class JsPeripheral internal constructor(
     private val observationListeners = mutableMapOf<Characteristic, ObservationListener>()
 
     private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
-
-    private val ready = MutableStateFlow(false)
-    internal suspend fun suspendUntilReady() {
-        // fast path
-        if (ready.value && _state.value == State.Connected) return
-
-        // slow path
-        combine(ready, state) { ready, state -> ready && state == State.Connected }.first { it }
-    }
 
     public override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
         check(supportsAdvertisements) { "watchAdvertisements unavailable" }
@@ -133,18 +122,18 @@ public class JsPeripheral internal constructor(
     private var connectJob: Deferred<Unit>? = null
 
     private fun connectAsync() = scope.async(start = LAZY) {
-        ready.value = false
-        _state.value = State.Connecting
         logger.info { message = "Connecting" }
+        _state.value = State.Connecting.Bluetooth
 
         try {
             registerDisconnectedListener()
 
             gatt.connect().await() // todo: Catch appropriate exception to emit State.Rejected.
-            _state.value = State.Connected
+            _state.value = State.Connecting.Services
 
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@JsPeripheral))
+            _state.value = State.Connecting.Observes
             logger.verbose { message = "rewire" }
             observers.rewire()
         } catch (t: Throwable) {
@@ -154,7 +143,7 @@ public class JsPeripheral internal constructor(
         }
 
         logger.info { message = "Connected" }
-        ready.value = true
+        _state.value = State.Connected
     }
 
     private fun closeConnection() {
