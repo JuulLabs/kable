@@ -4,23 +4,31 @@ public sealed class State {
 
     public sealed class Connecting : State() {
         /**
-         * Peripheral is in the process of connecting,  via Bluetooth.
+         * [Peripheral] has initiating the process of connecting, via Bluetooth.
+         *
+         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [NotReadyException]
+         * while in this state.
          */
         public object Bluetooth : Connecting()
 
         /**
-         * Peripheral has connected, but is discovering services.
+         * [Peripheral] has connected, but has not yet discovered services.
+         *
+         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [IllegalStateOperation]
+         * while in this state.
          */
         public object Services : Connecting()
 
         /**
-         * Peripheral is wiring up Observers.
+         * [Peripheral] is wiring up [Observers][Peripheral.observe].
+         *
+         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) are permitted while in this state.
          */
         public object Observes : Connecting()
     }
 
     /**
-     * Peripheral is ready (i.e. has connected, discovered services and wired up the Observers).
+     * [Peripheral] is ready (i.e. has connected, discovered services and wired up [observers][Peripheral.observe]).
      */
     public object Connected : State()
 
