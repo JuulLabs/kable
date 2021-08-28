@@ -185,7 +185,7 @@ public class AndroidPeripheral internal constructor(
             transport,
             phy,
             _state,
-            _mtu,x
+            _mtu,
             logging,
             invokeOnClose = { connectJob.value = null }
         ) ?: throw ConnectionRejectedException()
