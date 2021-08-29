@@ -1,7 +1,5 @@
 package com.juul.kable
 
-import kotlin.reflect.KClass
-
 public sealed class State {
 
     public sealed class Connecting : State() {
