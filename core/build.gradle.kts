@@ -28,9 +28,22 @@ kotlin {
             }
         }
 
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
+            }
+        }
+
         val jsMain by getting {
             dependencies {
                 implementation(wrappers())
+            }
+        }
+
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
             }
         }
 
@@ -39,6 +52,12 @@ kotlin {
                 api(coroutines("android"))
                 implementation(atomicfu("jvm"))
                 implementation(androidx.startup())
+            }
+        }
+
+        val androidTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit"))
             }
         }
 

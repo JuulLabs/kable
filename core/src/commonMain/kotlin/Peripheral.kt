@@ -157,9 +157,17 @@ public interface Peripheral {
  * @see [State] for a description of the potential states.
  */
 internal suspend inline fun <reified T : State> Peripheral.suspendUntil() {
-    state.first {
-        it is T
-    }
+    state.first { it is T }
+}
+
+/**
+ * Suspends until [Peripheral] receiver arrives at the [State] specified or any [State] above it.
+ *
+ * @see [State] for a description of the potential states.
+ * @see [State.isAtLeast] for state ordering.
+ */
+internal suspend inline fun <reified T : State> Peripheral.suspendUntilAtLeast() {
+    state.first { it.isAtLeast<T>() }
 }
 
 /**
