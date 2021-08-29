@@ -1,5 +1,7 @@
 package com.juul.kable
 
+import kotlin.reflect.KClass
+
 public sealed class State {
 
     public sealed class Connecting : State() {
@@ -107,4 +109,35 @@ public sealed class State {
             public data class Unknown(val status: Int) : Status()
         }
     }
+}
+
+/**
+ * Returns `true` if `this` is at least in state [T], where [State]s are ordered:
+ * - [State.Disconnected] (smallest)
+ * - [State.Disconnecting]
+ * - [State.Connecting.Bluetooth]
+ * - [State.Connecting.Services]
+ * - [State.Connecting.Observes]
+ * - [State.Connected] (largest)
+ */
+internal inline fun <reified T: State> State.isAtLeast(): Boolean {
+    val currentState = when (this) {
+        is State.Disconnected -> 0
+        State.Disconnecting -> 1
+        State.Connecting.Bluetooth -> 2
+        State.Connecting.Services -> 3
+        State.Connecting.Observes -> 4
+        State.Connected -> 5
+        else -> error("Unreachable.")
+    }
+    val targetState = when (T::class) {
+        State.Disconnected::class -> 0
+        State.Disconnecting::class -> 1
+        State.Connecting.Bluetooth::class -> 2
+        State.Connecting.Services::class -> 3
+        State.Connecting.Observes::class -> 4
+        State.Connected::class -> 5
+        else -> error("Unreachable.")
+    }
+    return currentState >= targetState
 }
