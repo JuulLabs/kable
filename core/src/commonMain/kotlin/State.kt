@@ -4,7 +4,7 @@ public sealed class State {
 
     public sealed class Connecting : State() {
         /**
-         * [Peripheral] has initiating the process of connecting, via Bluetooth.
+         * [Peripheral] has initiated the process of connecting, via Bluetooth.
          *
          * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [NotReadyException]
          * while in this state.

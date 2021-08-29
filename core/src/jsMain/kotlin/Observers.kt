@@ -36,7 +36,7 @@ internal class Observers(
         onSubscription: OnSubscriptionAction,
     ): Flow<DataView> = characteristicChanges
         .onSubscription {
-            peripheral.suspendUntil<State.Connecting.Observes>()
+            peripheral.suspendUntilAtLeast<State.Connecting.Observes>()
             if (observations.add(characteristic, onSubscription) == 1) {
                 peripheral.startObservation(characteristic)
             }
