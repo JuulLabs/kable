@@ -126,7 +126,6 @@ internal inline fun <reified T : State> State.isAtLeast(): Boolean {
         State.Connecting.Services -> 3
         State.Connecting.Observes -> 4
         State.Connected -> 5
-        else -> error("Unreachable.")
     }
     val targetState = when (T::class) {
         State.Disconnected::class -> 0
