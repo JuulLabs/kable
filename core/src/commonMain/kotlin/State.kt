@@ -118,7 +118,7 @@ public sealed class State {
  * - [State.Connecting.Observes]
  * - [State.Connected] (largest)
  */
-internal inline fun <reified T: State> State.isAtLeast(): Boolean {
+internal inline fun <reified T : State> State.isAtLeast(): Boolean {
     val currentState = when (this) {
         is State.Disconnected -> 0
         State.Disconnecting -> 1
