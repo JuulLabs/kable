@@ -106,6 +106,12 @@ public class ApplePeripheral internal constructor(
         centralManager.delegate
             .connectionState
             .filter { event -> event.identifier == cbPeripheral.identifier }
+            .onEach { event ->
+                logger.debug {
+                    message = "CentralManagerDelegate state change"
+                    detail("state", event.toString())
+                }
+            }
             .map { event -> event.toState() }
             .onEach { _state.value = it }
             .launchIn(scope)
@@ -169,8 +175,9 @@ public class ApplePeripheral internal constructor(
             suspendUntil<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@ApplePeripheral))
+
             _state.value = State.Connecting.Observes
-            logger.verbose { message = "rewire" }
+            logger.verbose { message = "Configuring characteristic observations" }
             observers.rewire()
         } catch (t: Throwable) {
             logger.error(t) { message = "Failed to connect" }
@@ -337,7 +344,7 @@ public class ApplePeripheral internal constructor(
 
     internal suspend fun startNotifications(characteristic: Characteristic) {
         logger.debug {
-            message = "notify"
+            message = "CentralManager.notify"
             detail(characteristic)
         }
 
@@ -349,7 +356,7 @@ public class ApplePeripheral internal constructor(
 
     internal suspend fun stopNotifications(characteristic: Characteristic) {
         logger.debug {
-            message = "cancelNotify"
+            message = "CentralManager.cancelNotify"
             detail(characteristic)
         }
 

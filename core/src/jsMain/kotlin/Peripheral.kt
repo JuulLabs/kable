@@ -134,7 +134,7 @@ public class JsPeripheral internal constructor(
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@JsPeripheral))
             _state.value = State.Connecting.Observes
-            logger.verbose { message = "rewire" }
+            logger.verbose { message = "Configuring characteristic observations" }
             observers.rewire()
         } catch (t: Throwable) {
             logger.error(t) { message = "Failed to connect" }
