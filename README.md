@@ -22,6 +22,7 @@ The [`Scanner`] may be configured via the following DSL (shown are defaults, whe
 ```kotlin
 val scanner = Scanner {
     services = null
+    scanSettings = ScanSettings.Builder().build() // Android only, see details below
     logging {
         engine = SystemLogEngine
         level = Warnings
@@ -52,7 +53,32 @@ val advertisement = Scanner()
     .first { it.name?.startsWith("Example") }
 ```
 
-_**JavaScript:** Scanning for nearby peripherals is supported, but only available on Chrome 79+ with "Experimental Web
+### Android
+Android's BLE API offers some additional settings to customize your scan with. If you need these,
+Kable exposes them in the [`Scanner`] DSL when it's used in an Android source set (instead of the
+common source set). Just set the `scanSettings` value to whatever
+`android.bluetooth.le.ScanSettings` you need:
+
+```kotlin
+val scanner = Scanner {
+    services = null
+    // Only available for Android
+    scanSettings = ScanSettings.Builder()
+        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+        .build()
+    logging {
+        engine = SystemLogEngine
+        level = Warnings
+        format = Multiline
+    }
+}
+```
+
+_Since these settings (or similar ones) don't exist on other platforms (e.g. iOS), the 
+`scanSettings` are only available when calling the DSL from an Android source set._
+
+### JavaScript
+_Scanning for nearby peripherals is supported, but only available on Chrome 79+ with "Experimental Web
 Platform features" enabled via:_ `chrome://flags/#enable-experimental-web-platform-features`
 
 ## Peripheral
