@@ -52,7 +52,25 @@ val advertisement = Scanner()
     .first { it.name?.startsWith("Example") }
 ```
 
-_**JavaScript:** Scanning for nearby peripherals is supported, but only available on Chrome 79+ with "Experimental Web
+### Android
+
+Android offers additional settings to customize scanning. They are available via the `scanSettings` property in the
+[`Scanner`] builder DSL. Simply set `scanSettings` property to an Android [`ScanSettings`] object, for example:
+
+```kotlin
+val scanner = Scanner {
+    scanSettings = ScanSettings.Builder()
+        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+        .build()
+}
+```
+
+_The `scanSettings` property is only available on Android and is considered a Kable obsolete API, meaning it will be
+removed when a DSL specific API becomes available._
+
+### JavaScript
+
+_Scanning for nearby peripherals is supported, but only available on Chrome 79+ with "Experimental Web
 Platform features" enabled via:_ `chrome://flags/#enable-experimental-web-platform-features`
 
 ## Peripheral
@@ -464,6 +482,7 @@ limitations under the License.
 [SensorTag sample app]: https://github.com/JuulLabs/sensortag
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
 [Coroutine scope]: https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope
+[`ScanSettings`]: https://developer.android.com/reference/kotlin/android/bluetooth/le/ScanSettings
 
 [`Advertisement`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-advertisement/index.html
 [`advertisements`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-scanner/index.html#%5Bcom.juul.kable%2FScanner%2Fadvertisements%2F%23%2FPointingToDeclaration%2F%5D%2FProperties%2F-328684452

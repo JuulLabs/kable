@@ -22,6 +22,7 @@ public class ScanFailedException internal constructor(
 
 public class AndroidScanner internal constructor(
     private val filterServices: List<Uuid>?,
+    private val scanSettings: ScanSettings,
     logging: Logging,
 ) : Scanner {
 
@@ -62,7 +63,7 @@ public class AndroidScanner internal constructor(
                 ?.toList()
         bluetoothAdapter.bluetoothLeScanner.startScan(
             scanFilter,
-            ScanSettings.Builder().build(),
+            scanSettings,
             callback,
         )
 
