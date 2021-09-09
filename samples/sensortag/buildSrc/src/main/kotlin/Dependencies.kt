@@ -10,7 +10,7 @@ fun stately(
 
 fun kable(
     artifact: String = "core",
-    version: String = "0.7.0"
+    version: String = "0.9.2"
 ): String = "com.juul.kable:$artifact:$version"
 
 fun exercise(

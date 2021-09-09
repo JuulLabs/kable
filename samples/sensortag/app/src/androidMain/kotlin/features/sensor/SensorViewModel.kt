@@ -67,8 +67,8 @@ val ViewState.label: CharSequence
     get() = when (this) {
         ViewState.Connecting -> "Connecting"
         is ViewState.Connected -> "Connected"
-        is ViewState.Disconnecting -> "Disconnecting"
-        is ViewState.Disconnected -> "Disconnected"
+        ViewState.Disconnecting -> "Disconnecting"
+        ViewState.Disconnected -> "Disconnected"
     }
 
 class SensorViewModel(
@@ -117,7 +117,7 @@ class SensorViewModel(
 
     val viewState: Flow<ViewState> = peripheral.state.flatMapLatest { state ->
         when (state) {
-            State.Connecting -> flowOf(ViewState.Connecting)
+            is State.Connecting -> flowOf(ViewState.Connecting)
             State.Connected -> combine(peripheral.remoteRssi(), sensorTag.gyro) { rssi, gyro ->
                 ViewState.Connected(rssi, gyroState(gyro))
             }

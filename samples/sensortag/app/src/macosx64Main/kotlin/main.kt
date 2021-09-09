@@ -2,6 +2,7 @@ package com.juul.sensortag
 
 import com.juul.kable.Scanner
 import com.juul.kable.State.Disconnected
+import com.juul.kable.logs.Logging.Level.Data
 import com.juul.kable.peripheral
 import com.juul.tuulbox.logging.ConsoleLogger
 import com.juul.tuulbox.logging.Log
@@ -20,7 +21,11 @@ fun main() = runBlocking<Unit> {
         .first { it.name?.isSensorTag == true }
     Log.info { "Found $advertisement" }
 
-    val peripheral = peripheral(advertisement)
+    val peripheral = peripheral(advertisement) {
+        logging {
+            level = Data
+        }
+    }
     val sensorTag = SensorTag(peripheral)
 
     sensorTag.gyro.onEach { rotation ->
@@ -32,24 +37,21 @@ fun main() = runBlocking<Unit> {
         peripheral.connect()
         Log.info { "Connected" }
 
-        Log.verbose { "Write gyro period" }
+        Log.verbose { "Writing gyro period" }
         sensorTag.writeGyroPeriod(periodMillis = 2550L)
-        Log.info { "Enable gyro" }
+        Log.info { "Enabling gyro" }
         sensorTag.enableGyro()
-        Log.info { "Enable gyro DONE" }
+        Log.info { "Gyro enabled" }
     }
 
-    Log.info { "Configuring state listener" }
+    Log.info { "Configuring auto connector" }
     peripheral.state.onEach { state ->
         Log.info { state.toString() }
         if (state is Disconnected) {
-            Log.info { "Waiting 5 seconds to reconnect..." }
-            delay(5_000L)
-            connect() // Auto-reconnect on disconnect.
+            connect()
+            delay(5_000L) // Throttle reconnects so we don't hammer the system if connection immediately drops.
         }
     }.launchIn(this)
-
-    connect()
 }
 
 private val String.isSensorTag: Boolean
