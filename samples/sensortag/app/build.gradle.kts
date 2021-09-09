@@ -80,3 +80,12 @@ android {
 dependencies {
     "kapt"(exercise("compile"))
 }
+
+// Fix failure when building JavaScript target (with Webpack 5).
+// https://youtrack.jetbrains.com/issue/KT-48273
+// todo: Remove once Kotlin is upgraded to 1.5.30.
+afterEvaluate {
+    rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension> {
+        versions.webpackDevServer.version = "4.0.0"
+    }
+}
