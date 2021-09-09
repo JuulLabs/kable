@@ -30,9 +30,9 @@ internal class LogMessage {
         detail(key, value.toString())
     }
 
-    fun build(logging: Logging, platformIdentifier: String): String = buildString {
+    fun build(logging: Logging, platformIdentifier: String?): String = buildString {
         val prefix = logging.identifier ?: platformIdentifier
-        if (prefix.isNotEmpty()) {
+        if (!prefix.isNullOrEmpty()) {
             append(prefix)
             append(' ')
         }

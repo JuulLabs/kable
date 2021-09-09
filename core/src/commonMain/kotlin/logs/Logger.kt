@@ -6,7 +6,7 @@ import com.juul.kable.logs.Logging.Level.Events
 internal class Logger(
     private val logging: Logging,
     private val tag: String = "Kable",
-    private val identifier: String,
+    private val identifier: String?,
 ) {
 
     inline fun verbose(throwable: Throwable? = null, crossinline init: LogMessage.() -> Unit) {
