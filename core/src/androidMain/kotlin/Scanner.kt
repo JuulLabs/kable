@@ -26,7 +26,7 @@ public class AndroidScanner internal constructor(
     logging: Logging,
 ) : Scanner {
 
-    private val logger = Logger(logging, tag = "Kable/Scanner")
+    private val logger = Logger(logging, tag = "Kable/Scanner", identifier = "")
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         ?: error("Bluetooth not supported")

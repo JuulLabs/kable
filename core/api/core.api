@@ -399,10 +399,12 @@ public final class com/juul/kable/logs/Logging {
 	public final fun getData ()Lcom/juul/kable/logs/Logging$DataProcessor;
 	public final fun getEngine ()Lcom/juul/kable/logs/LogEngine;
 	public final fun getFormat ()Lcom/juul/kable/logs/Logging$Format;
+	public final fun getIdentifier ()Ljava/lang/String;
 	public final fun getLevel ()Lcom/juul/kable/logs/Logging$Level;
 	public final fun setData (Lcom/juul/kable/logs/Logging$DataProcessor;)V
 	public final fun setEngine (Lcom/juul/kable/logs/LogEngine;)V
 	public final fun setFormat (Lcom/juul/kable/logs/Logging$Format;)V
+	public final fun setIdentifier (Ljava/lang/String;)V
 	public final fun setLevel (Lcom/juul/kable/logs/Logging$Level;)V
 }
 

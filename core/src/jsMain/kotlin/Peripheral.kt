@@ -68,7 +68,7 @@ public class JsPeripheral internal constructor(
 
     private val scope = CoroutineScope(parentCoroutineContext + job)
 
-    private val logger = Logger(logging, prefix = "${bluetoothDevice.id} ")
+    private val logger = Logger(logging, identifier = bluetoothDevice.id)
 
     private val ioLock = Mutex()
 

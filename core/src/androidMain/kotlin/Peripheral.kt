@@ -125,14 +125,14 @@ public enum class Priority { Low, Balanced, High }
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
-    private val bluetoothDevice: BluetoothDevice,
+    internal val bluetoothDevice: BluetoothDevice,
     private val transport: Transport,
     private val phy: Phy,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
 ) : Peripheral {
 
-    private val logger = Logger(logging, tag = "Kable/Peripheral", prefix = "$bluetoothDevice ")
+    private val logger = Logger(logging, tag = "Kable/Peripheral", identifier = bluetoothDevice.address)
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
     public override val state: Flow<State> = _state.asStateFlow()

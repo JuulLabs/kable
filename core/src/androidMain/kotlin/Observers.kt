@@ -53,7 +53,7 @@ internal class Observers(
     logging: Logging,
 ) {
 
-    private val logger = Logger(logging, tag = "Kable/Observers")
+    private val logger = Logger(logging, tag = "Kable/Observers", peripheral.bluetoothDevice.address)
 
     val characteristicChanges = MutableSharedFlow<AndroidObservationEvent>()
     private val observations = Observations()
