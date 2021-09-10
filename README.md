@@ -161,7 +161,7 @@ peripherals are logging. The identifier (for the purposes of logging) can be set
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
     logging {
-        identifier = "Example 1"
+        identifier = "Example"
     }
 }
 ```
