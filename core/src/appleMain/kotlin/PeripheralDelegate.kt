@@ -30,7 +30,10 @@ import platform.darwin.NSObject
 import kotlin.native.concurrent.freeze
 
 // https://developer.apple.com/documentation/corebluetooth/cbperipheraldelegate
-internal class PeripheralDelegate(logging: Logging) : NSObject(), CBPeripheralDelegateProtocol {
+internal class PeripheralDelegate(
+    logging: Logging,
+    identifier: String
+) : NSObject(), CBPeripheralDelegateProtocol {
 
     sealed class Response {
 
@@ -100,7 +103,7 @@ internal class PeripheralDelegate(logging: Logging) : NSObject(), CBPeripheralDe
     private val _characteristicChanges = MutableSharedFlow<DidUpdateValueForCharacteristic>(extraBufferCapacity = 64)
     val characteristicChanges = _characteristicChanges.asSharedFlow()
 
-    private val logger = Logger(logging)
+    private val logger = Logger(logging, tag = "Kable/Delegate", identifier = identifier)
 
     /* Discovering Services */
 

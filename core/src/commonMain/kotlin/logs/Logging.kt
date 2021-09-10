@@ -44,6 +44,15 @@ public class Logging {
         public fun process(data: ByteArray): String
     }
 
+    /**
+     * Identifier to use in log messages. When `null`, defaults to the platform's peripheral identifier:
+     *
+     * - Android: Hardware (MAC) address (e.g. "00:11:22:AA:BB:CC")
+     * - Apple: The UUID associated with the peer
+     * - JavaScript: A `DOMString` that uniquely identifies a device
+     */
+    public var identifier: String? = null
+
     public var engine: LogEngine = SystemLogEngine
     public var level: Level = Level.Warnings
     public var format: Format = Format.Multiline

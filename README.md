@@ -155,6 +155,23 @@ val peripheral = scope.peripheral(advertisement) {
 
 _I/O data is only shown in logs when logging `level` is set to `Data`._
 
+When logging, the identity of the peripheral is prefixed on log messages to differentiate messages when multiple
+peripherals are logging. The identifier (for the purposes of logging) can be set via the `identifier` property:
+
+```kotlin
+val peripheral = scope.peripheral(advertisement) {
+    logging {
+        identifier = "Example"
+    }
+}
+```
+
+The default (when not specified, or set to `null`) is to use the platform specific peripheral identifier:
+
+- Android: Hardware (MAC) address (e.g. "00:11:22:AA:BB:CC")
+- Apple: The UUID associated with the peer
+- JavaScript: A `DOMString` that uniquely identifies a device
+
 #### Service Discovery
 
 All platforms support an `onServicesDiscovered` action (that is executed after service discovery but before observations

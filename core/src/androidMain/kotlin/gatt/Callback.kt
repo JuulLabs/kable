@@ -58,7 +58,7 @@ internal class Callback(
     macAddress: String,
 ) : BluetoothGattCallback() {
 
-    private val logger = Logger(logging, tag = "Kable/Callback", prefix = "$macAddress ")
+    private val logger = Logger(logging, tag = "Kable/Callback", identifier = macAddress)
 
     private var disconnectedAction: DisconnectedAction? = null
     fun invokeOnDisconnected(action: DisconnectedAction) {

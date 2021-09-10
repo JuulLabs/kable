@@ -97,7 +97,7 @@ public class ApplePeripheral internal constructor(
 
     private val centralManager: CentralManager = CentralManager.Default
 
-    private val logger = Logger(logging, prefix = "${cbPeripheral.identifier} ")
+    private val logger = Logger(logging, identifier = cbPeripheral.identifier.UUIDString)
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
     override val state: Flow<State> = _state.asStateFlow()
@@ -151,7 +151,9 @@ public class ApplePeripheral internal constructor(
         }.launchIn(scope)
 
         try {
-            val delegate = PeripheralDelegate(logging).freeze() // todo: Create in `connectPeripheral`.
+            // todo: Create in `connectPeripheral`.
+            val delegate = PeripheralDelegate(logging, cbPeripheral.identifier.UUIDString).freeze()
+
             val connection = centralManager.connectPeripheral(cbPeripheral, delegate).also {
                 _connection.value = it
             }
