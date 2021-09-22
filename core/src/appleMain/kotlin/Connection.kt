@@ -8,7 +8,7 @@ internal class Connection(
 ) {
 
     // Using Semaphore as Mutex never relinquished lock when multiple concurrent `withLock`s are executed.
-    val semaphore = Semaphore(1)
+    val semaphore = Semaphore(2)
 
     suspend inline fun <T> execute(
         action: () -> Unit,
