@@ -193,14 +193,14 @@ public class AndroidPeripheral internal constructor(
 
     /** Creates a connect [Job] that completes when connection is established, or failure occurs. */
     private fun connectAsync() = scope.async(start = LAZY) {
-        val connection = establishConnection().also { _connection = it }
-
-        connection
-            .characteristicChanges
-            .onEach(observers.characteristicChanges::emit)
-            .launchIn(scope, start = UNDISPATCHED)
-
         try {
+            val connection = establishConnection().also { _connection = it }
+
+            connection
+                .characteristicChanges
+                .onEach(observers.characteristicChanges::emit)
+                .launchIn(scope, start = UNDISPATCHED)
+
             suspendUntilOrThrow<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
@@ -208,7 +208,7 @@ public class AndroidPeripheral internal constructor(
             logger.verbose { message = "Configuring characteristic observations" }
             observers.rewire()
         } catch (t: Throwable) {
-            closeConnection()
+            disconnect()
             logger.error(t) { message = "Failed to connect" }
             throw t
         }
