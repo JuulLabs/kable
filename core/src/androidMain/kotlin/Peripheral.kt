@@ -208,7 +208,7 @@ public class AndroidPeripheral internal constructor(
             logger.verbose { message = "Configuring characteristic observations" }
             observers.rewire()
         } catch (t: Throwable) {
-            disconnect()
+            closeConnection()
             logger.error(t) { message = "Failed to connect" }
             throw t
         }
@@ -219,6 +219,9 @@ public class AndroidPeripheral internal constructor(
 
     private fun closeConnection() {
         _connection?.close()
+        if (_state.value !is State.Disconnected) {
+            _state.value = State.Disconnected()
+        }
         _connection = null
     }
 
