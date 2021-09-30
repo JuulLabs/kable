@@ -221,6 +221,7 @@ public class AndroidPeripheral internal constructor(
     private fun closeConnection() {
         _connection?.close()
         _connection = null
+        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
 
