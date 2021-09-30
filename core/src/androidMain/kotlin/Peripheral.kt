@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.flow.update
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
@@ -219,10 +220,8 @@ public class AndroidPeripheral internal constructor(
 
     private fun closeConnection() {
         _connection?.close()
-        if (_state.value !is State.Disconnected) {
-            _state.value = State.Disconnected()
-        }
         _connection = null
+        _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
 
     public override suspend fun connect() {
