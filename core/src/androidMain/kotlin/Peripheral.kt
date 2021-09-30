@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
@@ -193,14 +194,14 @@ public class AndroidPeripheral internal constructor(
 
     /** Creates a connect [Job] that completes when connection is established, or failure occurs. */
     private fun connectAsync() = scope.async(start = LAZY) {
-        val connection = establishConnection().also { _connection = it }
-
-        connection
-            .characteristicChanges
-            .onEach(observers.characteristicChanges::emit)
-            .launchIn(scope, start = UNDISPATCHED)
-
         try {
+            val connection = establishConnection().also { _connection = it }
+
+            connection
+                .characteristicChanges
+                .onEach(observers.characteristicChanges::emit)
+                .launchIn(scope, start = UNDISPATCHED)
+
             suspendUntilOrThrow<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
@@ -220,6 +221,8 @@ public class AndroidPeripheral internal constructor(
     private fun closeConnection() {
         _connection?.close()
         _connection = null
+        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
+        _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
 
     public override suspend fun connect() {
