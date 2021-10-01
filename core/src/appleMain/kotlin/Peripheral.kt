@@ -195,7 +195,6 @@ public class ApplePeripheral internal constructor(
     }
 
     public override suspend fun connect() {
-        check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 

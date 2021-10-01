@@ -65,7 +65,7 @@ public interface Peripheral {
      * suspend until connected (or failure occurs). If already connected, then returns immediately.
      *
      * @throws ConnectionRejectedException when a connection request is rejected by the system (e.g. bluetooth hardware unavailable).
-     * @throws IllegalStateException if [Peripheral]'s Coroutine scope has been cancelled.
+     * @throws CancellationException if [Peripheral]'s Coroutine scope has been cancelled.
      */
     public suspend fun connect(): Unit
 

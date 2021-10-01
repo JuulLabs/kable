@@ -226,7 +226,6 @@ public class AndroidPeripheral internal constructor(
     }
 
     public override suspend fun connect() {
-        check(job.isNotCancelled) { "Cannot connect, scope is cancelled for $this" }
         checkBluetoothAdapterState(expected = STATE_ON)
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
