@@ -265,7 +265,7 @@ public class JsPeripheral internal constructor(
     public override fun observe(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
-    ): Flow<ByteArray> = observeDataView(characteristic)
+    ): Flow<ByteArray> = observeDataView(characteristic, onSubscription)
         .map { it.buffer.toByteArray() }
 
     private var isDisconnectedListenerRegistered = false
