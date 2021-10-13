@@ -15,6 +15,7 @@ import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.await
@@ -26,6 +27,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.khronos.webgl.DataView
 import kotlin.coroutines.CoroutineContext
 import org.w3c.dom.events.Event as JsEvent
@@ -290,7 +292,9 @@ public class JsPeripheral internal constructor(
         bluetoothRemoteGATTCharacteristicFrom(characteristic).apply {
             addEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
             ioLock.withLock {
-                startNotifications().await()
+                withContext(NonCancellable) {
+                    startNotifications().await()
+                }
             }
         }
     }
@@ -314,7 +318,9 @@ public class JsPeripheral internal constructor(
              */
             runCatching {
                 ioLock.withLock {
-                    stopNotifications().await()
+                    withContext(NonCancellable) {
+                        stopNotifications().await()
+                    }
                 }
             }.onFailure {
                 logger.warn {
