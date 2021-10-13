@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
@@ -259,9 +260,9 @@ public class AndroidPeripheral internal constructor(
         connection.execute<OnServicesDiscovered> {
             discoverServices()
         }
-        _platformServices = connection.bluetoothGatt
-            .services
-            .map { it.toPlatformService() }
+        _platformServices = withContext(connection.dispatcher) {
+            connection.bluetoothGatt.services
+        }.map { it.toPlatformService() }
     }
 
     /**

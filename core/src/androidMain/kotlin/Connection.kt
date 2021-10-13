@@ -19,7 +19,7 @@ private val GattSuccess = GattStatus(GATT_SUCCESS)
 
 internal class Connection(
     internal val bluetoothGatt: BluetoothGatt,
-    private val dispatcher: CoroutineDispatcher,
+    internal val dispatcher: CoroutineDispatcher,
     private val callback: Callback,
     private val invokeOnClose: () -> Unit,
 ) {
