@@ -233,8 +233,15 @@ public class ApplePeripheral internal constructor(
             }
         }
 
-        _platformServices.value = cbPeripheral.services?.map { service ->
+        val platformServices = cbPeripheral.services?.map { service ->
             (service as CBService).toPlatformService()
+        }
+        _platformServices.value = platformServices
+
+        when {
+            platformServices == null -> logger.warn { message = "Services is null" }
+            platformServices.isEmpty() -> logger.warn { message = "Services is empty" }
+            else -> logger.verbose { message = platformServices.debugString() }
         }
     }
 
@@ -407,4 +414,17 @@ private fun NSError.toStatus(): State.Disconnected.Status = when (code) {
     CBErrorConnectionLimitReached -> ConnectionLimitReached
     CBErrorEncryptionTimedOut -> EncryptionTimedOut
     else -> Unknown(code.toInt())
+}
+
+private fun List<PlatformService>.debugString() = buildString {
+    appendLine("discovered services")
+    this@debugString.forEach { service ->
+        appendLine("  service: ${service.serviceUuid}")
+        service.characteristics.forEach { characteristic ->
+            appendLine("    characteristic: ${characteristic.characteristicUuid}")
+            characteristic.descriptors.forEach { descriptor ->
+                appendLine("      descriptor: ${descriptor.descriptorUuid}")
+            }
+        }
+    }
 }

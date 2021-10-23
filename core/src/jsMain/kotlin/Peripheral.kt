@@ -172,11 +172,17 @@ public class JsPeripheral internal constructor(
     }
 
     private suspend fun discoverServices() {
-        logger.verbose { message = "discover services" }
+        logger.verbose { message = "discoverServices" }
         val services = ioLock.withLock {
             gatt.getPrimaryServices().await()
         }.map { it.toPlatformService(logger) }
         _platformServices = services
+
+        if (services.isNotEmpty()) {
+            logger.verbose { message = services.debugString() }
+        } else {
+            logger.warn { message = "Services is empty" }
+        }
     }
 
     public override suspend fun write(
@@ -367,4 +373,17 @@ public class JsPeripheral internal constructor(
     ) = platformServices.findDescriptor(descriptor).bluetoothRemoteGATTDescriptor
 
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
+}
+
+private fun List<PlatformService>.debugString() = buildString {
+    appendLine("discovered services")
+    this@debugString.forEach { service ->
+        appendLine("  service: ${service.serviceUuid}")
+        service.characteristics.forEach { characteristic ->
+            appendLine("    characteristic: ${characteristic.characteristicUuid}")
+            characteristic.descriptors.forEach { descriptor ->
+                appendLine("      descriptor: ${descriptor.descriptorUuid}")
+            }
+        }
+    }
 }

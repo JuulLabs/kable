@@ -260,9 +260,16 @@ public class AndroidPeripheral internal constructor(
         connection.execute<OnServicesDiscovered> {
             discoverServices()
         }
-        _platformServices = withContext(connection.dispatcher) {
+        val platformServices = withContext(connection.dispatcher) {
             connection.bluetoothGatt.services
         }.map { it.toPlatformService() }
+        _platformServices = platformServices
+
+        if (platformServices.isNotEmpty()) {
+            logger.verbose { message = platformServices.debugString() }
+        } else {
+            logger.warn { message = "Services is empty" }
+        }
     }
 
     /**
@@ -496,5 +503,18 @@ private fun checkBluetoothAdapterState(
         val actualName = nameFor(actual)
         val expectedName = nameFor(expected)
         throw BluetoothDisabledException("Bluetooth adapter state is $actualName ($actual), but $expectedName ($expected) was required.")
+    }
+}
+
+private fun List<PlatformService>.debugString() = buildString {
+    appendLine("discovered services")
+    this@debugString.forEach { service ->
+        appendLine("  service: ${service.serviceUuid}")
+        service.characteristics.forEach { characteristic ->
+            appendLine("    characteristic: ${characteristic.characteristicUuid}")
+            characteristic.descriptors.forEach { descriptor ->
+                appendLine("      descriptor: ${descriptor.descriptorUuid}")
+            }
+        }
     }
 }
