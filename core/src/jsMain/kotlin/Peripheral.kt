@@ -175,7 +175,8 @@ public class JsPeripheral internal constructor(
         logger.verbose { message = "discover services" }
         val services = ioLock.withLock {
             gatt.getPrimaryServices().await()
-        }.map { it.toPlatformService(logger) }
+                .map { it.toPlatformService(logger) }
+        }
         _platformServices = services
     }
 
