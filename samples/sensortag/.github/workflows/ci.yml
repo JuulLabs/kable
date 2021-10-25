@@ -1,39 +1,35 @@
-# Each virtual machine has the same hardware resources available.
-#
-# - 2-core CPU
-# - 7 GB of RAM memory
-# - 14 GB of SSD disk space
-#
-# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners
-
 name: CI
 on:
-  push:
+  pull_request:
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 jobs:
   build:
-    runs-on: ubuntu-16.04
-    env:
-      GRADLE_ARGS: >-
-        --stacktrace
-        --no-daemon
-        --no-parallel
-        --max-workers 2
-        -Pkotlin.incremental=false
+    runs-on: ubuntu-20.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up JDK
-        uses: actions/setup-java@v1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
         with:
-          java-version: 1.8
+          distribution: "adopt-hotspot"
+          java-version: "11.0.11+9"
 
-      - name: Gradle cache
-        uses: actions/cache@v2
+      - uses: actions/cache@v2
         with:
-          path: ~/.gradle
-          key: grade-${{ hashFiles('**/build.gradle') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+            ~/.android/build-cache
+            ~/.android/cache
+          key: ${{ runner.os }}-build-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
-      - name: Check
-        run: ./gradlew $GRADLE_ARGS check
+      - run: ./gradlew check
+
+      - run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
