@@ -11,7 +11,7 @@ public data class DiscoveredService internal constructor(
     public val characteristics: List<DiscoveredCharacteristic>,
 ) : Service
 
-/** @throws IOException if service is not found. */
+/** @throws NoSuchElementException if service is not found. */
 internal fun <T : Service> List<T>.first(
     serviceUuid: Uuid
 ): T = firstOrNull { it.serviceUuid == serviceUuid }
