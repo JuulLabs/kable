@@ -466,8 +466,10 @@ private val Priority.intValue: Int
 private fun BluetoothGatt.setCharacteristicNotification(
     characteristic: PlatformCharacteristic,
     enable: Boolean,
-) = setCharacteristicNotification(characteristic.bluetoothGattCharacteristic, enable) ||
-    throw GattRequestRejectedException()
+) {
+    setCharacteristicNotification(characteristic.bluetoothGattCharacteristic, enable) ||
+        throw GattRequestRejectedException()
+}
 
 private val PlatformCharacteristic.configDescriptor: PlatformDescriptor?
     get() = descriptors.firstOrNull(clientCharacteristicConfigUuid)
