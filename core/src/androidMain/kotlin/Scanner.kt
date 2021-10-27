@@ -9,12 +9,15 @@ import android.os.ParcelUuid
 import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 
 public class ScanFailedException internal constructor(
     public val errorCode: Int,
@@ -32,7 +35,7 @@ public class AndroidScanner internal constructor(
         ?: error("Bluetooth not supported")
 
     public override val advertisements: Flow<Advertisement> = callbackFlow {
-        check(bluetoothAdapter.isEnabled) { "Bluetooth is disabled" }
+        val scanner = checkNotNull(bluetoothAdapter.bluetoothLeScanner) { "Bluetooth disabled." }
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
@@ -53,22 +56,34 @@ public class AndroidScanner internal constructor(
             }
 
             override fun onScanFailed(errorCode: Int) {
+                logger.error { message = "Scan could not be started, error code $errorCode." }
                 cancel("Bluetooth scan failed", ScanFailedException(errorCode))
             }
         }
 
-        val scanFilter =
-            filterServices
-                ?.map { ScanFilter.Builder().setServiceUuid(ParcelUuid(it)).build() }
-                ?.toList()
-        bluetoothAdapter.bluetoothLeScanner.startScan(
-            scanFilter,
-            scanSettings,
-            callback,
-        )
+        val scanFilter = filterServices
+            ?.map { ScanFilter.Builder().setServiceUuid(ParcelUuid(it)).build() }
+            ?.toList()
+        logger.info {
+            message = when (filterServices) {
+                null -> "Starting scan with no service filter."
+                else -> "Starting scan for services ${filterServices.joinToString()}."
+            }
+        }
+        scanner.startScan(scanFilter, scanSettings, callback)
 
         awaitClose {
-            bluetoothAdapter.bluetoothLeScanner.stopScan(callback)
+            logger.info {
+                message = when (filterServices) {
+                    null -> "Stopping scan with no service filter."
+                    else -> "Stopping scan for services ${filterServices.joinToString()}."
+                }
+            }
+            try {
+                scanner.stopScan(callback)
+            } catch (e: IllegalStateException) {
+                logger.warn { message = "Failed to stop scan." }
+            }
         }
     }
 }
