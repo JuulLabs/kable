@@ -462,10 +462,14 @@ private val Priority.intValue: Int
         Priority.High -> BluetoothGatt.CONNECTION_PRIORITY_HIGH
     }
 
+/** @throws GattRequestRejectedException if [BluetoothGatt.setCharacteristicNotification] returns `false`. */
 private fun BluetoothGatt.setCharacteristicNotification(
     characteristic: PlatformCharacteristic,
     enable: Boolean,
-) = setCharacteristicNotification(characteristic.bluetoothGattCharacteristic, enable)
+) {
+    setCharacteristicNotification(characteristic.bluetoothGattCharacteristic, enable) ||
+        throw GattRequestRejectedException()
+}
 
 private val PlatformCharacteristic.configDescriptor: PlatformDescriptor?
     get() = descriptors.firstOrNull(clientCharacteristicConfigUuid)
