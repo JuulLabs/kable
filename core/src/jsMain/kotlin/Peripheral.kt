@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -169,6 +170,8 @@ public class JsPeripheral internal constructor(
     private fun disconnectGatt() {
         _state.value = State.Disconnecting
         bluetoothDevice.gatt?.disconnect()
+        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
+        _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
 
     private suspend fun discoverServices() {
