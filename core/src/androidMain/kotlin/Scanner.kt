@@ -85,5 +85,5 @@ public class AndroidScanner internal constructor(
                 logger.warn { message = "Failed to stop scan." }
             }
         }
-    }
+    }.flowOn(Dispatchers.Main.immediate)
 }
