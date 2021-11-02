@@ -17,7 +17,6 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 
 public class ScanFailedException internal constructor(
     public val errorCode: Int,
