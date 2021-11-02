@@ -79,10 +79,11 @@ public class AndroidScanner internal constructor(
                     else -> "Stopping scan for services ${filterServices.joinToString()}."
                 }
             }
+            // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException` means BLE has been disabled.
             try {
                 scanner.stopScan(callback)
             } catch (e: IllegalStateException) {
-                logger.warn { message = "Failed to stop scan." }
+                logger.warn(e) { message = "Failed to stop scan. " }
             }
         }
     }.flowOn(Dispatchers.Main.immediate)
