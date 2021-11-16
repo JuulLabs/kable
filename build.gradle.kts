@@ -6,7 +6,7 @@ buildscript {
 }
 
 plugins {
-    kotlin("multiplatform") version "1.6.0-RC2" apply false
+    kotlin("multiplatform") version "1.6.0" apply false
     id("com.android.library") version "4.1.3" apply false
     id("org.jmailen.kotlinter") version "3.4.4" apply false
     id("com.vanniktech.maven.publish") version "0.15.1" apply false
