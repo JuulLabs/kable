@@ -83,16 +83,32 @@ kotlin {
             dependsOn(appleMain)
         }
 
+        val macosX64Test by getting {
+            dependsOn(appleTest)
+        }
+
         val iosX64Main by getting {
             dependsOn(appleMain)
+        }
+
+        val iosX64Test by getting {
+            dependsOn(appleTest)
         }
 
         val iosArm32Main by getting {
             dependsOn(appleMain)
         }
 
+        val iosArm32Test by getting {
+            dependsOn(appleTest)
+        }
+
         val iosArm64Main by getting {
             dependsOn(appleMain)
+        }
+
+        val iosArm64Test by getting {
+            dependsOn(appleTest)
         }
 
         all {
