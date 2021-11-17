@@ -6,6 +6,7 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 
 public actual class ScannerBuilder {
+    public var manufacturerDataFilters: List<ManufacturerDataFilter>? = null
     public actual var services: List<Uuid>? = null
 
     /**
@@ -25,6 +26,7 @@ public actual class ScannerBuilder {
 
     internal actual fun build(): Scanner = AndroidScanner(
         filterServices = services,
+        manufacturerDataFilters = manufacturerDataFilters,
         scanSettings = scanSettings,
         logging = logging,
     )

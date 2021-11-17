@@ -154,6 +154,13 @@ public final class com/juul/kable/ManufacturerData {
 	public final fun getData ()[B
 }
 
+public final class com/juul/kable/ManufacturerDataFilter {
+	public fun <init> (I[B[B)V
+	public final fun getManufacturerData ()[B
+	public final fun getManufacturerDataMask ()[B
+	public final fun getManufacturerId ()I
+}
+
 public final class com/juul/kable/NotReadyException : java/io/IOException {
 	public fun <init> ()V
 }
@@ -230,9 +237,11 @@ public abstract interface class com/juul/kable/Scanner {
 
 public final class com/juul/kable/ScannerBuilder {
 	public fun <init> ()V
+	public final fun getManufacturerDataFilters ()Ljava/util/List;
 	public final fun getScanSettings ()Landroid/bluetooth/le/ScanSettings;
 	public final fun getServices ()Ljava/util/List;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
+	public final fun setManufacturerDataFilters (Ljava/util/List;)V
 	public final fun setScanSettings (Landroid/bluetooth/le/ScanSettings;)V
 	public final fun setServices (Ljava/util/List;)V
 }

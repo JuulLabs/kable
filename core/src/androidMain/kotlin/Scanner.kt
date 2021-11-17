@@ -24,6 +24,7 @@ public class ScanFailedException internal constructor(
 
 public class AndroidScanner internal constructor(
     private val filterServices: List<Uuid>?,
+    private val manufacturerDataFilters: List<ManufacturerDataFilter>?,
     private val scanSettings: ScanSettings,
     logging: Logging,
 ) : Scanner {
@@ -60,22 +61,36 @@ public class AndroidScanner internal constructor(
             }
         }
 
-        val scanFilter = filterServices
+        val manufacturerDataScanFilters = manufacturerDataFilters
+            ?.map {
+                ScanFilter.Builder()
+                    .setManufacturerData(
+                        it.manufacturerId,
+                        it.manufacturerData,
+                        it.manufacturerDataMask
+                    )
+                    .build()
+            }
+        val serviceScanFilters = filterServices
             ?.map { ScanFilter.Builder().setServiceUuid(ParcelUuid(it)).build() }
-            ?.toList()
+        val scanFilters = (manufacturerDataScanFilters ?: emptyList())
+            .plus(serviceScanFilters ?: emptyList())
         logger.info {
-            message = when (filterServices) {
-                null -> "Starting scan with no service filter."
-                else -> "Starting scan for services ${filterServices.joinToString()}."
+            message = if (scanFilters.isEmpty()) {
+                "Starting scan without filters"
+            } else {
+                "Starting scan with ${manufacturerDataScanFilters?.size ?: 0} manufacturer data filters and ${serviceScanFilters?.size ?: 0} service filters."
             }
         }
-        scanner.startScan(scanFilter, scanSettings, callback)
+
+        scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {
             logger.info {
-                message = when (filterServices) {
-                    null -> "Stopping scan with no service filter."
-                    else -> "Stopping scan for services ${filterServices.joinToString()}."
+                message = if (scanFilters.isEmpty()) {
+                    "Stopping scan without filters"
+                } else {
+                    "Stopping scan with ${manufacturerDataScanFilters?.size ?: 0} manufacturer data filters and ${serviceScanFilters?.size ?: 0} service filters."
                 }
             }
             // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException` means BLE has been disabled.
