@@ -6,7 +6,6 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.os.ParcelUuid
-import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +22,7 @@ public class ScanFailedException internal constructor(
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
 
 public class AndroidScanner internal constructor(
-    private val filterServices: List<Uuid>?,
-    private val manufacturerDataFilters: List<ManufacturerDataFilter>?,
+    private val filters: List<Filter>?,
     private val scanSettings: ScanSettings,
     logging: Logging,
 ) : Scanner {
@@ -61,28 +59,24 @@ public class AndroidScanner internal constructor(
             }
         }
 
-        val manufacturerDataScanFilters = manufacturerDataFilters
-            ?.map {
-                ScanFilter.Builder()
-                    .setManufacturerData(
-                        it.manufacturerId,
-                        it.manufacturerData,
-                        it.manufacturerDataMask
-                    )
-                    .build()
-            }
-        val serviceScanFilters = filterServices
-            ?.map { ScanFilter.Builder().setServiceUuid(ParcelUuid(it)).build() }
-        val scanFilters = (manufacturerDataScanFilters ?: emptyList())
-            .plus(serviceScanFilters ?: emptyList())
         logger.info {
-            message = if (scanFilters.isEmpty()) {
+            message = if (filters?.isEmpty() != false) {
                 "Starting scan without filters"
             } else {
-                "Starting scan with ${manufacturerDataScanFilters?.size ?: 0} manufacturer data filters and ${serviceScanFilters?.size ?: 0} service filters."
+                "Starting scan with ${filters.size} filter(s)"
             }
         }
-
+        val scanFilters = filters
+            ?.map {
+                when (it) {
+                    is Filter.ManufacturerData ->
+                        ScanFilter.Builder().setManufacturerData(it.id, it.data, it.dataMask)
+                            .build()
+                    is Filter.Service ->
+                        ScanFilter.Builder().setServiceUuid(ParcelUuid(it.uuid)).build()
+                }
+            }
+            .orEmpty()
         scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {
@@ -90,7 +84,7 @@ public class AndroidScanner internal constructor(
                 message = if (scanFilters.isEmpty()) {
                     "Stopping scan without filters"
                 } else {
-                    "Stopping scan with ${manufacturerDataScanFilters?.size ?: 0} manufacturer data filters and ${serviceScanFilters?.size ?: 0} service filters."
+                    "Stopping scan with ${filters?.size ?: 0} filter(s)"
                 }
             }
             // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException` means BLE has been disabled.

@@ -1,13 +1,11 @@
 package com.juul.kable
 
 import android.bluetooth.le.ScanSettings
-import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 
 public actual class ScannerBuilder {
-    public var manufacturerDataFilters: List<ManufacturerDataFilter>? = null
-    public actual var services: List<Uuid>? = null
+    public actual var filters: List<Filter>? = null
 
     /**
      * Allows for the [Scanner] to be configured via Android's [ScanSettings].
@@ -25,8 +23,7 @@ public actual class ScannerBuilder {
     }
 
     internal actual fun build(): Scanner = AndroidScanner(
-        filterServices = services,
-        manufacturerDataFilters = manufacturerDataFilters,
+        filters = filters,
         scanSettings = scanSettings,
         logging = logging,
     )

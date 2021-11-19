@@ -102,6 +102,21 @@ public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract class com/juul/kable/Filter {
+}
+
+public final class com/juul/kable/Filter$ManufacturerData : com/juul/kable/Filter {
+	public fun <init> (I[B[B)V
+	public final fun getData ()[B
+	public final fun getDataMask ()[B
+	public final fun getId ()I
+}
+
+public final class com/juul/kable/Filter$Service : com/juul/kable/Filter {
+	public fun <init> (Ljava/util/UUID;)V
+	public final fun getUuid ()Ljava/util/UUID;
+}
+
 public final class com/juul/kable/GattRequestRejectedException : com/juul/kable/BluetoothException {
 	public fun <init> ()V
 }
@@ -152,13 +167,6 @@ public final class com/juul/kable/ManufacturerData {
 	public fun <init> (I[B)V
 	public final fun getCode ()I
 	public final fun getData ()[B
-}
-
-public final class com/juul/kable/ManufacturerDataFilter {
-	public fun <init> (I[B[B)V
-	public final fun getManufacturerData ()[B
-	public final fun getManufacturerDataMask ()[B
-	public final fun getManufacturerId ()I
 }
 
 public final class com/juul/kable/NotReadyException : java/io/IOException {
@@ -237,13 +245,11 @@ public abstract interface class com/juul/kable/Scanner {
 
 public final class com/juul/kable/ScannerBuilder {
 	public fun <init> ()V
-	public final fun getManufacturerDataFilters ()Ljava/util/List;
+	public final fun getFilters ()Ljava/util/List;
 	public final fun getScanSettings ()Landroid/bluetooth/le/ScanSettings;
-	public final fun getServices ()Ljava/util/List;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
-	public final fun setManufacturerDataFilters (Ljava/util/List;)V
+	public final fun setFilters (Ljava/util/List;)V
 	public final fun setScanSettings (Landroid/bluetooth/le/ScanSettings;)V
-	public final fun setServices (Ljava/util/List;)V
 }
 
 public final class com/juul/kable/ScannerKt {
