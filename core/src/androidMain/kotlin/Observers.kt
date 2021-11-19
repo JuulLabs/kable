@@ -1,15 +1,14 @@
 package com.juul.kable
 
-import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.tuulbox.collections.synchronizedMapOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onSubscription
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.cancellation.CancellationException
 
 internal sealed class AndroidObservationEvent {
@@ -50,104 +49,65 @@ internal sealed class AndroidObservationEvent {
  */
 internal class Observers(
     private val peripheral: AndroidPeripheral,
-    logging: Logging,
+    private val state: StateFlow<State>,
+    private val logging: Logging,
 ) {
 
-    private val logger = Logger(logging, tag = "Kable/Observers", peripheral.bluetoothDevice.address)
-
     val characteristicChanges = MutableSharedFlow<AndroidObservationEvent>()
-    private val observations = Observations()
+    private val observations = synchronizedMapOf<Characteristic, Observation>()
 
     fun acquire(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
-    ): Flow<ByteArray> = characteristicChanges
-        .onSubscription {
-            peripheral.suspendUntilAtLeast<State.Connecting.Observes>()
-            if (observations.add(characteristic, onSubscription) == 1) {
-                peripheral.startObservation(characteristic)
-            }
-            onSubscription()
-        }
-        .filter {
-            it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
-                it.characteristic.serviceUuid == characteristic.serviceUuid
-        }
-        .map {
-            when (it) {
-                is AndroidObservationEvent.Error -> throw it.cause
-                is AndroidObservationEvent.CharacteristicChange -> it.data
-            }
-        }
-        .onCompletion {
-            if (observations.remove(characteristic, onSubscription) == 0) {
-                try {
-                    peripheral.stopObservation(characteristic)
-                } catch (e: NotReadyException) {
-                    // Silently ignore as it is assumed that failure is due to connection drop, in which case Android
-                    // will clear the notifications.
-                    logger.debug { message = "Stop notification failure ignored." }
-                }
+    ): Flow<ByteArray> {
+        val handler = peripheral.observationHandler()
+        val identifier = peripheral.bluetoothDevice.address
+        val observation = observations.synchronized {
+            getOrPut(characteristic) {
+                Observation(state, handler, characteristic, logging, identifier)
             }
         }
 
-    suspend fun rewire() {
-        observations.forEach { characteristic, onSubscriptionActions ->
+        return characteristicChanges
+            .onSubscription { observation.onSubscription(onSubscription) }
+            .filter {
+                it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
+                    it.characteristic.serviceUuid == characteristic.serviceUuid
+            }
+            .map(::dematerialize)
+            .onCompletion { observation.onCompletion(onSubscription) }
+    }
+
+    suspend fun onConnected() {
+        observations.entries.forEach { (characteristic, observation) ->
             try {
-                peripheral.startObservation(characteristic)
-                onSubscriptionActions.forEach { it() }
+                observation.onConnected()
             } catch (cancellation: CancellationException) {
                 throw cancellation
-            } catch (t: Throwable) {
-                characteristicChanges.emit(AndroidObservationEvent.Error(characteristic, t))
+            } catch (e: Exception) {
+                characteristicChanges.emit(AndroidObservationEvent.Error(characteristic, e))
             }
+        }
+    }
+
+    fun onConnectionLost() {
+        observations.entries.forEach { (_, observation) ->
+            observation.onConnectionLost()
         }
     }
 }
 
-private class Observations {
+private fun dematerialize(event: AndroidObservationEvent): ByteArray = when (event) {
+    is AndroidObservationEvent.Error -> throw event.cause
+    is AndroidObservationEvent.CharacteristicChange -> event.data
+}
 
-    private val lock = Mutex()
-    private val observations = mutableMapOf<Characteristic, MutableList<OnSubscriptionAction>>()
-
-    suspend inline fun forEach(
-        action: (Characteristic, List<OnSubscriptionAction>) -> Unit
-    ) = lock.withLock {
-        observations.forEach { (characteristic, onSubscriptionActions) ->
-            action(characteristic, onSubscriptionActions)
-        }
+private fun AndroidPeripheral.observationHandler(): Observation.Handler = object : Observation.Handler {
+    override suspend fun startObservation(characteristic: Characteristic) {
+        this@observationHandler.startObservation(characteristic)
     }
 
-    suspend fun add(
-        characteristic: Characteristic,
-        onSubscription: OnSubscriptionAction,
-    ): Int = lock.withLock {
-        val actions = observations[characteristic]
-        if (actions == null) {
-            val newActions = mutableListOf(onSubscription)
-            observations[characteristic] = newActions
-            1
-        } else {
-            actions += onSubscription
-            actions.count()
-        }
-    }
-
-    suspend fun remove(
-        characteristic: Characteristic,
-        onSubscription: OnSubscriptionAction,
-    ): Int = lock.withLock {
-        val actions = observations[characteristic]
-        when {
-            actions == null -> -1 // No previous observation existed for characteristic.
-            actions.count() == 1 -> {
-                observations -= characteristic
-                0
-            }
-            else -> {
-                actions -= onSubscription
-                actions.count()
-            }
-        }
+    override suspend fun stopObservation(characteristic: Characteristic) {
+        this@observationHandler.stopObservation(characteristic)
     }
 }

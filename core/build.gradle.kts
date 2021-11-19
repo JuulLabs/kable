@@ -34,6 +34,7 @@ kotlin {
             dependencies {
                 api(coroutines())
                 api(uuid())
+                implementation(tuulbox("collections"))
             }
         }
 

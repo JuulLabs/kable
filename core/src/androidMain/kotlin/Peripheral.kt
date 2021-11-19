@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
@@ -142,6 +143,7 @@ public class AndroidPeripheral internal constructor(
     private val receiver = registerBluetoothStateBroadcastReceiver { state ->
         if (state == STATE_OFF) {
             closeConnection()
+            observers.onConnectionLost()
             _state.value = State.Disconnected()
         }
     }
@@ -166,7 +168,7 @@ public class AndroidPeripheral internal constructor(
      */
     public val mtu: StateFlow<Int?> = _mtu.asStateFlow()
 
-    private val observers = Observers(this, logging)
+    private val observers = Observers(this, _state, logging)
 
     @Volatile
     private var _platformServices: List<PlatformService>? = null
@@ -205,6 +207,7 @@ public class AndroidPeripheral internal constructor(
             connection
                 .characteristicChanges
                 .onEach(observers.characteristicChanges::emit)
+                .onCompletion { observers.onConnectionLost() }
                 .launchIn(scope, start = UNDISPATCHED)
 
             suspendUntilOrThrow<State.Connecting.Services>()
@@ -212,7 +215,7 @@ public class AndroidPeripheral internal constructor(
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             _state.value = State.Connecting.Observes
             logger.verbose { message = "Configuring characteristic observations" }
-            observers.rewire()
+            observers.onConnected()
         } catch (t: Throwable) {
             closeConnection()
             logger.error(t) { message = "Failed to connect" }
@@ -226,6 +229,9 @@ public class AndroidPeripheral internal constructor(
     private fun closeConnection() {
         _connection?.close()
         _connection = null
+
+        observers.onConnectionLost()
+
         // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
@@ -381,19 +387,16 @@ public class AndroidPeripheral internal constructor(
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)
+        setConfigDescriptor(platformCharacteristic, enable = false)
 
-        try {
-            setConfigDescriptor(platformCharacteristic, enable = false)
-        } finally {
-            logger.debug {
-                message = "setCharacteristicNotification"
-                detail(characteristic)
-                detail("value", "false")
-            }
-            connection
-                .bluetoothGatt
-                .setCharacteristicNotification(platformCharacteristic, false)
+        logger.debug {
+            message = "setCharacteristicNotification"
+            detail(characteristic)
+            detail("value", "false")
         }
+        connection
+            .bluetoothGatt
+            .setCharacteristicNotification(platformCharacteristic, false)
     }
 
     private suspend fun setConfigDescriptor(
