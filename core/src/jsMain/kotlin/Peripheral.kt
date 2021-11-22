@@ -21,6 +21,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -75,8 +76,10 @@ public class JsPeripheral internal constructor(
 
     private val ioLock = Mutex()
 
+    internal val platformIdentifier = bluetoothDevice.id
+
     private val _state = MutableStateFlow<State>(State.Disconnected())
-    public override val state: Flow<State> = _state.asStateFlow()
+    public override val state: StateFlow<State> = _state.asStateFlow()
 
     private var _platformServices: List<PlatformService>? = null
     private val platformServices: List<PlatformService>
@@ -138,7 +141,7 @@ public class JsPeripheral internal constructor(
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@JsPeripheral))
             _state.value = State.Connecting.Observes
             logger.verbose { message = "Configuring characteristic observations" }
-            observers.rewire()
+            observers.onConnected()
         } catch (t: Throwable) {
             logger.error(t) { message = "Failed to connect" }
             disconnectGatt()
@@ -261,7 +264,7 @@ public class JsPeripheral internal constructor(
         .buffer
         .toByteArray()
 
-    private val observers = Observers(this)
+    private val observers = Observers<DataView>(this, logging, extraBufferCapacity = 64)
 
     public fun observeDataView(
         characteristic: Characteristic,
@@ -345,7 +348,7 @@ public class JsPeripheral internal constructor(
             detail(this@createListener)
             detail(data)
         }
-        val characteristicChange = JsObservationEvent.CharacteristicChange(this, data)
+        val characteristicChange = ObservationEvent.CharacteristicChange(this, data)
 
         if (!observers.characteristicChanges.tryEmit(characteristicChange))
             console.error("Failed to emit $characteristicChange")
@@ -372,3 +375,6 @@ public class JsPeripheral internal constructor(
 
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
 }
+
+internal actual val Peripheral.identifier: String
+    get() = (this as JsPeripheral).platformIdentifier

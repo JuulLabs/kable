@@ -13,11 +13,6 @@ fun uuid(
     version: String = "0.3.1"
 ): String = "com.benasher44:$artifact:$version"
 
-fun stately(
-    module: String,
-    version: String = "1.1.10-a1"
-): String = "co.touchlab:stately-$module:$version"
-
 fun wrappers(
     version: String = "1.0.1-pre.264-kotlin-1.5.31"
 ) = "org.jetbrains.kotlin-wrappers:kotlin-extensions:$version"

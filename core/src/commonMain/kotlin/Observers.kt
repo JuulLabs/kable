@@ -4,27 +4,13 @@ import com.juul.kable.logs.Logging
 import com.juul.tuulbox.collections.synchronizedMapOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onSubscription
 import kotlin.coroutines.cancellation.CancellationException
 
-internal sealed class AndroidObservationEvent {
-
-    abstract val characteristic: Characteristic
-
-    data class CharacteristicChange(
-        override val characteristic: Characteristic,
-        val data: ByteArray,
-    ) : AndroidObservationEvent()
-
-    data class Error(
-        override val characteristic: Characteristic,
-        val cause: Throwable,
-    ) : AndroidObservationEvent()
-}
+internal expect fun Peripheral.observationHandler(): Observation.Handler
 
 /**
  * Manages observations for the specified [peripheral].
@@ -38,42 +24,38 @@ internal sealed class AndroidObservationEvent {
  * different changes would be represented as A1, A2 and A3):
  *
  * ```
- *                                                       .--- acquire(A) --> A1, A2, A3
- *                             .----------------------. /
- *  A1, B1, C1, A2, A3, B2 --> | characteristicChange | ----- acquire(B) --> B1, B2
- *                             '----------------------' \
- *                                                       '--- acquire(C) --> C1
+ *                                                        .--- acquire(A) --> A1, A2, A3
+ *                             .-----------------------. /
+ *  A1, B1, C1, A2, A3, B2 --> | characteristicChanges | ----- acquire(B) --> B1, B2
+ *                             '-----------------------' \
+ *                                                        '--- acquire(C) --> C1
  * ```
  *
  * @param peripheral to perform notification actions against to enable/disable the observations.
  */
-internal class Observers(
-    private val peripheral: AndroidPeripheral,
-    private val state: StateFlow<State>,
+internal class Observers<T>(
+    private val peripheral: Peripheral,
     private val logging: Logging,
+    extraBufferCapacity: Int = 0,
 ) {
 
-    val characteristicChanges = MutableSharedFlow<AndroidObservationEvent>()
+    val characteristicChanges = MutableSharedFlow<ObservationEvent<T>>(extraBufferCapacity = extraBufferCapacity)
     private val observations = synchronizedMapOf<Characteristic, Observation>()
 
     fun acquire(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
-    ): Flow<ByteArray> {
+    ): Flow<T> {
         val handler = peripheral.observationHandler()
-        val identifier = peripheral.bluetoothDevice.address
         val observation = observations.synchronized {
             getOrPut(characteristic) {
-                Observation(state, handler, characteristic, logging, identifier)
+                Observation(peripheral.state, handler, characteristic, logging, peripheral.identifier)
             }
         }
 
         return characteristicChanges
             .onSubscription { observation.onSubscription(onSubscription) }
-            .filter {
-                it.characteristic.characteristicUuid == characteristic.characteristicUuid &&
-                    it.characteristic.serviceUuid == characteristic.serviceUuid
-            }
+            .filter { event -> event.isAssociatedWith(characteristic) }
             .map(::dematerialize)
             .onCompletion { observation.onCompletion(onSubscription) }
     }
@@ -85,7 +67,7 @@ internal class Observers(
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (e: Exception) {
-                characteristicChanges.emit(AndroidObservationEvent.Error(characteristic, e))
+                characteristicChanges.emit(ObservationEvent.Error(characteristic, e))
             }
         }
     }
@@ -94,20 +76,5 @@ internal class Observers(
         observations.entries.forEach { (_, observation) ->
             observation.onConnectionLost()
         }
-    }
-}
-
-private fun dematerialize(event: AndroidObservationEvent): ByteArray = when (event) {
-    is AndroidObservationEvent.Error -> throw event.cause
-    is AndroidObservationEvent.CharacteristicChange -> event.data
-}
-
-private fun AndroidPeripheral.observationHandler(): Observation.Handler = object : Observation.Handler {
-    override suspend fun startObservation(characteristic: Characteristic) {
-        this@observationHandler.startObservation(characteristic)
-    }
-
-    override suspend fun stopObservation(characteristic: Characteristic) {
-        this@observationHandler.stopObservation(characteristic)
     }
 }

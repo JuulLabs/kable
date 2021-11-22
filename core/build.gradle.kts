@@ -73,9 +73,6 @@ kotlin {
 
         val appleMain by creating {
             dependsOn(commonMain)
-            dependencies {
-                implementation(stately("isolate"))
-            }
         }
 
         val appleTest by creating

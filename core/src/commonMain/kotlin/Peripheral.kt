@@ -6,6 +6,7 @@ package com.juul.kable
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
@@ -58,7 +59,7 @@ public interface Peripheral {
      *                               '---------------'       '--------------'
      * ```
      */
-    public val state: Flow<State>
+    public val state: StateFlow<State>
 
     /**
      * Initiates a connection, suspending until connected, or failure occurs. Multiple concurrent invocations will all
@@ -184,3 +185,5 @@ internal suspend inline fun <reified T : State> Peripheral.suspendUntilOrThrow()
         .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
         .first { it is T }
 }
+
+internal expect val Peripheral.identifier: String
