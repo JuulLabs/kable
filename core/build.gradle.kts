@@ -8,6 +8,15 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
+/* ```
+ *   common
+ *   |-- js
+ *   |-- android
+ *   '-- apple
+ *       |-- ios
+ *       '-- macos
+ * ```
+ */
 kotlin {
     explicitApi()
 
@@ -61,39 +70,51 @@ kotlin {
             }
         }
 
-        val macosX64Main by getting {
+        val appleMain by creating {
+            dependsOn(commonMain)
             dependencies {
-                implementation(stately("isolate-macosx64"))
+                implementation(stately("isolate"))
             }
+        }
+
+        val appleTest by creating
+
+        val macosX64Main by getting {
+            dependsOn(appleMain)
+        }
+
+        val macosX64Test by getting {
+            dependsOn(appleTest)
         }
 
         val iosX64Main by getting {
-            dependencies {
-                implementation(stately("isolate-iosx64"))
-            }
+            dependsOn(appleMain)
+        }
+
+        val iosX64Test by getting {
+            dependsOn(appleTest)
         }
 
         val iosArm32Main by getting {
-            dependencies {
-                implementation(stately("isolate-iosarm32"))
-            }
+            dependsOn(appleMain)
+        }
+
+        val iosArm32Test by getting {
+            dependsOn(appleTest)
         }
 
         val iosArm64Main by getting {
-            dependencies {
-                implementation(stately("isolate-iosarm64"))
-            }
+            dependsOn(appleMain)
+        }
+
+        val iosArm64Test by getting {
+            dependsOn(appleTest)
         }
 
         all {
             languageSettings.enableLanguageFeature("InlineClasses")
         }
     }
-}
-
-atomicfu {
-    transformJvm = true
-    transformJs = false
 }
 
 android {

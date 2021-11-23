@@ -39,7 +39,7 @@ public actual data class Advertisement(
         manufacturerData?.takeIf { (it.code == companyIdentifierCode) }?.data
 
     public actual val manufacturerData: ManufacturerData?
-        get() = manufacturerDataAsNSData?.toByteArray()?.toManufacturerData()
+        get() = manufacturerDataAsNSData?.toManufacturerData()
 
     public fun manufacturerDataAsNSData(companyIdentifierCode: Int): NSData? =
         manufacturerData(companyIdentifierCode)?.toNSData()
@@ -50,6 +50,8 @@ public actual data class Advertisement(
     override fun toString(): String =
         "Advertisement(name=$name, cbPeripheral=$cbPeripheral, rssi=$rssi, txPower=$txPower)"
 }
+
+internal fun NSData.toManufacturerData(): ManufacturerData? = toByteArray().toManufacturerData()
 
 private fun ByteArray.toManufacturerData(): ManufacturerData? =
     takeIf { size >= 2 }?.getShortAt(0)?.let { code ->

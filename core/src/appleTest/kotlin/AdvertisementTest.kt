@@ -1,9 +1,8 @@
 package com.juul.kable.test
 
-import com.juul.kable.Advertisement
+import com.juul.kable.toManufacturerData
 import com.juul.kable.toNSData
-import platform.CoreBluetooth.CBAdvertisementDataManufacturerDataKey
-import platform.CoreBluetooth.CBPeripheral
+import platform.Foundation.NSData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -15,47 +14,37 @@ import kotlin.test.assertTrue
 class AdvertisementTest {
     @Test
     fun manufacturerData_advertisementWithMoreThanTwoBytes_hasCodeAndData() {
-        val advertisement = fakeAdvertisement(
-            ubyteArrayOf(
-                0xc3u, 0x05u, // little-endian manufacturer id
-                0x042u, // data
-            )
-        )
-        val data = advertisement.manufacturerData
-        assertNotNull(data)
-        assertEquals(data.code, 0x05c3)
-        assertEquals(data.data.size, 1)
-        assertEquals(data.data[0], 0x042)
+        val data = ubyteArrayOf(
+            0xc3u, 0x05u, // little-endian manufacturer id
+            0x042u, // data
+        ).toNSData()
+        val manufacturerData = data.toManufacturerData()
+
+        assertNotNull(manufacturerData)
+        assertEquals(manufacturerData.code, 0x05c3)
+        assertEquals(manufacturerData.data.size, 1)
+        assertEquals(manufacturerData.data[0], 0x042)
     }
 
     @Test
     fun manufacturerData_advertisementWithTwoBytes_hasCodeAndEmptyData() {
-        val advertisement = fakeAdvertisement(
-            ubyteArrayOf(
-                0xc3u, 0x05u, // little-endian manufacturer id
-            )
-        )
-        val data = advertisement.manufacturerData
-        assertNotNull(data)
-        assertEquals(data.code, 0x05c3)
-        assertTrue(data.data.isEmpty())
+        val data = ubyteArrayOf(
+            0xc3u, 0x05u, // little-endian manufacturer id
+        ).toNSData()
+        val manufacturerData = data.toManufacturerData()
+
+        assertNotNull(manufacturerData)
+        assertEquals(manufacturerData.code, 0x05c3)
+        assertTrue(manufacturerData.data.isEmpty())
     }
 
     @Test
     fun manufacturerData_advertisementWithFewerThanTwoBytes_isNull() {
-        val advertisement = fakeAdvertisement(
-            ubyteArrayOf(0x01u)
-        )
-        val data = advertisement.manufacturerData
-        assertNull(data)
-    }
+        val data = ubyteArrayOf(0x01u).toNSData()
+        val manufacturerData = data.toManufacturerData()
 
-    private fun fakeAdvertisement(manufacturerBytes: UByteArray): Advertisement =
-        Advertisement(
-            rssi = 0,
-            data = mapOf(
-                CBAdvertisementDataManufacturerDataKey to manufacturerBytes.toByteArray().toNSData()
-            ),
-            cbPeripheral = CBPeripheral()
-        )
+        assertNull(manufacturerData)
+    }
 }
+
+private fun UByteArray.toNSData(): NSData = toByteArray().toNSData()
