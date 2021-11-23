@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 
 public class OutOfOrderGattCallbackException internal constructor(
     message: String,
@@ -52,8 +53,8 @@ internal class Connection(
     suspend inline fun <reified T> execute(
         crossinline action: BluetoothGatt.() -> Boolean,
     ): T = lock.withLock {
-        withContext(dispatcher) {
-            action.invoke(bluetoothGatt) || throw GattRequestRejectedException()
+        withBluetoothLeContext {
+            action.invoke(bluetoothGatt)
         }
 
         val response = try {
@@ -83,8 +84,8 @@ internal class Connection(
      * @throws GattStatusException if response has a non-`GATT_SUCCESS` status.
      */
     suspend fun requestMtu(mtu: Int): Int = lock.withLock {
-        withContext(dispatcher) {
-            if (!bluetoothGatt.requestMtu(mtu)) throw GattRequestRejectedException()
+        withBluetoothLeContext {
+            bluetoothGatt.requestMtu(mtu)
         }
 
         val response = try {
@@ -100,5 +101,24 @@ internal class Connection(
     fun close() {
         bluetoothGatt.close()
         invokeOnClose.invoke()
+    }
+
+    private suspend inline fun withBluetoothLeContext(crossinline action: suspend () -> Boolean) {
+        try {
+            withContext(dispatcher) {
+                action.invoke() || throw GattRequestRejectedException()
+            }
+        } catch (e: CancellationException) {
+            // When a disconnect event is received on the BluetoothGattCallback we shutdown the thread backing the
+            // dispatcher that is used for BLE operations. Per Handler.asCoroutineDispatcher documentation:
+            //
+            // > If the underlying handler is closed and its message-scheduling methods start to return `false` on
+            // > an attempt to submit a continuation task to the resulting dispatcher, then the [Job] of the
+            // > affected task is [cancelled][Job.cancel]...
+            //
+            // We re-throw as an appropriate exception type to indicate the connection loss (rather than cancelling the
+            // calling scope).
+            throw ConnectionLostException(cause = e)
+        }
     }
 }
