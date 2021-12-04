@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.juul.kable.State.Connected
 import com.juul.kable.State.Connecting.Observes
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
@@ -40,7 +39,7 @@ internal class Observation(
         if (isObservationEnabled.value) {
             // Ignore `NotConnectedException` to guard against potential race-condition where disconnect occurs
             // immediately after checking `isObservationEnabled`.
-            suppressNotConnectedException {
+            suppressConnectionExceptions {
                 action()
             }
         }
@@ -56,7 +55,7 @@ internal class Observation(
         if (isObservationEnabled.value) {
             // Ignore `NotConnectedException` to guard against potential race-condition where disconnect occurs
             // immediately after checking `isObservationEnabled`.
-            suppressNotConnectedException {
+            suppressConnectionExceptions {
                 subscribers.forEach { it() }
             }
         }
@@ -69,7 +68,7 @@ internal class Observation(
 
     private suspend fun enableObservationIfNeeded() {
         if (!isObservationEnabled.value && isConnected && hasSubscribers) {
-            suppressNotConnectedException {
+            suppressConnectionExceptions {
                 handler.startObservation(characteristic)
                 isObservationEnabled.value = true
             }
@@ -78,7 +77,7 @@ internal class Observation(
 
     private suspend fun disableObservationIfNeeded() {
         if (isObservationEnabled.value && isConnected && !hasSubscribers) {
-            suppressNotConnectedException {
+            suppressConnectionExceptions {
                 handler.stopObservation(characteristic)
             }
             isObservationEnabled.value = false
@@ -86,15 +85,19 @@ internal class Observation(
     }
 
     /**
-     * It is assumed that observations are automatically cleared on disconnect, therefore in some situations
-     * [NotConnectedException]s can be ignored, as the corresponding [action] will be rendered unnecessary
-     * (e.g. clearing an observation is not needed if connection has been lost), or [action] will be re-attempted on
-     * [reconnect][onConnected].
+     * While spinning up or down an observation the connection may drop, resulting in an unnecessary connection related
+     * exception being thrown.
+     *
+     * Since it is assumed that observations are automatically cleared on disconnect, these exceptions can be ignored as
+     * the corresponding [action] will be rendered unnecessary (e.g. clearing an observation is not needed if connection
+     * has been lost, or [action] will be re-attempted on [reconnect][onConnected]).
      */
-    private inline fun suppressNotConnectedException(action: () -> Unit) {
+    private inline fun suppressConnectionExceptions(action: () -> Unit) {
         try {
             action.invoke()
         } catch (e: NotConnectedException) {
+            logger.verbose { message = "Suppressed failure: ${e.message}" }
+        } catch (e: BluetoothException) {
             logger.verbose { message = "Suppressed failure: ${e.message}" }
         }
     }
