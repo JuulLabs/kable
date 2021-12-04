@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.juul.kable.State.Connected
+import com.juul.kable.State.Connecting.Observes
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.atomicfu.atomic
@@ -28,7 +29,7 @@ internal class Observation(
     private val isObservationEnabled = atomic(false)
 
     private val isConnected: Boolean
-        get() = state.value is Connected
+        get() = state.value.isAtLeast<Observes>()
 
     private val hasSubscribers: Boolean
         get() = subscribers.isNotEmpty()
