@@ -37,8 +37,6 @@ internal class Observation(
         subscribers += action
         enableObservationIfNeeded()
         if (isObservationEnabled.value) {
-            // Ignore `NotConnectedException` to guard against potential race-condition where disconnect occurs
-            // immediately after checking `isObservationEnabled`.
             suppressConnectionExceptions {
                 action()
             }
@@ -53,8 +51,6 @@ internal class Observation(
     suspend fun onConnected() = mutex.withLock {
         enableObservationIfNeeded()
         if (isObservationEnabled.value) {
-            // Ignore `NotConnectedException` to guard against potential race-condition where disconnect occurs
-            // immediately after checking `isObservationEnabled`.
             suppressConnectionExceptions {
                 subscribers.forEach { it() }
             }
@@ -88,17 +84,17 @@ internal class Observation(
      * While spinning up or down an observation the connection may drop, resulting in an unnecessary connection related
      * exception being thrown.
      *
-     * Since it is assumed that observations are automatically cleared on disconnect, these exceptions can be ignored as
-     * the corresponding [action] will be rendered unnecessary (e.g. clearing an observation is not needed if connection
+     * Since it is assumed that observations are automatically cleared on disconnect, these exceptions can be ignored,
+     * as the corresponding [action] will be rendered unnecessary (clearing an observation is not needed if connection
      * has been lost, or [action] will be re-attempted on [reconnect][onConnected]).
      */
     private inline fun suppressConnectionExceptions(action: () -> Unit) {
         try {
             action.invoke()
         } catch (e: NotConnectedException) {
-            logger.verbose { message = "Suppressed failure: ${e.message}" }
+            logger.verbose { message = "Suppressed failure: $e" }
         } catch (e: BluetoothException) {
-            logger.verbose { message = "Suppressed failure: ${e.message}" }
+            logger.verbose { message = "Suppressed failure: $e" }
         }
     }
 }
