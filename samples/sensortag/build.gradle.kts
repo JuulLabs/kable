@@ -3,16 +3,13 @@ buildscript {
         google()
         mavenCentral()
     }
-
-    dependencies {
-        classpath("com.android.tools.build:gradle:4.1.3")
-    }
 }
 
 plugins {
-    kotlin("multiplatform") version "1.5.20" apply false
-    kotlin("kapt") version "1.5.20" apply false
-    id("net.mbonnin.one.eight") version "0.2"
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.kapt) apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.one.eight)
 }
 
 subprojects {

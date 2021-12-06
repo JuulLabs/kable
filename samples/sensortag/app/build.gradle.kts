@@ -19,33 +19,25 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(coroutines())
-                implementation(kable())
-                implementation(tuulbox("logging"))
-                implementation(tuulbox("encoding"))
+                api(libs.kotlinx.coroutines.core)
+                implementation(libs.kable)
+                implementation(libs.tuulbox.logging)
+                implementation(libs.tuulbox.encoding)
             }
         }
 
         val androidMain by getting {
             dependencies {
-                implementation(material())
-                implementation(androidx.appcompat())
-                implementation(androidx.recyclerview())
-                implementation(androidx.lifecycle("viewmodel-ktx"))
-                implementation(androidx.lifecycle("livedata-ktx"))
-                implementation(androidx.activity("activity-ktx"))
-                implementation(exercise("annotations"))
+                implementation(libs.material)
+                implementation(libs.bundles.androidx)
+                implementation(libs.exercise.annotations)
             }
         }
 
         val nativeMain by creating {
             dependencies {
-                implementation(coroutines(module = "core-macosx64", version = "1.5.0-native-mt")) {
-                    version {
-                        strictly("1.5.0-native-mt")
-                    }
-                }
-                implementation(stately("isolate"))
+                implementation(libs.kotlinx.coroutines.macosx64)
+                implementation(libs.stately)
             }
         }
 
@@ -56,10 +48,10 @@ kotlin {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdkVersion(libs.versions.android.compile.get())
 
     defaultConfig {
-        minSdkVersion(21)
+        minSdkVersion(libs.versions.android.min.get())
     }
 
     buildFeatures {
@@ -78,7 +70,7 @@ android {
 }
 
 dependencies {
-    "kapt"(exercise("compile"))
+    "kapt"(libs.exercise.compile)
 }
 
 // Fix failure when building JavaScript target (with Webpack 5).
