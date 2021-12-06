@@ -13,7 +13,7 @@ androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.1.
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.1.0" }
 androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
-androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version = "1.1.0" }
+androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version = "1.2.1" }
 exercise-annotations = { module = "com.juul.exercise:annotations", version.ref = "exercise" }
 exercise-compile = { module = "com.juul.exercise:compile", version.ref = "exercise" }
 kable = { module = "com.juul.kable:core", version.ref = "kable" }
