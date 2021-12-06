@@ -6,7 +6,7 @@ androidx-lifecycle = "2.2.0"
 exercise = "0.7.0"
 kable = "0.9.2"
 kotlin = "1.6.0"
-tuulbox = "4.1.0"
+tuulbox = "4.8.0"
 
 [libraries]
 androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.1.0" }
