@@ -17,7 +17,7 @@ androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version
 exercise-annotations = { module = "com.juul.exercise:annotations", version.ref = "exercise" }
 exercise-compile = { module = "com.juul.exercise:compile", version.ref = "exercise" }
 kable = { module = "com.juul.kable:core", version.ref = "kable" }
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.5.1" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.5.2" }
 kotlinx-coroutines-macosx64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64", version = "1.5.0-native-mt!!" }
 material = { module = "com.google.android.material:material", version = "1.1.0" }
 stately = { module = "co.touchlab:stately-isolate", version = "1.1.7-a1" }
