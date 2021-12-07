@@ -10,7 +10,7 @@ ksp = "1.6.0-1.0.1"
 tuulbox = "4.8.0"
 
 [libraries]
-androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.1.0" }
+androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.4.0" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.4.0" }
 androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }

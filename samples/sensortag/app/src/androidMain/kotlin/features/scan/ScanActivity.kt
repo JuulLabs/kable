@@ -76,9 +76,7 @@ class ScanActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(
-        menu: Menu?,
-    ): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.scan, menu)
         return true
     }
