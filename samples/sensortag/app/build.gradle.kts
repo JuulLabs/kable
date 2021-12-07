@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     kotlin("multiplatform")
-    kotlin("kapt")
+    id("com.google.devtools.ksp")
 }
 
 kotlin {
@@ -70,7 +70,7 @@ android {
 }
 
 dependencies {
-    "kapt"(libs.exercise.compile)
+    ksp(libs.exercise.compile)
 }
 
 // Fix failure when building JavaScript target (with Webpack 5).
