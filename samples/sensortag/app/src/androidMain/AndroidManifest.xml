@@ -14,7 +14,11 @@
         android:theme="@style/Theme.AppCompat"
         >
 
-        <activity android:name=".features.scan.ScanActivity">
+        <activity
+            android:name=".features.scan.ScanActivity"
+            android:exported="true"
+            >
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -23,7 +27,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".features.sensor.SensorActivity" />
+        <activity
+            android:name=".features.sensor.SensorActivity"
+            android:exported="false"
+            />
 
     </application>
 

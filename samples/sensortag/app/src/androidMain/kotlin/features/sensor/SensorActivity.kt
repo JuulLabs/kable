@@ -18,7 +18,7 @@ class SensorActivity : AppCompatActivity() {
 
     private val viewModel by viewModels<SensorViewModel> {
         object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(
+            override fun <T : ViewModel> create(
                 modelClass: Class<T>
             ): T = SensorViewModel(application, extras.macAddress) as T
         }
