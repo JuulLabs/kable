@@ -19,7 +19,7 @@ exercise-compile = { module = "com.juul.exercise:compile", version.ref = "exerci
 kable = { module = "com.juul.kable:core", version.ref = "kable" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.5.2" }
 kotlinx-coroutines-macosx64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64", version = "1.5.0-native-mt!!" }
-material = { module = "com.google.android.material:material", version = "1.1.0" }
+material = { module = "com.google.android.material:material", version = "1.4.0" }
 stately = { module = "co.touchlab:stately-isolate", version = "1.1.7-a1" }
 tuulbox-encoding = { module = "com.juul.tuulbox:encoding", version.ref = "tuulbox" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
