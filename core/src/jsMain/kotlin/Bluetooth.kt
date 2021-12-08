@@ -8,8 +8,14 @@ import kotlinext.js.jsObject
 import kotlinx.coroutines.CoroutineScope
 import kotlin.js.Promise
 
+// Deliberately NOT cast `as Bluetooth` to avoid potential class name collisions.
+@Suppress("UnsafeCastFromDynamic")
 internal val bluetooth: Bluetooth
-    get() = checkNotNull(js("window.navigator.bluetooth") as? Bluetooth) { "Bluetooth unavailable" }
+    get() = checkNotNull(safeWebBluetooth) { "Bluetooth unavailable" }
+
+// In a node build environment (e.g. unit test) there is no window, guard for that to avoid build errors.
+private val safeWebBluetooth: dynamic =
+    js("typeof(window) !== 'undefined' && window.navigator.bluetooth")
 
 public fun CoroutineScope.requestPeripheral(
     options: Options,
