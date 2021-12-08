@@ -32,9 +32,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(coroutines())
-                api(uuid())
-                implementation(tuulbox("collections"))
+                api(libs.kotlinx.coroutines.core)
+                api(libs.uuid)
+                implementation(libs.tuulbox.collections)
             }
         }
 
@@ -47,7 +47,7 @@ kotlin {
 
         val jsMain by getting {
             dependencies {
-                implementation(wrappers())
+                implementation(libs.kotlin.extensions)
             }
         }
 
@@ -59,9 +59,9 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
-                api(coroutines("android"))
-                implementation(atomicfu("jvm"))
-                implementation(androidx.startup())
+                api(libs.kotlinx.coroutines.android)
+                implementation(libs.atomicfu)
+                implementation(libs.androidx.startup)
             }
         }
 
@@ -116,10 +116,10 @@ kotlin {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdkVersion(libs.versions.android.compile.get())
 
     defaultConfig {
-        minSdkVersion(21)
+        minSdkVersion(libs.versions.android.min.get())
     }
 
     lintOptions {

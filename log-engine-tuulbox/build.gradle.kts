@@ -23,17 +23,17 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(project(":core"))
-                api(tuulbox("logging"))
+                api(libs.tuulbox.logging)
             }
         }
     }
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdkVersion(libs.versions.android.compile.get())
 
     defaultConfig {
-        minSdkVersion(21)
+        minSdkVersion(libs.versions.android.min.get())
     }
 
     lintOptions {

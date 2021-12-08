@@ -6,13 +6,13 @@ buildscript {
 }
 
 plugins {
-    kotlin("multiplatform") version "1.6.0" apply false
-    id("com.android.library") version "4.1.3" apply false
-    id("org.jmailen.kotlinter") version "3.4.4" apply false
-    id("com.vanniktech.maven.publish") version "0.15.1" apply false
-    id("org.jetbrains.dokka") version "1.4.32"
-    id("kotlinx-atomicfu") version "0.16.3" apply false
-    id("binary-compatibility-validator") version "0.5.0"
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.kotlinter) apply false
+    alias(libs.plugins.maven.publish) apply false
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.atomicfu) apply false
+    alias(libs.plugins.validator)
 }
 
 tasks.withType<org.jetbrains.dokka.gradle.DokkaMultiModuleTask>().configureEach {
@@ -27,5 +27,15 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+
+    tasks.withType<Test>().configureEach {
+        testLogging {
+            events("started", "passed", "skipped", "failed", "standardOut", "standardError")
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            showExceptions = true
+            showStackTraces = true
+            showCauses = true
+        }
     }
 }
