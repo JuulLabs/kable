@@ -5,6 +5,7 @@ atomicfu = "0.16.3"
 coroutines = "1.5.2"
 extensions = "1.0.1-pre.276-kotlin-1.6.0"
 kotlin = "1.6.0"
+tuulbox = "4.8.0"
 
 [libraries]
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.0" }
@@ -13,7 +14,8 @@ kotlin-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions"
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 stately = { module = "co.touchlab:stately-isolate", version = "1.1.10-a1" }
-tuulbox-logging = { module = "com.juul.tuulbox:logging", version = "4.8.0" }
+tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
+tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
 uuid = { module = "com.benasher44:uuid", version = "0.3.1" }
 
 [plugins]
