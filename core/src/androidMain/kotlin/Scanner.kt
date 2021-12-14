@@ -66,17 +66,14 @@ public class AndroidScanner internal constructor(
                 "Starting scan with ${filters.size} filter(s)"
             }
         }
-        val scanFilters = filters
-            ?.map {
-                when (it) {
-                    is Filter.ManufacturerData ->
-                        ScanFilter.Builder().setManufacturerData(it.id, it.data, it.dataMask)
-                            .build()
-                    is Filter.Service ->
-                        ScanFilter.Builder().setServiceUuid(ParcelUuid(it.uuid)).build()
+        val scanFilters = filters?.map { filter ->
+            ScanFilter.Builder().apply {
+                when (filter) {
+                    is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
+                    is Service -> setServiceUuid(ParcelUuid(filter.uuid)).build()
                 }
-            }
-            .orEmpty()
+            }.build()
+        }.orEmpty()
         scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {
