@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 

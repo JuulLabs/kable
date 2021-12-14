@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import android.bluetooth.le.ScanSettings
+import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 
