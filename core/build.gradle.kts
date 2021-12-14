@@ -32,8 +32,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(coroutines())
-                api(uuid())
+                api(libs.kotlinx.coroutines.core)
+                api(libs.uuid)
             }
         }
 
@@ -46,7 +46,7 @@ kotlin {
 
         val jsMain by getting {
             dependencies {
-                implementation(wrappers())
+                implementation(libs.kotlin.extensions)
             }
         }
 
@@ -58,9 +58,9 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
-                api(coroutines("android"))
-                implementation(atomicfu("jvm"))
-                implementation(androidx.startup())
+                api(libs.kotlinx.coroutines.android)
+                implementation(libs.atomicfu)
+                implementation(libs.androidx.startup)
             }
         }
 
@@ -73,7 +73,7 @@ kotlin {
         val appleMain by creating {
             dependsOn(commonMain)
             dependencies {
-                implementation(stately("isolate"))
+                implementation(libs.stately)
             }
         }
 
@@ -118,10 +118,10 @@ kotlin {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdkVersion(libs.versions.android.compile.get())
 
     defaultConfig {
-        minSdkVersion(21)
+        minSdkVersion(libs.versions.android.min.get())
     }
 
     lintOptions {
