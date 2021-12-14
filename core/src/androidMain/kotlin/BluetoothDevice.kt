@@ -14,9 +14,49 @@ import android.os.Handler
 import android.os.HandlerThread
 import com.juul.kable.gatt.Callback
 import com.juul.kable.logs.Logging
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.newSingleThreadContext
+
+internal sealed class Threading {
+
+    abstract val dispatcher: CoroutineDispatcher
+
+    /** Available on Android O (API 26) and above. */
+    data class Handler(
+        val thread: HandlerThread,
+        val handler: android.os.Handler,
+        override val dispatcher: CoroutineDispatcher,
+    ) : Threading()
+
+    /** Used on Android versions **lower** than Android O (API 26). */
+    data class SingleThreadContext(
+        override val dispatcher: ExecutorCoroutineDispatcher,
+    ) : Threading()
+}
+
+internal fun Threading.close() {
+    when (this) {
+        is Threading.Handler -> thread.quit()
+        is Threading.SingleThreadContext -> dispatcher.close()
+    }
+}
+
+/**
+ * Creates the [Threading] that will be used for Bluetooth communication. The returned [Threading] is returned in a
+ * started state and must be shutdown when no longer needed.
+ */
+internal fun BluetoothDevice.threading(): Threading =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val thread = HandlerThread(threadName).apply { start() }
+        val handler = Handler(thread.looper)
+        val dispatcher = handler.asCoroutineDispatcher()
+        Threading.Handler(thread, handler, dispatcher)
+    } else {
+        Threading.SingleThreadContext(newSingleThreadContext(threadName))
+    }
 
 /**
  * @param transport is only used on API level >= 23.
@@ -29,83 +69,25 @@ internal fun BluetoothDevice.connect(
     state: MutableStateFlow<State>,
     mtu: MutableStateFlow<Int?>,
     logging: Logging,
+    threading: Threading,
     invokeOnClose: () -> Unit,
 ): Connection? {
     // Explicitly set Connecting state so when Peripheral is suspending until Connected, it doesn't incorrectly see
     // Disconnected before the connection request has kicked off the Connecting state (via Callback).
     state.value = State.Connecting.Bluetooth
 
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        connectApi26(context, transport, phy, state, mtu, logging, invokeOnClose)
-    } else {
-        connectApi21(context, transport, state, mtu, logging, invokeOnClose)
-    }
-}
-
-/**
- * @param transport is only used on API level >= 23.
- */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-private fun BluetoothDevice.connectApi21(
-    context: Context,
-    transport: Transport,
-    state: MutableStateFlow<State>,
-    mtu: MutableStateFlow<Int?>,
-    logging: Logging,
-    invokeOnClose: () -> Unit,
-): Connection? {
     val callback = Callback(state, mtu, logging, address)
-    val bluetoothGatt = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        connectGatt(context, false, callback, transport.intValue)
-    } else {
-        connectGatt(context, false, callback)
+
+    val bluetoothGatt = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+            val handler = (threading as Threading.Handler).handler
+            connectGatt(context, false, callback, transport.intValue, phy.intValue, handler)
+        }
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> connectGatt(context, false, callback, transport.intValue)
+        else -> connectGatt(context, false, callback)
     } ?: return null
 
-    val dispatcher = newSingleThreadContext(threadName)
-    return Connection(
-        bluetoothGatt,
-        dispatcher,
-        callback,
-        invokeOnClose = {
-            dispatcher.close()
-            invokeOnClose.invoke()
-        }
-    )
-}
-
-@TargetApi(Build.VERSION_CODES.O)
-private fun BluetoothDevice.connectApi26(
-    context: Context,
-    transport: Transport,
-    phy: Phy,
-    state: MutableStateFlow<State>,
-    mtu: MutableStateFlow<Int?>,
-    logging: Logging,
-    invokeOnClose: () -> Unit,
-): Connection? {
-    val thread = HandlerThread(threadName).apply { start() }
-    try {
-        val handler = Handler(thread.looper)
-        val dispatcher = handler.asCoroutineDispatcher()
-        val callback = Callback(state, mtu, logging, address)
-
-        val bluetoothGatt =
-            connectGatt(context, false, callback, transport.intValue, phy.intValue, handler)
-                ?: return null
-
-        return Connection(
-            bluetoothGatt,
-            dispatcher,
-            callback,
-            invokeOnClose = {
-                thread.quit()
-                invokeOnClose.invoke()
-            }
-        )
-    } catch (t: Throwable) {
-        thread.quit()
-        throw t
-    }
+    return Connection(bluetoothGatt, threading.dispatcher, callback, invokeOnClose)
 }
 
 private val Transport.intValue: Int

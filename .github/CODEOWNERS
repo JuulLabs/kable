@@ -1,4 +1,4 @@
 # https://help.github.com/articles/about-codeowners/
 
 *                @JuulLabs/conx-app-reviewers @twyatt
-macosX64Main/    @davidtaylor-juul @Phoenix7351
+appleMain/       @davidtaylor-juul @Phoenix7351

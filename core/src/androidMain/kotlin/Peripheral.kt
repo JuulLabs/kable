@@ -150,9 +150,12 @@ public class AndroidPeripheral internal constructor(
         invokeOnCompletion {
             applicationContext.unregisterReceiver(receiver)
             closeConnection()
+            threading.close()
         }
     }
     private val scope = CoroutineScope(parentCoroutineContext + job)
+
+    private val threading = bluetoothDevice.threading()
 
     private val _mtu = MutableStateFlow<Int?>(null)
 
@@ -189,6 +192,7 @@ public class AndroidPeripheral internal constructor(
             _state,
             _mtu,
             logging,
+            threading,
             invokeOnClose = { connectJob.value = null }
         ) ?: throw ConnectionRejectedException()
     }
