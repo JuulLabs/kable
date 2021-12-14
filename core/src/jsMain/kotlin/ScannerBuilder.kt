@@ -12,15 +12,14 @@ public actual class ScannerBuilder {
     }
 
     internal actual fun build(): Scanner {
-        val filters = filters
-            ?.map { it.toString() }
+        val scannerFilters = filters
             ?.filterIsInstance<Filter.Service>()
             ?.map { it.uuid.toString() }
             ?.toTypedArray()
             ?.let { arrayOf<Options.Filter>(Options.Filter.Services(it)) }
         return JsScanner(
             bluetooth = bluetooth,
-            options = Options(filters = filters),
+            options = Options(filters = scannerFilters),
             logging = logging,
         )
     }

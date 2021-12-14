@@ -6,6 +6,8 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.os.ParcelUuid
+import com.juul.kable.Filter.ManufacturerData
+import com.juul.kable.Filter.Service
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.Dispatchers
@@ -69,8 +71,10 @@ public class AndroidScanner internal constructor(
         val scanFilters = filters?.map { filter ->
             ScanFilter.Builder().apply {
                 when (filter) {
-                    is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
-                    is Service -> setServiceUuid(ParcelUuid(filter.uuid)).build()
+                    is ManufacturerData ->
+                        setManufacturerData(filter.id, filter.data, filter.dataMask)
+                    is Service ->
+                        setServiceUuid(ParcelUuid(filter.uuid)).build()
                 }
             }.build()
         }.orEmpty()
