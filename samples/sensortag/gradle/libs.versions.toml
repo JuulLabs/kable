@@ -6,7 +6,7 @@ androidx-lifecycle = "2.4.0"
 exercise = "0.9.0"
 kable = "0.10.4"
 kotlin = "1.6.0"
-ksp = "1.6.0-1.0.1"
+ksp = "1.6.0-1.0.2"
 tuulbox = "4.8.0"
 
 [libraries]
