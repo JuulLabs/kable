@@ -45,7 +45,7 @@ jobs:
           else
             ./gradlew \
             --no-parallel \
-            -PRELEASE_SIGNING_ENABLED=false
+            -PRELEASE_SIGNING_ENABLED=false \
             publishToMavenLocal
           fi
         if: ${{ runner.os == 'macOS' && github.repository_owner == 'JuulLabs' }}

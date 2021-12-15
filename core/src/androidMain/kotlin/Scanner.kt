@@ -6,7 +6,8 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.os.ParcelUuid
-import com.benasher44.uuid.Uuid
+import com.juul.kable.Filter.ManufacturerData
+import com.juul.kable.Filter.Service
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +24,7 @@ public class ScanFailedException internal constructor(
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
 
 public class AndroidScanner internal constructor(
-    private val filterServices: List<Uuid>?,
+    private val filters: List<Filter>?,
     private val scanSettings: ScanSettings,
     logging: Logging,
 ) : Scanner {
@@ -60,22 +61,31 @@ public class AndroidScanner internal constructor(
             }
         }
 
-        val scanFilter = filterServices
-            ?.map { ScanFilter.Builder().setServiceUuid(ParcelUuid(it)).build() }
-            ?.toList()
         logger.info {
-            message = when (filterServices) {
-                null -> "Starting scan with no service filter."
-                else -> "Starting scan for services ${filterServices.joinToString()}."
+            message = if (filters?.isEmpty() != false) {
+                "Starting scan without filters"
+            } else {
+                "Starting scan with ${filters.size} filter(s)"
             }
         }
-        scanner.startScan(scanFilter, scanSettings, callback)
+        val scanFilters = filters?.map { filter ->
+            ScanFilter.Builder().apply {
+                when (filter) {
+                    is ManufacturerData ->
+                        setManufacturerData(filter.id, filter.data, filter.dataMask)
+                    is Service ->
+                        setServiceUuid(ParcelUuid(filter.uuid)).build()
+                }
+            }.build()
+        }.orEmpty()
+        scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {
             logger.info {
-                message = when (filterServices) {
-                    null -> "Stopping scan with no service filter."
-                    else -> "Stopping scan for services ${filterServices.joinToString()}."
+                message = if (scanFilters.isEmpty()) {
+                    "Stopping scan without filters"
+                } else {
+                    "Stopping scan with ${filters?.size ?: 0} filter(s)"
                 }
             }
             // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException` means BLE has been disabled.

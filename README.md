@@ -21,7 +21,7 @@ The [`Scanner`] may be configured via the following DSL (shown are defaults, whe
 
 ```kotlin
 val scanner = Scanner {
-    services = null
+    filters = null
     logging {
         engine = SystemLogEngine
         level = Warnings
@@ -30,17 +30,19 @@ val scanner = Scanner {
 }
 ```
 
-To filter scan results at the system level (recommended), specify a list of services the remote peripheral is
-advertising, for example:
+To filter scan results at the system level (recommended), specify a list of filters for the services the remote
+peripheral is advertising, for example:
 
 ```kotlin
 val scanner = Scanner {
-    services = listOf(
-        uuidFrom("f000aa80-0451-4000-b000-000000000000"),
-        uuidFrom("f000aa81-0451-4000-b000-000000000000"),
+    filters = listOf(
+        Filter.Service(uuidFrom("f000aa80-0451-4000-b000-000000000000")),
+        Filter.Service(uuidFrom("f000aa81-0451-4000-b000-000000000000"))
     )
 }
 ```
+
+In Android source sets, you can also scan with manufacturer data filters. See the Android section below for more details.
 
 Scanning begins when the [`advertisements`] [`Flow`] is collected and stops when the [`Flow`] collection is terminated.
 A [`Flow`] terminal operator (such as [`first`]) may be used to scan until an advertisement is found that matches a
@@ -54,7 +56,18 @@ val advertisement = Scanner()
 
 ### Android
 
-Android offers additional settings to customize scanning. They are available via the `scanSettings` property in the
+Scan results can be filtered by manufacturer data using the same ID, data, and data mask that you would use with the
+[Android API](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[])):
+
+```kotlin
+val scanner = Scanner {
+    filters = listOf(
+        Filter.ManufacturerData(manufacturerID = 1, data = byteArrayOf(), dataMask = byteArrayOf())
+    )
+}
+``` 
+
+Android also offers additional settings to customize scanning. They are available via the `scanSettings` property in the
 [`Scanner`] builder DSL. Simply set `scanSettings` property to an Android [`ScanSettings`] object, for example:
 
 ```kotlin
