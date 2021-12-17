@@ -1,10 +1,10 @@
 [versions]
 android-compile = "android-30"
 android-min = "21"
-atomicfu = "0.16.3"
+atomicfu = "0.17.0"
 coroutines = "1.5.2"
-extensions = "1.0.1-pre.276-kotlin-1.6.0"
-kotlin = "1.6.0"
+extensions = "1.0.1-pre.282-kotlin-1.6.10"
+kotlin = "1.6.10"
 
 [libraries]
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.0" }
@@ -22,5 +22,5 @@ atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "1.6.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "3.7.0" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.15.1" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.18.0" }
 validator = { id = "binary-compatibility-validator", version = "0.5.0" }
