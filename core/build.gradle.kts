@@ -130,8 +130,6 @@ android {
     }
 
     sourceSets {
-        val main by getting {
-            manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        }
+        getByName("main").manifest.srcFile("src/androidMain/AndroidManifest.xml")
     }
 }
