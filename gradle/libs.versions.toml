@@ -12,7 +12,7 @@ atomicfu = { module = "org.jetbrains.kotlinx:atomicfu-jvm", version.ref = "atomi
 kotlin-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version.ref = "extensions" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
-stately = { module = "co.touchlab:stately-isolate", version = "1.2.0" }
+stately = { module = "co.touchlab:stately-isolate", version = "1.2.1" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version = "4.8.0" }
 uuid = { module = "com.benasher44:uuid", version = "0.3.1" }
 
