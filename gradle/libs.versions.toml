@@ -3,7 +3,7 @@ android-compile = "android-30"
 android-min = "21"
 atomicfu = "0.17.0"
 coroutines = "1.5.2"
-extensions = "1.0.1-pre.283-kotlin-1.6.10"
+extensions = "1.0.1-pre.284-kotlin-1.6.10"
 kotlin = "1.6.10"
 
 [libraries]
