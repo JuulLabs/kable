@@ -15,21 +15,27 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.4.0
 androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version = "1.2.1" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.6.0" }
+coroutines-macosx64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64", version = "1.5.0-native-mt!!" }
 exercise-annotations = { module = "com.juul.exercise:annotations", version.ref = "exercise" }
 exercise-compile = { module = "com.juul.exercise:compile", version.ref = "exercise" }
 kable = { module = "com.juul.kable:core", version.ref = "kable" }
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.6.0" }
-kotlinx-coroutines-macosx64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64", version = "1.5.0-native-mt!!" }
 material = { module = "com.google.android.material:material", version = "1.4.0" }
 stately = { module = "co.touchlab:stately-isolate", version = "1.2.1" }
 tuulbox-encoding = { module = "com.juul.tuulbox:encoding", version.ref = "tuulbox" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
 
 [bundles]
-androidx = [ "androidx-appcompat", "androidx-recyclerview", "androidx-lifecycle-viewmodel", "androidx-lifecycle-livedata", "androidx-activity" ]
+androidx = [
+    "androidx-appcompat",
+    "androidx-recyclerview",
+    "androidx-lifecycle-viewmodel",
+    "androidx-lifecycle-livedata",
+    "androidx-activity",
+]
 
 [plugins]
 android-application = { id = "com.android.library", version.ref = "agp" }
+java8 = { id = "net.mbonnin.one.eight", version = "0.2" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-one-eight = { id = "net.mbonnin.one.eight", version = "0.2" }

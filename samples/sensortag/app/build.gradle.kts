@@ -19,7 +19,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(libs.kotlinx.coroutines.core)
+                api(libs.coroutines.core)
                 implementation(libs.kable)
                 implementation(libs.tuulbox.logging)
                 implementation(libs.tuulbox.encoding)
@@ -36,7 +36,7 @@ kotlin {
 
         val nativeMain by creating {
             dependencies {
-                implementation(libs.kotlinx.coroutines.macosx64)
+                implementation(libs.coroutines.macosx64)
                 implementation(libs.stately)
             }
         }
