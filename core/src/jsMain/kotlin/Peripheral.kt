@@ -78,12 +78,13 @@ public class JsPeripheral internal constructor(
     private val _state = MutableStateFlow<State>(State.Disconnected())
     public override val state: Flow<State> = _state.asStateFlow()
 
-    private var _platformServices: List<PlatformService>? = null
-    private val platformServices: List<PlatformService>
-        get() = checkNotNull(_platformServices) { "Services have not been discovered for $this" }
+    private var _discoveredServices: List<DiscoveredService>? = null
+    private val discoveredServices: List<DiscoveredService>
+        get() = _discoveredServices
+            ?: throw IllegalStateException("Services have not been discovered for $this")
 
     public override val services: List<DiscoveredService>?
-        get() = _platformServices?.map { it.toDiscoveredService() }
+        get() = _discoveredServices?.toList()
 
     private val observationListeners = mutableMapOf<Characteristic, ObservationListener>()
 
@@ -178,9 +179,9 @@ public class JsPeripheral internal constructor(
         logger.verbose { message = "discover services" }
         val services = ioLock.withLock {
             gatt.getPrimaryServices().await()
-                .map { it.toPlatformService(logger) }
+                .map { it.toDiscoveredService(logger) }
         }
-        _platformServices = services
+        _discoveredServices = services
     }
 
     public override suspend fun write(
@@ -194,11 +195,11 @@ public class JsPeripheral internal constructor(
             detail(data)
         }
 
-        val jsCharacteristic = bluetoothRemoteGATTCharacteristicFrom(characteristic)
+        val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
         ioLock.withLock {
             when (writeType) {
-                WithResponse -> jsCharacteristic.writeValueWithResponse(data)
-                WithoutResponse -> jsCharacteristic.writeValueWithoutResponse(data)
+                WithResponse -> platformCharacteristic.writeValueWithResponse(data)
+                WithoutResponse -> platformCharacteristic.writeValueWithoutResponse(data)
             }.await()
         }
     }
@@ -206,9 +207,9 @@ public class JsPeripheral internal constructor(
     public suspend fun readAsDataView(
         characteristic: Characteristic
     ): DataView {
-        val jsCharacteristic = bluetoothRemoteGATTCharacteristicFrom(characteristic)
+        val platformCharacteristic = discoveredServices.obtain(characteristic, Read)
         val value = ioLock.withLock {
-            jsCharacteristic.readValue().await()
+            platformCharacteristic.readValue().await()
         }
         logger.debug {
             message = "read"
@@ -234,18 +235,18 @@ public class JsPeripheral internal constructor(
             detail(data)
         }
 
-        val jsDescriptor = bluetoothRemoteGATTDescriptorFrom(descriptor)
+        val platformDescriptor = discoveredServices.obtain(descriptor)
         ioLock.withLock {
-            jsDescriptor.writeValue(data).await()
+            platformDescriptor.writeValue(data).await()
         }
     }
 
     public suspend fun readAsDataView(
         descriptor: Descriptor
     ): DataView {
-        val jsDescriptor = bluetoothRemoteGATTDescriptorFrom(descriptor)
+        val platformDescriptor = discoveredServices.obtain(descriptor)
         val value = ioLock.withLock {
-            jsDescriptor.readValue().await()
+            platformDescriptor.readValue().await()
         }
         logger.debug {
             message = "read"
@@ -293,7 +294,7 @@ public class JsPeripheral internal constructor(
         val listener = characteristic.createListener()
         observationListeners[characteristic] = listener
 
-        bluetoothRemoteGATTCharacteristicFrom(characteristic).apply {
+        discoveredServices.obtain(characteristic, Notify or Indicate).apply {
             addEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
             ioLock.withLock {
                 withContext(NonCancellable) {
@@ -310,7 +311,7 @@ public class JsPeripheral internal constructor(
             detail(characteristic)
         }
 
-        bluetoothRemoteGATTCharacteristicFrom(characteristic).apply {
+        discoveredServices.obtain(characteristic, Notify or Indicate).apply {
             /* Throws `DOMException` if connection is closed:
              *
              * DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
@@ -361,14 +362,6 @@ public class JsPeripheral internal constructor(
         isDisconnectedListenerRegistered = false
         bluetoothDevice.removeEventListener(GATT_SERVER_DISCONNECTED, disconnectedListener)
     }
-
-    private fun bluetoothRemoteGATTCharacteristicFrom(
-        characteristic: Characteristic
-    ) = platformServices.findCharacteristic(characteristic).bluetoothRemoteGATTCharacteristic
-
-    private fun bluetoothRemoteGATTDescriptorFrom(
-        descriptor: Descriptor
-    ) = platformServices.findDescriptor(descriptor).bluetoothRemoteGATTDescriptor
 
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
 }

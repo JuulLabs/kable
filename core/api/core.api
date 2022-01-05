@@ -54,8 +54,17 @@ public abstract interface class com/juul/kable/Characteristic {
 	public abstract fun getServiceUuid ()Ljava/util/UUID;
 }
 
-public final class com/juul/kable/CharacteristicKt {
-	public static final fun characteristicOf (Ljava/lang/String;Ljava/lang/String;)Lcom/juul/kable/Characteristic;
+public final class com/juul/kable/Characteristic$Properties {
+	public static final synthetic fun box-impl (I)Lcom/juul/kable/Characteristic$Properties;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (ILjava/lang/Object;)Z
+	public static final fun equals-impl0 (II)Z
+	public final fun getValue ()I
+	public fun hashCode ()I
+	public static fun hashCode-impl (I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()I
 }
 
 public final class com/juul/kable/ConnectionLostException : java/io/IOException {
@@ -72,31 +81,36 @@ public abstract interface class com/juul/kable/Descriptor {
 	public abstract fun getServiceUuid ()Ljava/util/UUID;
 }
 
-public final class com/juul/kable/DescriptorKt {
-	public static final fun descriptorOf (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/juul/kable/Descriptor;
-}
-
 public final class com/juul/kable/DiscoveredCharacteristic : com/juul/kable/Characteristic {
-	public final fun component1 ()Ljava/util/UUID;
-	public final fun component2 ()Ljava/util/UUID;
-	public final fun component3 ()Ljava/util/List;
-	public final fun copy (Ljava/util/UUID;Ljava/util/UUID;Ljava/util/List;)Lcom/juul/kable/DiscoveredCharacteristic;
-	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredCharacteristic;Ljava/util/UUID;Ljava/util/UUID;Ljava/util/List;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredCharacteristic;
+	public final fun copy (Landroid/bluetooth/BluetoothGattCharacteristic;)Lcom/juul/kable/DiscoveredCharacteristic;
+	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredCharacteristic;Landroid/bluetooth/BluetoothGattCharacteristic;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredCharacteristic;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCharacteristicUuid ()Ljava/util/UUID;
 	public final fun getDescriptors ()Ljava/util/List;
+	public final fun getInstanceId ()I
+	public final fun getProperties-bty6q6U ()I
+	public fun getServiceUuid ()Ljava/util/UUID;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/juul/kable/DiscoveredDescriptor : com/juul/kable/Descriptor {
+	public final fun copy (Landroid/bluetooth/BluetoothGattDescriptor;)Lcom/juul/kable/DiscoveredDescriptor;
+	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredDescriptor;Landroid/bluetooth/BluetoothGattDescriptor;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredDescriptor;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCharacteristicUuid ()Ljava/util/UUID;
+	public fun getDescriptorUuid ()Ljava/util/UUID;
 	public fun getServiceUuid ()Ljava/util/UUID;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
-	public final fun component1 ()Ljava/util/UUID;
-	public final fun component2 ()Ljava/util/List;
-	public final fun copy (Ljava/util/UUID;Ljava/util/List;)Lcom/juul/kable/DiscoveredService;
-	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredService;Ljava/util/UUID;Ljava/util/List;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredService;
+	public final fun copy (Landroid/bluetooth/BluetoothGattService;)Lcom/juul/kable/DiscoveredService;
+	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredService;Landroid/bluetooth/BluetoothGattService;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredService;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCharacteristics ()Ljava/util/List;
+	public final fun getInstanceId ()I
 	public fun getServiceUuid ()Ljava/util/UUID;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -233,6 +247,19 @@ public final class com/juul/kable/Priority : java/lang/Enum {
 	public static final field Low Lcom/juul/kable/Priority;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Priority;
 	public static fun values ()[Lcom/juul/kable/Priority;
+}
+
+public final class com/juul/kable/ProfileKt {
+	public static final fun characteristicOf (Ljava/lang/String;Ljava/lang/String;)Lcom/juul/kable/Characteristic;
+	public static final fun descriptorOf (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/juul/kable/Descriptor;
+	public static final fun getBroadcast-G25LNqA (I)Z
+	public static final fun getExtendedProperties-G25LNqA (I)Z
+	public static final fun getIndicate-G25LNqA (I)Z
+	public static final fun getNotify-G25LNqA (I)Z
+	public static final fun getRead-G25LNqA (I)Z
+	public static final fun getSignedWrite-G25LNqA (I)Z
+	public static final fun getWrite-G25LNqA (I)Z
+	public static final fun getWriteWithoutResponse-G25LNqA (I)Z
 }
 
 public final class com/juul/kable/ScanFailedException : java/lang/IllegalStateException {

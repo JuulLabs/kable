@@ -299,9 +299,15 @@ For example, a peripheral might have the following structure:
 - Service S2
     - Characteristic C3
 
-To access a characteristic or descriptor, use the [`charactisticOf`] or [`descriptorOf`] functions, respectively.
+To access a characteristic or descriptor, use the [`charactisticOf`] or [`descriptorOf`] functions, respectively. These
+functions lazily search for the first match (based on UUID) in the GATT profile when performing I/O.
 
-In the above example, to access "Descriptor D3":
+_When performing I/O operations on a characteristic ([`read`], [`write`], [`observe`]), the properties of the
+characteristic are taken into account when finding the first match. For example, when performing a [`write`] with a
+[`WriteType`] of [`WithResponse`], the first characteristic matching the expected UUID **and** having the
+[`writeWithResponse`] property will be used._
+
+In the above example, to lazily access "Descriptor D3":
 
 ```kotlin
 val descriptor = descriptorOf(
@@ -311,7 +317,29 @@ val descriptor = descriptorOf(
 )
 ```
 
-Once connected, data can be read from, or written to, characteristics and/or descriptors via [`read`] and [`write`]
+Alternatively, a characteristic or descriptor may be obtained by traversing the [`Peripheral.services`]. This is useful
+when multiple characteristics or descriptors have the same UUID. Objects obtained from the [`Peripheral.services`] hold
+strong references to the underlying platform types, so special care must be taken to properly remove references to
+objects retrieved from [`Peripheral.services`] when no longer needed.
+
+To access "Descriptor D3" using a discovered descriptor:
+
+```kotlin
+val services = peripheral.services ?: error("Services have not been discovered")
+val descriptor = services
+    .first { it.serviceUuid == uuidFrom("00001815-0000-1000-8000-00805f9b34fb") }
+    .characteristics
+    .first { it.characteristicUuid == uuidFrom("00002a56-0000-1000-8000-00805f9b34fb") }
+    .descriptors
+    .first { it.descriptorUuid == uuidFrom("00002902-0000-1000-8000-00805f9b34fb") }
+```
+
+_This example uses a similar search algorithm as `descriptorOf`, but other search methods may be utilized. For example,
+properties of the characteristic could be queried to find a specific characteristic that is expected to be the parent of
+the sought after descriptor. When searching for a specific characteristic, descriptors can be read that may identity the
+sought after characteristic._
+
+When connected, data can be read from, or written to, characteristics and/or descriptors via [`read`] and [`write`]
 functions.
 
 _The [`read`] and [`write`] functions throw [`NotReadyException`] until a connection is established._
@@ -533,12 +561,16 @@ limitations under the License.
 [`Options`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-options/index.html
 [`Peripheral`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html
 [`Peripheral.disconnect`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fdisconnect%2F%23%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
+[`Peripheral.services`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/index.html#-1607712299%2FProperties%2F-2011752812
 [`read`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fread%2F%23com.juul.kable.Characteristic%2FPointingToDeclaration%2F%2C+com.juul.kable%2FPeripheral%2Fread%2F%23com.juul.kable.Descriptor%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
 [`requestPeripheral`]: https://juullabs.github.io/kable/core/core/com.juul.kable/request-peripheral.html
 [`Scanner`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-scanner/index.html
 [`state`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fstate%2F%23%2FPointingToDeclaration%2F%5D%2FProperties%2F-328684452
 [connection-state]: https://juullabs.github.io/kable/core/core/com.juul.kable/-state/index.html
 [`write`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fwrite%2F%23com.juul.kable.Descriptor%23kotlin.ByteArray%2FPointingToDeclaration%2F%2C+com.juul.kable%2FPeripheral%2Fwrite%2F%23com.juul.kable.Characteristic%23kotlin.ByteArray%23com.juul.kable.WriteType%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
+[`WriteType`]: https://juullabs.github.io/kable/core/com.juul.kable/-write-type/index.html
+[`WithResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/-write-type/index.html#-1405019860%2FClasslikes%2F-2011752812
+[`writeWithResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/-characteristic/-properties/index.html#491699083%2FExtensions%2F-2011752812
 
 [badge-android]: http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat
 [badge-ios]: http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat

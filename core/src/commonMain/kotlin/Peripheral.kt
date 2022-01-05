@@ -77,20 +77,48 @@ public interface Peripheral {
      */
     public suspend fun disconnect(): Unit
 
-    /** @return discovered [services][Service], or `null` until a [connection][connect] has been established. */
+    /**
+     * The list of services (GATT profile) which have been discovered on the remote peripheral.
+     *
+     * The list contains a tree of [DiscoveredService]s, [DiscoveredCharacteristic]s and [DiscoveredDescriptor]s. These
+     * types all hold strong references to the underlying platform type, so no guarantees are provided on the validity
+     * of the objects beyond a connection. If a reconnect occurs, it is recommended to retrieve the desired object from
+     * [services] again. Any references to objects obtained from this tree should be clear upon disconnect or disposal
+     * (when parent [CoroutineScope] is cancelled) of this [Peripheral].
+     *
+     * @return [discovered services][DiscoveredService], or `null` until a [connection][connect] has been established.
+     */
     public val services: List<DiscoveredService>?
 
     /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun rssi(): Int
 
-    /** @throws NotReadyException if invoked without an established [connection][connect]. */
+    /**
+     * Reads data from [characteristic].
+     *
+     * If [characteristic] was created via [characteristicOf] then the first found characteristic (matching the service
+     * UUID and characteristic UUID) in the GATT profile will be used. If multiple characteristics with the same UUID
+     * exist in the GATT profile, then a [discovered characteristic][DiscoveredCharacteristic] from [services] should be
+     * used instead.
+     *
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun read(
         characteristic: Characteristic,
     ): ByteArray
 
-    /** @throws NotReadyException if invoked without an established [connection][connect]. */
+    /**
+     * Writes [data] to [characteristic].
+     *
+     * If [characteristic] was created via [characteristicOf] then the first found characteristic (matching the service
+     * UUID and characteristic UUID) in the GATT profile will be used. If multiple characteristics with the same UUID
+     * exist in the GATT profile, then a [discovered characteristic][DiscoveredCharacteristic] from [services] should be
+     * used instead.
+     *
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun write(
         characteristic: Characteristic,
@@ -98,13 +126,31 @@ public interface Peripheral {
         writeType: WriteType = WithoutResponse,
     ): Unit
 
-    /** @throws NotReadyException if invoked without an established [connection][connect]. */
+    /**
+     * Reads data from [descriptor].
+     *
+     * If [descriptor] was created via [descriptorOf] then the first found descriptor (matching the service UUID,
+     * characteristic UUID and descriptor UUID) in the GATT profile will be used. If multiple descriptors with the same
+     * UUID exist in the GATT profile, then a [discovered descriptor][DiscoveredDescriptor] from [services] should be
+     * used instead.
+     *
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun read(
         descriptor: Descriptor,
     ): ByteArray
 
-    /** @throws NotReadyException if invoked without an established [connection][connect]. */
+    /**
+     * Writes [data] to [descriptor].
+     *
+     * If [descriptor] was created via [descriptorOf] then the first found descriptor (matching the service UUID,
+     * characteristic UUID and descriptor UUID) in the GATT profile will be used. If multiple descriptors with the same
+     * UUID exist in the GATT profile, then a [discovered descriptor][DiscoveredDescriptor] from [services] should be
+     * used instead.
+     *
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun write(
         descriptor: Descriptor,

@@ -11,6 +11,7 @@ import kotlin.js.Promise
  */
 internal abstract external class BluetoothRemoteGATTDescriptor : EventTarget {
     val uuid: UUID
+    val characteristic: BluetoothRemoteGATTCharacteristic
     fun readValue(): Promise<DataView>
     fun writeValue(value: BufferSource): Promise<Unit>
 }
