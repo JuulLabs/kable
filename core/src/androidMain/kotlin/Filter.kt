@@ -20,7 +20,7 @@ public actual sealed class Filter {
         public val dataMask: ByteArray?
     ) : Filter()
 
-    public actual class Service(
+    public actual class Service actual constructor(
         public actual val uuid: Uuid
     ) : Filter()
 }
