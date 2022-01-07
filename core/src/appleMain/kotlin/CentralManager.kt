@@ -6,6 +6,7 @@ import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBDescriptor
+import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
@@ -37,7 +38,9 @@ public class CentralManager internal constructor() {
     }
 
     internal fun stopScan() {
-        cbCentralManager.stopScan()
+        // Check for powered on state to prevent API misuse warning.
+        // https://github.com/JuulLabs/kable/issues/81
+        if (delegate._state.value == CBManagerStatePoweredOn) cbCentralManager.stopScan()
     }
 
     internal suspend fun connectPeripheral(
