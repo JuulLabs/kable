@@ -6,7 +6,14 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 
 public actual class ScannerBuilder {
-    public actual var services: List<Uuid>? = null
+    @Deprecated(message = "Replaced by filters property")
+    public var services: List<Uuid>?
+        set(value) {
+            filters = value?.map { Filter.Service(it) }
+        }
+        get() = filters?.filterIsInstance<Filter.Service>()?.map { it.uuid }
+
+    public actual var filters: List<Filter>? = null
 
     /**
      * Allows for the [Scanner] to be configured via Android's [ScanSettings].
@@ -24,7 +31,7 @@ public actual class ScannerBuilder {
     }
 
     internal actual fun build(): Scanner = AndroidScanner(
-        filterServices = services,
+        filters = filters,
         scanSettings = scanSettings,
         logging = logging,
     )

@@ -1,10 +1,10 @@
 [versions]
 android-compile = "android-30"
 android-min = "21"
-atomicfu = "0.16.3"
+atomicfu = "0.17.0"
 coroutines = "1.5.2"
-extensions = "1.0.1-pre.276-kotlin-1.6.0"
-kotlin = "1.6.0"
+extensions = "1.0.1-pre.284-kotlin-1.6.10"
+kotlin = "1.6.10"
 tuulbox = "4.8.0"
 
 [libraries]
@@ -13,16 +13,16 @@ atomicfu = { module = "org.jetbrains.kotlinx:atomicfu-jvm", version.ref = "atomi
 kotlin-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions", version.ref = "extensions" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
-stately = { module = "co.touchlab:stately-isolate", version = "1.1.10-a1" }
+stately = { module = "co.touchlab:stately-isolate", version = "1.2.1" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
 uuid = { module = "com.benasher44:uuid", version = "0.3.1" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "4.1.3" }
+android-library = { id = "com.android.library", version = "7.0.4" }
 atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
-dokka = { id = "org.jetbrains.dokka", version = "1.4.32" }
+dokka = { id = "org.jetbrains.dokka", version = "1.6.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinter = { id = "org.jmailen.kotlinter", version = "3.4.4" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.15.1" }
+kotlinter = { id = "org.jmailen.kotlinter", version = "3.8.0" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.18.0" }
 validator = { id = "binary-compatibility-validator", version = "0.5.0" }
