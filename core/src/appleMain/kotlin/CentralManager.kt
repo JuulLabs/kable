@@ -38,9 +38,9 @@ public class CentralManager internal constructor() {
     }
 
     internal fun stopScan() {
-        // Check for powered on state to prevent API misuse warning.
+        // Check scanning state to prevent API misuse warning.
         // https://github.com/JuulLabs/kable/issues/81
-        if (delegate._state.value == CBManagerStatePoweredOn) cbCentralManager.stopScan()
+        if (cbCentralManager.isScanning) cbCentralManager.stopScan()
     }
 
     internal suspend fun connectPeripheral(
