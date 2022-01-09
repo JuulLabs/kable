@@ -6,7 +6,6 @@ import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBDescriptor
-import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
