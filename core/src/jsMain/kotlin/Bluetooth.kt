@@ -4,7 +4,7 @@ import com.juul.kable.Options.Filter.Name
 import com.juul.kable.Options.Filter.NamePrefix
 import com.juul.kable.Options.Filter.Services
 import com.juul.kable.external.Bluetooth
-import kotlinext.js.jsObject
+import kotlinext.js.jso
 import kotlinx.coroutines.CoroutineScope
 import kotlin.js.Promise
 
@@ -44,12 +44,12 @@ public fun CoroutineScope.requestPeripheral(
  * ```
  */
 private fun Options.toDynamic(): dynamic = if (filters == null) {
-    jsObject {
+    jso {
         this.acceptAllDevices = true
         this.optionalServices = optionalServices
     }
 } else {
-    jsObject {
+    jso {
         this.optionalServices = optionalServices
         this.filters = filters.map { it.toDynamic() }.toTypedArray()
     }
@@ -57,7 +57,7 @@ private fun Options.toDynamic(): dynamic = if (filters == null) {
 
 private fun Options.Filter.toDynamic(): dynamic =
     when (this) {
-        is Name -> jsObject { this.name = name }
-        is NamePrefix -> jsObject { this.namePrefix = namePrefix }
-        is Services -> jsObject { this.services = services }
+        is Name -> jso { this.name = name }
+        is NamePrefix -> jso { this.namePrefix = namePrefix }
+        is Services -> jso { this.services = services }
     }
