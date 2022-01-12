@@ -62,6 +62,7 @@ internal class Observers<T>(
 
     suspend fun onConnected() {
         observations.entries.forEach { (characteristic, observation) ->
+            // Pipe failures to `characteristicChanges` while honoring in-flight connection cancellations.
             try {
                 observation.onConnected()
             } catch (cancellation: CancellationException) {
