@@ -237,7 +237,7 @@ class ObservationTest {
                 RecordingLogEngine.Record.Verbose(
                     throwable = null,
                     tag = "Kable/Observation",
-                    message = "$identifier Suppressed failure: com.juul.kable.${NotConnectedException::class.simpleName}",
+                    message = "$identifier Suppressed failure: ${NotConnectedException()}",
                 )
             ),
             actual = logEngine.records.toList()
