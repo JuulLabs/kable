@@ -49,7 +49,8 @@ internal class Observation(
     }
 
     suspend fun onConnected() = mutex.withLock {
-        enableObservationIfNeeded()
+        // `force = true` is used in case a disconnected state (to reset the observation state) was missed.
+        enableObservationIfNeeded(force = true)
         if (isObservationEnabled.value) {
             suppressConnectionExceptions {
                 subscribers.forEach { it() }
@@ -62,8 +63,8 @@ internal class Observation(
         isObservationEnabled.value = false
     }
 
-    private suspend fun enableObservationIfNeeded() {
-        if (!isObservationEnabled.value && isConnected && hasSubscribers) {
+    private suspend fun enableObservationIfNeeded(force: Boolean = false) {
+        if ((force || (!isObservationEnabled.value && isConnected)) && hasSubscribers) {
             suppressConnectionExceptions {
                 handler.startObservation(characteristic)
                 isObservationEnabled.value = true
