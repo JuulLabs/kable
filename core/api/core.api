@@ -258,6 +258,7 @@ public final class com/juul/kable/ScannerKt {
 	public static final fun Scanner (Ljava/util/List;)Lcom/juul/kable/Scanner;
 	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Scanner;
 	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
+	public static final fun scannerWithFilters (Ljava/util/List;)Lcom/juul/kable/Scanner;
 }
 
 public abstract interface class com/juul/kable/Service {

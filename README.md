@@ -62,7 +62,7 @@ Scan results can be filtered by manufacturer data using the same ID, data, and d
 ```kotlin
 val scanner = Scanner {
     filters = listOf(
-        Filter.ManufacturerData(manufacturerID = 1, data = byteArrayOf(), dataMask = byteArrayOf())
+        Filter.ManufacturerData(id = 1, data = byteArrayOf(), dataMask = byteArrayOf())
     )
 }
 ``` 
