@@ -2,7 +2,7 @@
 android-compile = "android-30"
 android-min = "21"
 atomicfu = "0.17.0"
-coroutines = "1.5.2"
+coroutines = "1.6.0"
 extensions = "1.0.1-pre.284-kotlin-1.6.10"
 kotlin = "1.6.10"
 
@@ -19,7 +19,7 @@ uuid = { module = "com.benasher44:uuid", version = "0.3.1" }
 [plugins]
 android-library = { id = "com.android.library", version = "7.0.4" }
 atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
-dokka = { id = "org.jetbrains.dokka", version = "1.6.0" }
+dokka = { id = "org.jetbrains.dokka", version = "1.6.10" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "3.8.0" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.18.0" }
