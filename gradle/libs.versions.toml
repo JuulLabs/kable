@@ -13,7 +13,7 @@ kotlin-extensions = { module = "org.jetbrains.kotlin-wrappers:kotlin-extensions"
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 stately = { module = "co.touchlab:stately-isolate", version = "1.2.1" }
-tuulbox-logging = { module = "com.juul.tuulbox:logging", version = "5.0.0" }
+tuulbox-logging = { module = "com.juul.tuulbox:logging", version = "5.1.0" }
 uuid = { module = "com.benasher44:uuid", version = "0.3.1" }
 
 [plugins]
