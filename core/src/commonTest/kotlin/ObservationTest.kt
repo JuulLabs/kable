@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.benasher44.uuid.uuid4
 import com.juul.kable.State.Connected
+import com.juul.kable.State.Connecting
 import com.juul.kable.State.Disconnected
 import com.juul.kable.logs.LogEngine
 import com.juul.kable.logs.Logging
@@ -42,7 +43,7 @@ class ObservationTest {
 
     @Test
     fun manySubscribers_startsObservationOnce() = runTest {
-        val state = MutableStateFlow(Connected)
+        val state = MutableStateFlow<State>(Connected)
         val characteristic = generateCharacteristic()
         val counter = ObservationCounter(characteristic)
         val observation = Observation(state, counter, characteristic, logging, identifier = "test")
@@ -124,7 +125,9 @@ class ObservationTest {
             stopCount = 0,
         )
 
-        observation.onConnected() // Simulate reconnect.
+        // Simulate reconnect.
+        state.value = Connecting.Observes
+        observation.onConnected()
         counter.assert(
             startCount = 2,
             stopCount = 0,
@@ -146,6 +149,7 @@ class ObservationTest {
             stopCount = 0,
         )
 
+        state.value = Connecting.Observes
         observation.onConnected()
         counter.assert(
             startCount = 1,
@@ -174,7 +178,7 @@ class ObservationTest {
         val counter = ObservationCounter(characteristic)
         val observation = Observation(state, counter, characteristic, logging, identifier = "test")
 
-        state.value = Connected
+        state.value = Connecting.Observes
         repeat(10) {
             observation.onConnected()
         }
@@ -199,6 +203,7 @@ class ObservationTest {
         )
 
         // Simulate numerous reconnects.
+        state.value = Connecting.Observes
         repeat(10) {
             observation.onConnected()
         }
@@ -211,7 +216,7 @@ class ObservationTest {
 
     @Test
     fun connectionDropsWhileConnecting_doesNotThrow() = runTest {
-        val state = MutableStateFlow(Disconnected())
+        val state = MutableStateFlow<State>(Disconnected())
         val characteristic = generateCharacteristic()
         val handler = object : Observation.Handler {
             override suspend fun startObservation(characteristic: Characteristic) =
@@ -230,6 +235,7 @@ class ObservationTest {
         val observation = Observation(state, handler, characteristic, logging, identifier)
 
         observation.onSubscription { }
+        state.value = Connecting.Observes
         observation.onConnected()
 
         assertEquals(
@@ -246,7 +252,7 @@ class ObservationTest {
 
     @Test
     fun failureDuringStartObservation_propagates() = runTest {
-        val state = MutableStateFlow(Disconnected())
+        val state = MutableStateFlow<State>(Disconnected())
         val characteristic = generateCharacteristic()
         val handler = object : Observation.Handler {
             override suspend fun startObservation(characteristic: Characteristic) = error("start")
@@ -255,6 +261,7 @@ class ObservationTest {
         val observation = Observation(state, handler, characteristic, logging, identifier = "test")
 
         observation.onSubscription { }
+        state.value = Connecting.Observes
         val failure = assertFailsWith<IllegalStateException> {
             observation.onConnected()
         }
@@ -266,7 +273,7 @@ class ObservationTest {
 
     @Test
     fun failureDuringStopObservation_propagates() = runTest {
-        val state = MutableStateFlow(Connected)
+        val state = MutableStateFlow<State>(Connected)
         val characteristic = generateCharacteristic()
         val handler = object : Observation.Handler {
             override suspend fun startObservation(characteristic: Characteristic) {}
@@ -287,7 +294,7 @@ class ObservationTest {
 
     @Test
     fun failureInSubscriptionAction_propagates() = runTest {
-        val state = MutableStateFlow(Connected)
+        val state = MutableStateFlow<State>(Connected)
         val characteristic = generateCharacteristic()
         val counter = ObservationCounter(characteristic)
         val observation = Observation(state, counter, characteristic, logging, identifier = "test")
