@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.absoluteValue
 import kotlin.math.pow
-import kotlin.math.roundToInt
 
 private val DISCONNECT_TIMEOUT = TimeUnit.SECONDS.toMillis(5)
 
@@ -52,8 +51,8 @@ sealed class ViewState {
         ) {
 
             data class AxisState(
-                val label: CharSequence,
-                val progress: Int
+                val degreesPerSecond: Float,
+                val progress: Float,
             )
         }
     }
@@ -128,11 +127,11 @@ class SensorViewModel(
 
     private val max = Max()
     private fun gyroState(gyro: Vector3f): GyroState {
-        val (progressX, progressY, progressZ) = gyro.progress(max.maxOf(gyro))
+        val progress = gyro.progress(max.maxOf(gyro))
         return GyroState(
-            x = AxisState(label = "X: ${gyro.x} ˚/sec", progress = progressX),
-            y = AxisState(label = "Y: ${gyro.y} ˚/sec", progress = progressY),
-            z = AxisState(label = "Z: ${gyro.z} ˚/sec", progress = progressZ)
+            x = AxisState(degreesPerSecond = gyro.x, progress = progress.x),
+            y = AxisState(degreesPerSecond = gyro.y, progress = progress.y),
+            z = AxisState(degreesPerSecond = gyro.z, progress = progress.z),
         )
     }
 
@@ -175,10 +174,10 @@ private suspend fun SensorTag.writeGyroPeriodProgress(progress: Int) {
     writeGyroPeriod(period.toLong())
 }
 
-private fun Vector3f.progress(max: Max) = Triple(
-    ((if (max.x != 0f) x.absoluteValue / max.x else 0f) * 100).roundToInt(),
-    ((if (max.y != 0f) y.absoluteValue / max.y else 0f) * 100).roundToInt(),
-    ((if (max.z != 0f) z.absoluteValue / max.z else 0f) * 100).roundToInt()
+private fun Vector3f.progress(max: Max) = Vector3f(
+    if (max.x != 0f) x.absoluteValue / max.x else 0f,
+    if (max.y != 0f) y.absoluteValue / max.y else 0f,
+    if (max.z != 0f) z.absoluteValue / max.z else 0f,
 )
 
 private data class Max(

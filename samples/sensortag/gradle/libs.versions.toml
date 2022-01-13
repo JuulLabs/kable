@@ -1,8 +1,11 @@
 [versions]
-agp = "4.2.2"
-android-compile = "android-31"
+accompanist = "0.22.0-rc"
+agp = "7.0.4"
+android-compile = "31"
 android-min = "21"
 androidx-lifecycle = "2.4.0"
+compose = "1.0.5"
+compose-compiler = "1.1.0-rc02"
 exercise = "0.10.0"
 kable = "0.11.0"
 kotlin = "1.6.10"
@@ -10,28 +13,33 @@ ksp = "1.6.10-1.0.2"
 tuulbox = "5.1.0"
 
 [libraries]
-androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.4.0" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.4.1" }
-androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidx-lifecycle" }
-androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
-androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version = "1.2.1" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
+compose-activity = { module = "androidx.activity:activity-compose", version = "1.4.0" }
+compose-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "compose-compiler" }
+compose-material = { module = "androidx.compose.material:material", version.ref = "compose" }
+compose-tooling = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+compose-ui = { module = "androidx.compose.ui:ui", version = "compose" }
+compose-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.6.0" }
 coroutines-macosx64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64", version = "1.6.0-native-mt!!" }
 exercise-annotations = { module = "com.juul.exercise:annotations", version.ref = "exercise" }
 exercise-compile = { module = "com.juul.exercise:compile", version.ref = "exercise" }
 kable = { module = "com.juul.kable:core", version.ref = "kable" }
-material = { module = "com.google.android.material:material", version = "1.4.0" }
 stately = { module = "co.touchlab:stately-isolate", version = "1.2.1" }
+tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
 tuulbox-encoding = { module = "com.juul.tuulbox:encoding", version.ref = "tuulbox" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
 
 [bundles]
-androidx = [
-    "androidx-appcompat",
-    "androidx-recyclerview",
-    "androidx-lifecycle-viewmodel",
-    "androidx-lifecycle-livedata",
-    "androidx-activity",
+accompanist = [
+    "accompanist-permissions",
+]
+compose = [
+    "compose-activity",
+    "compose-material",
+    "compose-tooling",
+    "compose-ui",
+    "compose-viewmodel",
 ]
 
 [plugins]

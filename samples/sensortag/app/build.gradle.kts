@@ -23,13 +23,14 @@ kotlin {
                 implementation(libs.kable)
                 implementation(libs.tuulbox.logging)
                 implementation(libs.tuulbox.encoding)
+                implementation(libs.tuulbox.coroutines)
             }
         }
 
         val androidMain by getting {
             dependencies {
-                implementation(libs.material)
-                implementation(libs.bundles.androidx)
+                implementation(libs.bundles.compose)
+                implementation(libs.bundles.accompanist)
                 implementation(libs.exercise.annotations)
             }
         }
@@ -48,24 +49,26 @@ kotlin {
 }
 
 android {
-    compileSdkVersion(libs.versions.android.compile.get())
+    compileSdk = libs.versions.android.compile.get().toInt()
 
     defaultConfig {
-        minSdkVersion(libs.versions.android.min.get())
+        minSdk = libs.versions.android.min.get().toInt()
     }
 
     buildFeatures {
-        viewBinding = true
+        compose = true
     }
 
-    lintOptions {
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
+    }
+
+    lint {
         isAbortOnError = false
     }
 
     sourceSets {
-        val main by getting {
-            manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        }
+        getByName("main").manifest.srcFile("src/androidMain/AndroidManifest.xml")
     }
 }
 
@@ -73,11 +76,28 @@ dependencies {
     ksp(libs.exercise.compile)
 }
 
-// Fix failure when building JavaScript target (with Webpack 5).
-// https://youtrack.jetbrains.com/issue/KT-48273
-// todo: Remove once Kotlin is upgraded to 1.5.30.
-afterEvaluate {
-    rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension> {
-        versions.webpackDevServer.version = "4.0.0"
+// Workaround for:
+// java.lang.NoSuchMethodError: No static method setContent$default(..)
+// https://youtrack.jetbrains.com/issue/KT-38694
+// https://github.com/avdim/compose_mpp_workaround
+configurations {
+    create("composeCompiler") {
+        isCanBeConsumed = false
     }
 }
+dependencies {
+    add("composeCompiler", libs.compose.compiler.get())
+}
+android {
+    afterEvaluate {
+        val composeCompilerJar =
+            configurations["composeCompiler"]
+                .resolve()
+                .singleOrNull()
+                ?: error("Please add `androidx.compose.compiler:compiler` as the only `composeCompiler` dependency.")
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+            kotlinOptions.freeCompilerArgs += listOf("-Xuse-ir", "-Xplugin=$composeCompilerJar")
+        }
+    }
+}
+// End workaround

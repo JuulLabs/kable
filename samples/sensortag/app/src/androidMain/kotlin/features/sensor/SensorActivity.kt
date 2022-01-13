@@ -1,20 +1,45 @@
 package com.juul.sensortag.features.sensor
 
 import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ProvideTextStyle
+import androidx.compose.material.Slider
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.contentColorFor
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.asLiveData
 import com.juul.exercise.annotations.Exercise
 import com.juul.exercise.annotations.Extra
-import com.juul.sensortag.databinding.SensorBinding
+import com.juul.sensortag.AppTheme
 import com.juul.sensortag.features.sensor.ViewState.Connected
-import com.juul.sensortag.observe
-import com.juul.sensortag.onStopTracking
+import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState
+import com.juul.sensortag.features.sensor.ViewState.Disconnected
+import kotlin.math.roundToInt
 
 @Exercise(Extra("macAddress", String::class))
-class SensorActivity : AppCompatActivity() {
+class SensorActivity : ComponentActivity() {
 
     private val viewModel by viewModels<SensorViewModel> {
         object : ViewModelProvider.Factory {
@@ -27,34 +52,68 @@ class SensorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        SensorBinding.inflate(layoutInflater).apply {
-            period.onStopTracking { viewModel.setPeriod(progress) }
+        setContent {
+            AppTheme {
+                Column(
+                    Modifier
+                        .background(color = MaterialTheme.colors.background)
+                        .fillMaxSize()) {
+                    TopAppBar(title = { Text("SensorTag Example") })
 
-            observe(viewModel.viewState.asLiveData()) { viewState ->
-                period.isEnabled = viewState is Connected
+                    ProvideTextStyle(
+                        TextStyle(color = contentColorFor(backgroundColor = MaterialTheme.colors.background))
+                    ) {
+                        Column(Modifier.padding(20.dp)) {
+                            val viewState = viewModel.viewState.collectAsState(Disconnected).value
 
-                if (viewState is Connected) {
-                    status.text = "${viewState.label} (${viewState.rssi} dBm)"
-                    with(viewState.gyro) {
-                        xAxisLabel.text = x.label
-                        yAxisLabel.text = y.label
-                        zAxisLabel.text = z.label
-                        xAxisBar.progress = x.progress
-                        yAxisBar.progress = y.progress
-                        zAxisBar.progress = z.progress
+                            Text(viewState.javaClass.simpleName.toString(), fontSize = 18.sp)
+                            Spacer(Modifier.size(10.dp))
+
+                            val gyro = if (viewState is Connected) viewState.gyro else null
+                            GyroAxes(gyro)
+
+                            Spacer(Modifier.size(20.dp))
+                            Text("Period:")
+
+                            var sliderPosition by remember { mutableStateOf(0f) }
+                            Slider(
+                                value = sliderPosition,
+                                valueRange = 0f..100f,
+                                onValueChange = { sliderPosition = it },
+                                onValueChangeFinished = { viewModel.setPeriod(sliderPosition.roundToInt()) },
+                            )
+                        }
                     }
-                } else {
-                    status.text = viewState.label
-                    xAxisLabel.text = null
-                    yAxisLabel.text = null
-                    zAxisLabel.text = null
-                    xAxisBar.progress = 0
-                    yAxisBar.progress = 0
-                    zAxisBar.progress = 0
                 }
             }
-
-            setContentView(root)
         }
     }
+}
+
+@Composable
+private fun GyroAxes(gyro: GyroState?) {
+    if (gyro != null) {
+        with(gyro) {
+            GyroAxis("X", degreesPerSecond = x.degreesPerSecond.toString(), progress = x.progress)
+            Spacer(Modifier.size(15.dp))
+            GyroAxis("Y", degreesPerSecond = y.degreesPerSecond.toString(), progress = y.progress)
+            Spacer(Modifier.size(15.dp))
+            GyroAxis("Z", degreesPerSecond = z.degreesPerSecond.toString(), progress = z.progress)
+        }
+    } else {
+        GyroAxis("X", degreesPerSecond = "?", progress = 0f)
+        Spacer(Modifier.size(15.dp))
+        GyroAxis("Y", degreesPerSecond = "?", progress = 0f)
+        Spacer(Modifier.size(15.dp))
+        GyroAxis("Z", degreesPerSecond = "?", progress = 0f)
+    }
+}
+
+@Composable
+private fun GyroAxis(axis: CharSequence, degreesPerSecond: CharSequence, progress: Float) {
+    LinearProgressIndicator(
+        modifier = Modifier.fillMaxWidth(),
+        progress = progress,
+    )
+    Text("$axis: $degreesPerSecond ˚/sec", fontSize = 18.sp)
 }
