@@ -11,7 +11,7 @@ tuulbox = "5.0.0"
 
 [libraries]
 androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.4.0" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.4.0" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.4.1" }
 androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version = "1.2.1" }
