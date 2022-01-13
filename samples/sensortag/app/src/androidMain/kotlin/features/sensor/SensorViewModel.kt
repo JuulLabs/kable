@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.juul.sensortag.features.sensor
 
 import android.app.Application
@@ -9,6 +11,7 @@ import com.juul.kable.NotReadyException
 import com.juul.kable.Peripheral
 import com.juul.kable.State
 import com.juul.kable.peripheral
+import com.juul.sensortag.Sample
 import com.juul.sensortag.SensorTag
 import com.juul.sensortag.Vector3f
 import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState
@@ -26,12 +29,17 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.absoluteValue
 import kotlin.math.pow
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 private val DISCONNECT_TIMEOUT = TimeUnit.SECONDS.toMillis(5)
 
@@ -80,6 +88,16 @@ class SensorViewModel(
     private val connectionAttempt = AtomicInteger()
 
     private val periodProgress = AtomicInteger()
+
+    private var startTime: TimeMark? = null
+
+    val data = sensorTag.gyro
+        .onStart { startTime = TimeSource.Monotonic.markNow() }
+        .scan(emptyList<Sample>()) { accumulator, value ->
+            val t = startTime!!.elapsedNow().inWholeMilliseconds / 1000f
+            accumulator.takeLast(50) + Sample(t, value.x, value.y, value.z)
+        }
+        .filter { it.size > 3 }
 
     init {
         viewModelScope.enableAutoReconnect()

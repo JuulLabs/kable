@@ -6,7 +6,10 @@ plugins {
 
 kotlin {
     android()
-    js().browser()
+    js {
+        browser()
+        binaries.executable()
+    }
     macosX64 {
         binaries {
             executable {
@@ -32,6 +35,7 @@ kotlin {
                 implementation(libs.bundles.compose)
                 implementation(libs.bundles.accompanist)
                 implementation(libs.exercise.annotations)
+                implementation(libs.bundles.krayon)
             }
         }
 

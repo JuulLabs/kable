@@ -12,7 +12,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -32,6 +31,7 @@ private const val movementConfigurationUuid = "f000aa82-0451-4000-b000-000000000
 private const val movementPeriodUuid = "f000aa83-0451-4000-b000-000000000000"
 private val clientCharacteristicConfigUuid = canonicalUuid("2902")
 
+@JsExport
 class Script {
 
     init {
@@ -58,12 +58,10 @@ class Script {
 
     private val statusListeners = mutableListOf<MessageListener>()
 
-    @JsName("addStatusListener")
     fun addStatusListener(listener: MessageListener) {
         statusListeners += listener
     }
 
-    @JsName("removeStatusListener")
     fun removeStatusListener(listener: MessageListener) {
         statusListeners -= listener
     }
@@ -75,12 +73,10 @@ class Script {
 
     private val movementListeners = mutableListOf<MovementListener>()
 
-    @JsName("addMovementListener")
     fun addMovementListener(listener: MovementListener) {
         movementListeners += listener
     }
 
-    @JsName("removeMovementListener")
     fun removeMovementListener(listener: MovementListener) {
         movementListeners -= listener
     }
@@ -92,7 +88,6 @@ class Script {
 
     private var connection: Job? = null
 
-    @JsName("connect")
     fun connect(): Unit {
         disconnect() // Clean up previous connection, if any.
 
