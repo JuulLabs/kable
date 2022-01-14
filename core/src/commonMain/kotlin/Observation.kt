@@ -1,8 +1,10 @@
 package com.juul.kable
 
+import co.touchlab.stately.collections.IsoMutableList
 import com.juul.kable.State.Connecting.Observes
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -23,9 +25,12 @@ internal class Observation(
     private val logger = Logger(logging, tag = "Kable/Observation", identifier)
 
     private val mutex = Mutex()
-    private val subscribers = mutableListOf<OnSubscriptionAction>()
+    private val subscribers = IsoMutableList<OnSubscriptionAction>()
 
-    private var didStartObservation = false
+    private val _didStartObservation = atomic(false)
+    private var didStartObservation: Boolean
+        get() = _didStartObservation.value
+        set(value) { _didStartObservation.value = value }
 
     private val isConnected: Boolean
         get() = state.value.isAtLeast<Observes>()
