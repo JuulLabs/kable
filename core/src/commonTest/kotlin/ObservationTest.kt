@@ -18,6 +18,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 
 private fun generateCharacteristic() = characteristicOf(
     service = uuid4().toString(),
@@ -186,6 +187,44 @@ class ObservationTest {
         counter.assert(
             startCount = 0,
             stopCount = 0,
+        )
+    }
+
+    @Test
+    fun notConnected_attemptToStartObservation_actionIsNotExecuted() = runTest {
+        val state = MutableStateFlow<State>(Disconnected())
+        val handler = object : Observation.Handler {
+            override suspend fun startObservation(characteristic: Characteristic) =
+                throw NotConnectedException()
+
+            override suspend fun stopObservation(characteristic: Characteristic) {}
+        }
+        val characteristic = generateCharacteristic()
+        val logEngine = RecordingLogEngine()
+        val logging = Logging().apply {
+            level = Data
+            format = Compact
+            engine = logEngine
+        }
+        val identifier = "test"
+        val observation = Observation(state, handler, characteristic, logging, identifier)
+
+        state.value = Connecting.Observes
+        var didExecuteAction = false
+        observation.onSubscription {
+            didExecuteAction = true
+        }
+        assertFalse(didExecuteAction)
+
+        assertEquals(
+            expected = listOf(
+                RecordingLogEngine.Record.Verbose(
+                    throwable = null,
+                    tag = "Kable/Observation",
+                    message = "$identifier Suppressed failure: ${NotConnectedException()}",
+                )
+            ),
+            actual = logEngine.records.toList(),
         )
     }
 

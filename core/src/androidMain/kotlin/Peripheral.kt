@@ -145,8 +145,8 @@ public class AndroidPeripheral internal constructor(
     private val receiver = registerBluetoothStateBroadcastReceiver { state ->
         if (state == STATE_OFF) {
             closeConnection()
-            observers.onConnectionLost()
             _state.value = State.Disconnected()
+            observers.onConnectionLost()
         }
     }
 
@@ -232,10 +232,10 @@ public class AndroidPeripheral internal constructor(
         _connection?.close()
         _connection = null
 
-        observers.onConnectionLost()
-
         // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
+
+        observers.onConnectionLost()
     }
 
     public override suspend fun connect() {

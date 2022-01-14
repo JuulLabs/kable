@@ -39,9 +39,10 @@ internal class Observation(
 
     suspend fun onSubscription(action: OnSubscriptionAction) = mutex.withLock {
         subscribers += action
-        enableObservationIfNeeded()
-        if (isObservationEnabled) {
+        val shouldStartObservation = !isObservationEnabled && isConnected && hasSubscribers
+        if (shouldStartObservation) {
             suppressConnectionExceptions {
+                startObservation()
                 action()
             }
         }
@@ -49,14 +50,14 @@ internal class Observation(
 
     suspend fun onCompletion(action: OnSubscriptionAction) = mutex.withLock {
         subscribers -= action
-        disableObservationIfNeeded()
+        val shouldStopObservation = isObservationEnabled && isConnected && !hasSubscribers
+        if (shouldStopObservation) stopObservation()
     }
 
     suspend fun onConnected() = mutex.withLock {
-        // `force = true` is used in case a disconnected state (to reset the observation state) was missed.
-        enableObservationIfNeeded(force = true)
-        if (isObservationEnabled) {
+        if (isConnected && hasSubscribers) {
             suppressConnectionExceptions {
+                startObservation()
                 subscribers.forEach { it() }
             }
         }
@@ -67,22 +68,16 @@ internal class Observation(
         isObservationEnabled = false
     }
 
-    private suspend fun enableObservationIfNeeded(force: Boolean = false) {
-        if ((!isObservationEnabled || force) && isConnected && hasSubscribers) {
-            suppressConnectionExceptions {
-                handler.startObservation(characteristic)
-                isObservationEnabled = true
-            }
-        }
+    private suspend fun startObservation() {
+        handler.startObservation(characteristic)
+        isObservationEnabled = true
     }
 
-    private suspend fun disableObservationIfNeeded() {
-        if (isObservationEnabled && isConnected && !hasSubscribers) {
-            suppressConnectionExceptions {
-                handler.stopObservation(characteristic)
-            }
-            isObservationEnabled = false
+    private suspend fun stopObservation() {
+        suppressConnectionExceptions {
+            handler.stopObservation(characteristic)
         }
+        isObservationEnabled = false
     }
 
     /**

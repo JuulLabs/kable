@@ -117,11 +117,11 @@ public class ApplePeripheral internal constructor(
                     detail("state", event.toString())
                 }
             }
-            .onEach { event ->
-                if (event is DidFailToConnect || event is DidDisconnect) observers.onConnectionLost()
-            }
             .map { event -> event.toState() }
             .onEach { _state.value = it }
+            .onEach { event ->
+                if (event is State.Disconnected) observers.onConnectionLost()
+            }
             .launchIn(scope)
     }
 
