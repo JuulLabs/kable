@@ -146,7 +146,6 @@ public class AndroidPeripheral internal constructor(
         if (state == STATE_OFF) {
             closeConnection()
             _state.value = State.Disconnected()
-            observers.onConnectionLost()
         }
     }
 
@@ -209,7 +208,6 @@ public class AndroidPeripheral internal constructor(
             connection
                 .characteristicChanges
                 .onEach(observers.characteristicChanges::emit)
-                .onCompletion { observers.onConnectionLost() }
                 .launchIn(scope, start = UNDISPATCHED)
 
             suspendUntilOrThrow<State.Connecting.Services>()
@@ -234,8 +232,6 @@ public class AndroidPeripheral internal constructor(
 
         // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
-
-        observers.onConnectionLost()
     }
 
     public override suspend fun connect() {

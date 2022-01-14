@@ -3,7 +3,6 @@ package com.juul.kable
 import com.juul.kable.State.Connecting.Observes
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -26,10 +25,7 @@ internal class Observation(
     private val mutex = Mutex()
     private val subscribers = mutableListOf<OnSubscriptionAction>()
 
-    private val _isObservationEnabled = atomic(false)
-    private var isObservationEnabled: Boolean
-        get() = _isObservationEnabled.value
-        set(value) { _isObservationEnabled.value = value }
+    private var didStartObservation = false
 
     private val isConnected: Boolean
         get() = state.value.isAtLeast<Observes>()
@@ -39,7 +35,7 @@ internal class Observation(
 
     suspend fun onSubscription(action: OnSubscriptionAction) = mutex.withLock {
         subscribers += action
-        val shouldStartObservation = !isObservationEnabled && isConnected && hasSubscribers
+        val shouldStartObservation = !didStartObservation && hasSubscribers && isConnected
         if (shouldStartObservation) {
             suppressConnectionExceptions {
                 startObservation()
@@ -50,7 +46,7 @@ internal class Observation(
 
     suspend fun onCompletion(action: OnSubscriptionAction) = mutex.withLock {
         subscribers -= action
-        val shouldStopObservation = isObservationEnabled && isConnected && !hasSubscribers
+        val shouldStopObservation = didStartObservation && !hasSubscribers && isConnected
         if (shouldStopObservation) stopObservation()
     }
 
@@ -63,21 +59,16 @@ internal class Observation(
         }
     }
 
-    fun onConnectionLost() {
-        // We assume that remote peripheral and local BLE system implicitly clears notifications/indications.
-        isObservationEnabled = false
-    }
-
     private suspend fun startObservation() {
         handler.startObservation(characteristic)
-        isObservationEnabled = true
+        didStartObservation = true
     }
 
     private suspend fun stopObservation() {
         suppressConnectionExceptions {
             handler.stopObservation(characteristic)
         }
-        isObservationEnabled = false
+        didStartObservation = false
     }
 
     /**

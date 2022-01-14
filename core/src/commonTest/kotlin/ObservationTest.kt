@@ -100,7 +100,6 @@ class ObservationTest {
         }
 
         state.value = Disconnected()
-        observation.onConnectionLost()
 
         onSubscriptionActions.drop(5).forEach { action ->
             observation.onCompletion(action)

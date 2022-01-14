@@ -72,10 +72,4 @@ internal class Observers<T>(
             }
         }
     }
-
-    fun onConnectionLost() {
-        observations.entries.forEach { (_, observation) ->
-            observation.onConnectionLost()
-        }
-    }
 }
