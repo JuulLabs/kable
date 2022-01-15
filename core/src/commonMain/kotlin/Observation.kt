@@ -14,7 +14,7 @@ internal class Observation(
     private val characteristic: Characteristic,
     logging: Logging,
     identifier: String,
-    private val subscribers: MutableList<OnSubscriptionAction>,
+    private val subscribers: MutableList<OnSubscriptionAction> = mutableListOf(),
 ) {
 
     interface Handler {
