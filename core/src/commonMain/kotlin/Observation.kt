@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import co.touchlab.stately.collections.IsoMutableList
 import com.juul.kable.State.Connecting.Observes
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
@@ -15,6 +14,7 @@ internal class Observation(
     private val characteristic: Characteristic,
     logging: Logging,
     identifier: String,
+    private val subscribers: MutableList<OnSubscriptionAction>,
 ) {
 
     interface Handler {
@@ -25,7 +25,6 @@ internal class Observation(
     private val logger = Logger(logging, tag = "Kable/Observation", identifier)
 
     private val mutex = Mutex()
-    private val subscribers = IsoMutableList<OnSubscriptionAction>()
 
     private val _didStartObservation = atomic(false)
     private var didStartObservation: Boolean

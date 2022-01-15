@@ -1,10 +1,8 @@
 package com.juul.kable
 
-import co.touchlab.stately.collections.IsoMutableMap
+import co.touchlab.stately.collections.IsoMutableList
 import co.touchlab.stately.isolate.IsolateState
 import com.juul.kable.logs.Logging
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
@@ -49,9 +47,16 @@ internal class Observers<T>(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
     ): Flow<T> {
+        val state = peripheral.state
         val handler = peripheral.observationHandler()
+        val identifier = peripheral.identifier
+
+        // `IsoMutableList` created outside of `getOrPut`, because it would deadlock on Native if created in
+        // `Observation` constructor.
+        val subscribers = IsoMutableList<OnSubscriptionAction>()
+
         val observation = observations.getOrPut(characteristic) {
-            Observation(peripheral.state, handler, characteristic, logging, peripheral.identifier)
+            Observation(state, handler, characteristic, logging, identifier, subscribers)
         }
 
         return characteristicChanges
@@ -79,20 +84,18 @@ private class Observations : IsolateState<MutableMap<Characteristic, Observation
     producer = { mutableMapOf() }
 ) {
 
-    private val observations = IsoMutableMap<Characteristic, Observation>()
-
-    val entries: Set<Map.Entry<Characteristic, Observation>>
-        get() = synchronized {
-            observations.entries.toSet()
+    val entries: List<Pair<Characteristic, Observation>>
+        get() = access { observations ->
+            // `map` used as a means to copy entries, to prevent freeze exceptions on Native.
+            observations.entries.map { (characteristic, observation) ->
+                characteristic to observation
+            }
         }
 
     fun getOrPut(
         characteristic: Characteristic,
         defaultValue: () -> Observation
-    ): Observation = synchronized {
+    ): Observation = access { observations ->
         observations.getOrPut(characteristic, defaultValue)
     }
-
-    private val lock = SynchronizedObject()
-    private inline fun <T> synchronized(block: () -> T): T = synchronized(lock, block)
 }
