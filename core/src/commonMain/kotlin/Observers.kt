@@ -1,7 +1,10 @@
 package com.juul.kable
 
+import co.touchlab.stately.collections.IsoMutableMap
+import co.touchlab.stately.isolate.IsolateState
 import com.juul.kable.logs.Logging
-import com.juul.tuulbox.collections.synchronizedMapOf
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
@@ -40,17 +43,15 @@ internal class Observers<T>(
 ) {
 
     val characteristicChanges = MutableSharedFlow<ObservationEvent<T>>(extraBufferCapacity = extraBufferCapacity)
-    private val observations = synchronizedMapOf<Characteristic, Observation>()
+    private val observations = Observations()
 
     fun acquire(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
     ): Flow<T> {
         val handler = peripheral.observationHandler()
-        val observation = observations.synchronized {
-            getOrPut(characteristic) {
-                Observation(peripheral.state, handler, characteristic, logging, peripheral.identifier)
-            }
+        val observation = observations.getOrPut(characteristic) {
+            Observation(peripheral.state, handler, characteristic, logging, peripheral.identifier)
         }
 
         return characteristicChanges
@@ -72,4 +73,26 @@ internal class Observers<T>(
             }
         }
     }
+}
+
+private class Observations : IsolateState<MutableMap<Characteristic, Observation>>(
+    producer = { mutableMapOf() }
+) {
+
+    private val observations = IsoMutableMap<Characteristic, Observation>()
+
+    val entries: Set<Map.Entry<Characteristic, Observation>>
+        get() = synchronized {
+            observations.entries.toSet()
+        }
+
+    fun getOrPut(
+        characteristic: Characteristic,
+        defaultValue: () -> Observation
+    ): Observation = synchronized {
+        observations.getOrPut(characteristic, defaultValue)
+    }
+
+    private val lock = SynchronizedObject()
+    private inline fun <T> synchronized(block: () -> T): T = synchronized(lock, block)
 }
