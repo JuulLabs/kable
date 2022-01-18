@@ -34,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -95,6 +96,7 @@ public class ApplePeripheral internal constructor(
 
     private val job = SupervisorJob(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
     private val scope = CoroutineScope(parentCoroutineContext + job)
+    private val connectionScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
 
     private val centralManager: CentralManager = CentralManager.Default
 
@@ -145,13 +147,13 @@ public class ApplePeripheral internal constructor(
         _connection.value = null
     }
 
-    private fun connectAsync() = scope.async(start = LAZY) {
+    private fun connectAsync() = connectionScope.async(start = LAZY) {
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
 
         centralManager.delegate.onDisconnected.onEach { identifier ->
             if (identifier == cbPeripheral.identifier) onDisconnected()
-        }.launchIn(scope)
+        }.launchIn(connectionScope)
 
         try {
             // todo: Create in `connectPeripheral`.
@@ -173,7 +175,7 @@ public class ApplePeripheral internal constructor(
                     )
                 }
                 .onEach(observers.characteristicChanges::emit)
-                .launchIn(scope, start = UNDISPATCHED)
+                .launchIn(connectionScope, start = UNDISPATCHED)
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
@@ -184,13 +186,13 @@ public class ApplePeripheral internal constructor(
             _state.value = State.Connecting.Observes
             logger.verbose { message = "Configuring characteristic observations" }
             observers.onConnected()
-        } catch (t: Throwable) {
-            logger.error(t) { message = "Failed to connect" }
+        } catch (e: Exception) {
+            logger.error(e) { message = "Failed to connect" }
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)
                 _connection.value = null
             }
-            throw t
+            throw e
         }
 
         logger.info { message = "Connected" }
@@ -203,7 +205,7 @@ public class ApplePeripheral internal constructor(
 
     public override suspend fun disconnect() {
         try {
-            scope.coroutineContext.job.cancelAndJoinChildren()
+            connectionScope.coroutineContext.job.cancelAndJoinChildren()
         } finally {
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)
