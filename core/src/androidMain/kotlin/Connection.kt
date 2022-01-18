@@ -2,7 +2,7 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
-import com.juul.kable.AndroidObservationEvent.CharacteristicChange
+import com.juul.kable.ObservationEvent.CharacteristicChange
 import com.juul.kable.gatt.Callback
 import com.juul.kable.gatt.GattStatus
 import kotlinx.coroutines.CoroutineDispatcher

@@ -39,6 +39,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -100,7 +101,11 @@ public class ApplePeripheral internal constructor(
     private val logger = Logger(logging, identifier = cbPeripheral.identifier.UUIDString)
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
-    override val state: Flow<State> = _state.asStateFlow()
+    override val state: StateFlow<State> = _state.asStateFlow()
+
+    private val observers = Observers<NSData>(this, logging)
+
+    internal val platformIdentifier = cbPeripheral.identifier.UUIDString
 
     init {
         centralManager.delegate
@@ -116,8 +121,6 @@ public class ApplePeripheral internal constructor(
             .onEach { _state.value = it }
             .launchIn(scope)
     }
-
-    private val observers = Observers(this, logger)
 
     private val _platformServices = atomic<List<PlatformService>?>(null)
     private val platformServices: List<PlatformService>
@@ -164,7 +167,7 @@ public class ApplePeripheral internal constructor(
                 .takeWhile { it !== Closed }
                 .mapNotNull { it as? Data }
                 .map {
-                    AppleObservationEvent.CharacteristicChange(
+                    ObservationEvent.CharacteristicChange(
                         characteristic = it.cbCharacteristic.toLazyCharacteristic(),
                         data = it.data
                     )
@@ -180,7 +183,7 @@ public class ApplePeripheral internal constructor(
 
             _state.value = State.Connecting.Observes
             logger.verbose { message = "Configuring characteristic observations" }
-            observers.rewire()
+            observers.onConnected()
         } catch (t: Throwable) {
             logger.error(t) { message = "Failed to connect" }
             withContext(NonCancellable) {
@@ -408,3 +411,6 @@ private fun NSError.toStatus(): State.Disconnected.Status = when (code) {
     CBErrorEncryptionTimedOut -> EncryptionTimedOut
     else -> Unknown(code.toInt())
 }
+
+internal actual val Peripheral.identifier: String
+    get() = (this as ApplePeripheral).platformIdentifier

@@ -127,7 +127,7 @@ public enum class Priority { Low, Balanced, High }
 
 public class AndroidPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
-    internal val bluetoothDevice: BluetoothDevice,
+    private val bluetoothDevice: BluetoothDevice,
     private val transport: Transport,
     private val phy: Phy,
     private val onServicesDiscovered: ServicesDiscoveredAction,
@@ -136,8 +136,10 @@ public class AndroidPeripheral internal constructor(
 
     private val logger = Logger(logging, tag = "Kable/Peripheral", identifier = bluetoothDevice.address)
 
+    internal val platformIdentifier = bluetoothDevice.address
+
     private val _state = MutableStateFlow<State>(State.Disconnected())
-    public override val state: Flow<State> = _state.asStateFlow()
+    public override val state: StateFlow<State> = _state.asStateFlow()
 
     private val receiver = registerBluetoothStateBroadcastReceiver { state ->
         if (state == STATE_OFF) {
@@ -166,7 +168,7 @@ public class AndroidPeripheral internal constructor(
      */
     public val mtu: StateFlow<Int?> = _mtu.asStateFlow()
 
-    private val observers = Observers(this, logging)
+    private val observers = Observers<ByteArray>(this, logging)
 
     @Volatile
     private var _platformServices: List<PlatformService>? = null
@@ -212,7 +214,7 @@ public class AndroidPeripheral internal constructor(
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
             _state.value = State.Connecting.Observes
             logger.verbose { message = "Configuring characteristic observations" }
-            observers.rewire()
+            observers.onConnected()
         } catch (t: Throwable) {
             closeConnection()
             logger.error(t) { message = "Failed to connect" }
@@ -226,6 +228,7 @@ public class AndroidPeripheral internal constructor(
     private fun closeConnection() {
         _connection?.close()
         _connection = null
+
         // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
@@ -381,19 +384,16 @@ public class AndroidPeripheral internal constructor(
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
         val platformCharacteristic = platformServices.findCharacteristic(characteristic)
+        setConfigDescriptor(platformCharacteristic, enable = false)
 
-        try {
-            setConfigDescriptor(platformCharacteristic, enable = false)
-        } finally {
-            logger.debug {
-                message = "setCharacteristicNotification"
-                detail(characteristic)
-                detail("value", "false")
-            }
-            connection
-                .bluetoothGatt
-                .setCharacteristicNotification(platformCharacteristic, false)
+        logger.debug {
+            message = "setCharacteristicNotification"
+            detail(characteristic)
+            detail("value", "false")
         }
+        connection
+            .bluetoothGatt
+            .setCharacteristicNotification(platformCharacteristic, false)
     }
 
     private suspend fun setConfigDescriptor(
@@ -506,3 +506,6 @@ private fun checkBluetoothAdapterState(
         throw BluetoothDisabledException("Bluetooth adapter state is $actualName ($actual), but $expectedName ($expected) was required.")
     }
 }
+
+internal actual val Peripheral.identifier: String
+    get() = (this as AndroidPeripheral).platformIdentifier
