@@ -84,7 +84,7 @@ public interface Peripheral {
      * The list contains a tree of [DiscoveredService]s, [DiscoveredCharacteristic]s and [DiscoveredDescriptor]s. These
      * types all hold strong references to the underlying platform type, so no guarantees are provided on the validity
      * of the objects beyond a connection. If a reconnect occurs, it is recommended to retrieve the desired object from
-     * [services] again. Any references to objects obtained from this tree should be clear upon disconnect or disposal
+     * [services] again. Any references to objects obtained from this tree should be cleared upon disconnect or disposal
      * (when parent [CoroutineScope] is cancelled) of this [Peripheral].
      *
      * @return [discovered services][DiscoveredService], or `null` until a [connection][connect] has been established.
@@ -98,10 +98,10 @@ public interface Peripheral {
     /**
      * Reads data from [characteristic].
      *
-     * If [characteristic] was created via [characteristicOf] then the first found characteristic (matching the service
-     * UUID and characteristic UUID) in the GATT profile will be used. If multiple characteristics with the same UUID
-     * exist in the GATT profile, then a [discovered characteristic][DiscoveredCharacteristic] from [services] should be
-     * used instead.
+     * If [characteristic] was created via [characteristicOf] then the first found characteristic with [Read] property
+     * matching the service UUID and characteristic UUID in the GATT profile will be used. If multiple characteristics
+     * with the same UUID and [Read] characteristic property exist in the GATT profile, then a
+     * [discovered characteristic][DiscoveredCharacteristic] from [services] should be used instead.
      *
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
@@ -113,10 +113,10 @@ public interface Peripheral {
     /**
      * Writes [data] to [characteristic].
      *
-     * If [characteristic] was created via [characteristicOf] then the first found characteristic (matching the service
-     * UUID and characteristic UUID) in the GATT profile will be used. If multiple characteristics with the same UUID
-     * exist in the GATT profile, then a [discovered characteristic][DiscoveredCharacteristic] from [services] should be
-     * used instead.
+     * If [characteristic] was created via [characteristicOf] then the first found characteristic with a property
+     * matching the specified [writeType] and matching the service UUID and characteristic UUID in the GATT profile will
+     * be used. If multiple characteristics with the same UUID and property exist in the GATT profile, then a
+     * [discovered characteristic][DiscoveredCharacteristic] from [services] should be used instead.
      *
      * @throws NotReadyException if invoked without an established [connection][connect].
      */
@@ -161,9 +161,15 @@ public interface Peripheral {
     /**
      * Observes changes to the specified [Characteristic].
      *
-     * Observations can be setup ([observe] can be called) prior to a [connection][connect] being established. Once
-     * connected, the observation will automatically start emitting changes. If connection is lost, [Flow] will remain
-     * active, once reconnected characteristic changes will begin emitting again.
+     * If [characteristic] was created via [characteristicOf] then the first found characteristic with a property of
+     * **notify** or **indicate** and matching service UUID and characteristic UUID will be used. If multiple
+     * characteristics with the same UUID and either **notify** or **indicate** property exist in the GATT profile, then
+     * a [discovered characteristic][DiscoveredCharacteristic] from [services] should be used instead.
+     *
+     * When using [characteristicOf], observations can be setup ([observe] can be called) prior to a
+     * [connection][connect] being established. Once connected, the observation will automatically start emitting
+     * changes. If connection is lost, [Flow] will remain active, once reconnected characteristic changes will begin
+     * emitting again.
      *
      * If characteristic has a Client Characteristic Configuration descriptor (CCCD), then based on bits in the
      * [characteristic] properties, observe will be configured (CCCD will be written to) as **notification** or
@@ -171,8 +177,7 @@ public interface Peripheral {
      * used).
      *
      * Failures related to notifications are propagated via the returned [observe] [Flow], for example, if the specified
-     * [characteristic] is invalid or cannot be found then a [NoSuchElementException] is propagated via the returned
-     * [Flow].
+     * [characteristic] is invalid or cannot be found then returned [Flow] terminates with a [NoSuchElementException].
      *
      * The optional [onSubscription] parameter is functionally identical to using the
      * [onSubscription][kotlinx.coroutines.flow.onSubscription] operator on the returned [Flow] except it has the
