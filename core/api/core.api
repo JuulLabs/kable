@@ -17,7 +17,7 @@ public final class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral 
 	public fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getServices ()Ljava/util/List;
-	public fun getState ()Lkotlinx/coroutines/flow/Flow;
+	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun read (Lcom/juul/kable/Descriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -67,7 +67,7 @@ public final class com/juul/kable/Characteristic$Properties {
 	public final synthetic fun unbox-impl ()I
 }
 
-public final class com/juul/kable/ConnectionLostException : java/io/IOException {
+public final class com/juul/kable/ConnectionLostException : com/juul/kable/NotConnectedException {
 	public fun <init> ()V
 }
 
@@ -183,7 +183,11 @@ public final class com/juul/kable/ManufacturerData {
 	public final fun getData ()[B
 }
 
-public final class com/juul/kable/NotReadyException : java/io/IOException {
+public class com/juul/kable/NotConnectedException : java/io/IOException {
+	public fun <init> ()V
+}
+
+public final class com/juul/kable/NotReadyException : com/juul/kable/NotConnectedException {
 	public fun <init> ()V
 }
 
@@ -197,7 +201,7 @@ public abstract interface class com/juul/kable/Peripheral {
 	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getServices ()Ljava/util/List;
-	public abstract fun getState ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun read (Lcom/juul/kable/Descriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -285,6 +289,7 @@ public final class com/juul/kable/ScannerKt {
 	public static final fun Scanner (Ljava/util/List;)Lcom/juul/kable/Scanner;
 	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Scanner;
 	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
+	public static final fun scannerWithFilters (Ljava/util/List;)Lcom/juul/kable/Scanner;
 }
 
 public abstract interface class com/juul/kable/Service {

@@ -23,6 +23,11 @@ public expect open class IOException internal constructor(
     cause: Throwable? = null,
 ) : Exception
 
+public open class NotConnectedException internal constructor(
+    message: String? = null,
+    cause: Throwable? = null,
+) : IOException(message, cause)
+
 public class ConnectionRejectedException internal constructor(
     message: String? = null,
     cause: Throwable? = null,
@@ -31,7 +36,7 @@ public class ConnectionRejectedException internal constructor(
 public class NotReadyException internal constructor(
     message: String? = null,
     cause: Throwable? = null,
-) : IOException(message, cause)
+) : NotConnectedException(message, cause)
 
 public class GattStatusException internal constructor(
     message: String? = null,
@@ -41,4 +46,4 @@ public class GattStatusException internal constructor(
 public class ConnectionLostException internal constructor(
     message: String? = null,
     cause: Throwable? = null,
-) : IOException(message, cause)
+) : NotConnectedException(message, cause)

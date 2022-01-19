@@ -34,6 +34,8 @@ kotlin {
             dependencies {
                 api(libs.kotlinx.coroutines.core)
                 api(libs.uuid)
+                implementation(libs.tuulbox.collections)
+                implementation(libs.stately.collections)
             }
         }
 
@@ -41,6 +43,8 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
+                implementation(libs.tuulbox.logging)
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
 
@@ -72,9 +76,6 @@ kotlin {
 
         val appleMain by creating {
             dependsOn(commonMain)
-            dependencies {
-                implementation(libs.stately)
-            }
         }
 
         val appleTest by creating
