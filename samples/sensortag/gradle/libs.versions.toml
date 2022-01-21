@@ -9,7 +9,7 @@ compose-compiler = "1.1.0-rc02"
 exercise = "0.10.0"
 kable = "0.12.0"
 kotlin = "1.6.10"
-krayon = "0.6.0"
+krayon = "0.7.0"
 ksp = "1.6.10-1.0.2"
 tuulbox = "5.1.0"
 
