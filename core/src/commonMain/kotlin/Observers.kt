@@ -2,12 +2,15 @@ package com.juul.kable
 
 import co.touchlab.stately.collections.IsoMutableList
 import co.touchlab.stately.isolate.IsolateState
+import com.juul.kable.ObservationEvent.CharacteristicChange
+import com.juul.kable.ObservationEvent.Error
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -38,6 +41,7 @@ internal class Observers<T>(
     private val peripheral: Peripheral,
     private val logging: Logging,
     extraBufferCapacity: Int = 0,
+    private val exceptionHandler: ObservationExceptionHandler,
 ) {
 
     val characteristicChanges = MutableSharedFlow<ObservationEvent<T>>(extraBufferCapacity = extraBufferCapacity)
@@ -60,10 +64,26 @@ internal class Observers<T>(
         }
 
         return characteristicChanges
-            .onSubscription { observation.onSubscription(onSubscription) }
+            .onSubscription {
+                try {
+                    observation.onSubscription(onSubscription)
+                } catch (e: Exception) {
+                    exceptionHandler(ObservationExceptionPeripheral(peripheral), e)
+                }
+            }
             .filter { event -> event.isAssociatedWith(characteristic) }
-            .map(::dematerialize)
-            .onCompletion { observation.onCompletion(onSubscription) }
+            .onEach { event ->
+                if (event is Error)
+                    exceptionHandler(ObservationExceptionPeripheral(peripheral), event.cause)
+            }
+            .mapNotNull { event -> (event as? CharacteristicChange)?.data }
+            .onCompletion {
+                try {
+                    observation.onCompletion(onSubscription)
+                } catch (e: Exception) {
+                    exceptionHandler(ObservationExceptionPeripheral(peripheral), e)
+                }
+            }
     }
 
     suspend fun onConnected() {
@@ -74,7 +94,7 @@ internal class Observers<T>(
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (e: Exception) {
-                characteristicChanges.emit(ObservationEvent.Error(characteristic, e))
+                characteristicChanges.emit(Error(characteristic, e))
             }
         }
     }

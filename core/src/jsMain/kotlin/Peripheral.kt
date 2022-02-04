@@ -54,6 +54,7 @@ internal fun CoroutineScope.peripheral(
     return JsPeripheral(
         coroutineContext,
         bluetoothDevice,
+        builder.observationExceptionHandler,
         builder.onServicesDiscovered,
         builder.logging,
     )
@@ -62,6 +63,7 @@ internal fun CoroutineScope.peripheral(
 public class JsPeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
+    observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     logging: Logging,
 ) : Peripheral {
@@ -265,7 +267,7 @@ public class JsPeripheral internal constructor(
         .buffer
         .toByteArray()
 
-    private val observers = Observers<DataView>(this, logging, extraBufferCapacity = 64)
+    private val observers = Observers<DataView>(this, logging, extraBufferCapacity = 64, observationExceptionHandler)
 
     public fun observeDataView(
         characteristic: Characteristic,

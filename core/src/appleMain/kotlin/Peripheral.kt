@@ -81,6 +81,7 @@ public actual fun CoroutineScope.peripheral(
     return ApplePeripheral(
         coroutineContext,
         advertisement.cbPeripheral,
+        builder.observationExceptionHandler,
         builder.onServicesDiscovered,
         builder.logging,
     )
@@ -90,6 +91,7 @@ public actual fun CoroutineScope.peripheral(
 public class ApplePeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
     private val cbPeripheral: CBPeripheral,
+    observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
 ) : Peripheral {
@@ -105,7 +107,7 @@ public class ApplePeripheral internal constructor(
     private val _state = MutableStateFlow<State>(State.Disconnected())
     override val state: StateFlow<State> = _state.asStateFlow()
 
-    private val observers = Observers<NSData>(this, logging)
+    private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
 
     internal val platformIdentifier = cbPeripheral.identifier.UUIDString
 

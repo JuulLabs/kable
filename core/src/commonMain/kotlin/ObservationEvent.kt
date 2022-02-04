@@ -11,13 +11,8 @@ internal sealed class ObservationEvent<T> {
 
     data class Error<T>(
         override val characteristic: Characteristic,
-        val cause: Throwable,
+        val cause: Exception,
     ) : ObservationEvent<T>()
-}
-
-internal fun <T> dematerialize(event: ObservationEvent<T>): T = when (event) {
-    is ObservationEvent.Error -> throw event.cause
-    is ObservationEvent.CharacteristicChange -> event.data
 }
 
 internal fun <T> ObservationEvent<T>.isAssociatedWith(characteristic: Characteristic): Boolean =

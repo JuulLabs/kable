@@ -176,8 +176,12 @@ public interface Peripheral {
      * **indication** (if [characteristic] supports both notifications and indications, then only **notification** is
      * used).
      *
-     * Failures related to notifications are propagated via the returned [observe] [Flow], for example, if the specified
+     * Failures related to observations are propagated via the returned [observe] [Flow], for example, if the specified
      * [characteristic] is invalid or cannot be found then returned [Flow] terminates with a [NoSuchElementException].
+     * An [ObservationExceptionHandler] may be registered with the [Peripheral] to control which failures are propagated
+     * through (and terminate) the observation [Flow]. When registered, only exceptions thrown from the
+     * [ObservationExceptionHandler] are propagated (and terminate) the returned observation [Flow]. See
+     * [PeripheralBuilder.observationExceptionHandler] for more details.
      *
      * The optional [onSubscription] parameter is functionally identical to using the
      * [onSubscription][kotlinx.coroutines.flow.onSubscription] operator on the returned [Flow] except it has the

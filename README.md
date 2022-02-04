@@ -377,7 +377,17 @@ platform characteristic will be used to to resume streaming characteristic chang
 
 Failures related to notifications/indications are propagated via the [`observe`] [`Flow`], for example, if the
 associated characteristic is invalid or cannot be found, then a `NoSuchElementException` is propagated via the
-[`observe`] [`Flow`].
+[`observe`] [`Flow`]. An [`ObservationExceptionHandler`] may be registered with the [`Peripheral`] to control which
+failures are propagated through (and terminate) the [`observe`] [`Flow`], for example:
+
+```kotlin
+scope.peripheral(advertisement) {
+    observationExceptionHandler { cause ->
+        // Log failure instead of propagating associated `observe` flow.
+        println("Observation failure suppressed: $cause")
+    }
+}
+```
 
 In scenarios where an I/O operation needs to be performed upon subscribing to the [`observe`] [`Flow`], an `onSubscribe`
 action may be specified:
