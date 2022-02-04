@@ -219,8 +219,7 @@ public class JsPeripheral internal constructor(
             // FIXME: https://github.com/JuulLabs/kable/issues/251
             delay(DISCONNECTION_DELAY)
         } finally {
-            // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
-            _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
+            _state.value = State.Disconnected()
         }
     }
 
