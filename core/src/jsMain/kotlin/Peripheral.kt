@@ -387,7 +387,7 @@ public class JsPeripheral internal constructor(
                     }
                 }
             }.onFailure {
-                logger.warn() {
+                logger.warn {
                     message = "Stop notification failure ignored."
                     detail(characteristic)
                 }
@@ -408,6 +408,7 @@ public class JsPeripheral internal constructor(
             bluetoothRemoteGATTCharacteristicFrom(characteristic)
                 .removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
         }
+        observationListeners.clear()
     }
 
     private fun Characteristic.createListener(): ObservationListener = { event ->
