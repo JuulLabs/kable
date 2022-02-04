@@ -13,6 +13,7 @@ internal abstract external class BluetoothRemoteGATTCharacteristic : EventTarget
 
     val service: BluetoothRemoteGATTService
     val uuid: UUID
+    val properties: BluetoothCharacteristicProperties
     val value: DataView?
 
     fun getDescriptor(descriptor: BluetoothDescriptorUUID): Promise<BluetoothRemoteGATTDescriptor>

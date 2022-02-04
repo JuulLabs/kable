@@ -124,14 +124,13 @@ public class ApplePeripheral internal constructor(
             .launchIn(scope)
     }
 
-    private val _platformServices = atomic<List<PlatformService>?>(null)
-    private val platformServices: List<PlatformService>
-        get() = checkNotNull(_platformServices.value) {
-            "Services have not been discovered for $this"
-        }
+    private val _discoveredServices = atomic<List<DiscoveredService>?>(null)
+    private val discoveredServices: List<DiscoveredService>
+        get() = _discoveredServices.value
+            ?: throw IllegalStateException("Services have not been discovered for $this")
 
     public override val services: List<DiscoveredService>?
-        get() = _platformServices.value?.map { it.toDiscoveredService() }
+        get() = _discoveredServices.value?.toList()
 
     private val _connection = atomic<Connection?>(null)
     private val connection: Connection
@@ -238,9 +237,10 @@ public class ApplePeripheral internal constructor(
             }
         }
 
-        _platformServices.value = cbPeripheral.services?.map { service ->
-            (service as CBService).toPlatformService()
-        }
+        _discoveredServices.value = cbPeripheral.services
+            .orEmpty()
+            .map { it as PlatformService }
+            .map(::DiscoveredService)
     }
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
@@ -263,9 +263,9 @@ public class ApplePeripheral internal constructor(
             detail(data)
         }
 
-        val cbCharacteristic = cbCharacteristicFrom(characteristic)
+        val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
         connection.execute<DidWriteValueForCharacteristic> {
-            centralManager.write(cbPeripheral, data, cbCharacteristic, writeType.cbWriteType)
+            centralManager.write(cbPeripheral, data, platformCharacteristic, writeType.cbWriteType)
         }
     }
 
@@ -284,14 +284,14 @@ public class ApplePeripheral internal constructor(
         }
 
         val connection = this.connection
-        val cbCharacteristic = cbCharacteristicFrom(characteristic)
+        val platformCharacteristic = discoveredServices.obtain(characteristic, Read)
 
         return connection.semaphore.withPermit {
             connection
                 .delegate
                 .characteristicChanges
-                .onSubscription { centralManager.read(cbPeripheral, cbCharacteristic) }
-                .firstOrThrow { it.cbCharacteristic.UUID == cbCharacteristic.UUID }
+                .onSubscription { centralManager.read(cbPeripheral, platformCharacteristic) }
+                .firstOrThrow { it.cbCharacteristic.UUID == platformCharacteristic.UUID }
         }
     }
 
@@ -312,9 +312,9 @@ public class ApplePeripheral internal constructor(
             detail(data)
         }
 
-        val cbDescriptor = cbDescriptorFrom(descriptor)
+        val platformDescriptor = discoveredServices.obtain(descriptor)
         connection.execute<DidUpdateValueForDescriptor> {
-            centralManager.write(cbPeripheral, data, cbDescriptor)
+            centralManager.write(cbPeripheral, data, platformDescriptor)
         }
     }
 
@@ -332,16 +332,16 @@ public class ApplePeripheral internal constructor(
             detail(descriptor)
         }
 
-        val cbDescriptor = cbDescriptorFrom(descriptor)
+        val platformDescriptor = discoveredServices.obtain(descriptor)
         return connection.execute<DidUpdateValueForDescriptor> {
-            centralManager.read(cbPeripheral, cbDescriptor)
+            centralManager.read(cbPeripheral, platformDescriptor)
         }.descriptor.value as NSData
     }
 
     public override fun observe(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
-    ): Flow<ByteArray> = observeAsNSData(characteristic, onSubscription).map { it.toByteArray() }
+    ): Flow<ByteArray> = observeAsNSData(characteristic, onSubscription).map(NSData::toByteArray)
 
     public fun observeAsNSData(
         characteristic: Characteristic,
@@ -354,9 +354,9 @@ public class ApplePeripheral internal constructor(
             detail(characteristic)
         }
 
-        val cbCharacteristic = cbCharacteristicFrom(characteristic)
+        val platformCharacteristic = discoveredServices.obtain(characteristic, Notify or Indicate)
         connection.execute<DidUpdateNotificationStateForCharacteristic> {
-            centralManager.notify(cbPeripheral, cbCharacteristic)
+            centralManager.notify(cbPeripheral, platformCharacteristic)
         }
     }
 
@@ -366,19 +366,11 @@ public class ApplePeripheral internal constructor(
             detail(characteristic)
         }
 
-        val cbCharacteristic = cbCharacteristicFrom(characteristic)
+        val platformCharacteristic = discoveredServices.obtain(characteristic, Notify or Indicate)
         connection.execute<DidUpdateNotificationStateForCharacteristic> {
-            centralManager.cancelNotify(cbPeripheral, cbCharacteristic)
+            centralManager.cancelNotify(cbPeripheral, platformCharacteristic)
         }
     }
-
-    private fun cbCharacteristicFrom(
-        characteristic: Characteristic,
-    ) = platformServices.findCharacteristic(characteristic).cbCharacteristic
-
-    private fun cbDescriptorFrom(
-        descriptor: Descriptor,
-    ) = platformServices.findDescriptor(descriptor).cbDescriptor
 
     override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"
 }
