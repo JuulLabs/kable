@@ -1,6 +1,6 @@
 [versions]
 accompanist = "0.22.0-rc"
-agp = "7.0.4"
+agp = "7.1.0"
 android-compile = "31"
 android-min = "21"
 androidx-lifecycle = "2.4.0"
