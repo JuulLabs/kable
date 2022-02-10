@@ -1,5 +1,5 @@
 [versions]
-accompanist = "0.22.0-rc"
+accompanist = "0.23.0"
 agp = "7.1.1"
 android-compile = "31"
 android-min = "21"
