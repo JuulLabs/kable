@@ -3,7 +3,7 @@ android-compile = "android-30"
 android-min = "21"
 atomicfu = "0.17.1"
 coroutines = "1.6.0"
-extensions = "1.0.1-pre.298-kotlin-1.6.10"
+extensions = "1.0.1-pre.299-kotlin-1.6.10"
 kotlin = "1.6.10"
 tuulbox = "5.1.0"
 
