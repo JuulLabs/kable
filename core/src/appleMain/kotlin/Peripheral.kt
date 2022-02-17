@@ -70,7 +70,6 @@ import platform.Foundation.NSData
 import platform.Foundation.NSError
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.native.concurrent.freeze
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -158,7 +157,7 @@ public class ApplePeripheral internal constructor(
 
         try {
             // todo: Create in `connectPeripheral`.
-            val delegate = PeripheralDelegate(logging, cbPeripheral.identifier.UUIDString).freeze()
+            val delegate = PeripheralDelegate(logging, cbPeripheral.identifier.UUIDString)
 
             val connection = centralManager.connectPeripheral(cbPeripheral, delegate).also {
                 _connection.value = it
