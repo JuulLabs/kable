@@ -117,6 +117,7 @@ public fun CoroutineScope.peripheral(
         bluetoothDevice,
         builder.transport,
         builder.phy,
+        builder.observationExceptionHandler,
         builder.onServicesDiscovered,
         builder.logging,
     )
@@ -129,6 +130,7 @@ public class AndroidPeripheral internal constructor(
     private val bluetoothDevice: BluetoothDevice,
     private val transport: Transport,
     private val phy: Phy,
+    observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
 ) : Peripheral {
@@ -167,7 +169,7 @@ public class AndroidPeripheral internal constructor(
      */
     public val mtu: StateFlow<Int?> = _mtu.asStateFlow()
 
-    private val observers = Observers<ByteArray>(this, logging)
+    private val observers = Observers<ByteArray>(this, logging, exceptionHandler = observationExceptionHandler)
 
     @Volatile
     private var _discoveredServices: List<DiscoveredService>? = null

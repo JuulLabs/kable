@@ -191,6 +191,10 @@ public final class com/juul/kable/NotReadyException : com/juul/kable/NotConnecte
 	public fun <init> ()V
 }
 
+public final class com/juul/kable/ObservationExceptionPeripheral {
+	public final fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+}
+
 public abstract interface annotation class com/juul/kable/ObsoleteKableApi : java/lang/annotation/Annotation {
 }
 
@@ -219,6 +223,7 @@ public final class com/juul/kable/PeripheralBuilder {
 	public final fun getPhy ()Lcom/juul/kable/Phy;
 	public final fun getTransport ()Lcom/juul/kable/Transport;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
+	public final fun observationExceptionHandler (Lkotlin/jvm/functions/Function3;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
 	public final fun setPhy (Lcom/juul/kable/Phy;)V
 	public final fun setTransport (Lcom/juul/kable/Transport;)V

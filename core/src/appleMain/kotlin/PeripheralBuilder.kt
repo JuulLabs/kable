@@ -49,4 +49,9 @@ public actual class PeripheralBuilder internal actual constructor() {
     public actual fun onServicesDiscovered(action: ServicesDiscoveredAction) {
         onServicesDiscovered = action
     }
+
+    internal var observationExceptionHandler: ObservationExceptionHandler = { cause -> throw cause }
+    public actual fun observationExceptionHandler(handler: ObservationExceptionHandler) {
+        observationExceptionHandler = handler
+    }
 }

@@ -87,6 +87,11 @@ public actual class PeripheralBuilder internal actual constructor() {
         onServicesDiscovered = action
     }
 
+    internal var observationExceptionHandler: ObservationExceptionHandler = { cause -> throw cause }
+    public actual fun observationExceptionHandler(handler: ObservationExceptionHandler) {
+        observationExceptionHandler = handler
+    }
+
     /** Preferred transport for GATT connections to remote dual-mode devices. */
     public var transport: Transport = Transport.Le
 
