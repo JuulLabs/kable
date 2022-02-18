@@ -11,7 +11,6 @@ import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_INDICATE
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
@@ -118,6 +117,7 @@ public fun CoroutineScope.peripheral(
         bluetoothDevice,
         builder.transport,
         builder.phy,
+        builder.observationExceptionHandler,
         builder.onServicesDiscovered,
         builder.logging,
     )
@@ -130,6 +130,7 @@ public class AndroidPeripheral internal constructor(
     private val bluetoothDevice: BluetoothDevice,
     private val transport: Transport,
     private val phy: Phy,
+    observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
 ) : Peripheral {
@@ -168,15 +169,16 @@ public class AndroidPeripheral internal constructor(
      */
     public val mtu: StateFlow<Int?> = _mtu.asStateFlow()
 
-    private val observers = Observers<ByteArray>(this, logging)
+    private val observers = Observers<ByteArray>(this, logging, exceptionHandler = observationExceptionHandler)
 
     @Volatile
-    private var _platformServices: List<PlatformService>? = null
-    private val platformServices: List<PlatformService>
-        get() = checkNotNull(_platformServices) { "Services have not been discovered for $this" }
+    private var _discoveredServices: List<DiscoveredService>? = null
+    private val discoveredServices: List<DiscoveredService>
+        get() = _discoveredServices
+            ?: throw IllegalStateException("Services have not been discovered for $this")
 
     public override val services: List<DiscoveredService>?
-        get() = _platformServices?.map { it.toDiscoveredService() }
+        get() = _discoveredServices?.toList()
 
     @Volatile
     private var _connection: Connection? = null
@@ -267,9 +269,9 @@ public class AndroidPeripheral internal constructor(
         connection.execute<OnServicesDiscovered> {
             discoverServices()
         }
-        _platformServices = withContext(connection.dispatcher) {
-            connection.bluetoothGatt.services
-        }.map { it.toPlatformService() }
+        _discoveredServices = withContext(connection.dispatcher) {
+            connection.bluetoothGatt.services.map(::DiscoveredService)
+        }
     }
 
     /**
@@ -301,11 +303,11 @@ public class AndroidPeripheral internal constructor(
             detail(data)
         }
 
-        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
+        val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
         connection.execute<OnCharacteristicWrite> {
-            bluetoothGattCharacteristic.value = data
-            bluetoothGattCharacteristic.writeType = writeType.intValue
-            writeCharacteristic(bluetoothGattCharacteristic)
+            platformCharacteristic.value = data
+            platformCharacteristic.writeType = writeType.intValue
+            writeCharacteristic(platformCharacteristic)
         }
     }
 
@@ -317,9 +319,9 @@ public class AndroidPeripheral internal constructor(
             detail(characteristic)
         }
 
-        val bluetoothGattCharacteristic = bluetoothGattCharacteristicFrom(characteristic)
+        val platformCharacteristic = discoveredServices.obtain(characteristic, Read)
         return connection.execute<OnCharacteristicRead> {
-            readCharacteristic(bluetoothGattCharacteristic)
+            readCharacteristic(platformCharacteristic)
         }.value!!
     }
 
@@ -327,27 +329,22 @@ public class AndroidPeripheral internal constructor(
         descriptor: Descriptor,
         data: ByteArray,
     ) {
-        logger.debug {
-            message = "write"
-            detail(descriptor)
-            detail(data)
-        }
-        write(bluetoothGattDescriptorFrom(descriptor), data)
+        write(discoveredServices.obtain(descriptor), data)
     }
 
     private suspend fun write(
-        bluetoothGattDescriptor: BluetoothGattDescriptor,
+        platformDescriptor: PlatformDescriptor,
         data: ByteArray,
     ) {
         logger.debug {
             message = "write"
-            detail(bluetoothGattDescriptor)
+            detail(platformDescriptor)
             detail(data)
         }
 
         connection.execute<OnDescriptorWrite> {
-            bluetoothGattDescriptor.value = data
-            writeDescriptor(bluetoothGattDescriptor)
+            platformDescriptor.value = data
+            writeDescriptor(platformDescriptor)
         }
     }
 
@@ -358,9 +355,10 @@ public class AndroidPeripheral internal constructor(
             message = "read"
             detail(descriptor)
         }
-        val bluetoothGattDescriptor = bluetoothGattDescriptorFrom(descriptor)
+
+        val platformDescriptor = discoveredServices.obtain(descriptor)
         return connection.execute<OnDescriptorRead> {
-            readDescriptor(bluetoothGattDescriptor)
+            readDescriptor(platformDescriptor)
         }.value!!
     }
 
@@ -370,12 +368,13 @@ public class AndroidPeripheral internal constructor(
     ): Flow<ByteArray> = observers.acquire(characteristic, onSubscription)
 
     internal suspend fun startObservation(characteristic: Characteristic) {
-        val platformCharacteristic = platformServices.findCharacteristic(characteristic)
         logger.debug {
             message = "setCharacteristicNotification"
             detail(characteristic)
             detail("value", "true")
         }
+
+        val platformCharacteristic = discoveredServices.obtain(characteristic, Notify or Indicate)
         connection
             .bluetoothGatt
             .setCharacteristicNotification(platformCharacteristic, true)
@@ -383,7 +382,7 @@ public class AndroidPeripheral internal constructor(
     }
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
-        val platformCharacteristic = platformServices.findCharacteristic(characteristic)
+        val platformCharacteristic = discoveredServices.obtain(characteristic, Notify or Indicate)
         setConfigDescriptor(platformCharacteristic, enable = false)
 
         logger.debug {
@@ -402,23 +401,21 @@ public class AndroidPeripheral internal constructor(
     ) {
         val configDescriptor = characteristic.configDescriptor
         if (configDescriptor != null) {
-            val bluetoothGattDescriptor = configDescriptor.bluetoothGattDescriptor
-
             if (enable) {
                 when {
                     characteristic.supportsNotify -> {
                         logger.verbose {
                             message = "Writing ENABLE_NOTIFICATION_VALUE to CCCD"
-                            detail(bluetoothGattDescriptor)
+                            detail(configDescriptor)
                         }
-                        write(bluetoothGattDescriptor, ENABLE_NOTIFICATION_VALUE)
+                        write(configDescriptor, ENABLE_NOTIFICATION_VALUE)
                     }
                     characteristic.supportsIndicate -> {
                         logger.verbose {
                             message = "Writing ENABLE_INDICATION_VALUE to CCCD"
-                            detail(bluetoothGattDescriptor)
+                            detail(configDescriptor)
                         }
-                        write(bluetoothGattDescriptor, ENABLE_INDICATION_VALUE)
+                        write(configDescriptor, ENABLE_INDICATION_VALUE)
                     }
                     else -> logger.warn {
                         message = "Characteristic supports neither notification nor indication"
@@ -429,9 +426,9 @@ public class AndroidPeripheral internal constructor(
                 if (characteristic.supportsNotify || characteristic.supportsIndicate) {
                     logger.verbose {
                         message = "Writing DISABLE_NOTIFICATION_VALUE to CCCD"
-                        detail(bluetoothGattDescriptor)
+                        detail(configDescriptor)
                     }
-                    write(bluetoothGattDescriptor, DISABLE_NOTIFICATION_VALUE)
+                    write(configDescriptor, DISABLE_NOTIFICATION_VALUE)
                 }
             }
         } else {
@@ -441,14 +438,6 @@ public class AndroidPeripheral internal constructor(
             }
         }
     }
-
-    private fun bluetoothGattCharacteristicFrom(
-        characteristic: Characteristic
-    ) = platformServices.findCharacteristic(characteristic).bluetoothGattCharacteristic
-
-    private fun bluetoothGattDescriptorFrom(
-        descriptor: Descriptor
-    ) = platformServices.findDescriptor(descriptor).bluetoothGattDescriptor
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
 }
@@ -467,22 +456,22 @@ private val Priority.intValue: Int
     }
 
 /** @throws GattRequestRejectedException if [BluetoothGatt.setCharacteristicNotification] returns `false`. */
-private fun BluetoothGatt.setCharacteristicNotification(
+private fun BluetoothGatt.setCharacteristicNotificationOrThrow(
     characteristic: PlatformCharacteristic,
     enable: Boolean,
 ) {
-    setCharacteristicNotification(characteristic.bluetoothGattCharacteristic, enable) ||
+    setCharacteristicNotification(characteristic, enable) ||
         throw GattRequestRejectedException()
 }
 
 private val PlatformCharacteristic.configDescriptor: PlatformDescriptor?
-    get() = descriptors.firstOrNull(clientCharacteristicConfigUuid)
+    get() = descriptors.firstOrNull { clientCharacteristicConfigUuid == it.uuid }
 
 private val PlatformCharacteristic.supportsNotify: Boolean
-    get() = bluetoothGattCharacteristic.properties and PROPERTY_NOTIFY != 0
+    get() = properties and PROPERTY_NOTIFY != 0
 
 private val PlatformCharacteristic.supportsIndicate: Boolean
-    get() = bluetoothGattCharacteristic.properties and PROPERTY_INDICATE != 0
+    get() = properties and PROPERTY_INDICATE != 0
 
 /**
  * Explicitly check the adapter state before connecting in order to respect system settings.
