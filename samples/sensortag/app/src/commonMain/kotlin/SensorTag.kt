@@ -1,6 +1,8 @@
 package com.juul.sensortag
 
 import com.juul.kable.Peripheral
+import com.juul.kable.WriteType
+import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.characteristicOf
 import com.juul.tuulbox.encoding.toHexString
 import com.juul.tuulbox.logging.Log
@@ -48,7 +50,7 @@ class SensorTag(
         val data = byteArrayOf(value.toByte())
 
         Log.info { "movement → writePeriod → data = $value (${data.toHexString()})" }
-        peripheral.write(movementPeriodCharacteristic, data)
+        peripheral.write(movementPeriodCharacteristic, data, WithResponse)
         Log.info { "writeGyroPeriod complete" }
     }
 
@@ -61,12 +63,12 @@ class SensorTag(
 
     suspend fun enableGyro() {
         Log.info { "Enabling gyro" }
-        peripheral.write(movementConfigCharacteristic, byteArrayOf(0x7F, 0x0))
+        peripheral.write(movementConfigCharacteristic, byteArrayOf(0x7F, 0x0), WithResponse)
         Log.info { "Gyro enabled" }
     }
 
     suspend fun disableGyro() {
-        peripheral.write(movementConfigCharacteristic, byteArrayOf(0x0, 0x0))
+        peripheral.write(movementConfigCharacteristic, byteArrayOf(0x0, 0x0), WithResponse)
     }
 }
 
