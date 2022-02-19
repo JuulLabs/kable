@@ -27,7 +27,6 @@ import platform.Foundation.NSError
 import platform.Foundation.NSNumber
 import platform.Foundation.NSUUID
 import platform.darwin.NSObject
-import kotlin.native.concurrent.freeze
 
 // https://developer.apple.com/documentation/corebluetooth/cbperipheraldelegate
 internal class PeripheralDelegate(
@@ -177,21 +176,19 @@ internal class PeripheralDelegate(
         didUpdateValueForCharacteristic: CBCharacteristic,
         error: NSError?,
     ) {
-        val cbCharacteristic = didUpdateValueForCharacteristic.freeze()
-
         logger.debug(error) {
             message = "${peripheral.identifier} didUpdateValueForCharacteristic"
             detail(didUpdateValueForCharacteristic)
-            detail(cbCharacteristic.value)
+            detail(didUpdateValueForCharacteristic.value)
         }
 
         val change = if (error == null) {
             // Assumption: `value == null` and `error == null` are mutually exclusive.
             // i.e. When `error == null` then `CBCharacteristic`'s `value` is non-null.
-            val data = cbCharacteristic.value!!
-            DidUpdateValueForCharacteristic.Data(cbCharacteristic, data)
+            val data = didUpdateValueForCharacteristic.value!!
+            DidUpdateValueForCharacteristic.Data(didUpdateValueForCharacteristic, data)
         } else {
-            DidUpdateValueForCharacteristic.Error(cbCharacteristic, error)
+            DidUpdateValueForCharacteristic.Error(didUpdateValueForCharacteristic, error)
         }
 
         _characteristicChanges.emitBlocking(change)
