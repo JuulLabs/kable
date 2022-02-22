@@ -67,6 +67,8 @@ internal class Observers<T>(
             .onSubscription {
                 try {
                     observation.onSubscription(onSubscription)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     exceptionHandler(ObservationExceptionPeripheral(peripheral), e)
                 }
@@ -80,6 +82,8 @@ internal class Observers<T>(
             .onCompletion {
                 try {
                     observation.onCompletion(onSubscription)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     exceptionHandler(ObservationExceptionPeripheral(peripheral), e)
                 }
