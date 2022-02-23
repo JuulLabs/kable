@@ -125,28 +125,28 @@ public class JsPeripheral internal constructor(
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
 
-    private var connector: SharedRepeatableTask = SharedRepeatableTask(scope) {
+    private val connectJob: SharedRepeatableTask = scope.sharedRepeatableTask {
         try {
             openConnection()
         } catch (t: Throwable) {
             logger.error(t) { message = "Failed to connect" }
-            disconnector.launchAsync()
+            disconnectJob.launchAsync()
             throw t
         }
     }
 
-    private var disconnector: SharedRepeatableTask = SharedRepeatableTask(scope) {
-        connector.join()
+    private val disconnectJob: SharedRepeatableTask = scope.sharedRepeatableTask {
+        connectJob.join()
         closeConnection()
     }
 
     public override suspend fun connect() {
-        connector.launchAsync().await()
+        connectJob.launchAsync().await()
     }
 
     public override suspend fun disconnect() {
-        connector.cancel()
-        disconnector.launchAsync().await()
+        connectJob.cancel()
+        disconnectJob.launchAsync().await()
     }
 
     private suspend fun openConnection() {
@@ -300,8 +300,8 @@ public class JsPeripheral internal constructor(
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = {
         logger.debug { message = GATT_SERVER_DISCONNECTED }
-        connector.cancel()
-        disconnector.launchAsync()
+        connectJob.cancel()
+        disconnectJob.launchAsync()
     }
 
     internal suspend fun startObservation(characteristic: Characteristic) {

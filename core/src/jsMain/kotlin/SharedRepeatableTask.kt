@@ -40,3 +40,7 @@ internal class SharedRepeatableTask(
         deferred?.join()
     }
 }
+
+internal fun CoroutineScope.sharedRepeatableTask(
+    job: suspend () -> Unit
+) = SharedRepeatableTask(this, job)
