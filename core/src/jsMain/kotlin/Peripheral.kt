@@ -13,21 +13,15 @@ import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart.LAZY
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.await
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -40,8 +34,6 @@ import org.w3c.dom.events.Event as JsEvent
 private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
 private const val ADVERTISEMENT_RECEIVED = "advertisementreceived"
 private const val CHARACTERISTIC_VALUE_CHANGED = "characteristicvaluechanged"
-
-private const val DISCONNECTION_DELAY = 1_500L
 
 private typealias ObservationListener = (JsEvent) -> Unit
 
@@ -133,57 +125,28 @@ public class JsPeripheral internal constructor(
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
 
-    private var connectJob: Deferred<Unit>? = null
-
-    private fun connectAsync() = scope.async(start = LAZY) {
+    private var connector: SharedRepeatableTask = SharedRepeatableTask(scope) {
         try {
             openConnection()
         } catch (t: Throwable) {
             logger.error(t) { message = "Failed to connect" }
-            scope.async {
-                disconnectSync(cancelConnectJob = false)
-            }
+            disconnector.launchAsync()
             throw t
         }
     }
 
-    private var disconnectJob: Deferred<Unit>? = null
-
-    private fun disconnectAsync(
-        cancelConnectJob: Boolean,
-    ) = scope.async {
-        if (cancelConnectJob) {
-            connectJob?.cancelAndJoin()
-        } else {
-            connectJob?.join()
-        }
+    private var disconnector: SharedRepeatableTask = SharedRepeatableTask(scope) {
+        connector.join()
         closeConnection()
     }
 
     public override suspend fun connect() {
-        connectSync()
+        connector.launchAsync().await()
     }
 
     public override suspend fun disconnect() {
-        disconnectSync(cancelConnectJob = true)
-    }
-
-    private suspend fun connectSync() {
-        val job = connectJob ?: connectAsync().apply {
-            connectJob = this
-            invokeOnCompletion { connectJob = null }
-        }
-        job.await()
-    }
-
-    private suspend fun disconnectSync(
-        cancelConnectJob: Boolean
-    ) {
-        val job = disconnectJob ?: disconnectAsync(cancelConnectJob).apply {
-            disconnectJob = this
-            invokeOnCompletion { disconnectJob = null }
-        }
-        job.await()
+        connector.cancel()
+        disconnector.launchAsync().await()
     }
 
     private suspend fun openConnection() {
@@ -219,8 +182,6 @@ public class JsPeripheral internal constructor(
             unregisterDisconnectedListener()
             stopAllObservations()
             bluetoothDevice.gatt?.disconnect()
-            // FIXME: https://github.com/JuulLabs/kable/issues/251
-            delay(DISCONNECTION_DELAY)
         } finally {
             _state.value = State.Disconnected()
         }
@@ -232,8 +193,7 @@ public class JsPeripheral internal constructor(
             clearObservationsWithoutStopping()
             bluetoothDevice.gatt?.disconnect()
         } finally {
-            // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
-            _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
+            _state.value = State.Disconnected()
         }
     }
 
@@ -340,9 +300,8 @@ public class JsPeripheral internal constructor(
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = {
         logger.debug { message = GATT_SERVER_DISCONNECTED }
-        scope.async {
-            disconnectSync(cancelConnectJob = true)
-        }
+        connector.cancel()
+        disconnector.launchAsync()
     }
 
     internal suspend fun startObservation(characteristic: Characteristic) {
@@ -407,7 +366,7 @@ public class JsPeripheral internal constructor(
 
     private fun clearObservationsWithoutStopping() {
         observationListeners.forEach { (characteristic, listener) ->
-            bluetoothRemoteGATTCharacteristicFrom(characteristic)
+            discoveredServices.obtain(characteristic, Notify or Indicate)
                 .removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
         }
         observationListeners.clear()
