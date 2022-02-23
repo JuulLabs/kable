@@ -17,7 +17,6 @@ import platform.Foundation.NSError
 import platform.Foundation.NSNumber
 import platform.Foundation.NSUUID
 import platform.darwin.NSObject
-import kotlin.native.concurrent.freeze
 
 // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate
 internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProtocol {
@@ -100,13 +99,11 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         advertisementData: Map<Any?, *>,
         RSSI: NSNumber,
     ) {
-        val peripheral = didDiscoverPeripheral.freeze()
-
         // Per Apple documentation, `advertisementData` is defined as dictionary of `[String : Any]`.
         // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518937-centralmanager
         val data = advertisementData as Map<String, Any>
 
-        _response.emitBlocking(DidDiscoverPeripheral(peripheral, RSSI, data))
+        _response.emitBlocking(DidDiscoverPeripheral(didDiscoverPeripheral, RSSI, data))
     }
 
     /* Monitoring the Central Manager’s State */

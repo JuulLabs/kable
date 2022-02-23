@@ -10,7 +10,6 @@ import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSData
-import kotlin.native.concurrent.freeze
 
 private const val DISPATCH_QUEUE_LABEL = "central"
 
@@ -21,7 +20,7 @@ public class CentralManager internal constructor() {
     }
 
     private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
-    internal val delegate = CentralManagerDelegate().freeze()
+    internal val delegate = CentralManagerDelegate()
     private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue)
 
     internal suspend fun scanForPeripheralsWithServices(
