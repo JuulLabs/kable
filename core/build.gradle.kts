@@ -48,12 +48,6 @@ kotlin {
             }
         }
 
-        val jsMain by getting {
-            dependencies {
-                implementation(libs.kotlin.extensions)
-            }
-        }
-
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
