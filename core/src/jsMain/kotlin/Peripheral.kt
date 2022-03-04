@@ -13,18 +13,15 @@ import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart.LAZY
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -69,7 +66,7 @@ public class JsPeripheral internal constructor(
 ) : Peripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job).apply {
-        invokeOnCompletion { closeConnection() }
+        invokeOnCompletion { finalCleanup() }
     }
 
     private val scope = CoroutineScope(parentCoroutineContext + job)
@@ -128,57 +125,87 @@ public class JsPeripheral internal constructor(
     private val gatt: BluetoothRemoteGATTServer
         get() = bluetoothDevice.gatt!! // fixme: !!
 
-    private var connectJob: Deferred<Unit>? = null
-
-    private fun connectAsync() = scope.async(start = LAZY) {
-        logger.info { message = "Connecting" }
-        _state.value = State.Connecting.Bluetooth
-
+    private val connectJob: SharedRepeatableTask = scope.sharedRepeatableTask {
         try {
-            registerDisconnectedListener()
-
-            gatt.connect().await() // todo: Catch appropriate exception to emit State.Rejected.
-            _state.value = State.Connecting.Services
-
-            discoverServices()
-            onServicesDiscovered(ServicesDiscoveredPeripheral(this@JsPeripheral))
-            _state.value = State.Connecting.Observes
-            logger.verbose { message = "Configuring characteristic observations" }
-            observers.onConnected()
+            openConnection()
         } catch (t: Throwable) {
             logger.error(t) { message = "Failed to connect" }
-            disconnectGatt()
+            disconnectJob.launch()
             throw t
         }
+    }
+
+    private val disconnectJob: SharedRepeatableTask = scope.sharedRepeatableTask {
+        connectJob.join()
+        closeConnection()
+    }
+
+    public override suspend fun connect() {
+        connectJob.launch().join()
+    }
+
+    public override suspend fun disconnect() {
+        connectJob.cancelAndJoin()
+        disconnectJob.launch().join()
+    }
+
+    private suspend fun openConnection() {
+        // Guard if already connected do nothing
+        if (_state.value is State.Connected) return
+
+        logger.info { message = "Connecting" }
+        // Wait until fully disconnected before proceeding
+        _state.first { it is State.Disconnected }
+
+        _state.value = State.Connecting.Bluetooth
+        registerDisconnectedListener()
+        gatt.connect().await() // todo: Catch appropriate exception to emit State.Rejected.
+
+        _state.value = State.Connecting.Services
+        discoverServices()
+        onServicesDiscovered(ServicesDiscoveredPeripheral(this@JsPeripheral))
+
+        _state.value = State.Connecting.Observes
+        logger.verbose { message = "Configuring characteristic observations" }
+        observers.onConnected()
 
         logger.info { message = "Connected" }
         _state.value = State.Connected
     }
 
-    private fun closeConnection() {
-        observationListeners.clear()
-        disconnectGatt()
-        unregisterDisconnectedListener()
-        _state.value = State.Disconnected()
+    private suspend fun closeConnection() {
+        // Guard if already disconnecting/disconnected do nothing
+        if (_state.value is State.Disconnecting || _state.value is State.Disconnected) return
+
+        try {
+            _state.value = State.Disconnecting
+            unregisterDisconnectedListener()
+            stopAllObservations()
+        } finally {
+            forceDisconnectedStateImmediate()
+        }
     }
 
-    public override suspend fun connect() {
-        val job = connectJob ?: connectAsync().also { connectJob = it }
-        job.await()
+    private fun finalCleanup() {
+        try {
+            unregisterDisconnectedListener()
+            clearObservationsWithoutStopping()
+        } finally {
+            forceDisconnectedStateImmediate()
+        }
     }
 
-    public override suspend fun disconnect() {
-        job.cancelAndJoinChildren()
-        connectJob = null
-        disconnectGatt()
-    }
-
-    private fun disconnectGatt() {
-        _state.value = State.Disconnecting
-        bluetoothDevice.gatt?.disconnect()
-        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
-        _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
-    }
+    /**
+     * We _always_ want to invoke gatt.disconnect() when disconnecting as it does some important
+     * clean up of the Web BLE internals. We also want to ensure we move to the Disconnected state.
+     * This method combines those operations so we end up in a sensible place before the next connect().
+     */
+    private fun forceDisconnectedStateImmediate() =
+        try {
+            bluetoothDevice.gatt?.disconnect()
+        } finally {
+            _state.value = State.Disconnected()
+        }
 
     private suspend fun discoverServices() {
         logger.verbose { message = "discover services" }
@@ -283,10 +310,8 @@ public class JsPeripheral internal constructor(
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = {
         logger.debug { message = GATT_SERVER_DISCONNECTED }
-        _state.value = State.Disconnected()
-        unregisterDisconnectedListener()
-        observationListeners.clear()
-        connectJob = null
+        connectJob.cancel()
+        disconnectJob.launch()
     }
 
     internal suspend fun startObservation(characteristic: Characteristic) {
@@ -341,6 +366,20 @@ public class JsPeripheral internal constructor(
 
             removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
         }
+    }
+
+    private suspend fun stopAllObservations() {
+        observationListeners.keys.forEach { characteristic ->
+            stopObservation(characteristic)
+        }
+    }
+
+    private fun clearObservationsWithoutStopping() {
+        observationListeners.forEach { (characteristic, listener) ->
+            discoveredServices.obtain(characteristic, Notify or Indicate)
+                .removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
+        }
+        observationListeners.clear()
     }
 
     private fun Characteristic.createListener(): ObservationListener = { event ->
