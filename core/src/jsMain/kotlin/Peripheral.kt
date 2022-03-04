@@ -182,9 +182,7 @@ public class JsPeripheral internal constructor(
             unregisterDisconnectedListener()
             stopAllObservations()
         } finally {
-            // IMPORTANT: update state FIRST as the gatt.disconnect may throw
-            _state.value = State.Disconnected()
-            bluetoothDevice.gatt?.disconnect()
+            forceDisconnectedStateImmediate()
         }
     }
 
@@ -193,11 +191,21 @@ public class JsPeripheral internal constructor(
             unregisterDisconnectedListener()
             clearObservationsWithoutStopping()
         } finally {
-            // IMPORTANT: update state FIRST as the gatt.disconnect may throw
-            _state.value = State.Disconnected()
-            bluetoothDevice.gatt?.disconnect()
+            forceDisconnectedStateImmediate()
         }
     }
+
+    /**
+     * We _always_ want to invoke gatt.disconnect() when disconnecting as it does some important
+     * clean up of the Web BLE internals. We also want to ensure we move to the Disconnected state.
+     * This method combines those operations so we end up in a sensible place before the next connect().
+     */
+    private fun forceDisconnectedStateImmediate() =
+        try {
+            bluetoothDevice.gatt?.disconnect()
+        } finally {
+            _state.value = State.Disconnected()
+        }
 
     private suspend fun discoverServices() {
         logger.verbose { message = "discover services" }
