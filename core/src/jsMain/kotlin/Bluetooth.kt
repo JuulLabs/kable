@@ -4,7 +4,6 @@ import com.juul.kable.Options.Filter.Name
 import com.juul.kable.Options.Filter.NamePrefix
 import com.juul.kable.Options.Filter.Services
 import com.juul.kable.external.Bluetooth
-import kotlinext.js.jso
 import kotlinx.coroutines.CoroutineScope
 import kotlin.js.Promise
 
