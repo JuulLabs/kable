@@ -130,7 +130,7 @@ public class JsPeripheral internal constructor(
             openConnection()
         } catch (t: Throwable) {
             logger.error(t) { message = "Failed to connect" }
-            disconnectJob.launchAsync()
+            disconnectJob.launch()
             throw t
         }
     }
@@ -141,12 +141,12 @@ public class JsPeripheral internal constructor(
     }
 
     public override suspend fun connect() {
-        connectJob.launchAsync().await()
+        connectJob.launch().join()
     }
 
     public override suspend fun disconnect() {
-        connectJob.cancel()
-        disconnectJob.launchAsync().await()
+        connectJob.cancelAndJoin()
+        disconnectJob.launch().join()
     }
 
     private suspend fun openConnection() {
@@ -301,7 +301,7 @@ public class JsPeripheral internal constructor(
     private val disconnectedListener: (JsEvent) -> Unit = {
         logger.debug { message = GATT_SERVER_DISCONNECTED }
         connectJob.cancel()
-        disconnectJob.launchAsync()
+        disconnectJob.launch()
     }
 
     internal suspend fun startObservation(characteristic: Characteristic) {
