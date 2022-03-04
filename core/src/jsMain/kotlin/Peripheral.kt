@@ -181,9 +181,10 @@ public class JsPeripheral internal constructor(
             _state.value = State.Disconnecting
             unregisterDisconnectedListener()
             stopAllObservations()
-            bluetoothDevice.gatt?.disconnect()
         } finally {
+            // IMPORTANT: update state FIRST as the gatt.disconnect may throw
             _state.value = State.Disconnected()
+            bluetoothDevice.gatt?.disconnect()
         }
     }
 
@@ -191,9 +192,10 @@ public class JsPeripheral internal constructor(
         try {
             unregisterDisconnectedListener()
             clearObservationsWithoutStopping()
-            bluetoothDevice.gatt?.disconnect()
         } finally {
+            // IMPORTANT: update state FIRST as the gatt.disconnect may throw
             _state.value = State.Disconnected()
+            bluetoothDevice.gatt?.disconnect()
         }
     }
 
