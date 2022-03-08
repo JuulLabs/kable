@@ -41,6 +41,11 @@ jobs:
           -PmavenCentralUsername="${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}"
           -PmavenCentralPassword="${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}"
           publish
+      - run: >-
+          ./gradlew
+          -PmavenCentralUsername="${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}"
+          -PmavenCentralPassword="${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}"
+          closeAndReleaseRepository
 
       - run: |
           rm -f ~/.gradle/caches/modules-2/modules-2.lock
