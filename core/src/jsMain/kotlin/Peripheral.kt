@@ -128,10 +128,10 @@ public class JsPeripheral internal constructor(
     private val connectJob: SharedRepeatableTask = scope.sharedRepeatableTask {
         try {
             openConnection()
-        } catch (t: Throwable) {
-            logger.error(t) { message = "Failed to connect" }
+        } catch (cause: Throwable) {
+            logger.error(cause) { message = "Failed to connect" }
             disconnectJob.launch()
-            throw t
+            throw IOException("Connection attempt failed", cause)
         }
     }
 
@@ -159,7 +159,7 @@ public class JsPeripheral internal constructor(
 
         _state.value = State.Connecting.Bluetooth
         registerDisconnectedListener()
-        gatt.connect().await() // todo: Catch appropriate exception to emit State.Rejected.
+        gatt.connect().await()
 
         _state.value = State.Connecting.Services
         discoverServices()
