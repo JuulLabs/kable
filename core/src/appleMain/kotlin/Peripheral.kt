@@ -86,6 +86,39 @@ public actual fun CoroutineScope.peripheral(
     )
 }
 
+public fun CoroutineScope.peripheral(
+    uuid: Uuid,
+    builderAction: PeripheralBuilderAction
+): Peripheral {
+    val peripheral = CentralManager.Default.retrievePeripheral(uuid)
+    val builder = PeripheralBuilder()
+    builder.builderAction()
+    return ApplePeripheral(
+        coroutineContext,
+        peripheral,
+        builder.observationExceptionHandler,
+        builder.onServicesDiscovered,
+        builder.logging
+    )
+}
+
+public fun CoroutineScope.peripheral(
+    cbPeripheral: CBPeripheral,
+    builderAction: PeripheralBuilderAction
+): Peripheral {
+    val builder = PeripheralBuilder()
+    builder.builderAction()
+    return ApplePeripheral(
+        coroutineContext,
+        cbPeripheral,
+        builder.observationExceptionHandler,
+        builder.onServicesDiscovered,
+        builder.logging
+    )
+}
+
+
+
 @OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
 public class ApplePeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,
