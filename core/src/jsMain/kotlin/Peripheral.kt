@@ -88,6 +88,9 @@ public class JsPeripheral internal constructor(
     public override val services: List<DiscoveredService>?
         get() = _discoveredServices?.toList()
 
+    override val id: String
+        get() = bluetoothDevice.id
+
     private val observationListeners = mutableMapOf<Characteristic, ObservationListener>()
 
     private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null

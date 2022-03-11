@@ -166,6 +166,9 @@ public class ApplePeripheral internal constructor(
     public override val services: List<DiscoveredService>?
         get() = _discoveredServices.value?.toList()
 
+    public override val id: String
+        get() = cbPeripheral.identifier().UUIDString
+
     private val _connection = atomic<Connection?>(null)
     private val connection: Connection
         inline get() = _connection.value ?: throw NotReadyException(toString())
