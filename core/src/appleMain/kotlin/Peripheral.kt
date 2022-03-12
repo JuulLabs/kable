@@ -86,7 +86,7 @@ public actual fun CoroutineScope.peripheral(
     )
 }
 
-public fun CoroutineScope.peripheral(
+public fun CoroutineScope.peripheralFromUUID(
     uuid: Uuid,
     builderAction: PeripheralBuilderAction
 ): Peripheral {
