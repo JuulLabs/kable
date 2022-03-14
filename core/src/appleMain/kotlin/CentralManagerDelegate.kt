@@ -9,14 +9,17 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filterNotNull
-import platform.CoreBluetooth.CBCentralManager
-import platform.CoreBluetooth.CBCentralManagerDelegateProtocol
-import platform.CoreBluetooth.CBManagerState
-import platform.CoreBluetooth.CBPeripheral
+import platform.CoreBluetooth.*
 import platform.Foundation.NSError
 import platform.Foundation.NSNumber
 import platform.Foundation.NSUUID
 import platform.darwin.NSObject
+
+public data class CBManagerRestoredState(
+    val peripherals: List<CBPeripheral>? = null,
+    val scannUUIDs: List<CBUUID>? = null,
+    //TBD Scan Options
+)
 
 // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate
 internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProtocol {
@@ -26,6 +29,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
 
     private val _state = MutableStateFlow<CBManagerState?>(null)
     val state: Flow<CBManagerState> = _state.filterNotNull()
+
+    private val _willRestoreStateFlow = MutableSharedFlow<CBManagerRestoredState?>()
 
     sealed class Response {
 
@@ -114,7 +119,15 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         _state.value = central.state
     }
 
-    // todo: func centralManager(CBCentralManager, willRestoreState: [String : Any])
+    override fun centralManager(central: CBCentralManager, willRestoreState: Map<Any?, *>){
+        val peripherals =
+                willRestoreState[CBCentralManagerRestoredStatePeripheralsKey] as List<CBPeripheral>?
+        val scanUUIDs =
+                willRestoreState[CBCentralManagerRestoredStateScanServicesKey] as List<CBUUID>?
+
+        _willRestoreStateFlow.tryEmit(CBManagerRestoredState(
+            peripherals, scanUUIDs))
+    }
 
     /* Monitoring the Central Manager’s Authorization */
 
