@@ -41,9 +41,10 @@ public class CentralManager internal constructor() {
         if (cbCentralManager.isScanning) cbCentralManager.stopScan()
     }
 
-    internal fun retrievePeripheral(withIdentifier: Uuid) : CBPeripheral {
-        val peripheral = cbCentralManager.retrievePeripheralsWithIdentifiers(listOf(withIdentifier.toNSUUID()))
-        return peripheral.firstOrNull() as CBPeripheral
+    internal fun retrievePeripheral(withIdentifier: Uuid) : CBPeripheral? {
+        val peripherals = cbCentralManager.retrievePeripheralsWithIdentifiers(listOf(withIdentifier.toNSUUID()))
+        if (peripherals.isEmpty()) return null
+        return peripherals.first() as CBPeripheral
     }
 
     internal suspend fun connectPeripheral(

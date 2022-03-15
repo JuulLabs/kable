@@ -89,8 +89,8 @@ public actual fun CoroutineScope.peripheral(
 public fun CoroutineScope.peripheralFromUUID(
     uuid: Uuid,
     builderAction: PeripheralBuilderAction
-): Peripheral {
-    val peripheral = CentralManager.Default.retrievePeripheral(uuid)
+): Peripheral? {
+    val peripheral = CentralManager.Default.retrievePeripheral(uuid) ?: return null
     val builder = PeripheralBuilder()
     builder.builderAction()
     return ApplePeripheral(
