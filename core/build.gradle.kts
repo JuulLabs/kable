@@ -25,6 +25,7 @@ kotlin {
     }
     js().browser()
     iosX64()
+    macosArm64()
     iosArm32()
     iosArm64()
     iosSimulatorArm64()
@@ -80,6 +81,14 @@ kotlin {
         }
 
         val macosX64Test by getting {
+            dependsOn(appleTest)
+        }
+
+        val macosArm64Main by getting {
+            dependsOn(appleMain)
+        }
+
+        val macosArm64Test by getting {
             dependsOn(appleTest)
         }
 
