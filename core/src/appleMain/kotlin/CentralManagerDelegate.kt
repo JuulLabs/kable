@@ -15,11 +15,15 @@ import platform.Foundation.NSNumber
 import platform.Foundation.NSUUID
 import platform.darwin.NSObject
 
+/*
+TBD Not implemented yet.  This will handle CBManagerWillRestoreState
 public data class CBManagerRestoredState(
     val peripherals: List<CBPeripheral>? = null,
     val scannUUIDs: List<CBUUID>? = null,
     //TBD Scan Options
 )
+
+*/
 
 // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate
 internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProtocol {
@@ -27,10 +31,16 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     private val _onDisconnected = MutableSharedFlow<NSUUID>()
     internal val onDisconnected = _onDisconnected.asSharedFlow()
 
+
     private val _state = MutableStateFlow<CBManagerState?>(null)
     val state: Flow<CBManagerState> = _state.filterNotNull()
 
+    /*
+    TBD Not implemented yet.  This will handle CBManagerWillRestoreState
+
     private val _willRestoreStateFlow = MutableSharedFlow<CBManagerRestoredState?>()
+    */
+
 
     sealed class Response {
 
@@ -119,6 +129,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         _state.value = central.state
     }
 
+ /*     TODO: The willRestoreState requires the CentralManager to be instantiated with identifier
+          This will need to be done before enabling this method
     override fun centralManager(central: CBCentralManager, willRestoreState: Map<Any?, *>){
         val peripherals =
                 willRestoreState[CBCentralManagerRestoredStatePeripheralsKey] as List<CBPeripheral>?
@@ -128,6 +140,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         _willRestoreStateFlow.tryEmit(CBManagerRestoredState(
             peripherals, scanUUIDs))
     }
+    */
 
     /* Monitoring the Central Manager’s Authorization */
 
