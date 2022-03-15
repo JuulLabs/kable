@@ -198,8 +198,6 @@ public class AndroidPeripheral internal constructor(
     public override val services: List<DiscoveredService>?
         get() = _discoveredServices?.toList()
 
-    override val id: String
-        get() = bluetoothDevice.address
 
     @Volatile
     private var _connection: Connection? = null
@@ -517,5 +515,5 @@ private fun checkBluetoothAdapterState(
     }
 }
 
-internal actual val Peripheral.identifier: String
+public actual val Peripheral.identifier: String
     get() = (this as AndroidPeripheral).platformIdentifier
