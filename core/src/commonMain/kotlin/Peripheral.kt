@@ -91,8 +91,6 @@ public interface Peripheral {
      */
     public val services: List<DiscoveredService>?
 
-
-
     /** @throws NotReadyException if invoked without an established [connection][connect]. */
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
     public suspend fun rssi(): Int

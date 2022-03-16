@@ -198,7 +198,6 @@ public class AndroidPeripheral internal constructor(
     public override val services: List<DiscoveredService>?
         get() = _discoveredServices?.toList()
 
-
     @Volatile
     private var _connection: Connection? = null
     private val connection: Connection
