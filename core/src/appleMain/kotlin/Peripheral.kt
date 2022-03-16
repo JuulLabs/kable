@@ -117,8 +117,6 @@ public fun CoroutineScope.peripheral(
     )
 }
 
-
-
 @OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
 public class ApplePeripheral internal constructor(
     parentCoroutineContext: CoroutineContext,

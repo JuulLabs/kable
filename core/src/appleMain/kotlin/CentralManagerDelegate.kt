@@ -9,7 +9,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filterNotNull
-import platform.CoreBluetooth.*
+import platform.CoreBluetooth.CBCentralManager
+import platform.CoreBluetooth.CBCentralManagerDelegateProtocol
+import platform.CoreBluetooth.CBManagerState
+import platform.CoreBluetooth.CBPeripheral
 import platform.Foundation.NSError
 import platform.Foundation.NSNumber
 import platform.Foundation.NSUUID
@@ -30,20 +33,15 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
 
     private val _onDisconnected = MutableSharedFlow<NSUUID>()
     internal val onDisconnected = _onDisconnected.asSharedFlow()
-
-
     private val _state = MutableStateFlow<CBManagerState?>(null)
     val state: Flow<CBManagerState> = _state.filterNotNull()
 
     /*
     TBD Not implemented yet.  This will handle CBManagerWillRestoreState
-
     private val _willRestoreStateFlow = MutableSharedFlow<CBManagerRestoredState?>()
     */
 
-
     sealed class Response {
-
         data class DidDiscoverPeripheral(
             val cbPeripheral: CBPeripheral,
             val rssi: NSNumber,
