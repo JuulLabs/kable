@@ -36,7 +36,7 @@ allprojects {
     }
 }
 
-// Workaround for https://youtrack.jetbrains.com/issue/KT-49109 that allows building on Apple Silicon.
+// Workaround for https://youtrack.jetbrains.com/issue/KT-49109 that allows building on Apple Silicon
 // This should no longer be needed with Kotlin version 1.6.20
 rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
     rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.0.0"
