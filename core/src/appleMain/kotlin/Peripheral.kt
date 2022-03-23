@@ -86,20 +86,13 @@ public actual fun CoroutineScope.peripheral(
     )
 }
 
-public fun CoroutineScope.peripheralFromUUID(
-    uuid: Uuid,
-    builderAction: PeripheralBuilderAction
-): Peripheral? {
-    val peripheral = CentralManager.Default.retrievePeripheral(uuid) ?: return null
-    val builder = PeripheralBuilder()
-    builder.builderAction()
-    return ApplePeripheral(
-        coroutineContext,
-        peripheral,
-        builder.observationExceptionHandler,
-        builder.onServicesDiscovered,
-        builder.logging
-    )
+public actual fun CoroutineScope.peripheral(
+    identifier: Identifier,
+    builderAction: PeripheralBuilderAction,
+): Peripheral {
+    val cbPeripheral = CentralManager.Default.retrievePeripheral(identifier)
+        ?: throw NoSuchElementException("Peripheral with UUID $identifier not found")
+    return peripheral(cbPeripheral, builderAction)
 }
 
 public fun CoroutineScope.peripheral(
