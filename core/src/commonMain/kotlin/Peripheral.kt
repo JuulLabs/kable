@@ -241,6 +241,8 @@ internal suspend inline fun <reified T : State> Peripheral.suspendUntilOrThrow()
         .first { it is T }
 }
 
+public expect class Identifier
+
 /**
  * The identifier of the remote device
  *
@@ -250,4 +252,4 @@ internal suspend inline fun <reified T : State> Peripheral.suspendUntilOrThrow()
  * the identifier is not a MAC address on iOS and may be a randomized MAC on Android.  The identifier
  * may also change.
  */
-public expect val Peripheral.identifier: String
+public expect val Peripheral.identifier: Identifier
