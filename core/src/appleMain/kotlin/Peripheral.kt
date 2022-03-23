@@ -427,6 +427,4 @@ public actual typealias Identifier = Uuid
 public actual val Peripheral.identifier: Identifier
     get() = (this as ApplePeripheral).platformIdentifier.toUuid()
 
-public actual fun String.toIdentifier(): Identifier {
-    return uuidFrom(this)
-}
+public actual fun String.toIdentifier(): Identifier = uuidFrom(this)
