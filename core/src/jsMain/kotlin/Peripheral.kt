@@ -2,7 +2,6 @@
 
 package com.juul.kable
 
-import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.BluetoothAdvertisingEvent
