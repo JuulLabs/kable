@@ -504,7 +504,7 @@ private fun checkBluetoothAdapterState(
     }
 }
 
-public typealias Identifier = String
+public actual typealias Identifier = String
 
 public actual val Peripheral.identifier: Identifier
     get() = (this as AndroidPeripheral).platformIdentifier
