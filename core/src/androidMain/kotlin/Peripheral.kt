@@ -123,8 +123,8 @@ public fun CoroutineScope.peripheral(
     )
 }
 
-public fun CoroutineScope.peripheral(
-    macAddress: String,
+public actual fun CoroutineScope.peripheral(
+    identifier: Identifier,
     builderAction: PeripheralBuilderAction = {},
 ): Peripheral? {
     val builder = PeripheralBuilder()
