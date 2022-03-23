@@ -126,7 +126,7 @@ public fun CoroutineScope.peripheral(
 public fun CoroutineScope.peripheral(
     identifier: Identifier,
     builderAction: PeripheralBuilderAction = {},
-): Peripheral? {
+): Peripheral {
     val bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(identifier)
     return peripheral(bluetoothDevice, builderAction)
 }
