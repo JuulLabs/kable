@@ -1,7 +1,6 @@
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
-import com.benasher44.uuid.uuidFrom
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
@@ -421,10 +420,3 @@ private fun NSError.toStatus(): State.Disconnected.Status = when (code) {
     CBErrorEncryptionTimedOut -> EncryptionTimedOut
     else -> Unknown(code.toInt())
 }
-
-public actual typealias Identifier = Uuid
-
-public actual val Peripheral.identifier: Identifier
-    get() = (this as ApplePeripheral).platformIdentifier.toUuid()
-
-public actual fun String.toIdentifier(): Identifier = uuidFrom(this)
