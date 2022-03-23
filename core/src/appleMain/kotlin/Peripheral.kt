@@ -431,5 +431,7 @@ private fun NSError.toStatus(): State.Disconnected.Status = when (code) {
     else -> Unknown(code.toInt())
 }
 
-public actual val Peripheral.identifier: String
+public typealias Identifier = Uuid
+
+public actual val Peripheral.identifier: Identifier
     get() = (this as ApplePeripheral).platformIdentifier
