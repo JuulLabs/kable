@@ -508,3 +508,10 @@ public actual typealias Identifier = String
 
 public actual val Peripheral.identifier: Identifier
     get() = (this as AndroidPeripheral).platformIdentifier
+
+public actual fun String.toIdentifier(): Identifier {
+    require(BluetoothAdapter.checkBluetoothAddress(this)) {
+        "MAC Address has invalid format: $this"
+    }
+    return this
+}

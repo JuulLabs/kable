@@ -253,3 +253,5 @@ public expect class Identifier
  * may also change.
  */
 public expect val Peripheral.identifier: Identifier
+
+public expect fun String.toIdentifier(): Identifier

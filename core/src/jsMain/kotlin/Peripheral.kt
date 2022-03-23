@@ -2,6 +2,7 @@
 
 package com.juul.kable
 
+import com.benasher44.uuid.uuidFrom
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.BluetoothAdvertisingEvent
@@ -410,7 +411,11 @@ public class JsPeripheral internal constructor(
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
 }
 
-public typealias Identifier = String
+public actual typealias Identifier = String
 
 public actual val Peripheral.identifier: Identifier
     get() = (this as JsPeripheral).platformIdentifier
+
+public actual fun String.toIdentifier(): Identifier {
+    return this
+}

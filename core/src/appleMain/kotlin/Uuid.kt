@@ -11,3 +11,4 @@ internal fun CBUUID.toUuid(): Uuid = when (UUIDString.length) {
     4 -> uuidFrom("0000$UUIDString-0000-1000-8000-00805F9B34FB")
     else -> uuidFrom(UUIDString)
 }
+internal fun NSUUID.toUuid(): Uuid = uuidFrom(UUIDString)

@@ -243,6 +243,7 @@ public final class com/juul/kable/PeripheralKt {
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
+	public static final fun toIdentifier (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class com/juul/kable/Phy : java/lang/Enum {
