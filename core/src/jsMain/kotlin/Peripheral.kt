@@ -410,5 +410,7 @@ public class JsPeripheral internal constructor(
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
 }
 
-public actual val Peripheral.identifier: String
+public typealias Identifier = String
+
+public actual val Peripheral.identifier: Identifier
     get() = (this as JsPeripheral).platformIdentifier
