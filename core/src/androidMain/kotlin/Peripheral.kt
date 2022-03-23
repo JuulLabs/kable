@@ -130,7 +130,6 @@ public fun CoroutineScope.peripheral(
     val builder = PeripheralBuilder()
     builder.builderAction()
     val bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(macAddress)
-    if (bluetoothDevice.type == BluetoothDevice.DEVICE_TYPE_UNKNOWN) return null // DEVICE_TYPE_UNKNOWN indicates that the device may have been cleared from the cache
     return AndroidPeripheral(
         coroutineContext,
         bluetoothDevice,
