@@ -104,7 +104,7 @@ public fun CoroutineScope.peripheralFromUUID(
 
 public fun CoroutineScope.peripheral(
     cbPeripheral: CBPeripheral,
-    builderAction: PeripheralBuilderAction
+    builderAction: PeripheralBuilderAction,
 ): Peripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
