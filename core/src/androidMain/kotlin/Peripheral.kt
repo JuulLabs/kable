@@ -123,22 +123,12 @@ public fun CoroutineScope.peripheral(
     )
 }
 
-public actual fun CoroutineScope.peripheral(
+public fun CoroutineScope.peripheral(
     identifier: Identifier,
     builderAction: PeripheralBuilderAction = {},
 ): Peripheral? {
-    val builder = PeripheralBuilder()
-    builder.builderAction()
-    val bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(macAddress)
-    return AndroidPeripheral(
-        coroutineContext,
-        bluetoothDevice,
-        builder.transport,
-        builder.phy,
-        builder.observationExceptionHandler,
-        builder.onServicesDiscovered,
-        builder.logging,
-    )
+    val bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(identifier)
+    return peripheral(bluetoothDevice, builderAction)
 }
 
 public enum class Priority { Low, Balanced, High }

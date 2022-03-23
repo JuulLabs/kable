@@ -74,19 +74,9 @@ import kotlin.coroutines.cancellation.CancellationException
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
-): Peripheral {
-    val builder = PeripheralBuilder()
-    builder.builderAction()
-    return ApplePeripheral(
-        coroutineContext,
-        advertisement.cbPeripheral,
-        builder.observationExceptionHandler,
-        builder.onServicesDiscovered,
-        builder.logging,
-    )
-}
+): Peripheral = peripheral(advertisement.cbPeripheral, builderAction)
 
-public actual fun CoroutineScope.peripheral(
+public fun CoroutineScope.peripheral(
     identifier: Identifier,
     builderAction: PeripheralBuilderAction,
 ): Peripheral {
