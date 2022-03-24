@@ -74,15 +74,29 @@ import kotlin.coroutines.cancellation.CancellationException
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
+): Peripheral = peripheral(advertisement.cbPeripheral, builderAction)
+
+public fun CoroutineScope.peripheral(
+    identifier: Identifier,
+    builderAction: PeripheralBuilderAction = {},
+): Peripheral {
+    val cbPeripheral = CentralManager.Default.retrievePeripheral(identifier)
+        ?: throw NoSuchElementException("Peripheral with UUID $identifier not found")
+    return peripheral(cbPeripheral, builderAction)
+}
+
+public fun CoroutineScope.peripheral(
+    cbPeripheral: CBPeripheral,
+    builderAction: PeripheralBuilderAction,
 ): Peripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
     return ApplePeripheral(
         coroutineContext,
-        advertisement.cbPeripheral,
+        cbPeripheral,
         builder.observationExceptionHandler,
         builder.onServicesDiscovered,
-        builder.logging,
+        builder.logging
     )
 }
 
@@ -108,7 +122,7 @@ public class ApplePeripheral internal constructor(
 
     private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
 
-    internal val platformIdentifier = cbPeripheral.identifier.UUIDString
+    internal val platformIdentifier = cbPeripheral.identifier
 
     init {
         centralManager.delegate
@@ -406,6 +420,3 @@ private fun NSError.toStatus(): State.Disconnected.Status = when (code) {
     CBErrorEncryptionTimedOut -> EncryptionTimedOut
     else -> Unknown(code.toInt())
 }
-
-internal actual val Peripheral.identifier: String
-    get() = (this as ApplePeripheral).platformIdentifier
