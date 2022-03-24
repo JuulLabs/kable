@@ -23,10 +23,12 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
 
     private val _onDisconnected = MutableSharedFlow<NSUUID>()
     internal val onDisconnected = _onDisconnected.asSharedFlow()
+
     private val _state = MutableStateFlow<CBManagerState?>(null)
     val state: Flow<CBManagerState> = _state.filterNotNull()
 
     sealed class Response {
+
         data class DidDiscoverPeripheral(
             val cbPeripheral: CBPeripheral,
             val rssi: NSNumber,
@@ -111,6 +113,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     ) {
         _state.value = central.state
     }
+
+    // todo: func centralManager(CBCentralManager, willRestoreState: [String : Any])
 
     /* Monitoring the Central Manager’s Authorization */
 
