@@ -99,6 +99,7 @@ internal class Observers<T>(
                 throw cancellation
             } catch (e: Exception) {
                 characteristicChanges.emit(Error(characteristic, e))
+                throw ConnectionLostException("Failed to rewire observers during connection attempt", e)
             }
         }
     }
