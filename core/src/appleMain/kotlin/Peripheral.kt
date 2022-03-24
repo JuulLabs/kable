@@ -78,7 +78,7 @@ public actual fun CoroutineScope.peripheral(
 
 public fun CoroutineScope.peripheral(
     identifier: Identifier,
-    builderAction: PeripheralBuilderAction,
+    builderAction: PeripheralBuilderAction = {},
 ): Peripheral {
     val cbPeripheral = CentralManager.Default.retrievePeripheral(identifier)
         ?: throw NoSuchElementException("Peripheral with UUID $identifier not found")
