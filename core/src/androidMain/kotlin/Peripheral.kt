@@ -123,6 +123,14 @@ public fun CoroutineScope.peripheral(
     )
 }
 
+public fun CoroutineScope.peripheral(
+    identifier: Identifier,
+    builderAction: PeripheralBuilderAction = {},
+): Peripheral {
+    val bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(identifier)
+    return peripheral(bluetoothDevice, builderAction)
+}
+
 public enum class Priority { Low, Balanced, High }
 
 public class AndroidPeripheral internal constructor(
@@ -496,5 +504,14 @@ private fun checkBluetoothAdapterState(
     }
 }
 
-internal actual val Peripheral.identifier: String
+public actual typealias Identifier = String
+
+public actual val Peripheral.identifier: Identifier
     get() = (this as AndroidPeripheral).platformIdentifier
+
+public actual fun String.toIdentifier(): Identifier {
+    require(BluetoothAdapter.checkBluetoothAddress(this)) {
+        "MAC Address has invalid format: $this"
+    }
+    return this
+}

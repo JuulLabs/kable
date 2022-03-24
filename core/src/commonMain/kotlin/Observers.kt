@@ -60,7 +60,7 @@ internal class Observers<T>(
         val subscribers = IsoMutableList<OnSubscriptionAction>()
 
         val observation = observations.getOrPut(characteristic) {
-            Observation(state, handler, characteristic, logging, identifier, subscribers)
+            Observation(state, handler, characteristic, logging, identifier.toString(), subscribers)
         }
 
         return characteristicChanges
