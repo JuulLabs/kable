@@ -230,16 +230,20 @@ public final class com/juul/kable/PeripheralBuilder {
 }
 
 public final class com/juul/kable/PeripheralKt {
+	public static final fun getIdentifier (Lcom/juul/kable/Peripheral;)Ljava/lang/String;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;)Lcom/juul/kable/Peripheral;
 	public static final synthetic fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/WriteNotificationDescriptor;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;)Lcom/juul/kable/Peripheral;
 	public static final synthetic fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/WriteNotificationDescriptor;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
+	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
+	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
+	public static final fun toIdentifier (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class com/juul/kable/Phy : java/lang/Enum {

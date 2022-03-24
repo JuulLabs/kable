@@ -41,6 +41,11 @@ public class CentralManager internal constructor() {
         if (cbCentralManager.isScanning) cbCentralManager.stopScan()
     }
 
+    internal fun retrievePeripheral(withIdentifier: Uuid): CBPeripheral? =
+        cbCentralManager
+            .retrievePeripheralsWithIdentifiers(listOf(withIdentifier.toNSUUID()))
+            .firstOrNull() as? CBPeripheral
+
     internal suspend fun connectPeripheral(
         cbPeripheral: CBPeripheral,
         delegate: PeripheralDelegate,
