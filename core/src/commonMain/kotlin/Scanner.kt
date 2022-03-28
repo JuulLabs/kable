@@ -11,6 +11,7 @@ public interface Scanner {
 @Deprecated(
     message = "Replaced with ScannerBuilder DSL",
     replaceWith = ReplaceWith("Scanner { filters = services?.map { Filter.Service(it) } }"),
+    level = DeprecationLevel.ERROR,
 )
 public fun Scanner(services: List<Uuid>?): Scanner =
     Scanner { filters = services?.map { Filter.Service(it) } }
@@ -18,6 +19,7 @@ public fun Scanner(services: List<Uuid>?): Scanner =
 @Deprecated(
     message = "Replaced with ScannerBuilder DSL",
     replaceWith = ReplaceWith("Scanner { this.filters = filters }"),
+    level = DeprecationLevel.ERROR,
 )
 @JvmName("scannerWithFilters")
 public fun Scanner(filters: List<Filter>?): Scanner =
