@@ -9,7 +9,7 @@ public open class BluetoothException internal constructor(
 @Deprecated(
     message = "Class has been renamed.",
     ReplaceWith("BluetoothException", "com.juul.kable.BluetoothException"),
-    level = DeprecationLevel.ERROR,
+    level = DeprecationLevel.HIDDEN,
 )
 public typealias BluetoothLeException = BluetoothException
 

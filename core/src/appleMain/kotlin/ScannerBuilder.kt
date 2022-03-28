@@ -5,7 +5,10 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 
 public actual class ScannerBuilder {
-    @Deprecated(message = "Replaced by filters property")
+    @Deprecated(
+        message = "Replaced by filters property",
+        level = DeprecationLevel.ERROR,
+    )
     public var services: List<Uuid>?
         set(value) {
             filters = value?.map { Filter.Service(it) }
