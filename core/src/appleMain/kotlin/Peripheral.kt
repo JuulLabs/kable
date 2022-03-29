@@ -53,6 +53,7 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import platform.CoreBluetooth.CBCentralManagerStatePoweredOff
 import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
@@ -125,6 +126,15 @@ public class ApplePeripheral internal constructor(
     internal val platformIdentifier = cbPeripheral.identifier
 
     init {
+        centralManager.delegate
+            .state
+            .filter { state -> state == CBCentralManagerStatePoweredOff }
+            .onEach {
+                disconnect()
+                _state.value = State.Disconnected()
+            }
+            .launchIn(scope)
+
         centralManager.delegate
             .connectionState
             .filter { event -> event.identifier == cbPeripheral.identifier }
