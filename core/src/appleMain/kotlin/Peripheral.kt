@@ -25,6 +25,7 @@ import com.juul.kable.State.Disconnected.Status.Unknown
 import com.juul.kable.State.Disconnected.Status.UnknownDevice
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
+import com.juul.kable.launchIn
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.detail
@@ -38,35 +39,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onSubscription
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import platform.CoreBluetooth.CBCentralManagerStatePoweredOff
-import platform.CoreBluetooth.CBCharacteristicWriteType
-import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
-import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
-import platform.CoreBluetooth.CBErrorConnectionFailed
-import platform.CoreBluetooth.CBErrorConnectionLimitReached
-import platform.CoreBluetooth.CBErrorConnectionTimeout
-import platform.CoreBluetooth.CBErrorEncryptionTimedOut
-import platform.CoreBluetooth.CBErrorOperationCancelled
-import platform.CoreBluetooth.CBErrorPeripheralDisconnected
-import platform.CoreBluetooth.CBErrorUnknownDevice
-import platform.CoreBluetooth.CBPeripheral
-import platform.CoreBluetooth.CBService
-import platform.CoreBluetooth.CBUUID
+import platform.CoreBluetooth.*
 import platform.Foundation.NSData
 import platform.Foundation.NSError
 import kotlin.coroutines.CoroutineContext
@@ -179,6 +157,7 @@ public class ApplePeripheral internal constructor(
             if (identifier == cbPeripheral.identifier) onDisconnected()
         }.launchIn(connectionScope)
 
+
         try {
             // todo: Create in `connectPeripheral`.
             val delegate = PeripheralDelegate(logging, cbPeripheral.identifier.UUIDString)
@@ -224,6 +203,9 @@ public class ApplePeripheral internal constructor(
     }
 
     public override suspend fun connect() {
+        //need to check that coreblueooth is turned on and available
+        centralManager.delegate.state
+            .first { state -> state == CBCentralManagerStatePoweredOn }
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
