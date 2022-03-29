@@ -176,12 +176,16 @@ public interface Peripheral {
      * **indication** (if [characteristic] supports both notifications and indications, then only **notification** is
      * used).
      *
-     * Failures related to observations are propagated via the returned [observe] [Flow], for example, if the specified
-     * [characteristic] is invalid or cannot be found then returned [Flow] terminates with a [NoSuchElementException].
-     * An [ObservationExceptionHandler] may be registered with the [Peripheral] to control which failures are propagated
-     * through (and terminate) the observation [Flow]. When registered, only exceptions thrown from the
-     * [ObservationExceptionHandler] are propagated (and terminate) the returned observation [Flow]. See
-     * [PeripheralBuilder.observationExceptionHandler] for more details.
+     * While the peripheral is fully connected, failures related to observations are propagated via the returned
+     * [observe] [Flow], for example, if the specified [characteristic] is invalid or cannot be found then returned
+     * [Flow] terminates with a [NoSuchElementException]. An [ObservationExceptionHandler] may be registered with the
+     * [Peripheral] to control which failures are propagated through (and terminate) the observation [Flow]. When
+     * registered, only exceptions thrown from the [ObservationExceptionHandler] are propagated (and terminate) the
+     * returned observation [Flow]. See [PeripheralBuilder.observationExceptionHandler] for more details.
+     *
+     * However, failures related to observations that occur during [connection][connect] are treated differently.
+     * Instead of propagating through the [Flow] or the [ObservationExceptionHandler], the exception is thrown from
+     * [connect] and the connection attempt fails, leaving this peripheral in the disconnected state.
      *
      * The optional [onSubscription] parameter is functionally identical to using the
      * [onSubscription][kotlinx.coroutines.flow.onSubscription] operator on the returned [Flow] except it has the

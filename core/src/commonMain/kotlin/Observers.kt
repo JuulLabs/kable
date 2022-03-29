@@ -98,7 +98,7 @@ internal class Observers<T>(
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (e: Exception) {
-                characteristicChanges.emit(Error(characteristic, e))
+                throw IOException("Failed to observe characteristic during connection attempt", e)
             }
         }
     }
