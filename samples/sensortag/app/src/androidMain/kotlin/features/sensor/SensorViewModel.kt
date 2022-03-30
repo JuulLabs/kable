@@ -3,7 +3,6 @@
 package com.juul.sensortag.features.sensor
 
 import android.app.Application
-import android.bluetooth.BluetoothAdapter
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.juul.kable.ConnectionLostException
@@ -83,7 +82,7 @@ class SensorViewModel(
     macAddress: String
 ) : AndroidViewModel(application) {
 
-    private val peripheral = viewModelScope.peripheral(bluetoothDeviceFrom(macAddress))
+    private val peripheral = viewModelScope.peripheral(macAddress)
     private val sensorTag = SensorTag(peripheral)
     private val connectionAttempt = AtomicInteger()
 
@@ -168,9 +167,6 @@ class SensorViewModel(
         }
     }
 }
-
-private fun bluetoothDeviceFrom(macAddress: String) =
-    BluetoothAdapter.getDefaultAdapter().getRemoteDevice(macAddress)
 
 private fun Peripheral.remoteRssi() = flow {
     while (true) {
