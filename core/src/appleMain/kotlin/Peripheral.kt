@@ -180,7 +180,6 @@ public class ApplePeripheral internal constructor(
             if (identifier == cbPeripheral.identifier) onDisconnected()
         }.launchIn(connectionScope)
 
-
         try {
             // todo: Create in `connectPeripheral`.
             val delegate = PeripheralDelegate(logging, cbPeripheral.identifier.UUIDString)
@@ -226,7 +225,7 @@ public class ApplePeripheral internal constructor(
     }
 
     public override suspend fun connect() {
-        //Check CBCentral State since connecting can result in an api misuse message
+        // Check CBCentral State since connecting can result in an api misuse message
         if (centralManager.delegate.state.value == CBCentralManagerStatePoweredOn) {
             connectJob.updateAndGet { it ?: connectAsync() }!!.await()
         } else {
