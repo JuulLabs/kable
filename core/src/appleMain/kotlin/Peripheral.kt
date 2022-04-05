@@ -226,11 +226,8 @@ public class ApplePeripheral internal constructor(
 
     public override suspend fun connect() {
         // Check CBCentral State since connecting can result in an api misuse message
-        if (centralManager.delegate.state.value == CBCentralManagerStatePoweredOn) {
-            connectJob.updateAndGet { it ?: connectAsync() }!!.await()
-        } else {
-            throw NotReadyException("Attempted to connect to device before Bluetooth is powered on")
-        }
+        checkBluetoothState(CBCentralManagerStatePoweredOn)
+        connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
     public override suspend fun disconnect() {
