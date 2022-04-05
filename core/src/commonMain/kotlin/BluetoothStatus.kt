@@ -3,7 +3,7 @@ package com.juul.kable
 import kotlinx.coroutines.flow.Flow
 
 
-enum class BluetoothState {
+public enum class BluetoothState {
     poweredOn,
     poweredOff,
     resetting,

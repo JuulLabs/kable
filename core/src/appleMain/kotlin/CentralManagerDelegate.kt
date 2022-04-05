@@ -61,7 +61,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         ) : ConnectionEvent()
     }
 
-    private val _connectionState = MutableStateFlow<ConnectionEvent?>(null)
+    private val _connectionState = MutableSharedFlow<ConnectionEvent?>()
     val connectionState: Flow<ConnectionEvent> = _connectionState.filterNotNull()
 
     /* Monitoring Connections with Peripherals */
@@ -70,7 +70,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         central: CBCentralManager,
         didConnectPeripheral: CBPeripheral,
     ) {
-        _connectionState.value = DidConnect(didConnectPeripheral.identifier)
+        _connectionState.emitBlocking(DidConnect(didConnectPeripheral.identifier))
     }
 
     @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
@@ -80,7 +80,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         error: NSError?,
     ) {
         _onDisconnected.emitBlocking(didDisconnectPeripheral.identifier) // Used to notify `Peripheral` of disconnect.
-        _connectionState.value = DidDisconnect(didDisconnectPeripheral.identifier, error)
+        _connectionState.emitBlocking(DidDisconnect(didDisconnectPeripheral.identifier, error))
     }
 
     @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
@@ -89,7 +89,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didFailToConnectPeripheral: CBPeripheral,
         error: NSError?,
     ) {
-        _connectionState.value = DidFailToConnect(didFailToConnectPeripheral.identifier, error)
+        _connectionState.emitBlocking(DidFailToConnect(didFailToConnectPeripheral.identifier, error))
     }
 
     // todo: func centralManager(CBCentralManager, connectionEventDidOccur: CBConnectionEvent, for: CBPeripheral)
