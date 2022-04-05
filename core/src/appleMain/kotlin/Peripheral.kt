@@ -53,8 +53,13 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import platform.CoreBluetooth.CBCentralManagerState
 import platform.CoreBluetooth.CBCentralManagerStatePoweredOff
 import platform.CoreBluetooth.CBCentralManagerStatePoweredOn
+import platform.CoreBluetooth.CBCentralManagerStateResetting
+import platform.CoreBluetooth.CBCentralManagerStateUnauthorized
+import platform.CoreBluetooth.CBCentralManagerStateUnknown
+import platform.CoreBluetooth.CBCentralManagerStateUnsupported
 import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
@@ -163,6 +168,24 @@ public class ApplePeripheral internal constructor(
         inline get() = _connection.value ?: throw NotReadyException(toString())
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
+
+    private fun checkBluetoothState(expected: CBCentralManagerState) {
+        fun nameFor(value: Int) = when (value) {
+            CBCentralManagerStatePoweredOff -> "PoweredOff"
+            CBCentralManagerStatePoweredOn -> "PoweredOn"
+            CBCentralManagerStateResetting -> "Resetting"
+            CBCentralManagerStateUnauthorized -> "Unauthorized"
+            CBCentralManagerStateUnknown -> "Unknown"
+            CBCentralManagerStateUnsupported -> "Unsupported"
+            else -> "Unknown"
+        }
+        val actual = centralManager.delegate.state.value
+        if (expected != actual) {
+            val actualName = nameFor(actual)
+            val expectedName = nameFor(expected)
+            throw BluetoothDisabledException("Bluetooth state is $actualName ($actual), but $expectedName ($expected) was required.")
+        }
+    }
 
     private fun onDisconnected() {
         logger.info { message = "Disconnected" }
