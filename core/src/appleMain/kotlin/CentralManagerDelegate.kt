@@ -27,7 +27,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     private val _onDisconnected = MutableSharedFlow<NSUUID>()
     internal val onDisconnected = _onDisconnected.asSharedFlow()
 
-    private val _state = MutableStateFlow<CBManagerState>(CBCentralManagerStateUnknown)
+    private val _state = MutableStateFlow(CBCentralManagerStateUnknown)
     val state: StateFlow<CBManagerState> = _state.asStateFlow()
 
     sealed class Response {
