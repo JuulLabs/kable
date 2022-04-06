@@ -145,7 +145,7 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic,
         status: Int,
     ) {
-        val value = characteristic.value
+        val value = characteristic.value.copyOf()
         val event = OnCharacteristicRead(characteristic, value, GattStatus(status))
         logger.debug {
             message = "onCharacteristicRead"
@@ -174,7 +174,7 @@ internal class Callback(
         gatt: BluetoothGatt,
         characteristic: BluetoothGattCharacteristic
     ) {
-        val value = characteristic.value
+        val value = characteristic.value.copyOf()
         val event = OnCharacteristicChanged(characteristic, value)
         logger.debug {
             message = "onCharacteristicChanged"
@@ -189,7 +189,7 @@ internal class Callback(
         descriptor: BluetoothGattDescriptor,
         status: Int,
     ) {
-        val value = descriptor.value
+        val value = descriptor.value.copyOf()
         val event = OnDescriptorRead(descriptor, value, GattStatus(status))
         logger.debug {
             message = "onDescriptorRead"
