@@ -170,7 +170,7 @@ public class ApplePeripheral internal constructor(
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
     private fun checkBluetoothState(expected: CBCentralManagerState) {
-        fun nameFor(value: Int) = when (value) {
+        fun nameFor(value: Number) = when (value) {
             CBCentralManagerStatePoweredOff -> "PoweredOff"
             CBCentralManagerStatePoweredOn -> "PoweredOn"
             CBCentralManagerStateResetting -> "Resetting"
