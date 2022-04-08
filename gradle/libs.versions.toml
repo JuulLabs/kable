@@ -23,6 +23,6 @@ android-library = { id = "com.android.library", version = "7.1.2" }
 atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "1.6.10" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinter = { id = "org.jmailen.kotlinter", version = "3.9.0" }
+kotlinter = { id = "org.jmailen.kotlinter", version = "3.10.0" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.19.0" }
 validator = { id = "binary-compatibility-validator", version = "0.5.0" }
