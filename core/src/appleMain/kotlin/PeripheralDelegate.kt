@@ -6,7 +6,6 @@ import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
 import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
-import com.juul.kable.PeripheralDelegate.Response.IsReadyToSendWriteWithoutResponse
 import com.juul.kable.logs.LogMessage
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
@@ -15,6 +14,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
@@ -30,8 +30,9 @@ import platform.darwin.NSObject
 
 // https://developer.apple.com/documentation/corebluetooth/cbperipheraldelegate
 internal class PeripheralDelegate(
+    private val canSendWriteWithoutResponse: MutableStateFlow<Boolean>,
     logging: Logging,
-    identifier: String
+    identifier: String,
 ) : NSObject(), CBPeripheralDelegateProtocol {
 
     sealed class Response {
@@ -65,11 +66,6 @@ internal class PeripheralDelegate(
         data class DidUpdateNotificationStateForCharacteristic(
             override val peripheralIdentifier: NSUUID,
             val characteristic: CBCharacteristic,
-            override val error: NSError?,
-        ) : Response()
-
-        data class IsReadyToSendWriteWithoutResponse(
-            override val peripheralIdentifier: NSUUID,
             override val error: NSError?,
         ) : Response()
 
@@ -252,9 +248,7 @@ internal class PeripheralDelegate(
         logger.debug {
             message = "${peripheral.identifier} peripheralIsReadyToSendWriteWithoutResponse"
         }
-        _response.sendBlocking(
-            IsReadyToSendWriteWithoutResponse(peripheral.identifier, error = null)
-        )
+        canSendWriteWithoutResponse.value = true
     }
 
     /* Managing Notifications for a Characteristic’s Value */

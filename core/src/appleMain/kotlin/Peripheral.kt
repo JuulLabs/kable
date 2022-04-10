@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -60,7 +61,6 @@ import platform.CoreBluetooth.CBCentralManagerStateResetting
 import platform.CoreBluetooth.CBCentralManagerStateUnauthorized
 import platform.CoreBluetooth.CBCentralManagerStateUnknown
 import platform.CoreBluetooth.CBCentralManagerStateUnsupported
-import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
 import platform.CoreBluetooth.CBErrorConnectionFailed
@@ -155,6 +155,8 @@ public class ApplePeripheral internal constructor(
             .launchIn(scope)
     }
 
+    private val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
+
     private val _discoveredServices = atomic<List<DiscoveredService>?>(null)
     private val discoveredServices: List<DiscoveredService>
         get() = _discoveredServices.value
@@ -187,7 +189,7 @@ public class ApplePeripheral internal constructor(
 
         try {
             // todo: Create in `connectPeripheral`.
-            val delegate = PeripheralDelegate(logging, cbPeripheral.identifier.UUIDString)
+            val delegate = PeripheralDelegate(canSendWriteWithoutResponse, logging, cbPeripheral.identifier.UUIDString)
 
             val connection = centralManager.connectPeripheral(cbPeripheral, delegate).also {
                 _connection.value = it
@@ -297,8 +299,16 @@ public class ApplePeripheral internal constructor(
         }
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
-        connection.execute<DidWriteValueForCharacteristic> {
-            centralManager.write(cbPeripheral, data, platformCharacteristic, writeType.cbWriteType)
+        when (writeType) {
+            WithResponse -> connection.execute<DidWriteValueForCharacteristic> {
+                centralManager.write(cbPeripheral, data, platformCharacteristic, CBCharacteristicWriteWithResponse)
+            }
+            WithoutResponse -> connection.semaphore.withPermit {
+                if (!canSendWriteWithoutResponse.updateAndGet { cbPeripheral.canSendWriteWithoutResponse }) {
+                    canSendWriteWithoutResponse.first { it }
+                }
+                centralManager.write(cbPeripheral, data, platformCharacteristic, CBCharacteristicWriteWithoutResponse)
+            }
         }
     }
 
@@ -407,12 +417,6 @@ public class ApplePeripheral internal constructor(
 
     override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"
 }
-
-private val WriteType.cbWriteType: CBCharacteristicWriteType
-    get() = when (this) {
-        WithResponse -> CBCharacteristicWriteWithResponse
-        WithoutResponse -> CBCharacteristicWriteWithoutResponse
-    }
 
 private suspend fun Flow<DidUpdateValueForCharacteristic>.firstOrThrow(
     predicate: suspend (Data) -> Boolean,
