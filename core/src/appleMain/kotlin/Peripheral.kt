@@ -54,13 +54,6 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import platform.CoreBluetooth.CBCentralManagerState
-import platform.CoreBluetooth.CBCentralManagerStatePoweredOff
-import platform.CoreBluetooth.CBCentralManagerStatePoweredOn
-import platform.CoreBluetooth.CBCentralManagerStateResetting
-import platform.CoreBluetooth.CBCentralManagerStateUnauthorized
-import platform.CoreBluetooth.CBCentralManagerStateUnknown
-import platform.CoreBluetooth.CBCentralManagerStateUnsupported
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
 import platform.CoreBluetooth.CBErrorConnectionFailed
@@ -70,6 +63,13 @@ import platform.CoreBluetooth.CBErrorEncryptionTimedOut
 import platform.CoreBluetooth.CBErrorOperationCancelled
 import platform.CoreBluetooth.CBErrorPeripheralDisconnected
 import platform.CoreBluetooth.CBErrorUnknownDevice
+import platform.CoreBluetooth.CBManagerState
+import platform.CoreBluetooth.CBManagerStatePoweredOff
+import platform.CoreBluetooth.CBManagerStatePoweredOn
+import platform.CoreBluetooth.CBManagerStateResetting
+import platform.CoreBluetooth.CBManagerStateUnauthorized
+import platform.CoreBluetooth.CBManagerStateUnknown
+import platform.CoreBluetooth.CBManagerStateUnsupported
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
@@ -134,7 +134,7 @@ public class ApplePeripheral internal constructor(
     init {
         centralManager.delegate
             .state
-            .filter { state -> state == CBCentralManagerStatePoweredOff }
+            .filter { state -> state == CBManagerStatePoweredOff }
             .onEach {
                 disconnect()
                 _state.value = State.Disconnected()
@@ -233,7 +233,7 @@ public class ApplePeripheral internal constructor(
 
     public override suspend fun connect() {
         // Check CBCentral State since connecting can result in an api misuse message
-        centralManager.checkBluetoothState(CBCentralManagerStatePoweredOn)
+        centralManager.checkBluetoothState(CBManagerStatePoweredOn)
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
@@ -443,16 +443,16 @@ private fun NSError.toStatus(): State.Disconnected.Status = when (code) {
     else -> Unknown(code.toInt())
 }
 
-private fun CentralManager.checkBluetoothState(expected: CBCentralManagerState) {
+private fun CentralManager.checkBluetoothState(expected: CBManagerState) {
     val actual = delegate.state.value
     if (expected != actual) {
         fun nameFor(value: Number) = when (value) {
-            CBCentralManagerStatePoweredOff -> "PoweredOff"
-            CBCentralManagerStatePoweredOn -> "PoweredOn"
-            CBCentralManagerStateResetting -> "Resetting"
-            CBCentralManagerStateUnauthorized -> "Unauthorized"
-            CBCentralManagerStateUnknown -> "Unknown"
-            CBCentralManagerStateUnsupported -> "Unsupported"
+            CBManagerStatePoweredOff -> "PoweredOff"
+            CBManagerStatePoweredOn -> "PoweredOn"
+            CBManagerStateResetting -> "Resetting"
+            CBManagerStateUnauthorized -> "Unauthorized"
+            CBManagerStateUnknown -> "Unknown"
+            CBManagerStateUnsupported -> "Unsupported"
             else -> "Unknown"
         }
         val actualName = nameFor(actual)
