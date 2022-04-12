@@ -47,6 +47,10 @@ import kotlin.coroutines.CoroutineContext
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
+// Number of service discovery attempts to make if no services are discovered.
+// https://github.com/JuulLabs/kable/issues/295
+private const val DISCOVER_SERVICES_RETRIES = 5
+
 /**
  * @param transport preferred transport for GATT connections to remote dual-mode devices.
  * @param phy preferred PHY for connections to remote LE device.
@@ -254,12 +258,24 @@ public class AndroidPeripheral internal constructor(
 
     private suspend fun discoverServices() {
         logger.verbose { message = "discoverServices" }
-        connection.execute<OnServicesDiscovered> {
-            discoverServices()
+
+        repeat(DISCOVER_SERVICES_RETRIES) { attempt ->
+            connection.execute<OnServicesDiscovered> {
+                discoverServices()
+            }
+            val services = withContext(connection.dispatcher) {
+                connection.bluetoothGatt.services.map(::DiscoveredService)
+            }
+
+            if (services.isEmpty()) {
+                logger.warn { message = "Empty services (attempt ${attempt + 1} of $DISCOVER_SERVICES_RETRIES)" }
+            } else {
+                logger.verbose { message = "Discovered ${services.count()} services" }
+                _discoveredServices = services
+                return
+            }
         }
-        _discoveredServices = withContext(connection.dispatcher) {
-            connection.bluetoothGatt.services.map(::DiscoveredService)
-        }
+        _discoveredServices = emptyList()
     }
 
     /**

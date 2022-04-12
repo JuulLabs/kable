@@ -53,7 +53,6 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import platform.CoreBluetooth.CBCentralManagerStatePoweredOff
 import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
@@ -64,6 +63,13 @@ import platform.CoreBluetooth.CBErrorEncryptionTimedOut
 import platform.CoreBluetooth.CBErrorOperationCancelled
 import platform.CoreBluetooth.CBErrorPeripheralDisconnected
 import platform.CoreBluetooth.CBErrorUnknownDevice
+import platform.CoreBluetooth.CBManagerState
+import platform.CoreBluetooth.CBManagerStatePoweredOff
+import platform.CoreBluetooth.CBManagerStatePoweredOn
+import platform.CoreBluetooth.CBManagerStateResetting
+import platform.CoreBluetooth.CBManagerStateUnauthorized
+import platform.CoreBluetooth.CBManagerStateUnknown
+import platform.CoreBluetooth.CBManagerStateUnsupported
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
@@ -128,7 +134,7 @@ public class ApplePeripheral internal constructor(
     init {
         centralManager.delegate
             .state
-            .filter { state -> state == CBCentralManagerStatePoweredOff }
+            .filter { state -> state == CBManagerStatePoweredOff }
             .onEach {
                 disconnect()
                 _state.value = State.Disconnected()
@@ -224,6 +230,8 @@ public class ApplePeripheral internal constructor(
     }
 
     public override suspend fun connect() {
+        // Check CBCentral State since connecting can result in an api misuse message
+        centralManager.checkBluetoothState(CBManagerStatePoweredOn)
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
@@ -429,4 +437,22 @@ private fun NSError.toStatus(): State.Disconnected.Status = when (code) {
     CBErrorConnectionLimitReached -> ConnectionLimitReached
     CBErrorEncryptionTimedOut -> EncryptionTimedOut
     else -> Unknown(code.toInt())
+}
+
+private fun CentralManager.checkBluetoothState(expected: CBManagerState) {
+    val actual = delegate.state.value
+    if (expected != actual) {
+        fun nameFor(value: Number) = when (value) {
+            CBManagerStatePoweredOff -> "PoweredOff"
+            CBManagerStatePoweredOn -> "PoweredOn"
+            CBManagerStateResetting -> "Resetting"
+            CBManagerStateUnauthorized -> "Unauthorized"
+            CBManagerStateUnknown -> "Unknown"
+            CBManagerStateUnsupported -> "Unsupported"
+            else -> "Unknown"
+        }
+        val actualName = nameFor(actual)
+        val expectedName = nameFor(expected)
+        throw BluetoothDisabledException("Bluetooth state is $actualName ($actual), but $expectedName ($expected) was required.")
+    }
 }
