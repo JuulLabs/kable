@@ -58,7 +58,12 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         ) : ConnectionEvent()
     }
 
-    private val _connectionState = MutableSharedFlow<ConnectionEvent?>()
+    // `SharedFlow` (instead of `StateFlow`) as downstream needs non-distinct items, as it feeds individual `Peripheral`
+    // states. If, for example, this flow emits `Disconnected` then downstream `Peripheral` connects and updates its own
+    // state to `Connected`, this flow may still hold `Disconnected` but we'll need to emit another `Disconnected` to
+    // update the `Peripheral` state with.
+    private val _connectionState = MutableSharedFlow<ConnectionEvent>()
+    val connectionState: Flow<ConnectionEvent> = _connectionState.asSharedFlow()
     val connectionState: Flow<ConnectionEvent> = _connectionState.filterNotNull()
 
     /* Monitoring Connections with Peripherals */
