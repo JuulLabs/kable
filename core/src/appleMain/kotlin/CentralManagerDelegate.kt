@@ -7,11 +7,14 @@ import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCentralManagerDelegateProtocol
 import platform.CoreBluetooth.CBManagerState
+import platform.CoreBluetooth.CBManagerStateUnknown
 import platform.CoreBluetooth.CBPeripheral
 import platform.Foundation.NSError
 import platform.Foundation.NSNumber
@@ -24,8 +27,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     private val _onDisconnected = MutableSharedFlow<NSUUID>()
     internal val onDisconnected = _onDisconnected.asSharedFlow()
 
-    private val _state = MutableStateFlow<CBManagerState?>(null)
-    val state: Flow<CBManagerState> = _state.filterNotNull()
+    private val _state = MutableStateFlow(CBManagerStateUnknown)
+    val state: StateFlow<CBManagerState> = _state.asStateFlow()
 
     sealed class Response {
 
