@@ -67,7 +67,6 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     // update the `Peripheral` state with.
     private val _connectionState = MutableSharedFlow<ConnectionEvent>()
     val connectionState: Flow<ConnectionEvent> = _connectionState.asSharedFlow()
-    val connectionState: Flow<ConnectionEvent> = _connectionState.filterNotNull()
 
     /* Monitoring Connections with Peripherals */
 
