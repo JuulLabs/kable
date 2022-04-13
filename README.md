@@ -441,7 +441,58 @@ cancellation is provided to prevent connection leaks._
 
 Kable can be configured via Gradle Kotlin DSL as follows:
 
-#### Multiplatform
+<details open>
+<summary>New memory model</summary>
+
+`gradle.properties`
+
+```kotlin
+kotlin.native.binary.memoryModel=experimental
+```
+
+`build.gradle.kts`
+
+```kotlin
+plugins {
+    id("com.android.application") // or id("com.android.library")
+    kotlin("multiplatform")
+}
+
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    android()
+    js().browser()
+    macosX64()
+    iosX64()
+    iosArm64()
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
+                implementation("com.juul.kable:core:${kableVersion}")
+            }
+        }
+
+        val androidMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}")
+            }
+        }
+    }
+}
+
+android {
+    // ...
+}
+```
+</details>
+
+<details>
+<summary>Old memory model</summary>
 
 ```kotlin
 plugins {
@@ -520,18 +571,8 @@ android {
 _Note that for compatibility with Kable, Native targets (e.g. `macosX64`) require
 [Coroutines with multithread support for Kotlin/Native] (more specifically: Coroutines library artifacts that are
 suffixed with `-native-mt`)._
+</details>
 
-#### Platform-specific
-
-```kotlin
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("com.juul.kable:core:$version")
-}
-```
 # License
 
 ```
