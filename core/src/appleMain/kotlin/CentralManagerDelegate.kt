@@ -7,11 +7,13 @@ import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.asStateFlow
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCentralManagerDelegateProtocol
 import platform.CoreBluetooth.CBManagerState
+import platform.CoreBluetooth.CBManagerStateUnknown
 import platform.CoreBluetooth.CBPeripheral
 import platform.Foundation.NSError
 import platform.Foundation.NSNumber
@@ -24,8 +26,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     private val _onDisconnected = MutableSharedFlow<NSUUID>()
     internal val onDisconnected = _onDisconnected.asSharedFlow()
 
-    private val _state = MutableStateFlow<CBManagerState?>(null)
-    val state: Flow<CBManagerState> = _state.filterNotNull()
+    private val _state = MutableStateFlow(CBManagerStateUnknown)
+    val state: StateFlow<CBManagerState> = _state.asStateFlow()
 
     sealed class Response {
 
@@ -58,8 +60,12 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         ) : ConnectionEvent()
     }
 
-    private val _connectionState = MutableStateFlow<ConnectionEvent?>(null)
-    val connectionState: Flow<ConnectionEvent> = _connectionState.filterNotNull()
+    // `SharedFlow` (instead of `StateFlow`) as downstream needs non-distinct items, as it feeds individual `Peripheral`
+    // states. If, for example, this flow emits `Disconnected` then downstream `Peripheral` connects and updates its own
+    // state to `Connected`, this flow may still hold `Disconnected` but we'll need to emit another `Disconnected` to
+    // update the `Peripheral` state with.
+    private val _connectionState = MutableSharedFlow<ConnectionEvent>()
+    val connectionState: Flow<ConnectionEvent> = _connectionState.asSharedFlow()
 
     /* Monitoring Connections with Peripherals */
 
@@ -67,7 +73,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         central: CBCentralManager,
         didConnectPeripheral: CBPeripheral,
     ) {
-        _connectionState.value = DidConnect(didConnectPeripheral.identifier)
+        _connectionState.emitBlocking(DidConnect(didConnectPeripheral.identifier))
     }
 
     @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
@@ -77,7 +83,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         error: NSError?,
     ) {
         _onDisconnected.emitBlocking(didDisconnectPeripheral.identifier) // Used to notify `Peripheral` of disconnect.
-        _connectionState.value = DidDisconnect(didDisconnectPeripheral.identifier, error)
+        _connectionState.emitBlocking(DidDisconnect(didDisconnectPeripheral.identifier, error))
     }
 
     @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
@@ -86,7 +92,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didFailToConnectPeripheral: CBPeripheral,
         error: NSError?,
     ) {
-        _connectionState.value = DidFailToConnect(didFailToConnectPeripheral.identifier, error)
+        _connectionState.emitBlocking(DidFailToConnect(didFailToConnectPeripheral.identifier, error))
     }
 
     // todo: func centralManager(CBCentralManager, connectionEventDidOccur: CBConnectionEvent, for: CBPeripheral)
