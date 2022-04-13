@@ -1,11 +1,14 @@
 package com.juul.kable
 
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
 internal class Connection(
     val delegate: PeripheralDelegate,
 ) {
+
+    val canSendWriteWithoutResponse = MutableStateFlow(false)
 
     // Using Semaphore as Mutex never relinquished lock when multiple concurrent `withLock`s are executed.
     val semaphore = Semaphore(1)
