@@ -32,7 +32,7 @@ krayon-scale = { module = "com.juul.krayon:scale", version.ref = "krayon" }
 krayon-selection = { module = "com.juul.krayon:selection", version.ref = "krayon" }
 krayon-shape = { module = "com.juul.krayon:shape", version.ref = "krayon" }
 krayon-view = { module = "com.juul.krayon:element-view", version.ref = "krayon" }
-stately = { module = "co.touchlab:stately-isolate", version = "1.2.2" }
+stately = { module = "co.touchlab:stately-isolate", version = "1.2.3" }
 tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
 tuulbox-encoding = { module = "com.juul.tuulbox:encoding", version.ref = "tuulbox" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
