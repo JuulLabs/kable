@@ -35,7 +35,7 @@ public class AndroidScanner internal constructor(
         ?: error("Bluetooth not supported")
 
     public override val advertisements: Flow<Advertisement> = callbackFlow {
-        val scanner = checkNotNull(bluetoothAdapter.bluetoothLeScanner) { "Bluetooth disabled." }
+        val scanner = bluetoothAdapter.bluetoothLeScanner ?: throw BluetoothDisabledException("Bluetooth disabled.")
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
