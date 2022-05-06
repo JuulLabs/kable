@@ -8,7 +8,7 @@ import kotlinx.coroutines.cancelAndJoin
 /**
  * A mechanism for launching and awaiting some shared job repeatedly.
  *
- * The job is launched by calling [getOrLaunchAsync]. Subsequent calls to [getOrLaunchAsync] will return the
+ * The job is launched by calling [getOrAsync]. Subsequent calls to [getOrAsync] will return the
  * same (i.e. shared) [job][Deferred] if it is still executing.
  */
 internal class SharedRepeatableTask<T>(
@@ -19,14 +19,14 @@ internal class SharedRepeatableTask<T>(
     private var deferred: Deferred<T>? = null
 
     /** If there is a running [job][Deferred] returns it. Otherwise, launches and returns a new [job][Deferred]. */
-    fun getOrLaunchAsync() = deferred
+    fun getOrAsync() = deferred
         ?.takeUnless { it.isCompleted }
         ?: scope.async(block = task).apply { deferred = this }
 
     /**
      * Cancels the running job (if any) and suspends until it completes (either normally or exceptionally).
      *
-     * Throws an [IllegalStateException] if [getOrLaunchAsync] has never been called.
+     * Throws an [IllegalStateException] if [getOrAsync] has never been called.
      */
     suspend fun cancelAndJoin() {
         checkNotNull(deferred).cancelAndJoin()

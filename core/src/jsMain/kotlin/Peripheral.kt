@@ -130,7 +130,8 @@ public class JsPeripheral internal constructor(
             openConnection()
         } catch (cause: Throwable) {
             logger.error(cause) { message = "Failed to connect" }
-            disconnectJob.getOrLaunchAsync()
+            @Suppress("DeferredResultUnused") // Safe to ignore Deferred because the result is shared elsewhere
+            disconnectJob.getOrAsync()
             throw IOException("Connection attempt failed", cause)
         }
     }
@@ -141,11 +142,11 @@ public class JsPeripheral internal constructor(
     }
 
     public override suspend fun connect() {
-        connectJob.getOrLaunchAsync().await()
+        connectJob.getOrAsync().await()
     }
 
     public override suspend fun disconnect() {
-        disconnectJob.getOrLaunchAsync().await()
+        disconnectJob.getOrAsync().await()
     }
 
     private suspend fun openConnection() {
@@ -309,7 +310,8 @@ public class JsPeripheral internal constructor(
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = {
         logger.debug { message = GATT_SERVER_DISCONNECTED }
-        disconnectJob.getOrLaunchAsync()
+        @Suppress("DeferredResultUnused") // Safe to ignore Deferred because the result is shared elsewhere
+        disconnectJob.getOrAsync()
     }
 
     internal suspend fun startObservation(characteristic: Characteristic) {
