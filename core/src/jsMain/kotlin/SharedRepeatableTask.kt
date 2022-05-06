@@ -2,6 +2,7 @@ package com.juul.kable
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 
@@ -21,16 +22,26 @@ internal class SharedRepeatableTask<T>(
     /** If there is a running [job][Deferred] returns it. Otherwise, launches and returns a new [job][Deferred]. */
     fun getOrAsync() = deferred
         ?.takeUnless { it.isCompleted }
-        ?: scope.async(block = task).apply { deferred = this }
+        ?: scope.async(block = task).apply {
+            deferred = this
+            invokeOnCompletion { deferred = null }
+        }
 
-    /**
-     * Cancels the running job (if any) and suspends until it completes (either normally or exceptionally).
-     *
-     * Throws an [IllegalStateException] if [getOrAsync] has never been called.
-     */
-    suspend fun cancelAndJoin() {
-        checkNotNull(deferred).cancelAndJoin()
+    /** Cancels the running job (if any). */
+    fun cancel() {
+        deferred?.cancel()
     }
+
+    /** Cancels the running job (if any) and suspends until it completes (either normally or exceptionally). */
+    suspend fun cancelAndJoin() {
+        deferred?.cancelAndJoin()
+    }
+
+    /** Calls [Job.join] on the running job (if any). If no job is running, returns immediately. */
+    suspend fun join() {
+        deferred?.join()
+    }
+
 }
 
 internal fun CoroutineScope.sharedRepeatableTask(

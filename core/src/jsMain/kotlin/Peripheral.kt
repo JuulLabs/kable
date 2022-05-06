@@ -137,7 +137,7 @@ public class JsPeripheral internal constructor(
     }
 
     private val disconnectJob: SharedRepeatableTask<Unit> = scope.sharedRepeatableTask {
-        connectJob.cancelAndJoin()
+        connectJob.join()
         closeConnection()
     }
 
@@ -146,6 +146,7 @@ public class JsPeripheral internal constructor(
     }
 
     public override suspend fun disconnect() {
+        connectJob.cancelAndJoin()
         disconnectJob.getOrAsync().await()
     }
 
@@ -310,6 +311,7 @@ public class JsPeripheral internal constructor(
     private var isDisconnectedListenerRegistered = false
     private val disconnectedListener: (JsEvent) -> Unit = {
         logger.debug { message = GATT_SERVER_DISCONNECTED }
+        connectJob.cancel()
         @Suppress("DeferredResultUnused") // Safe to ignore Deferred because the result is shared elsewhere
         disconnectJob.getOrAsync()
     }
