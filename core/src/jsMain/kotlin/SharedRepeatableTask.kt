@@ -41,7 +41,6 @@ internal class SharedRepeatableTask<T>(
     suspend fun join() {
         deferred?.join()
     }
-
 }
 
 internal fun CoroutineScope.sharedRepeatableTask(
