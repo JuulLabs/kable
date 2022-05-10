@@ -218,9 +218,9 @@ val peripheral = scope.peripheral(advertisement) {
 
 On JavaScript, rather than processing a stream of advertisements, a specific peripheral can be requested using the
 [`CoroutineScope.requestPeripheral`] extension function. Criteria ([`Options`]) such as expected service UUIDs on the
-peripheral and/or the peripheral's name may be specified. When [`requestPeripheral`] is called with the specified
-options, the browser shows the user a list of peripherals matching the criteria. The peripheral chosen by the user is
-then returned (as a [`Peripheral`] object).
+peripheral and/or the peripheral's name may be specified. When [`CoroutineScope.requestPeripheral`] is called with the
+specified options, the browser shows the user a list of peripherals matching the criteria. The peripheral chosen by the
+user is then returned (as a [`Peripheral`] object).
 
 ```kotlin
 val options = Options(
@@ -299,13 +299,13 @@ For example, a peripheral might have the following structure:
 - Service S2
     - Characteristic C3
 
-To access a characteristic or descriptor, use the [`charactisticOf`] or [`descriptorOf`] functions, respectively. These
-functions lazily search for the first match (based on UUID) in the GATT profile when performing I/O.
+To access a characteristic or descriptor, use the [`characteristicOf`] or [`descriptorOf`] functions, respectively.
+These functions lazily search for the first match (based on UUID) in the GATT profile when performing I/O.
 
 _When performing I/O operations on a characteristic ([`read`], [`write`], [`observe`]), the properties of the
 characteristic are taken into account when finding the first match. For example, when performing a [`write`] with a
-[`WriteType`] of [`WithResponse`], the first characteristic matching the expected UUID **and** having the
-[`writeWithResponse`] property will be used._
+[`WriteType`] of [`WithoutResponse`], the first characteristic matching the expected UUID **and** having the
+[`writeWithoutResponse`] property will be used._
 
 In the above example, to lazily access "Descriptor D3":
 
@@ -377,7 +377,7 @@ platform characteristic will be used to to resume streaming characteristic chang
 
 Failures related to notifications/indications are propagated via the [`observe`] [`Flow`], for example, if the
 associated characteristic is invalid or cannot be found, then a `NoSuchElementException` is propagated via the
-[`observe`] [`Flow`]. An [`ObservationExceptionHandler`] may be registered with the [`Peripheral`] to control which
+[`observe`] [`Flow`]. An [`observationExceptionHandler`] may be registered with the [`Peripheral`] to control which
 failures are propagated through (and terminate) the [`observe`] [`Flow`], for example:
 
 ```kotlin
@@ -389,8 +389,8 @@ scope.peripheral(advertisement) {
 }
 ```
 
-In scenarios where an I/O operation needs to be performed upon subscribing to the [`observe`] [`Flow`], an `onSubscribe`
-action may be specified:
+In scenarios where an I/O operation needs to be performed upon subscribing to the [`observe`] [`Flow`], an
+`onSubscription` action may be specified:
 
 ```kotlin
 val observation = peripheral.observe(characteristic) {
@@ -592,49 +592,47 @@ limitations under the License.
 ```
 
 
-[SensorTag sample app]: https://github.com/JuulLabs/sensortag
-[Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
 [Coroutine scope]: https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope
-[`ScanSettings`]: https://developer.android.com/reference/kotlin/android/bluetooth/le/ScanSettings
-
-[`Advertisement`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-advertisement/index.html
+[Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
+[SensorTag sample app]: https://github.com/JuulLabs/sensortag
+[`Advertisement`]: https://juullabs.github.io/kable/core/com.juul.kable/-advertisement/index.html
 [`Characteristic`]: https://juullabs.github.io/kable/core/com.juul.kable/-characteristic/index.html
-[`Connected`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-state/index.html#%5Bcom.juul.kable%2FState.Connected%2F%2F%2FPointingToDeclaration%2F%5D%2FClasslikes%2F-328684452
-[`CoroutineScope.peripheral`]: https://juullabs.github.io/kable/core/core/com.juul.kable/peripheral.html
-[`CoroutineScope.requestPeripheral`]: https://juullabs.github.io/kable/core/core/com.juul.kable/request-peripheral.html
+[`Connected`]: https://juullabs.github.io/kable/core/com.juul.kable/-state/-connected/index.html
+[`CoroutineScope.peripheral`]: https://juullabs.github.io/kable/core/com.juul.kable/peripheral.html
+[`CoroutineScope.requestPeripheral`]: https://juullabs.github.io/kable/core/com.juul.kable/request-peripheral.html
 [`CoroutineScope`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-scope/
-[`Disconnected`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-state/index.html#%5Bcom.juul.kable%2FState.Disconnected%2F%2F%2FPointingToDeclaration%2F%5D%2FClasslikes%2F-328684452
-[`Disconnecting`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-state/index.html#%5Bcom.juul.kable%2FState.Disconnecting%2F%2F%2FPointingToDeclaration%2F%5D%2FClasslikes%2F-328684452
+[`Disconnected`]: https://juullabs.github.io/kable/core/com.juul.kable/-state/-disconnected/index.html
+[`Disconnecting`]: https://juullabs.github.io/kable/core/com.juul.kable/-state/-disconnecting/index.html
 [`Flow`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/
-[`NotReadyException`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-not-ready-exception/index.html
-[`Options`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-options/index.html
-[`Peripheral.disconnect`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fdisconnect%2F%23%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
-[`Peripheral.services`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/index.html#-1607712299%2FProperties%2F-2011752812
-[`Peripheral`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html
-[`Scanner`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-scanner/index.html
-[`WithResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/-write-type/index.html#-1405019860%2FClasslikes%2F-2011752812
+[`NotReadyException`]: https://juullabs.github.io/kable/core/com.juul.kable/-not-ready-exception/index.html
+[`Options`]: https://juullabs.github.io/kable/core/com.juul.kable/-options/index.html
+[`Peripheral.disconnect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/disconnect.html
+[`Peripheral.services`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/services.html
+[`Peripheral`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/index.html
+[`ScanSettings`]: https://developer.android.com/reference/kotlin/android/bluetooth/le/ScanSettings
+[`Scanner`]: https://juullabs.github.io/kable/core/com.juul.kable/-scanner.html
+[`WithoutResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/-write-type/-without-response/index.html
 [`WriteType`]: https://juullabs.github.io/kable/core/com.juul.kable/-write-type/index.html
-[`advertisements`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-scanner/index.html#%5Bcom.juul.kable%2FScanner%2Fadvertisements%2F%23%2FPointingToDeclaration%2F%5D%2FProperties%2F-328684452
-[`charactisticOf`]: https://juullabs.github.io/kable/core/core/com.juul.kable/characteristic-of.html
-[`connect`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fconnect%2F%23%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
-[`descriptorOf`]: https://juullabs.github.io/kable/core/core/com.juul.kable/descriptor-of.html
-[`disconnect`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fdisconnect%2F%23%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
+[`advertisements`]: https://juullabs.github.io/kable/core/com.juul.kable/-scanner/advertisements.html
+[`characteristicOf`]: https://juullabs.github.io/kable/core/com.juul.kable/characteristic-of.html
+[`connect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/connect.html
+[`descriptorOf`]: https://juullabs.github.io/kable/core/com.juul.kable/descriptor-of.html
+[`disconnect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/disconnect.html
 [`first`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/first.html
-[`observe`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fobserve%2F%23com.juul.kable.Characteristic%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
-[`read`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fread%2F%23com.juul.kable.Characteristic%2FPointingToDeclaration%2F%2C+com.juul.kable%2FPeripheral%2Fread%2F%23com.juul.kable.Descriptor%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
-[`requestPeripheral`]: https://juullabs.github.io/kable/core/core/com.juul.kable/request-peripheral.html
-[`state`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fstate%2F%23%2FPointingToDeclaration%2F%5D%2FProperties%2F-328684452
-[`writeWithResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/-characteristic/-properties/index.html#491699083%2FExtensions%2F-2011752812
-[`write`]: https://juullabs.github.io/kable/core/core/com.juul.kable/-peripheral/index.html#%5Bcom.juul.kable%2FPeripheral%2Fwrite%2F%23com.juul.kable.Descriptor%23kotlin.ByteArray%2FPointingToDeclaration%2F%2C+com.juul.kable%2FPeripheral%2Fwrite%2F%23com.juul.kable.Characteristic%23kotlin.ByteArray%23com.juul.kable.WriteType%2FPointingToDeclaration%2F%5D%2FFunctions%2F-328684452
-[connection-state]: https://juullabs.github.io/kable/core/core/com.juul.kable/-state/index.html
-
+[`observe`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/observe.html
+[`read`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/read.html
+[`state`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/state.html
+[`writeWithoutResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/write-without-response.html
+[`write`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/write.html
+[`observationExceptionHandler`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral-builder/observation-exception-handler.html
 [badge-android]: http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat
 [badge-ios]: http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat
 [badge-js]: http://img.shields.io/badge/platform-js-F8DB5D.svg?style=flat
 [badge-jvm]: http://img.shields.io/badge/platform-jvm-DB413D.svg?style=flat
 [badge-linux]: http://img.shields.io/badge/platform-linux-2D3F6C.svg?style=flat
-[badge-windows]: http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat
 [badge-mac]: http://img.shields.io/badge/platform-macos-111111.svg?style=flat
-[badge-watchos]: http://img.shields.io/badge/platform-watchos-C0C0C0.svg?style=flat
 [badge-tvos]: http://img.shields.io/badge/platform-tvos-808080.svg?style=flat
 [badge-wasm]: https://img.shields.io/badge/platform-wasm-624FE8.svg?style=flat
+[badge-watchos]: http://img.shields.io/badge/platform-watchos-C0C0C0.svg?style=flat
+[badge-windows]: http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat
+[connection-state]: https://juullabs.github.io/kable/core/com.juul.kable/-state/index.html
