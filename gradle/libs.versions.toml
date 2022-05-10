@@ -19,7 +19,7 @@ tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "
 uuid = { module = "com.benasher44:uuid", version = "0.4.0" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "7.1.3" }
+android-library = { id = "com.android.library", version = "7.2.0" }
 atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "1.6.21" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
