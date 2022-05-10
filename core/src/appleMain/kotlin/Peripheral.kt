@@ -50,12 +50,16 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+<<<<<<< HEAD
 import platform.CoreBluetooth.CBCentralManagerStatePoweredOff
 import platform.CoreBluetooth.CBCentralManagerStatePoweredOn
 import platform.CoreBluetooth.CBCharacteristicWriteType
+=======
+>>>>>>> main
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
 import platform.CoreBluetooth.CBErrorConnectionFailed
@@ -65,6 +69,13 @@ import platform.CoreBluetooth.CBErrorEncryptionTimedOut
 import platform.CoreBluetooth.CBErrorOperationCancelled
 import platform.CoreBluetooth.CBErrorPeripheralDisconnected
 import platform.CoreBluetooth.CBErrorUnknownDevice
+import platform.CoreBluetooth.CBManagerState
+import platform.CoreBluetooth.CBManagerStatePoweredOff
+import platform.CoreBluetooth.CBManagerStatePoweredOn
+import platform.CoreBluetooth.CBManagerStateResetting
+import platform.CoreBluetooth.CBManagerStateUnauthorized
+import platform.CoreBluetooth.CBManagerStateUnknown
+import platform.CoreBluetooth.CBManagerStateUnsupported
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
@@ -129,7 +140,7 @@ public class ApplePeripheral internal constructor(
     init {
         centralManager.delegate
             .state
-            .filter { state -> state == CBCentralManagerStatePoweredOff }
+            .filter { state -> state == CBManagerStatePoweredOff }
             .onEach {
                 disconnect()
                 _state.value = State.Disconnected()
@@ -149,6 +160,8 @@ public class ApplePeripheral internal constructor(
             .onEach { _state.value = it }
             .launchIn(scope)
     }
+
+    private val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
 
     private val _discoveredServices = atomic<List<DiscoveredService>?>(null)
     private val discoveredServices: List<DiscoveredService>
@@ -182,7 +195,7 @@ public class ApplePeripheral internal constructor(
 
         try {
             // todo: Create in `connectPeripheral`.
-            val delegate = PeripheralDelegate(logging, cbPeripheral.identifier.UUIDString)
+            val delegate = PeripheralDelegate(canSendWriteWithoutResponse, logging, cbPeripheral.identifier.UUIDString)
 
             val connection = centralManager.connectPeripheral(cbPeripheral, delegate).also {
                 _connection.value = it
@@ -226,11 +239,8 @@ public class ApplePeripheral internal constructor(
 
     public override suspend fun connect() {
         // Check CBCentral State since connecting can result in an api misuse message
-        if (centralManager.delegate.state.value == CBCentralManagerStatePoweredOn) {
-            connectJob.updateAndGet { it ?: connectAsync() }!!.await()
-        } else {
-            throw NotReadyException("Attempted to connect to device before Bluetooth is powered on")
-        }
+        centralManager.checkBluetoothState(CBManagerStatePoweredOn)
+        connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
     public override suspend fun disconnect() {
@@ -295,8 +305,16 @@ public class ApplePeripheral internal constructor(
         }
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
-        connection.execute<DidWriteValueForCharacteristic> {
-            centralManager.write(cbPeripheral, data, platformCharacteristic, writeType.cbWriteType)
+        when (writeType) {
+            WithResponse -> connection.execute<DidWriteValueForCharacteristic> {
+                centralManager.write(cbPeripheral, data, platformCharacteristic, CBCharacteristicWriteWithResponse)
+            }
+            WithoutResponse -> connection.semaphore.withPermit {
+                if (!canSendWriteWithoutResponse.updateAndGet { cbPeripheral.canSendWriteWithoutResponse }) {
+                    canSendWriteWithoutResponse.first { it }
+                }
+                centralManager.write(cbPeripheral, data, platformCharacteristic, CBCharacteristicWriteWithoutResponse)
+            }
         }
     }
 
@@ -406,12 +424,6 @@ public class ApplePeripheral internal constructor(
     override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"
 }
 
-private val WriteType.cbWriteType: CBCharacteristicWriteType
-    get() = when (this) {
-        WithResponse -> CBCharacteristicWriteWithResponse
-        WithoutResponse -> CBCharacteristicWriteWithoutResponse
-    }
-
 private suspend fun Flow<DidUpdateValueForCharacteristic>.firstOrThrow(
     predicate: suspend (Data) -> Boolean,
 ): NSData = when (val value = first { it !is Data || predicate.invoke(it) }) {
@@ -435,4 +447,22 @@ private fun NSError.toStatus(): State.Disconnected.Status = when (code) {
     CBErrorConnectionLimitReached -> ConnectionLimitReached
     CBErrorEncryptionTimedOut -> EncryptionTimedOut
     else -> Unknown(code.toInt())
+}
+
+private fun CentralManager.checkBluetoothState(expected: CBManagerState) {
+    val actual = delegate.state.value
+    if (expected != actual) {
+        fun nameFor(value: Number) = when (value) {
+            CBManagerStatePoweredOff -> "PoweredOff"
+            CBManagerStatePoweredOn -> "PoweredOn"
+            CBManagerStateResetting -> "Resetting"
+            CBManagerStateUnauthorized -> "Unauthorized"
+            CBManagerStateUnknown -> "Unknown"
+            CBManagerStateUnsupported -> "Unsupported"
+            else -> "Unknown"
+        }
+        val actualName = nameFor(actual)
+        val expectedName = nameFor(expected)
+        throw BluetoothDisabledException("Bluetooth state is $actualName ($actual), but $expectedName ($expected) was required.")
+    }
 }

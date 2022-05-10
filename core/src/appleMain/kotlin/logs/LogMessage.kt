@@ -22,11 +22,11 @@ internal fun LogMessage.detail(service: CBService) {
 }
 
 internal fun LogMessage.detail(characteristic: CBCharacteristic) {
-    detail(characteristic.service)
+    detail(characteristic.service!!)
     detail("characteristic", characteristic.UUID.UUIDString)
 }
 
 internal fun LogMessage.detail(descriptor: CBDescriptor) {
-    detail(descriptor.characteristic)
+    detail(descriptor.characteristic!!)
     detail("descriptor", descriptor.UUID.UUIDString)
 }

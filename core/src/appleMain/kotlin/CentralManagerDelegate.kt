@@ -10,11 +10,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+<<<<<<< HEAD
 import kotlinx.coroutines.flow.filterNotNull
+=======
+>>>>>>> main
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCentralManagerDelegateProtocol
 import platform.CoreBluetooth.CBCentralManagerStateUnknown
 import platform.CoreBluetooth.CBManagerState
+import platform.CoreBluetooth.CBManagerStateUnknown
 import platform.CoreBluetooth.CBPeripheral
 import platform.Foundation.NSError
 import platform.Foundation.NSNumber
@@ -26,8 +30,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
 
     private val _onDisconnected = MutableSharedFlow<NSUUID>()
     internal val onDisconnected = _onDisconnected.asSharedFlow()
-
-    private val _state = MutableStateFlow<CBManagerState>(CBCentralManagerStateUnknown)
+    private val _state = MutableStateFlow(CBManagerStateUnknown)
     val state: StateFlow<CBManagerState> = _state.asStateFlow()
 
     sealed class Response {
@@ -61,8 +64,12 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         ) : ConnectionEvent()
     }
 
-    private val _connectionState = MutableSharedFlow<ConnectionEvent?>()
-    val connectionState: Flow<ConnectionEvent> = _connectionState.filterNotNull()
+    // `SharedFlow` (instead of `StateFlow`) as downstream needs non-distinct items, as it feeds individual `Peripheral`
+    // states. If, for example, this flow emits `Disconnected` then downstream `Peripheral` connects and updates its own
+    // state to `Connected`, this flow may still hold `Disconnected` but we'll need to emit another `Disconnected` to
+    // update the `Peripheral` state with.
+    private val _connectionState = MutableSharedFlow<ConnectionEvent>()
+    val connectionState: Flow<ConnectionEvent> = _connectionState.asSharedFlow()
 
     /* Monitoring Connections with Peripherals */
 
