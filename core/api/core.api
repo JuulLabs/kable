@@ -41,6 +41,22 @@ public class com/juul/kable/BluetoothException : java/lang/Exception {
 	public fun <init> ()V
 }
 
+public final class com/juul/kable/BluetoothState : java/lang/Enum {
+	public static final field locationServiceDisabled Lcom/juul/kable/BluetoothState;
+	public static final field poweredOff Lcom/juul/kable/BluetoothState;
+	public static final field poweredOn Lcom/juul/kable/BluetoothState;
+	public static final field resetting Lcom/juul/kable/BluetoothState;
+	public static final field unauthorized Lcom/juul/kable/BluetoothState;
+	public static final field unknown Lcom/juul/kable/BluetoothState;
+	public static final field unsupported Lcom/juul/kable/BluetoothState;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/BluetoothState;
+	public static fun values ()[Lcom/juul/kable/BluetoothState;
+}
+
+public final class com/juul/kable/BluetoothStatusKt {
+	public static final fun getBluetoothStatusFlow ()Lkotlinx/coroutines/flow/Flow;
+}
+
 public final class com/juul/kable/BondState : java/lang/Enum {
 	public static final field Bonded Lcom/juul/kable/BondState;
 	public static final field Bonding Lcom/juul/kable/BondState;
