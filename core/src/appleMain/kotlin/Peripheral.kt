@@ -54,12 +54,6 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-<<<<<<< HEAD
-import platform.CoreBluetooth.CBCentralManagerStatePoweredOff
-import platform.CoreBluetooth.CBCentralManagerStatePoweredOn
-import platform.CoreBluetooth.CBCharacteristicWriteType
-=======
->>>>>>> main
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
 import platform.CoreBluetooth.CBErrorConnectionFailed

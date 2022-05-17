@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.location.LocationManager
 import android.os.Build
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
@@ -43,7 +42,7 @@ private val bluetoothStatus = callbackFlow<BluetoothState> {
     }
 }
 
-//Location services required on android devices 11 and below
+// Location services required on android devices 11 and below
 private val locationServiceStatusFlow = callbackFlow<Boolean> {
     trySendBlocking(getLocationStatus())
         .onFailure { error("") }
@@ -53,11 +52,11 @@ private val locationServiceStatusFlow = callbackFlow<Boolean> {
             if (intent?.action == LocationManager.PROVIDERS_CHANGED_ACTION) {
                 val manager =
                     context?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                if(!manager.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
-                    !manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+                if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
+                    !manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                ) {
                     trySendBlocking(false)
-                }
-                else{
+                } else {
                     trySendBlocking(true)
                 }
             }
@@ -80,8 +79,7 @@ public actual val bluetoothStatusFlow: Flow<BluetoothState> =
         }
     else bluetoothStatus
 
-
-//Helper function to get initial state of bluetooth
+// Helper function to get initial state of bluetooth
 private fun getBluetoothStatus(): BluetoothState {
     val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     if (bluetoothAdapter == null) return BluetoothState.unsupported
@@ -91,6 +89,8 @@ private fun getBluetoothStatus(): BluetoothState {
 private fun getLocationStatus(): Boolean {
     val manager =
         applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    return (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-            manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+    return (
+        manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+            manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        )
 }

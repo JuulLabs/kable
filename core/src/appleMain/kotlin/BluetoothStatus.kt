@@ -12,14 +12,14 @@ import platform.CoreBluetooth.CBCentralManagerStateUnsupported
 public actual val bluetoothStatusFlow: Flow<BluetoothState>
     get() {
         return CentralManager.Default.delegate.state.map {
-            when(it){
+            when (it) {
                 CBCentralManagerStatePoweredOn -> BluetoothState.poweredOn
                 CBCentralManagerStateUnknown -> BluetoothState.unknown
                 CBCentralManagerStatePoweredOff -> BluetoothState.poweredOff
                 CBCentralManagerStateResetting -> BluetoothState.resetting
                 CBCentralManagerStateUnsupported -> BluetoothState.unsupported
                 CBCentralManagerStateUnauthorized -> BluetoothState.unauthorized
-                else -> {BluetoothState.unknown}
+                else -> { BluetoothState.unknown }
             }
         }
     }

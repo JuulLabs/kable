@@ -2,7 +2,6 @@ package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
 
-
 public enum class BluetoothState {
     poweredOn,
     poweredOff,
@@ -10,7 +9,7 @@ public enum class BluetoothState {
     unsupported,
     unknown,
     unauthorized,
-    locationServiceDisabled //Only used on Android for versions 11 and lower
+    locationServiceDisabled // Only used on Android for versions 11 and lower
 }
 
 public expect val bluetoothStatusFlow: Flow<BluetoothState>
