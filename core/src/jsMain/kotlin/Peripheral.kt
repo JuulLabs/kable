@@ -225,6 +225,7 @@ public class JsPeripheral internal constructor(
         logger.debug {
             message = "write"
             detail(characteristic)
+            detail(writeType)
             detail(data)
         }
 
