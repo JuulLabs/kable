@@ -4,7 +4,7 @@ android-min = "21"
 android-target = "30"
 atomicfu = "0.17.3"
 coroutines = "1.6.1"
-kotlin = "1.6.21"
+kotlin = "1.7.0"
 tuulbox = "6.2.0"
 
 [libraries]
