@@ -16,7 +16,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 stately-collections = { module = "co.touchlab:stately-iso-collections", version = "1.2.3" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
-uuid = { module = "com.benasher44:uuid", version = "0.4.0" }
+uuid = { module = "com.benasher44:uuid", version = "0.4.1" }
 
 [plugins]
 android-library = { id = "com.android.library", version = "7.2.1" }
