@@ -9,7 +9,7 @@ compose = "1.2.0-rc03"
 compose-compiler = "1.2.0-rc02"
 exercise = "0.10.0"
 kable = "0.17.1"
-kotlin = "1.6.21"
+kotlin = "1.7.0"
 krayon = "0.12.1"
 ksp = "1.6.21-1.0.5"
 tuulbox = "6.2.0"
@@ -24,6 +24,7 @@ compose-ui = { module = "androidx.compose.ui:ui", version = "compose" }
 compose-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.6.3" }
 coroutines-macosx64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64", version = "1.6.0-native-mt!!" }
+datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.3.3" }
 exercise-annotations = { module = "com.juul.exercise:annotations", version.ref = "exercise" }
 exercise-compile = { module = "com.juul.exercise:compile", version.ref = "exercise" }
 kable = { module = "com.juul.kable:core", version.ref = "kable" }
