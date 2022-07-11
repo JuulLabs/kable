@@ -105,7 +105,7 @@ internal class Observers<T>(
 }
 
 private class Observations : IsolateState<MutableMap<Characteristic, Observation>>(
-    producer = { mutableMapOf() }
+    producer = { mutableMapOf() },
 ) {
 
     val entries: List<Pair<Characteristic, Observation>>
@@ -118,7 +118,7 @@ private class Observations : IsolateState<MutableMap<Characteristic, Observation
 
     fun getOrPut(
         characteristic: Characteristic,
-        defaultValue: () -> Observation
+        defaultValue: () -> Observation,
     ): Observation = access { observations ->
         observations.getOrPut(characteristic, defaultValue)
     }

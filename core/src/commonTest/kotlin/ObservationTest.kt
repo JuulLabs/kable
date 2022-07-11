@@ -221,7 +221,7 @@ class ObservationTest {
                     throwable = null,
                     tag = "Kable/Observation",
                     message = "$identifier Suppressed failure: ${NotConnectedException()}",
-                )
+                ),
             ),
             actual = logEngine.records.toList(),
         )
@@ -282,9 +282,9 @@ class ObservationTest {
                     throwable = null,
                     tag = "Kable/Observation",
                     message = "$identifier Suppressed failure: ${NotConnectedException()}",
-                )
+                ),
             ),
-            actual = logEngine.records.toList()
+            actual = logEngine.records.toList(),
         )
     }
 

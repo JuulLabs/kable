@@ -7,7 +7,7 @@ package com.juul.kable
 internal fun ByteArray.toHexString(
     separator: String? = null,
     prefix: String? = null,
-    lowerCase: Boolean = false
+    lowerCase: Boolean = false,
 ): String {
     if (size == 0) return ""
     val hexCode = if (lowerCase) "0123456789abcdef" else "0123456789ABCDEF"

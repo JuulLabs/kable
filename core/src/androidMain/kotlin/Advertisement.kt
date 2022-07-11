@@ -54,7 +54,7 @@ public actual class Advertisement(
         get() = scanResult.scanRecord?.manufacturerSpecificData?.takeIf { it.size() > 0 }?.let {
             ManufacturerData(
                 it.keyAt(0),
-                it.valueAt(0)
+                it.valueAt(0),
             )
         }
 

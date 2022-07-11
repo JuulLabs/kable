@@ -76,7 +76,7 @@ internal class Callback(
         gatt: BluetoothGatt,
         txPhy: Int,
         rxPhy: Int,
-        status: Int
+        status: Int,
     ) {
         logger.debug {
             message = "onPhyUpdate"
@@ -91,7 +91,7 @@ internal class Callback(
         gatt: BluetoothGatt,
         txPhy: Int,
         rxPhy: Int,
-        status: Int
+        status: Int,
     ) {
         logger.debug {
             message = "onPhyRead"
@@ -105,7 +105,7 @@ internal class Callback(
     override fun onConnectionStateChange(
         gatt: BluetoothGatt,
         status: Int,
-        newState: Int
+        newState: Int,
     ) {
         logger.debug {
             message = "onConnectionStateChange"
@@ -172,7 +172,7 @@ internal class Callback(
 
     override fun onCharacteristicChanged(
         gatt: BluetoothGatt,
-        characteristic: BluetoothGattCharacteristic
+        characteristic: BluetoothGattCharacteristic,
     ) {
         val value = characteristic.value
         val event = OnCharacteristicChanged(characteristic, value)
@@ -216,7 +216,7 @@ internal class Callback(
 
     override fun onReliableWriteCompleted(
         gatt: BluetoothGatt,
-        status: Int
+        status: Int,
     ) {
         logger.debug {
             message = "onReliableWriteCompleted"

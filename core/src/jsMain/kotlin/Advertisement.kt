@@ -40,7 +40,7 @@ public actual class Advertisement internal constructor(
         get() = advertisement.manufacturerData.entries().iterable().firstOrNull()?.let { entry ->
             ManufacturerData(
                 entry[0] as Int,
-                (entry[1] as DataView).buffer.toByteArray()
+                (entry[1] as DataView).buffer.toByteArray(),
             )
         }
 

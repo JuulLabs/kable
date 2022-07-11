@@ -42,7 +42,7 @@ public enum class Phy {
 }
 
 public actual class ServicesDiscoveredPeripheral internal constructor(
-    private val peripheral: AndroidPeripheral
+    private val peripheral: AndroidPeripheral,
 ) {
 
     public actual suspend fun read(
@@ -69,7 +69,7 @@ public actual class ServicesDiscoveredPeripheral internal constructor(
     }
 
     public suspend fun requestMtu(
-        mtu: Int
+        mtu: Int,
     ): Int = peripheral.requestMtu(mtu)
 }
 
