@@ -24,5 +24,5 @@ atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "1.7.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "3.10.0" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.20.0" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.21.0" }
 validator = { id = "binary-compatibility-validator", version = "0.5.0" }
