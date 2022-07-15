@@ -35,6 +35,9 @@ public actual class Advertisement(
             else -> error("Unknown bond state: ${bluetoothDevice.bondState}")
         }
 
+    public val scanResultBytes: ByteArray?
+        get() = scanResult.scanRecord?.bytes
+
     public actual val rssi: Int
         get() = scanResult.rssi
 
