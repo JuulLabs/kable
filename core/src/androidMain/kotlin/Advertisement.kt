@@ -35,7 +35,7 @@ public actual class Advertisement(
             else -> error("Unknown bond state: ${bluetoothDevice.bondState}")
         }
 
-    /** Android-only. Returns raw bytes of the underlying scan record. */
+    /** Returns raw bytes of the underlying scan record. */
     public val bytes: ByteArray?
         get() = scanResult.scanRecord?.bytes
 
