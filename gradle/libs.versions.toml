@@ -3,9 +3,9 @@ android-compile = "30"
 android-min = "21"
 android-target = "30"
 atomicfu = "0.18.2"
-coroutines = "1.6.3"
+coroutines = "1.6.4"
 kotlin = "1.7.10"
-tuulbox = "6.2.0"
+tuulbox = "6.3.0"
 
 [libraries]
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.1" }
@@ -16,7 +16,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 stately-collections = { module = "co.touchlab:stately-iso-collections", version = "1.2.3" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
-uuid = { module = "com.benasher44:uuid", version = "0.4.1" }
+uuid = { module = "com.benasher44:uuid", version = "0.5.0" }
 
 [plugins]
 android-library = { id = "com.android.library", version = "7.2.1" }
