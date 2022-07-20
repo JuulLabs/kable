@@ -12,8 +12,10 @@ import kotlinx.coroutines.await
 
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformService = BluetoothRemoteGATTService
+
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformCharacteristic = BluetoothRemoteGATTCharacteristic
+
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformDescriptor = BluetoothRemoteGATTDescriptor
 private typealias PlatformProperties = BluetoothCharacteristicProperties

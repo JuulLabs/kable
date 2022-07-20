@@ -15,7 +15,8 @@ class AdvertisementTest {
     @Test
     fun manufacturerData_advertisementWithMoreThanTwoBytes_hasCodeAndData() {
         val data = ubyteArrayOf(
-            0xc3u, 0x05u, // little-endian manufacturer id
+            0xc3u,
+            0x05u, // little-endian manufacturer id
             0x042u, // data
         ).toNSData()
         val manufacturerData = data.toManufacturerData()
@@ -29,7 +30,8 @@ class AdvertisementTest {
     @Test
     fun manufacturerData_advertisementWithTwoBytes_hasCodeAndEmptyData() {
         val data = ubyteArrayOf(
-            0xc3u, 0x05u, // little-endian manufacturer id
+            0xc3u,
+            0x05u, // little-endian manufacturer id
         ).toNSData()
         val manufacturerData = data.toManufacturerData()
 

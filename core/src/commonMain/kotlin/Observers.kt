@@ -75,8 +75,9 @@ internal class Observers<T>(
             }
             .filter { event -> event.isAssociatedWith(characteristic) }
             .onEach { event ->
-                if (event is Error)
+                if (event is Error) {
                     exceptionHandler(ObservationExceptionPeripheral(peripheral), event.cause)
+                }
             }
             .mapNotNull { event -> (event as? CharacteristicChange)?.data }
             .onCompletion {

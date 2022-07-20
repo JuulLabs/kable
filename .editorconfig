@@ -1,3 +1,4 @@
 [*.{kt,kts}]
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
+disabled_rules=filename,spacing-between-declarations-with-annotations

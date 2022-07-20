@@ -395,8 +395,9 @@ public class JsPeripheral internal constructor(
         }
         val characteristicChange = ObservationEvent.CharacteristicChange(this, data)
 
-        if (!observers.characteristicChanges.tryEmit(characteristicChange))
+        if (!observers.characteristicChanges.tryEmit(characteristicChange)) {
             console.error("Failed to emit $characteristicChange")
+        }
     }
 
     private fun registerDisconnectedListener() {
