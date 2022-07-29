@@ -22,34 +22,29 @@ import kotlin.test.assertEquals
 
 public class StateStringTests {
 
-    private fun test(expected: String, actual: Any) {
-        assertEquals(expected, actual.toString())
-    }
-
     @Test
     fun testToString() {
-        test("Connected", Connected)
-        test("Connecting.Bluetooth", Bluetooth)
-        test("Connecting.Observes", Observes)
-        test("Connecting.Services", Services)
-        test("Disconnecting", Disconnecting)
-        test("Disconnected(Peripheral Disconnected)", Disconnected(PeripheralDisconnected))
-        test("Disconnected(Central Disconnected)", Disconnected(CentralDisconnected))
-        test("Disconnected(Failed)", Disconnected(Failed))
-        test("Disconnected(L2Cap Failure)", Disconnected(L2CapFailure))
-        test("Disconnected(Timeout)", Disconnected(Timeout))
-        test("Disconnected(LinkManager Protocol Timeout)", Disconnected(LinkManagerProtocolTimeout))
-        test("Disconnected(Unknown Device)", Disconnected(UnknownDevice))
-        test("Disconnected(Cancelled)", Disconnected(Cancelled))
-        test("Disconnected(Connection Limit Reached)", Disconnected(ConnectionLimitReached))
-        test("Disconnected(Encryption Timed Out)", Disconnected(EncryptionTimedOut))
-        test("Disconnected(133)", Disconnected(Unknown(133)))
-        test("Unknown(status=133)", Unknown(133))
+        Connected.assertEquals("Connected")
+        Bluetooth.assertEquals("Connecting.Bluetooth")
+        Observes.assertEquals("Connecting.Observes")
+        Services.assertEquals("Connecting.Services")
+        Disconnecting.assertEquals("Disconnecting")
+        Disconnected(PeripheralDisconnected).assertEquals("Disconnected(Peripheral Disconnected)")
+        Disconnected(CentralDisconnected).assertEquals("Disconnected(Central Disconnected)")
+        Disconnected(Failed).assertEquals("Disconnected(Failed)")
+        Disconnected(L2CapFailure).assertEquals("Disconnected(L2Cap Failure)")
+        Disconnected(Timeout).assertEquals("Disconnected(Timeout)")
+        Disconnected(LinkManagerProtocolTimeout).assertEquals("Disconnected(LinkManager Protocol Timeout)")
+        Disconnected(UnknownDevice).assertEquals("Disconnected(Unknown Device)")
+        Disconnected(Cancelled).assertEquals("Disconnected(Cancelled)")
+        Disconnected(ConnectionLimitReached).assertEquals("Disconnected(Connection Limit Reached)")
+        Disconnected(EncryptionTimedOut).assertEquals("Disconnected(Encryption Timed Out)")
+        Disconnected(Unknown(133)).assertEquals("Disconnected(133)")
+        Unknown(133).assertEquals("Unknown(status=133)")
     }
-
 }
 
-private infix fun State.assertToStringEquals(expected: String) {
+private infix fun Any.assertEquals(expected: String) {
     assertEquals(
         expected = expected,
         actual = toString(),
