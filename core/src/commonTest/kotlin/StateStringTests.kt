@@ -23,7 +23,7 @@ import kotlin.test.assertEquals
 public class StateStringTests {
 
     @Test
-    fun testToString() {
+    fun stringRepresentation() {
         Connected.assertEquals("Connected")
         Bluetooth.assertEquals("Connecting.Bluetooth")
         Observes.assertEquals("Connecting.Observes")
@@ -40,11 +40,12 @@ public class StateStringTests {
         Disconnected(ConnectionLimitReached).assertEquals("Disconnected(Connection Limit Reached)")
         Disconnected(EncryptionTimedOut).assertEquals("Disconnected(Encryption Timed Out)")
         Disconnected(Unknown(133)).assertEquals("Disconnected(133)")
-        Unknown(133).assertEquals("Unknown(status=133)")
+
+        assertEquals("Unknown(status=133)",Unknown(133).toString(),)
     }
 }
 
-private infix fun Any.assertEquals(expected: String) {
+private infix fun State.assertEquals(expected: String) {
     assertEquals(
         expected = expected,
         actual = toString(),

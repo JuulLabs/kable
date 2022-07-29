@@ -117,7 +117,8 @@ public sealed class State {
                 Cancelled -> "Cancelled"
                 ConnectionLimitReached -> "Connection Limit Reached"
                 EncryptionTimedOut -> "Encryption Timed Out"
-                is Unknown -> error("Implemented in override fun")
+                // Handled via `Unknown` sub-classes (`toString` of `data class`).
+                is Unknown -> error("Unreachable")
             }
         }
 
@@ -131,7 +132,8 @@ public sealed class State {
         Connecting.Observes -> "Connecting.Observes"
         Connecting.Services -> "Connecting.Services"
         Disconnecting -> "Disconnecting"
-        is Disconnected ->  error("Implemented in override fun")
+        // Handled via `Disconnected` sub-classes (`toString` of `data class`).
+        is Disconnected ->  error("Unreachable")
     }
 }
 
