@@ -22,7 +22,7 @@ import kotlin.test.assertEquals
 
 public class StateStringTests {
 
-    private fun test(expected: String, actual: State) {
+    private fun test(expected: String, actual: Any) {
         assertEquals(expected, actual.toString())
     }
 
@@ -44,5 +44,14 @@ public class StateStringTests {
         test("Disconnected(Connection Limit Reached)", Disconnected(ConnectionLimitReached))
         test("Disconnected(Encryption Timed Out)", Disconnected(EncryptionTimedOut))
         test("Disconnected(133)", Disconnected(Unknown(133)))
+        test("Unknown(status=133)", Unknown(133))
     }
+
+}
+
+private infix fun State.assertToStringEquals(expected: String) {
+    assertEquals(
+        expected = expected,
+        actual = toString(),
+    )
 }
