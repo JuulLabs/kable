@@ -133,7 +133,7 @@ public sealed class State {
         Connecting.Services -> "Connecting.Services"
         Disconnecting -> "Disconnecting"
         // Handled via `Disconnected` sub-classes (`toString` of `data class`).
-        is Disconnected ->  error("Unreachable")
+        is Disconnected -> error("Unreachable")
     }
 }
 

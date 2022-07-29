@@ -41,7 +41,7 @@ public class StateStringTests {
         Disconnected(EncryptionTimedOut).assertEquals("Disconnected(Encryption Timed Out)")
         Disconnected(Unknown(133)).assertEquals("Disconnected(133)")
 
-        assertEquals("Unknown(status=133)",Unknown(133).toString(),)
+        assertEquals("Unknown(status=133)", Unknown(133).toString())
     }
 }
 
