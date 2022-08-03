@@ -314,6 +314,7 @@ public final class com/juul/kable/ServicesDiscoveredPeripheral {
 }
 
 public abstract class com/juul/kable/State {
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/juul/kable/State$Connected : com/juul/kable/State {
@@ -349,6 +350,7 @@ public final class com/juul/kable/State$Disconnected : com/juul/kable/State {
 }
 
 public abstract class com/juul/kable/State$Disconnected$Status {
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/juul/kable/State$Disconnected$Status$Cancelled : com/juul/kable/State$Disconnected$Status {
