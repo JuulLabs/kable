@@ -2,7 +2,7 @@
 android-compile = "30"
 android-min = "21"
 android-target = "30"
-atomicfu = "0.18.2"
+atomicfu = "0.18.3"
 coroutines = "1.6.4"
 kotlin = "1.7.10"
 tuulbox = "6.3.0"
