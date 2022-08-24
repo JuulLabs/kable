@@ -29,7 +29,7 @@ internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
     CentralManager.Default.delegate.state.map { state ->
         when (state) {
             CBCentralManagerStatePoweredOn -> Available
-            CBCentralManagerStatePoweredOff -> Unavailable(reason = Unknown)
+            CBCentralManagerStatePoweredOff -> Unavailable(reason = Off)
             CBCentralManagerStateResetting -> Unavailable(reason = Resetting)
             CBCentralManagerStateUnauthorized -> Unavailable(reason = Unauthorized)
             CBCentralManagerStateUnsupported -> Unavailable(reason = Unsupported)
