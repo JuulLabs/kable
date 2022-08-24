@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothAdapter.ACTION_STATE_CHANGED
 import android.bluetooth.BluetoothAdapter.ERROR
 import android.bluetooth.BluetoothAdapter.EXTRA_STATE
@@ -15,6 +16,7 @@ import com.juul.kable.Reason.TurningOff
 import com.juul.kable.Reason.TurningOn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 public actual enum class Reason {
     Off, // BluetoothAdapter.STATE_OFF
@@ -24,8 +26,16 @@ public actual enum class Reason {
 
 internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
     broadcastReceiverFlow(IntentFilter(ACTION_STATE_CHANGED))
-        .map { intent ->
-            when (val state = intent.getIntExtra(EXTRA_STATE, ERROR)) {
+        .map { intent -> intent.getIntExtra(EXTRA_STATE, ERROR) }
+        .onStart {
+            val state = when (BluetoothAdapter.getDefaultAdapter()?.isEnabled) {
+                true -> STATE_ON
+                else -> STATE_OFF
+            }
+            emit(state)
+        }
+        .map { state ->
+            when (state) {
                 STATE_ON -> Available
                 STATE_OFF -> Unavailable(reason = Off)
                 STATE_TURNING_OFF -> Unavailable(reason = TurningOff)
