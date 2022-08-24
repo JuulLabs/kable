@@ -105,7 +105,35 @@ public sealed class State {
 
             /** Catch-all for any statuses that are unknown for a platform. */
             public data class Unknown(val status: Int) : Status()
+
+            override fun toString(): String = when (this) {
+                PeripheralDisconnected -> "Peripheral Disconnected"
+                CentralDisconnected -> "Central Disconnected"
+                Failed -> "Failed"
+                L2CapFailure -> "L2Cap Failure"
+                Timeout -> "Timeout"
+                LinkManagerProtocolTimeout -> "LinkManager Protocol Timeout"
+                UnknownDevice -> "Unknown Device"
+                Cancelled -> "Cancelled"
+                ConnectionLimitReached -> "Connection Limit Reached"
+                EncryptionTimedOut -> "Encryption Timed Out"
+                // Handled via `Unknown` sub-classes (`toString` of `data class`).
+                is Unknown -> error("Unreachable")
+            }
         }
+
+        override fun toString(): String =
+            "Disconnected(${if (status is Status.Unknown) status.status else status.toString()})"
+    }
+
+    override fun toString(): String = when (this) {
+        Connected -> "Connected"
+        Connecting.Bluetooth -> "Connecting.Bluetooth"
+        Connecting.Observes -> "Connecting.Observes"
+        Connecting.Services -> "Connecting.Services"
+        Disconnecting -> "Disconnecting"
+        // Handled via `Disconnected` sub-classes (`toString` of `data class`).
+        is Disconnected -> error("Unreachable")
     }
 }
 
