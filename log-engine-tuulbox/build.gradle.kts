@@ -14,10 +14,12 @@ kotlin {
         publishAllLibraryVariants()
     }
     js().browser()
+
     iosX64()
     iosArm32()
     iosArm64()
     macosX64()
+    macosArm64()
 
     sourceSets {
         val commonMain by getting {

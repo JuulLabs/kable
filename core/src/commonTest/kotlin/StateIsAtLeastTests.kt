@@ -4,7 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-public class StateTests {
+public class StateIsAtLeastTests {
 
     @Test
     fun disconnected_isAtLeast_disconnected_is_true() {
