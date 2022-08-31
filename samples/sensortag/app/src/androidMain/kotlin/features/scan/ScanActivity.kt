@@ -2,6 +2,7 @@
 
 package com.juul.sensortag.features.scan
 
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.Manifest.permission.BLUETOOTH_SCAN
@@ -17,6 +18,7 @@ import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.BluetoothAdapter.STATE_TURNING_ON
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -48,7 +50,12 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -60,7 +67,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
-import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.juul.kable.Advertisement
 import com.juul.sensortag.AppTheme
@@ -97,18 +103,33 @@ class ScanActivity : ComponentActivity() {
                         ProvideTextStyle(
                             TextStyle(color = contentColorFor(backgroundColor = MaterialTheme.colors.background))
                         ) {
-                            val permissions = listOf(ACCESS_FINE_LOCATION, BLUETOOTH_SCAN, BLUETOOTH_CONNECT)
+                            val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                listOf(BLUETOOTH_SCAN, BLUETOOTH_CONNECT)
+                            } else {
+                                listOf(ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION)
+                            }
                             val permissionsState = rememberMultiplePermissionsState(permissions)
-                            PermissionsRequired(
-                                multiplePermissionsState = permissionsState,
-                                permissionsNotGrantedContent = { BluetoothPermissionsNotGranted(permissionsState) },
-                                permissionsNotAvailableContent = { BluetoothPermissionsNotAvailable(::openAppDetails) }
-                            ) {
+
+                            var didAskForPermission by remember { mutableStateOf(false) }
+                            if (!didAskForPermission) {
+                                didAskForPermission = true
+                                SideEffect {
+                                    permissionsState.launchMultiplePermissionRequest()
+                                }
+                            }
+
+                            if (permissionsState.allPermissionsGranted) {
                                 if (isBluetoothEnabled) {
                                     val advertisements = viewModel.advertisements.collectAsState().value
                                     AdvertisementsList(advertisements, ::onAdvertisementClicked)
                                 } else {
                                     BluetoothDisabled(::enableBluetooth)
+                                }
+                            } else {
+                                if (permissionsState.shouldShowRationale) {
+                                    BluetoothPermissionsNotGranted(permissionsState)
+                                } else {
+                                    BluetoothPermissionsNotAvailable(::openAppDetails)
                                 }
                             }
                         }
@@ -201,7 +222,9 @@ private fun ActionRequired(
         )
         Spacer(Modifier.size(8.dp))
         Text(
-            modifier = Modifier.fillMaxWidth().align(CenterHorizontally),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(CenterHorizontally),
             textAlign = TextAlign.Center,
             text = description,
         )
