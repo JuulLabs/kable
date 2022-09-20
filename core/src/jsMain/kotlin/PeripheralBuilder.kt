@@ -4,7 +4,7 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 
 public actual class ServicesDiscoveredPeripheral internal constructor(
-    private val peripheral: JsPeripheral
+    private val peripheral: JsPeripheral,
 ) {
 
     public actual suspend fun read(

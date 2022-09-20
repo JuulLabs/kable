@@ -103,7 +103,7 @@ public fun CoroutineScope.peripheral(
         cbPeripheral,
         builder.observationExceptionHandler,
         builder.onServicesDiscovered,
-        builder.logging
+        builder.logging,
     )
 }
 
@@ -203,7 +203,7 @@ public class ApplePeripheral internal constructor(
                 .map {
                     ObservationEvent.CharacteristicChange(
                         characteristic = it.cbCharacteristic.toLazyCharacteristic(),
-                        data = it.data
+                        data = it.data,
                     )
                 }
                 .onEach(observers.characteristicChanges::emit)

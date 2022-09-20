@@ -189,7 +189,7 @@ public class AndroidPeripheral internal constructor(
             _mtu,
             logging,
             threading,
-            invokeOnClose = { connectJob.value = null }
+            invokeOnClose = { connectJob.value = null },
         ) ?: throw ConnectionRejectedException()
     }
 

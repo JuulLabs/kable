@@ -18,7 +18,7 @@ internal external interface BluetoothRemoteGATTServer {
     fun getPrimaryServices(): Promise<Array<BluetoothRemoteGATTService>>
 
     fun getPrimaryServices(
-        service: BluetoothServiceUUID
+        service: BluetoothServiceUUID,
     ): Promise<Array<BluetoothRemoteGATTService>>
 }
 

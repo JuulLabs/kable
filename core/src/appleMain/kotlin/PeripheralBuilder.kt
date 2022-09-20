@@ -5,7 +5,7 @@ import com.juul.kable.logs.LoggingBuilder
 import kotlin.coroutines.cancellation.CancellationException
 
 public actual class ServicesDiscoveredPeripheral internal constructor(
-    private val peripheral: ApplePeripheral
+    private val peripheral: ApplePeripheral,
 ) {
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
