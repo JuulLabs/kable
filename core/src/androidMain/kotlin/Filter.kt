@@ -17,10 +17,10 @@ public actual sealed class Filter {
          * For any bit in the mask, set it to 1 if it needs to match the corresponding bit in [data], otherwise set it
          * to 0. [dataMask] must have the same length as [data].
          */
-        public val dataMask: ByteArray?
+        public val dataMask: ByteArray?,
     ) : Filter()
 
     public actual class Service actual constructor(
-        public actual val uuid: Uuid
+        public actual val uuid: Uuid,
     ) : Filter()
 }

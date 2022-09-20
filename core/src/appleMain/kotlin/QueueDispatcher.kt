@@ -8,7 +8,7 @@ import platform.darwin.dispatch_sync
 import kotlin.coroutines.CoroutineContext
 
 internal class QueueDispatcher(
-    label: String
+    label: String,
 ) : CoroutineDispatcher() {
 
     val dispatchQueue: dispatch_queue_t = dispatch_queue_create(label, attr = null)

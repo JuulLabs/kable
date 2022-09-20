@@ -41,7 +41,9 @@ private suspend fun CentralManager.awaitPoweredOn() {
         .onEach {
             if (it == CBManagerStateUnsupported ||
                 it == CBManagerStateUnauthorized
-            ) error("Invalid bluetooth state: $it")
+            ) {
+                error("Invalid bluetooth state: $it")
+            }
         }
         .first { it == CBManagerStatePoweredOn }
 }

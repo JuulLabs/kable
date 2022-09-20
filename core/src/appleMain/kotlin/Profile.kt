@@ -8,8 +8,10 @@ import platform.CoreBluetooth.CBService
 
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformService = CBService
+
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformCharacteristic = CBCharacteristic
+
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformDescriptor = CBDescriptor
 

@@ -10,8 +10,10 @@ import com.juul.kable.Characteristic.Properties
 
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformService = BluetoothGattService
+
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformCharacteristic = BluetoothGattCharacteristic
+
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformDescriptor = BluetoothGattDescriptor
 

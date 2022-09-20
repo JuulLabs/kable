@@ -22,5 +22,5 @@ internal fun UUID.toUuid(): Uuid =
         when (length) {
             UUID_ALIAS_STRING_LENGTH -> BluetoothUUID.canonicalUUID(toInt(16))
             else -> this
-        }
+        },
     )
