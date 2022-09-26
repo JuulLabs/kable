@@ -4,9 +4,6 @@ on:
     types:
       - published
 
-env:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-
 jobs:
   publish:
     runs-on: macos-11
@@ -34,18 +31,12 @@ jobs:
       - run: ./gradlew check
       - run: >-
           ./gradlew
-          --no-parallel
           -PVERSION_NAME="${GITHUB_REF/refs\/tags\//}"
           -PsigningInMemoryKey="${{ secrets.SIGNING_KEY }}"
           -PsigningInMemoryKeyPassword="${{ secrets.SIGNING_PASSWORD }}"
           -PmavenCentralUsername="${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}"
           -PmavenCentralPassword="${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}"
           publish
-      - run: >-
-          ./gradlew
-          -PmavenCentralUsername="${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}"
-          -PmavenCentralPassword="${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}"
-          closeAndReleaseRepository
 
       - run: |
           rm -f ~/.gradle/caches/modules-2/modules-2.lock
