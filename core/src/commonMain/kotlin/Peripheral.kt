@@ -62,6 +62,12 @@ public interface Peripheral {
     public val state: StateFlow<State>
 
     /**
+     * The peripheral name, as provided by the underlying bluetooth system. This value is system dependent
+     * and is not necessarily the Generic Access Profile (GAP) device name.
+     */
+    public val name: String?
+
+    /**
      * Initiates a connection, suspending until connected, or failure occurs. Multiple concurrent invocations will all
      * suspend until connected (or failure occurs). If already connected, then returns immediately.
      *

@@ -92,6 +92,8 @@ public class JsPeripheral internal constructor(
 
     private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
 
+    override val name: String? get() = bluetoothDevice.name
+
     public override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
         check(supportsAdvertisements) { "watchAdvertisements unavailable" }
 

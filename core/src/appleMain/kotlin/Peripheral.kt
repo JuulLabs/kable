@@ -171,6 +171,8 @@ public class ApplePeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
+    override val name: String? get() = cbPeripheral.name
+
     private fun onDisconnected() {
         logger.info { message = "Disconnected" }
         connectJob.value?.cancel()
