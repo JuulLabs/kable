@@ -11,8 +11,10 @@ import platform.posix.memcpy
 
 // https://stackoverflow.com/a/58521109
 internal fun NSData.toByteArray(): ByteArray = ByteArray(length.toInt()).apply {
-    usePinned {
-        memcpy(it.addressOf(0), bytes, length)
+    if (length > 0u) {
+        usePinned {
+            memcpy(it.addressOf(0), bytes, length)
+        }
     }
 }
 
