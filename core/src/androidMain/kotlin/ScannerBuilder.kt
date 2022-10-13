@@ -17,6 +17,7 @@ public actual class ScannerBuilder {
         get() = filters?.filterIsInstance<Filter.Service>()?.map { it.uuid }
 
     public actual var filters: List<Filter>? = null
+    public actual var scanOptions: Map<Any?, *>? = null
 
     /**
      * Allows for the [Scanner] to be configured via Android's [ScanSettings].
