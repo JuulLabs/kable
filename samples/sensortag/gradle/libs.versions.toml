@@ -11,7 +11,7 @@ exercise = "0.11.0"
 kable = "0.18.1"
 kotlin = "1.7.20"
 krayon = "0.12.1"
-ksp = "1.7.10-1.0.6"
+ksp = "1.7.20-1.0.7"
 tuulbox = "6.3.0"
 
 [libraries]
