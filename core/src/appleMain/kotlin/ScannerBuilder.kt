@@ -16,7 +16,14 @@ public actual class ScannerBuilder {
         get() = filters?.filterIsInstance<Filter.Service>()?.map { it.uuid }
 
     public actual var filters: List<Filter>? = null
-    public actual var scanOptions: Map<Any?, *>? = null
+
+    /**
+     * Scanning options for Apple's CBCentralManager.scanForPeripherals(withServices:options:).
+     * This enables peripheral scanning options such as CBCentralManagerScanOptionAllowDuplicatesKey
+     * to be specified when scanning begins.
+     */
+    public var scanOptions: Map<Any?, *>? = null
+
     private var logging: Logging = Logging()
 
     public actual fun logging(init: LoggingBuilder) {
