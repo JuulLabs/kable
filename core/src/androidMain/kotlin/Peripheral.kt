@@ -180,6 +180,8 @@ public class AndroidPeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
+    override val name: String? get() = bluetoothDevice.name
+
     private fun establishConnection(): Connection {
         logger.info { message = "Connecting" }
         return bluetoothDevice.connect(
@@ -190,7 +192,7 @@ public class AndroidPeripheral internal constructor(
             _mtu,
             logging,
             threading,
-            invokeOnClose = { connectJob.value = null }
+            invokeOnClose = { connectJob.value = null },
         ) ?: throw ConnectionRejectedException()
     }
 

@@ -68,7 +68,7 @@ internal class Connection(
         // method gets called out of order then we'll cast to the wrong response type.
         response as? T
             ?: throw OutOfOrderGattCallbackException(
-                "Unexpected response type ${response.javaClass.simpleName} received"
+                "Unexpected response type ${response.javaClass.simpleName} received",
             )
     }
 

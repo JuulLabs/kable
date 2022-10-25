@@ -103,7 +103,7 @@ public fun CoroutineScope.peripheral(
         cbPeripheral,
         builder.observationExceptionHandler,
         builder.onServicesDiscovered,
-        builder.logging
+        builder.logging,
     )
 }
 
@@ -171,6 +171,8 @@ public class ApplePeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
+    override val name: String? get() = cbPeripheral.name
+
     private fun onDisconnected() {
         logger.info { message = "Disconnected" }
         connectJob.value?.cancel()
@@ -203,7 +205,7 @@ public class ApplePeripheral internal constructor(
                 .map {
                     ObservationEvent.CharacteristicChange(
                         characteristic = it.cbCharacteristic.toLazyCharacteristic(),
-                        data = it.data
+                        data = it.data,
                     )
                 }
                 .onEach(observers.characteristicChanges::emit)

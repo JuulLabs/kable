@@ -75,8 +75,9 @@ internal class Observers<T>(
             }
             .filter { event -> event.isAssociatedWith(characteristic) }
             .onEach { event ->
-                if (event is Error)
+                if (event is Error) {
                     exceptionHandler(ObservationExceptionPeripheral(peripheral), event.cause)
+                }
             }
             .mapNotNull { event -> (event as? CharacteristicChange)?.data }
             .onCompletion {
@@ -91,7 +92,7 @@ internal class Observers<T>(
     }
 
     suspend fun onConnected() {
-        observations.entries.forEach { (characteristic, observation) ->
+        observations.entries.forEach { (_, observation) ->
             // Pipe failures to `characteristicChanges` while honoring in-flight connection cancellations.
             try {
                 observation.onConnected()
@@ -105,7 +106,7 @@ internal class Observers<T>(
 }
 
 private class Observations : IsolateState<MutableMap<Characteristic, Observation>>(
-    producer = { mutableMapOf() }
+    producer = { mutableMapOf() },
 ) {
 
     val entries: List<Pair<Characteristic, Observation>>
@@ -118,7 +119,7 @@ private class Observations : IsolateState<MutableMap<Characteristic, Observation
 
     fun getOrPut(
         characteristic: Characteristic,
-        defaultValue: () -> Observation
+        defaultValue: () -> Observation,
     ): Observation = access { observations ->
         observations.getOrPut(characteristic, defaultValue)
     }

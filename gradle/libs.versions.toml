@@ -2,7 +2,7 @@
 android-compile = "30"
 android-min = "21"
 android-target = "30"
-atomicfu = "0.18.2"
+atomicfu = "0.18.4"
 coroutines = "1.6.4"
 kotlin = "1.7.10"
 tuulbox = "6.3.0"
@@ -19,10 +19,10 @@ tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "
 uuid = { module = "com.benasher44:uuid", version = "0.5.0" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "7.2.1" }
+android-library = { id = "com.android.library", version = "7.3.1" }
 atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
-dokka = { id = "org.jetbrains.dokka", version = "1.7.10" }
+dokka = { id = "org.jetbrains.dokka", version = "1.7.20" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinter = { id = "org.jmailen.kotlinter", version = "3.10.0" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.21.0" }
+kotlinter = { id = "org.jmailen.kotlinter", version = "3.12.0" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.22.0" }
 validator = { id = "binary-compatibility-validator", version = "0.5.0" }

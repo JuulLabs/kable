@@ -92,6 +92,8 @@ public class JsPeripheral internal constructor(
 
     private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
 
+    override val name: String? get() = bluetoothDevice.name
+
     public override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
         check(supportsAdvertisements) { "watchAdvertisements unavailable" }
 
@@ -239,7 +241,7 @@ public class JsPeripheral internal constructor(
     }
 
     public suspend fun readAsDataView(
-        characteristic: Characteristic
+        characteristic: Characteristic,
     ): DataView {
         val platformCharacteristic = discoveredServices.obtain(characteristic, Read)
         val value = ioLock.withLock {
@@ -254,14 +256,14 @@ public class JsPeripheral internal constructor(
     }
 
     public override suspend fun read(
-        characteristic: Characteristic
+        characteristic: Characteristic,
     ): ByteArray = readAsDataView(characteristic)
         .buffer
         .toByteArray()
 
     public override suspend fun write(
         descriptor: Descriptor,
-        data: ByteArray
+        data: ByteArray,
     ) {
         logger.debug {
             message = "write"
@@ -276,7 +278,7 @@ public class JsPeripheral internal constructor(
     }
 
     public suspend fun readAsDataView(
-        descriptor: Descriptor
+        descriptor: Descriptor,
     ): DataView {
         val platformDescriptor = discoveredServices.obtain(descriptor)
         val value = ioLock.withLock {
@@ -291,7 +293,7 @@ public class JsPeripheral internal constructor(
     }
 
     public override suspend fun read(
-        descriptor: Descriptor
+        descriptor: Descriptor,
     ): ByteArray = readAsDataView(descriptor)
         .buffer
         .toByteArray()
@@ -395,8 +397,9 @@ public class JsPeripheral internal constructor(
         }
         val characteristicChange = ObservationEvent.CharacteristicChange(this, data)
 
-        if (!observers.characteristicChanges.tryEmit(characteristicChange))
+        if (!observers.characteristicChanges.tryEmit(characteristicChange)) {
             console.error("Failed to emit $characteristicChange")
+        }
     }
 
     private fun registerDisconnectedListener() {

@@ -57,6 +57,6 @@ private fun ByteArray.toManufacturerData(): ManufacturerData? =
     takeIf { size >= 2 }?.getShortAt(0)?.let { code ->
         ManufacturerData(
             code.toInt(),
-            if (size > 2) slice(2 until size).toByteArray() else byteArrayOf()
+            if (size > 2) slice(2 until size).toByteArray() else byteArrayOf(),
         )
     }

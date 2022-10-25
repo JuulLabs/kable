@@ -41,15 +41,17 @@ public fun CoroutineScope.requestPeripheral(
  *   optionalServices: ['battery_service']
  * }
  * ```
+ *
+ * _Note: Web BLE has a limitation that requires all UUIDS to be lowercase so we enforce that here._
  */
 private fun Options.toDynamic(): dynamic = if (filters == null) {
     jso {
         this.acceptAllDevices = true
-        this.optionalServices = optionalServices
+        this.optionalServices = optionalServices.lowercase()
     }
 } else {
     jso {
-        this.optionalServices = optionalServices
+        this.optionalServices = optionalServices.lowercase()
         this.filters = filters.map { it.toDynamic() }.toTypedArray()
     }
 }
@@ -58,5 +60,7 @@ private fun Options.Filter.toDynamic(): dynamic =
     when (this) {
         is Name -> jso { this.name = name }
         is NamePrefix -> jso { this.namePrefix = namePrefix }
-        is Services -> jso { this.services = services }
+        is Services -> jso { this.services = services.lowercase() }
     }
+
+private fun Array<String>.lowercase(): Array<String> = map { it.lowercase() }.toTypedArray()

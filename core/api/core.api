@@ -17,6 +17,7 @@ public final class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral 
 	public fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getName ()Ljava/lang/String;
 	public fun getServices ()Ljava/util/List;
 	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
@@ -205,6 +206,7 @@ public final class com/juul/kable/OutOfOrderGattCallbackException : java/lang/Il
 public abstract interface class com/juul/kable/Peripheral {
 	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getServices ()Ljava/util/List;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
@@ -314,6 +316,7 @@ public final class com/juul/kable/ServicesDiscoveredPeripheral {
 }
 
 public abstract class com/juul/kable/State {
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/juul/kable/State$Connected : com/juul/kable/State {
@@ -349,6 +352,7 @@ public final class com/juul/kable/State$Disconnected : com/juul/kable/State {
 }
 
 public abstract class com/juul/kable/State$Disconnected$Status {
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/juul/kable/State$Disconnected$Status$Cancelled : com/juul/kable/State$Disconnected$Status {

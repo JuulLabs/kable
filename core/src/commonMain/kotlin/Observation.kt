@@ -55,10 +55,14 @@ internal class Observation(
     }
 
     suspend fun onConnected() = mutex.withLock {
-        if (hasSubscribers && isConnected) {
-            suppressConnectionExceptions {
-                startObservation()
-                subscribers.forEach { it() }
+        if (isConnected) {
+            if (hasSubscribers) {
+                suppressConnectionExceptions {
+                    startObservation()
+                    subscribers.forEach { it() }
+                }
+            } else {
+                didStartObservation = false
             }
         }
     }
