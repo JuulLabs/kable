@@ -3,6 +3,8 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
+import platform.CoreBluetooth.CBCentralManagerScanOptionAllowDuplicatesKey
+import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
 
 public actual class ScannerBuilder {
     @Deprecated(
@@ -17,7 +19,18 @@ public actual class ScannerBuilder {
 
     public actual var filters: List<Filter>? = null
 
-    public var scanOptions: AppleScanner.ScanOptions? = null
+    /**
+     * Specifies whether the scan should run without duplicate filtering. This corresponds to
+     * Apple's CBCentralManagerScanOptionAllowDuplicatesKey scanning option.
+     */
+    public var allowDuplicateKeys: Boolean? = null
+
+    /**
+     * Causes the scanner to scan for peripherals soliciting any of the services contained in the
+     * array. This corresponds to Apple's CBCentralManagerScanOptionSolicitedServiceUUIDsKey
+     * scanning option.
+     */
+    public var solicitedServiceUuids: List<Uuid>? = null
 
     private var logging: Logging = Logging()
 
@@ -25,10 +38,20 @@ public actual class ScannerBuilder {
         logging = Logging().apply(init)
     }
 
-    internal actual fun build(): Scanner = AppleScanner(
-        central = CentralManager.Default,
-        services = filters?.filterIsInstance<Filter.Service>()?.map { it.uuid },
-        options = scanOptions,
-        logging = logging,
-    )
+    internal actual fun build(): Scanner {
+        val options = mutableMapOf<String, Any>()
+        allowDuplicateKeys?.also {
+            options[CBCentralManagerScanOptionAllowDuplicatesKey] = it
+        }
+        solicitedServiceUuids?.also {
+            options[CBCentralManagerScanOptionSolicitedServiceUUIDsKey] = it.toTypedArray()
+        }
+
+        return AppleScanner(
+            central = CentralManager.Default,
+            services = filters?.filterIsInstance<Filter.Service>()?.map { it.uuid },
+            options = options.toMap(),
+            logging = logging,
+        )
+    }
 }

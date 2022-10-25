@@ -10,8 +10,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import platform.CoreBluetooth.CBCentralManagerScanOptionAllowDuplicatesKey
-import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
 import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.CoreBluetooth.CBManagerStateUnauthorized
 import platform.CoreBluetooth.CBManagerStateUnsupported
@@ -19,7 +17,7 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 public class AppleScanner internal constructor(
     central: CentralManager,
     services: List<Uuid>?,
-    private val options: ScanOptions?,
+    options: Map<Any?, *>?,
     logging: Logging,
 ) : Scanner {
 
@@ -28,7 +26,7 @@ public class AppleScanner internal constructor(
             .response
             .onStart {
                 central.awaitPoweredOn()
-                central.scanForPeripheralsWithServices(services, options = appleOptions())
+                central.scanForPeripheralsWithServices(services, options = options)
             }
             .onCompletion {
                 central.stopScan()
@@ -37,32 +35,6 @@ public class AppleScanner internal constructor(
             .map { (cbPeripheral, rssi, advertisementData) ->
                 Advertisement(rssi.intValue, advertisementData, cbPeripheral)
             }
-
-    private fun appleOptions(): Map<Any?, *>? =
-        options?.let {
-            mapOf(
-                CBCentralManagerScanOptionAllowDuplicatesKey to it.allowDuplicateKeys,
-                CBCentralManagerScanOptionSolicitedServiceUUIDsKey to it.solicitedServiceUuids,
-            )
-        }
-
-    /**
-     * Scanning options for Apple's CBCentralManager.scanForPeripherals(withServices:options:).
-     * This enables peripheral scanning options such as CBCentralManagerScanOptionAllowDuplicatesKey
-     * to be specified when scanning begins.
-     */
-    public data class ScanOptions(
-        /**
-         * Specifies whether the scan should run without duplicate filtering. Default is false.
-         */
-        val allowDuplicateKeys: Boolean = false,
-
-        /**
-         * Causes the scanner to scan for peripherals soliciting any of the services contained
-         * in the array.
-         */
-        val solicitedServiceUuids: List<Uuid> = emptyList(),
-    )
 }
 
 private suspend fun CentralManager.awaitPoweredOn() {
