@@ -17,12 +17,7 @@ public actual class ScannerBuilder {
 
     public actual var filters: List<Filter>? = null
 
-    /**
-     * Scanning options for Apple's CBCentralManager.scanForPeripherals(withServices:options:).
-     * This enables peripheral scanning options such as CBCentralManagerScanOptionAllowDuplicatesKey
-     * to be specified when scanning begins.
-     */
-    public var scanOptions: Map<Any?, *>? = null
+    public var scanOptions: AppleScanner.ScanOptions? = null
 
     private var logging: Logging = Logging()
 
