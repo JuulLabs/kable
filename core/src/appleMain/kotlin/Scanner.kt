@@ -39,13 +39,11 @@ public class AppleScanner internal constructor(
             }
 
     private fun appleOptions(): Map<Any?, *>? =
-        if (options != null) {
+        options?.let {
             mapOf(
-                CBCentralManagerScanOptionAllowDuplicatesKey to options.allowDuplicateKeys,
-                CBCentralManagerScanOptionSolicitedServiceUUIDsKey to options.solicitedServiceUuids,
+                CBCentralManagerScanOptionAllowDuplicatesKey to it.allowDuplicateKeys,
+                CBCentralManagerScanOptionSolicitedServiceUUIDsKey to it.solicitedServiceUuids,
             )
-        } else {
-            null
         }
 
     /**
