@@ -27,7 +27,7 @@ public actual class ScannerBuilder {
 
     /**
      * Causes the scanner to scan for peripherals soliciting any of the services contained in the
-     * array. This corresponds to Apple's CBCentralManagerScanOptionSolicitedServiceUUIDsKey
+     * array. This corresponds to Core Bluetooth's [CBCentralManagerScanOptionSolicitedServiceUUIDsKey]
      * scanning option.
      */
     public var solicitedServiceUuids: List<Uuid>? = null
