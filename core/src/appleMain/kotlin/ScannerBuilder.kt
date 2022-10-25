@@ -21,7 +21,7 @@ public actual class ScannerBuilder {
 
     /**
      * Specifies whether the scan should run without duplicate filtering. This corresponds to
-     * Apple's CBCentralManagerScanOptionAllowDuplicatesKey scanning option.
+     * Core Bluetooth's [CBCentralManagerScanOptionAllowDuplicatesKey] scanning option.
      */
     public var allowDuplicateKeys: Boolean? = null
 
