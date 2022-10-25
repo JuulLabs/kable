@@ -17,6 +17,7 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 public class AppleScanner internal constructor(
     central: CentralManager,
     services: List<Uuid>?,
+    options: Map<Any?, *>?,
     logging: Logging,
 ) : Scanner {
 
@@ -25,7 +26,7 @@ public class AppleScanner internal constructor(
             .response
             .onStart {
                 central.awaitPoweredOn()
-                central.scanForPeripheralsWithServices(services, options = null)
+                central.scanForPeripheralsWithServices(services, options = options)
             }
             .onCompletion {
                 central.stopScan()
