@@ -36,6 +36,7 @@ internal class Connection(
         pending = true
         action.invoke()
         val response = delegate.response.receive()
+        pending = false
         val error = response.error
         if (error != null) throw IOException(error.description, cause = null)
         response as T
