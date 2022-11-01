@@ -173,6 +173,8 @@ public class ApplePeripheral internal constructor(
 
     override val name: String? get() = cbPeripheral.name
 
+    override val identifier: String? get() = platformIdentifier
+
     private fun onDisconnected() {
         logger.info { message = "Disconnected" }
         connectJob.value?.cancel()

@@ -68,6 +68,12 @@ public interface Peripheral {
     public val name: String?
 
     /**
+     * The peripheral identifier, as provided by the underlying bluetooth system.
+     * This value is platform dependent (for example, on Android this is the MAC Address).
+     */
+    public val identifier: String?
+
+    /**
      * Initiates a connection, suspending until connected, or failure occurs. Multiple concurrent invocations will all
      * suspend until connected (or failure occurs). If already connected, then returns immediately.
      *

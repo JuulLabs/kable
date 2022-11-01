@@ -181,6 +181,8 @@ public class AndroidPeripheral internal constructor(
 
     override val name: String? get() = bluetoothDevice.name
 
+    override val identifier: String? get() = platformIdentifier
+
     private fun establishConnection(): Connection {
         logger.info { message = "Connecting" }
         return bluetoothDevice.connect(
