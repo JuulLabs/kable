@@ -121,6 +121,12 @@ public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
 public abstract class com/juul/kable/Filter {
 }
 
+public final class com/juul/kable/Filter$DeviceInfo : com/juul/kable/Filter {
+	public fun <init> ()V
+	public final fun getAddress ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+}
+
 public final class com/juul/kable/Filter$ManufacturerData : com/juul/kable/Filter {
 	public fun <init> (I[B[B)V
 	public final fun getData ()[B

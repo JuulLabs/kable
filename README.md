@@ -56,13 +56,16 @@ val advertisement = Scanner()
 
 ### Android
 
-Scan results can be filtered by manufacturer data using the same ID, data, and data mask that you would use with the
-[Android API](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[])):
+Scan results can be filtered either by manufacturer data using the same ID, data, and data mask that you would use with the
+[Android API](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[]))
+either by [Device Name](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String))
+either by [Device Address](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceAddress(java.lang.String)):
 
 ```kotlin
 val scanner = Scanner {
     filters = listOf(
-        Filter.ManufacturerData(id = 1, data = byteArrayOf(), dataMask = byteArrayOf())
+        Filter.ManufacturerData(id = 1, data = byteArrayOf(), dataMask = byteArrayOf()),
+        DeviceInfo(address = "deviceAddress", name = "deviceName")
     )
 }
 ``` 
