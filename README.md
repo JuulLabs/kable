@@ -65,7 +65,8 @@ either by [Device Address](https://developer.android.com/reference/android/bluet
 val scanner = Scanner {
     filters = listOf(
         Filter.ManufacturerData(id = 1, data = byteArrayOf(), dataMask = byteArrayOf()),
-        DeviceInfo(address = "deviceAddress", name = "deviceName")
+        Filter.Address(address = "deviceAddress"),
+        Filter.Name(name = "deviceName")
     )
 }
 ``` 

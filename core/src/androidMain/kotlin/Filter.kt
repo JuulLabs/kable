@@ -23,7 +23,7 @@ public actual sealed class Filter {
     /**
      * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
      */
-    public actual data class Name actual constructor(
+    public data class Name(
         public val name: String,
     ) : Filter()
 
