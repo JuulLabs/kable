@@ -8,15 +8,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.shareIn
 
 private val intentFilter = IntentFilter(ACTION_STATE_CHANGED)
 
-@OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class)
 internal val bluetoothState = callbackFlow {
     val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -25,7 +25,7 @@ internal val bluetoothState = callbackFlow {
         }
     }
     applicationContext.registerReceiver(receiver, intentFilter)
-    invokeOnClose {
+    awaitClose {
         applicationContext.unregisterReceiver(receiver)
     }
 }.shareIn(GlobalScope, started = WhileSubscribed(replayExpirationMillis = 0))
