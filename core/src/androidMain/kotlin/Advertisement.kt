@@ -22,7 +22,7 @@ public actual class Advertisement(
         get() = scanResult.device
 
     public actual val name: String?
-        get() = bluetoothDevice.name
+        get() = scanResult.scanRecord?.deviceName ?: bluetoothDevice.name
 
     public val address: String
         get() = bluetoothDevice.address
