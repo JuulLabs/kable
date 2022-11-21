@@ -15,7 +15,6 @@ public actual class Advertisement internal constructor(
     public actual val name: String?
         get() = bluetoothDevice.name
 
-    /** On JavaScript, this property is the same as [name]. */
     public actual val peripheralName: String?
         get() = name
 
