@@ -13,8 +13,8 @@ public expect class Advertisement {
     public val name: String?
 
     /**
-     * It is recommended that [name] be used instead, as the backing value for [peripheralName] may differ significantly
-     * between the various platforms.
+     * It is recommended that [name] be used instead, as the backing value for [peripheralName] may differ between the
+     * various platforms.
      *
      * On Apple, this may be a shortened version of the peripheral name.
      *
