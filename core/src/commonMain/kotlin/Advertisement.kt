@@ -3,9 +3,12 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 
 public expect class Advertisement {
+
     /**
      * The name in the Advertisement.
-     * The same as, or a shortened version of, the local name assigned to the device
+     *
+     * The data source for this property changed in 0.21.0, for the previous (often cached) data source for the name,
+     * use [peripheralName].
      */
     public val name: String?
 
