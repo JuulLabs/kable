@@ -35,7 +35,7 @@ public actual data class Advertisement(
      *
      * https://developer.apple.com/forums/thread/72343
      */
-    public val peripheralName: String?
+    public actual val peripheralName: String?
         get() = cbPeripheral.name
 
     public actual val txPower: Int?

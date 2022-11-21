@@ -31,7 +31,7 @@ public actual class Advertisement(
      *
      * @see BluetoothDevice.getName
      */
-    public val cachedName: String?
+    public actual val peripheralName: String?
         get() = bluetoothDevice.name
 
     public val address: String
