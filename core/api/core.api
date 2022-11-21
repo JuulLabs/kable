@@ -3,6 +3,7 @@ public final class com/juul/kable/Advertisement {
 	public final fun getAddress ()Ljava/lang/String;
 	public final fun getBondState ()Lcom/juul/kable/BondState;
 	public final fun getBytes ()[B
+	public final fun getCachedName ()Ljava/lang/String;
 	public final fun getManufacturerData ()Lcom/juul/kable/ManufacturerData;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getRssi ()I

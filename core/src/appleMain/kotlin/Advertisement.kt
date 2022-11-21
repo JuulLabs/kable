@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
+import platform.CoreBluetooth.CBAdvertisementDataLocalNameKey
 import platform.CoreBluetooth.CBAdvertisementDataManufacturerDataKey
 import platform.CoreBluetooth.CBAdvertisementDataServiceDataKey
 import platform.CoreBluetooth.CBAdvertisementDataServiceUUIDsKey
@@ -21,6 +22,20 @@ public actual data class Advertisement(
         get() = cbPeripheral.identifier
 
     public actual val name: String?
+        get() = data[CBAdvertisementDataLocalNameKey] as? String
+
+    /**
+     * The [peripheralName] property may contain either advertising, or GAP name, dependent on various conditions:
+     *
+     * | Condition(s)                               | `gapName` value                                      |
+     * |--------------------------------------------|------------------------------------------------------|
+     * | Initial peripheral discovery (active scan) | `advertisementData(CBAdvertisementDataLocalNameKey)` |
+     * | Connected to peripheral                    | GAP name                                             |
+     * | Subsequent discovery (disconnected)        | GAP name (from cache)                                |
+     *
+     * https://developer.apple.com/forums/thread/72343
+     */
+    public val peripheralName: String?
         get() = cbPeripheral.name
 
     public actual val txPower: Int?

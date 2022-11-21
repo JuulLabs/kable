@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.BOND_BONDED
 import android.bluetooth.BluetoothDevice.BOND_BONDING
 import android.bluetooth.BluetoothDevice.BOND_NONE
+import android.bluetooth.le.ScanRecord
 import android.bluetooth.le.ScanResult
 import android.os.ParcelUuid
 import com.benasher44.uuid.Uuid
@@ -21,8 +22,17 @@ public actual class Advertisement(
     internal val bluetoothDevice: BluetoothDevice
         get() = scanResult.device
 
+    /** @see ScanRecord.getDeviceName */
     public actual val name: String?
-        get() = scanResult.scanRecord?.deviceName ?: bluetoothDevice.name
+        get() = scanResult.scanRecord?.deviceName
+
+    /**
+     * Retrieves the cached name from the local adapter. The local adapter caches the remote names during a device scan.
+     *
+     * @see BluetoothDevice.getName
+     */
+    public val cachedName: String?
+        get() = bluetoothDevice.name
 
     public val address: String
         get() = bluetoothDevice.address
