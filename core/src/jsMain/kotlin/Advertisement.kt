@@ -13,10 +13,10 @@ public actual class Advertisement internal constructor(
         get() = advertisement.device
 
     public actual val name: String?
-        get() = bluetoothDevice.name
+        get() = advertisement.name
 
     public actual val peripheralName: String?
-        get() = name
+        get() = bluetoothDevice.name
 
     public actual val rssi: Int
         get() = advertisement.rssi ?: Int.MIN_VALUE
