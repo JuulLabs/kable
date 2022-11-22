@@ -5,7 +5,7 @@ android-target = "30"
 atomicfu = "0.18.5"
 coroutines = "1.6.4"
 kotlin = "1.7.20"
-tuulbox = "6.3.0"
+tuulbox = "6.4.0"
 
 [libraries]
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.1" }
