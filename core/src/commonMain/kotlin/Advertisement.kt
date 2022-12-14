@@ -22,6 +22,9 @@ public expect class Advertisement {
      */
     public val peripheralName: String?
 
+    /** Returns if the peripheral is connectable. */
+    public val isConnectable: Boolean?
+
     /**
      * The received signal strength, in dBm, of the packet received.
      *

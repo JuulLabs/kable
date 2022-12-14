@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
+import platform.CoreBluetooth.CBAdvertisementDataIsConnectable
 import platform.CoreBluetooth.CBAdvertisementDataLocalNameKey
 import platform.CoreBluetooth.CBAdvertisementDataManufacturerDataKey
 import platform.CoreBluetooth.CBAdvertisementDataServiceDataKey
@@ -37,6 +38,10 @@ public actual data class Advertisement(
      */
     public actual val peripheralName: String?
         get() = cbPeripheral.name
+
+    /** https://developer.apple.com/documentation/corebluetooth/cbadvertisementdataisconnectable */
+    public actual val isConnectable: Boolean?
+        get() = data[CBAdvertisementDataIsConnectable] as? Boolean
 
     public actual val txPower: Int?
         get() = (data[CBAdvertisementDataTxPowerLevelKey] as? NSNumber)?.intValue
