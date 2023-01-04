@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -16,6 +17,6 @@ public fun broadcastReceiverFlow(
             if (intent != null) trySend(intent)
         }
     }
-    applicationContext.registerReceiver(broadcastReceiver, intentFilter)
+    ContextCompat.registerReceiver(applicationContext, broadcastReceiver, intentFilter, 0)
     awaitClose { applicationContext.unregisterReceiver(broadcastReceiver) }
 }

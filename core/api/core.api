@@ -307,6 +307,7 @@ public final class com/juul/kable/ProfileKt {
 }
 
 public final class com/juul/kable/Reason : java/lang/Enum {
+	public static final field LocationServicesDisabled Lcom/juul/kable/Reason;
 	public static final field Off Lcom/juul/kable/Reason;
 	public static final field TurningOff Lcom/juul/kable/Reason;
 	public static final field TurningOn Lcom/juul/kable/Reason;
