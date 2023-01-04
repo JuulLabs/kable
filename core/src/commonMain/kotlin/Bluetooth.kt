@@ -8,7 +8,9 @@ public object Bluetooth {
 
     public sealed class Availability {
 
-        public object Available : Availability()
+        public object Available : Availability() {
+            override fun toString(): String = "Available"
+        }
 
         public data class Unavailable(val reason: Reason?) : Availability()
     }

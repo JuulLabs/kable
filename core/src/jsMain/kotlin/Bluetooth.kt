@@ -5,21 +5,31 @@ import com.juul.kable.Bluetooth.Availability.Unavailable
 import com.juul.kable.Options.Filter.Name
 import com.juul.kable.Options.Filter.NamePrefix
 import com.juul.kable.Options.Filter.Services
+import com.juul.kable.Reason.BluetoothUndefined
+import com.juul.kable.external.BluetoothAvailabilityChanged
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.onStart
+import org.w3c.dom.events.Event
 import kotlin.js.Promise
 import com.juul.kable.external.Bluetooth as JsBluetooth
 
-public actual enum class Reason
+public actual enum class Reason {
+    /** `window.navigator.bluetooth` is undefined. */
+    BluetoothUndefined,
+}
 
 private const val AVAILABILITY_CHANGED = "availabilitychanged"
 
 internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> = callbackFlow {
+    if (safeWebBluetooth == null) return@callbackFlow
+
     // https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/onavailabilitychanged
-    val listener: (dynamic) -> Unit = { event ->
-        val isAvailable = event.value as Boolean
+    val listener: (Event) -> Unit = { event ->
+        val isAvailable = event.unsafeCast<BluetoothAvailabilityChanged>().value
         trySend(if (isAvailable) Available else Unavailable(reason = null))
     }
 
@@ -29,6 +39,14 @@ internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> = callba
             removeEventListener(AVAILABILITY_CHANGED, listener)
         }
     }
+}.onStart {
+    val availability = if (safeWebBluetooth == null) {
+        Unavailable(reason = BluetoothUndefined)
+    } else {
+        val isAvailable = bluetooth.getAvailability().await()
+        if (isAvailable) Available else Unavailable(reason = null)
+    }
+    emit(availability)
 }
 
 // Deliberately NOT cast `as Bluetooth` to avoid potential class name collisions.

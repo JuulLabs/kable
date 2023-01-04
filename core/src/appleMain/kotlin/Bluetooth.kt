@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.juul.kable.Bluetooth.Availability.Available
 import com.juul.kable.Bluetooth.Availability.Unavailable
+import com.juul.kable.Reason.Off
 import com.juul.kable.Reason.Resetting
 import com.juul.kable.Reason.Unauthorized
 import com.juul.kable.Reason.Unknown

@@ -47,6 +47,7 @@ public abstract class com/juul/kable/Bluetooth$Availability {
 
 public final class com/juul/kable/Bluetooth$Availability$Available : com/juul/kable/Bluetooth$Availability {
 	public static final field INSTANCE Lcom/juul/kable/Bluetooth$Availability$Available;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/juul/kable/Bluetooth$Availability$Unavailable : com/juul/kable/Bluetooth$Availability {
