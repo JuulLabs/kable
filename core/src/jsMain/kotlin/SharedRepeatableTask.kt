@@ -14,7 +14,7 @@ import kotlinx.coroutines.cancelAndJoin
  */
 internal class SharedRepeatableTask<T>(
     private val scope: CoroutineScope,
-    private val task: suspend CoroutineScope.() -> T
+    private val task: suspend CoroutineScope.() -> T,
 ) {
 
     private var deferred: Deferred<T>? = null
@@ -44,5 +44,5 @@ internal class SharedRepeatableTask<T>(
 }
 
 internal fun CoroutineScope.sharedRepeatableTask(
-    task: suspend CoroutineScope.() -> Unit
+    task: suspend CoroutineScope.() -> Unit,
 ) = SharedRepeatableTask(this, task)

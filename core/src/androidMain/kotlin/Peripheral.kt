@@ -40,6 +40,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
@@ -134,21 +136,20 @@ public class AndroidPeripheral internal constructor(
     private val _state = MutableStateFlow<State>(State.Disconnected())
     public override val state: StateFlow<State> = _state.asStateFlow()
 
-    private val receiver = registerBluetoothStateBroadcastReceiver { state ->
-        if (state == STATE_OFF) {
-            closeConnection()
-            _state.value = State.Disconnected()
-        }
-    }
-
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
         invokeOnCompletion {
-            applicationContext.unregisterReceiver(receiver)
             closeConnection()
             threading.close()
         }
     }
     private val scope = CoroutineScope(parentCoroutineContext + job)
+
+    init {
+        bluetoothState
+            .filter { state -> state == STATE_OFF }
+            .onEach { closeConnection() }
+            .launchIn(scope)
+    }
 
     private val threading = bluetoothDevice.threading()
 
@@ -179,6 +180,8 @@ public class AndroidPeripheral internal constructor(
 
     private val connectJob = atomic<Deferred<Unit>?>(null)
 
+    override val name: String? get() = bluetoothDevice.name
+
     private fun establishConnection(): Connection {
         logger.info { message = "Connecting" }
         return bluetoothDevice.connect(
@@ -189,7 +192,7 @@ public class AndroidPeripheral internal constructor(
             _mtu,
             logging,
             threading,
-            invokeOnClose = { connectJob.value = null }
+            invokeOnClose = { connectJob.value = null },
         ) ?: throw ConnectionRejectedException()
     }
 

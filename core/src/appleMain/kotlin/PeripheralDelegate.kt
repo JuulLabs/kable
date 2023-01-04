@@ -134,7 +134,7 @@ internal class PeripheralDelegate(
     override fun peripheral(
         peripheral: CBPeripheral,
         didDiscoverCharacteristicsForService: CBService,
-        error: NSError?
+        error: NSError?,
     ) {
         logger.debug(error) {
             message = "${peripheral.identifier} didDiscoverCharacteristicsForService"
@@ -144,8 +144,8 @@ internal class PeripheralDelegate(
             Response.DidDiscoverCharacteristicsForService(
                 peripheral.identifier,
                 didDiscoverCharacteristicsForService,
-                null
-            )
+                null,
+            ),
         )
     }
 
@@ -202,7 +202,7 @@ internal class PeripheralDelegate(
             detail(didUpdateValueForDescriptor)
         }
         _response.sendBlocking(
-            DidUpdateValueForDescriptor(peripheral.identifier, didUpdateValueForDescriptor, error)
+            DidUpdateValueForDescriptor(peripheral.identifier, didUpdateValueForDescriptor, error),
         )
     }
 
@@ -213,7 +213,7 @@ internal class PeripheralDelegate(
     override fun peripheral(
         peripheral: CBPeripheral,
         didWriteValueForCharacteristic: CBCharacteristic,
-        error: NSError?
+        error: NSError?,
     ) {
         logger.debug(error) {
             message = "${peripheral.identifier} didWriteValueForCharacteristic"
@@ -223,8 +223,8 @@ internal class PeripheralDelegate(
             DidWriteValueForCharacteristic(
                 peripheral.identifier,
                 didWriteValueForCharacteristic,
-                error
-            )
+                error,
+            ),
         )
     }
 
@@ -243,7 +243,7 @@ internal class PeripheralDelegate(
     }
 
     override fun peripheralIsReadyToSendWriteWithoutResponse(
-        peripheral: CBPeripheral
+        peripheral: CBPeripheral,
     ) {
         logger.debug {
             message = "${peripheral.identifier} peripheralIsReadyToSendWriteWithoutResponse"
@@ -258,7 +258,7 @@ internal class PeripheralDelegate(
     override fun peripheral(
         peripheral: CBPeripheral,
         didUpdateNotificationStateForCharacteristic: CBCharacteristic,
-        error: NSError?
+        error: NSError?,
     ) {
         logger.debug(error) {
             message = "${peripheral.identifier} didUpdateNotificationStateForCharacteristic"
@@ -268,8 +268,8 @@ internal class PeripheralDelegate(
             DidUpdateNotificationStateForCharacteristic(
                 peripheral.identifier,
                 didUpdateNotificationStateForCharacteristic,
-                error
-            )
+                error,
+            ),
         )
     }
 
