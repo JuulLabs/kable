@@ -439,6 +439,33 @@ cancellation is provided to prevent connection leaks._
 
 ## Setup
 
+### Android
+
+Kable declares common bluetooth permissions but doesn't declare that bluetooth hardware is required. If your app
+requires bluetooth (and won't function without it), then the following should be added to your app's
+`AndroidManifest.xml`:
+
+```xml
+<manifest ..>
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true"/>
+</manifest>
+```
+
+Kable declares the `BLUETOOTH_SCAN` permission with the assumption that your app will not derive physical location from
+scan results. If this is not true (and your app will derive physical location), then the following should be added to
+your app's `AndroidManifest.xml`:
+
+```xml
+<manifest ..>
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:node="remove"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+</manifest>
+```
+
 ### Gradle
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core)
