@@ -56,13 +56,17 @@ val advertisement = Scanner()
 
 ### Android
 
-Scan results can be filtered by manufacturer data using the same ID, data, and data mask that you would use with the
-[Android API](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[])):
+Scan results can be filtered either by manufacturer data using the same ID, data, and data mask that you would use with the
+[Android API](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[]))
+either by [Device Name](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String))
+either by [Device Address](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceAddress(java.lang.String)):
 
 ```kotlin
 val scanner = Scanner {
     filters = listOf(
-        Filter.ManufacturerData(id = 1, data = byteArrayOf(), dataMask = byteArrayOf())
+        Filter.ManufacturerData(id = 1, data = byteArrayOf(), dataMask = byteArrayOf()),
+        Filter.Address(address = "deviceAddress"),
+        Filter.Name(name = "deviceName")
     )
 }
 ``` 
@@ -434,6 +438,33 @@ _[`Peripheral.disconnect`] is the preferred method of disconnecting peripherals,
 cancellation is provided to prevent connection leaks._
 
 ## Setup
+
+### Android
+
+Kable declares common bluetooth permissions but doesn't declare that bluetooth hardware is required. If your app
+requires bluetooth (and won't function without it), then the following should be added to your app's
+`AndroidManifest.xml`:
+
+```xml
+<manifest ..>
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true"/>
+</manifest>
+```
+
+Kable declares the `BLUETOOTH_SCAN` permission with the assumption that your app will not derive physical location from
+scan results. If this is not true (and your app will derive physical location), then the following should be added to
+your app's `AndroidManifest.xml`:
+
+```xml
+<manifest ..>
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:node="remove"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+</manifest>
+```
 
 ### Gradle
 
