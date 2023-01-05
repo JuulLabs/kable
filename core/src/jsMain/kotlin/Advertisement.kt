@@ -13,7 +13,13 @@ public actual class Advertisement internal constructor(
         get() = advertisement.device
 
     public actual val name: String?
+        get() = advertisement.name
+
+    public actual val peripheralName: String?
         get() = bluetoothDevice.name
+
+    /** Property is unavailable on JavaScript. Always returns `null`. */
+    public actual val isConnectable: Boolean? = null
 
     public actual val rssi: Int
         get() = advertisement.rssi ?: Int.MIN_VALUE
