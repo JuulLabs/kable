@@ -20,7 +20,7 @@ public fun CoroutineScope.requestPeripheral(
     options: Options,
     builderAction: PeripheralBuilderAction = {},
 ): Promise<Peripheral> = bluetooth
-    .requestDevice(options.toRequestDeviceOptions().also { console.info(it) })
+    .requestDevice(options.toRequestDeviceOptions())
     .then { device -> peripheral(device, builderAction) }
 
 /**

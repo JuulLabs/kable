@@ -37,18 +37,14 @@ public class JsScanner internal constructor(
         check(supportsScanning) { "Scanning unavailable" }
 
         logger.info { message = "Starting scan" }
-        console.info(options)
         val scan = bluetooth.requestLEScan(options).await()
 
-        console.info("Configuring listener")
         val listener: (Event) -> Unit = { event ->
-            console.info(event)
             trySend(Advertisement(event.unsafeCast<BluetoothAdvertisingEvent>())).getOrElse {
-                console.warn("Unable to deliver advertisement event due to failure in flow or premature closing.")
+                logger.warn { message = "Unable to deliver advertisement event due to failure in flow or premature closing." }
             }
         }
         bluetooth.addEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
-        console.info("Listener configured")
 
         awaitClose {
             logger.info { message = "Stopping scan" }
