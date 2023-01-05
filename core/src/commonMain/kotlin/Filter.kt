@@ -70,6 +70,19 @@ public sealed class Filter {
     ) : Filter()
 
     /**
+     * Provides support for filtering against advertisement manufacturer data.
+     *
+     * If only portions of the manufacturer [data] needs to match, then [dataMask] can be used to identify the relevant
+     * bits.
+     *
+     * Some examples to demonstrate the [dataMask] functionality:
+     *
+     * | [dataMask] value          | Bit representation  | [data] only needs to match...                                  |
+     * |---------------------------|---------------------|----------------------------------------------------------------|
+     * | `byteArrayOf(0x0F, 0x00)` | 0000 1111 0000 0000 | bits 0-3 of the first byte of advertisement manufacturer data. |
+     * | `byteArrayOf(0x00, 0xFF)` | 0000 0000 1111 1111 | the 2nd byte of advertisement manufacturer data.               |
+     * | `byteArrayOf(0xF0)`       | 1111 0000           | bits 4-7 of the first byte of advertisement manufacturer data. |
+     *
      * | Platform   | Supported | Details                                   |
      * |------------|:---------:|-------------------------------------------|
      * | Android    | Yes       | Supported natively                        |
@@ -82,11 +95,11 @@ public sealed class Filter {
         /** A negative [id] is considered an invalid id. */
         public val id: Int,
 
-        public val data: ByteArray,
+        public val data: ByteArray = byteArrayOf(0x00.toByte(), 0xFF.toByte()),
 
         /**
-         * For any bit in the mask, set it to 1 if it needs to match the corresponding bit in [data], otherwise set it
-         * to 0. If [dataMask] is not `null`, then it must have the same length as [data].
+         * For any bit in the mask, set it to 1 if advertisement manufacturer data needs to match the corresponding bit
+         * in [data], otherwise set it to 0. If [dataMask] is not `null`, then it must have the same length as [data].
          */
         public val dataMask: ByteArray?,
     ) : Filter() {
