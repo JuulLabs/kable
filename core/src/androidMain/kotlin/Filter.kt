@@ -20,6 +20,20 @@ public actual sealed class Filter {
         public val dataMask: ByteArray?,
     ) : Filter()
 
+    /**
+     * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
+     */
+    public data class Name(
+        public val name: String,
+    ) : Filter()
+
+    /**
+     * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceAddress(java.lang.String)
+     */
+    public data class Address(
+        public val address: String,
+    ) : Filter()
+
     public actual class Service actual constructor(
         public actual val uuid: Uuid,
     ) : Filter()
