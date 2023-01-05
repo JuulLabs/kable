@@ -95,7 +95,7 @@ public sealed class Filter {
         /** A negative [id] is considered an invalid id. */
         public val id: Int,
 
-        public val data: ByteArray = byteArrayOf(0x00.toByte(), 0xFF.toByte()),
+        public val data: ByteArray,
 
         /**
          * For any bit in the mask, set it to 1 if advertisement manufacturer data needs to match the corresponding bit
