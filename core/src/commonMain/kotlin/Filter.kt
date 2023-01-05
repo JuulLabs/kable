@@ -40,8 +40,6 @@ public sealed class Filter {
      * | Android    | Yes       | Supported natively                        |
      * | Apple      | Yes       | Support provided by Kable via flow filter |
      * | JavaScript | Yes       | Supported natively                        |
-     *
-     * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
      */
     public data class Name(
         public val name: String,
@@ -62,8 +60,6 @@ public sealed class Filter {
      * | Android    | Yes       | Supported natively                     |
      * | Apple      | No        | Throws [UnsupportedOperationException] |
      * | JavaScript | No        | Throws [UnsupportedOperationException] |
-     *
-     * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceAddress(java.lang.String)
      */
     public data class Address(
         public val address: String,
@@ -89,10 +85,16 @@ public sealed class Filter {
      * | Apple      | Yes       | Support provided by Kable via flow filter |
      * | JavaScript | Yes       | Supported natively                        |
      *
-     * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[])
+     * JavaScript support was added in Chrome 92 according to: https://developer.chrome.com/articles/bluetooth/#manufacturer-data-filter
      */
     public class ManufacturerData(
-        /** A negative [id] is considered an invalid id. */
+
+        /**
+         * Company identifier (16-bit).
+         * A negative [id] is considered an invalid id.
+         *
+         * List of assigned numbers can be found at (section: 7 Company Identifiers): https://www.bluetooth.com/specifications/assigned-numbers/
+         */
         public val id: Int,
 
         public val data: ByteArray,
@@ -103,8 +105,13 @@ public sealed class Filter {
          */
         public val dataMask: ByteArray?,
     ) : Filter() {
+
+        public constructor(id: ByteArray, data: ByteArray, dataMask: ByteArray?) : this(id.toShort(), data, dataMask)
+
         init {
-            if (dataMask != null) checkDataAndMask(data, dataMask)
+            require(id >= 0) { "Company identifier cannot be negative, was $id" }
+            require(id <= 65535) { "Company identifier cannot be more than 16-bits (65535), was $id" }
+            if (dataMask != null) requireDataAndMaskHaveSameLength(data, dataMask)
         }
     }
 }
@@ -127,12 +134,12 @@ internal fun Filter.NamePrefix.matches(name: String?): Boolean {
 internal fun Filter.ManufacturerData.matches(data: ByteArray?): Boolean {
     if (data == null) return false
     if (dataMask == null) return this.data.contentEquals(data)
-    checkDataAndMask(data, dataMask)
+    requireDataAndMaskHaveSameLength(data, dataMask)
     for (i in this.data.indices) {
         if (dataMask[i] and this.data[i] != dataMask[i] and data[i]) return false
     }
     return true
 }
 
-private fun checkDataAndMask(data: ByteArray, dataMask: ByteArray) =
-    check(data.size == dataMask.size) { "Data mask length (${dataMask.size}) must match data length (${data.size})" }
+private fun requireDataAndMaskHaveSameLength(data: ByteArray, dataMask: ByteArray) =
+    require(data.size == dataMask.size) { "Data mask length (${dataMask.size}) must match data length (${data.size})" }

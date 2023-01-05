@@ -136,6 +136,7 @@ public final class com/juul/kable/Filter$Address : com/juul/kable/Filter {
 
 public final class com/juul/kable/Filter$ManufacturerData : com/juul/kable/Filter {
 	public fun <init> (I[B[B)V
+	public fun <init> ([B[B[B)V
 	public final fun getData ()[B
 	public final fun getDataMask ()[B
 	public final fun getId ()I
