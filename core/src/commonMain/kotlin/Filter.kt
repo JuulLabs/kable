@@ -103,10 +103,10 @@ public sealed class Filter {
          * For any bit in the mask, set it to 1 if advertisement manufacturer data needs to match the corresponding bit
          * in [data], otherwise set it to 0. If [dataMask] is not `null`, then it must have the same length as [data].
          */
-        public val dataMask: ByteArray?,
+        public val dataMask: ByteArray? = null,
     ) : Filter() {
 
-        public constructor(id: ByteArray, data: ByteArray, dataMask: ByteArray?) : this(id.toShort(), data, dataMask)
+        public constructor(id: ByteArray, data: ByteArray, dataMask: ByteArray? = null) : this(id.toShort(), data, dataMask)
 
         init {
             require(id >= 0) { "Company identifier cannot be negative, was $id" }
