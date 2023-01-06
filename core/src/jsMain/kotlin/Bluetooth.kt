@@ -1,12 +1,12 @@
 package com.juul.kable
 
+import com.benasher44.uuid.Uuid
 import com.juul.kable.Bluetooth.Availability.Available
 import com.juul.kable.Bluetooth.Availability.Unavailable
-import com.juul.kable.Options.Filter.Name
-import com.juul.kable.Options.Filter.NamePrefix
-import com.juul.kable.Options.Filter.Services
 import com.juul.kable.Reason.BluetoothUndefined
 import com.juul.kable.external.BluetoothAvailabilityChanged
+import com.juul.kable.external.BluetoothServiceUUID
+import com.juul.kable.external.RequestDeviceOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.awaitClose
@@ -62,11 +62,11 @@ public fun CoroutineScope.requestPeripheral(
     options: Options,
     builderAction: PeripheralBuilderAction = {},
 ): Promise<Peripheral> = bluetooth
-    .requestDevice(options.toDynamic())
+    .requestDevice(options.toRequestDeviceOptions())
     .then { device -> peripheral(device, builderAction) }
 
 /**
- * Converts [Options] to JavaScript friendly object.
+ * Convert public API type to external Web Bluetooth (JavaScript) type.
  *
  * According to the `requestDevice`
  * [example](https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice#example), the form of the
@@ -83,26 +83,19 @@ public fun CoroutineScope.requestPeripheral(
  *   optionalServices: ['battery_service']
  * }
  * ```
- *
- * _Note: Web BLE has a limitation that requires all UUIDS to be lowercase so we enforce that here._
  */
-private fun Options.toDynamic(): dynamic = if (filters == null) {
-    jso {
-        this.acceptAllDevices = true
-        this.optionalServices = optionalServices.lowercase()
+private fun Options.toRequestDeviceOptions(): RequestDeviceOptions = jso {
+    if (this@toRequestDeviceOptions.filters.isNullOrEmpty()) {
+        acceptAllDevices = true
+    } else {
+        filters = this@toRequestDeviceOptions.filters.toBluetoothLEScanFilterInit()
     }
-} else {
-    jso {
-        this.optionalServices = optionalServices.lowercase()
-        this.filters = filters.map { it.toDynamic() }.toTypedArray()
+    if (!this@toRequestDeviceOptions.optionalServices.isNullOrEmpty()) {
+        optionalServices = this@toRequestDeviceOptions.optionalServices
+            .map(Uuid::toBluetoothServiceUUID)
+            .toTypedArray()
     }
 }
 
-private fun Options.Filter.toDynamic(): dynamic =
-    when (this) {
-        is Name -> jso { this.name = name }
-        is NamePrefix -> jso { this.namePrefix = namePrefix }
-        is Services -> jso { this.services = services.lowercase() }
-    }
-
-private fun Array<String>.lowercase(): Array<String> = map { it.lowercase() }.toTypedArray()
+// Note: Web Bluetooth requires that UUIDs be provided as lowercase strings.
+internal fun Uuid.toBluetoothServiceUUID(): BluetoothServiceUUID = toString().lowercase()

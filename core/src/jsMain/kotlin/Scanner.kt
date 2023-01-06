@@ -2,6 +2,8 @@ package com.juul.kable
 
 import com.juul.kable.external.Bluetooth
 import com.juul.kable.external.BluetoothAdvertisingEvent
+import com.juul.kable.external.BluetoothLEScanOptions
+import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.awaitClose
@@ -20,41 +22,43 @@ private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
  */
 public class JsScanner internal constructor(
     bluetooth: Bluetooth,
-    options: Options,
+    filters: List<Filter>,
     logging: Logging,
 ) : Scanner {
+
+    private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
     // https://webbluetoothcg.github.io/web-bluetooth/scanning.html#scanning
     private val supportsScanning = js("window.navigator.bluetooth.requestLEScan") != null
 
+    private val options = filters.toBluetoothLEScanOptions()
+
     public override val advertisements: Flow<Advertisement> = callbackFlow {
         check(supportsScanning) { "Scanning unavailable" }
 
-        val scan = bluetooth.requestLEScan(options.toDynamic()).await()
-        val listener: (Event) -> Unit = {
-            trySend(Advertisement(it as BluetoothAdvertisingEvent)).getOrElse {
-                console.warn("Unable to deliver advertisement event due to failure in flow or premature closing.")
+        logger.info { message = "Starting scan" }
+        val scan = bluetooth.requestLEScan(options).await()
+
+        val listener: (Event) -> Unit = { event ->
+            trySend(Advertisement(event.unsafeCast<BluetoothAdvertisingEvent>())).getOrElse {
+                logger.warn { message = "Unable to deliver advertisement event due to failure in flow or premature closing." }
             }
         }
         bluetooth.addEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
 
         awaitClose {
+            logger.info { message = "Stopping scan" }
             scan.stop()
             bluetooth.removeEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
         }
     }
 }
 
-// TODO: dedicated scan options class with the additional properties instead of re-using `Options`
-// https://webbluetoothcg.github.io/web-bluetooth/scanning.html#dictdef-bluetoothlescanoptions
-private fun Options.toDynamic(): dynamic = if (filters == null) {
-    object {
-        val acceptAllAdvertisements = true
-        val keepRepeatedDevices = false
-    }
-} else {
-    object {
-        val keepRepeatedDevices = false
-        val filters = this@toDynamic.filters
+/** Convert list of public API type to Web Bluetooth (JavaScript) type. */
+private fun List<Filter>.toBluetoothLEScanOptions(): BluetoothLEScanOptions = jso {
+    if (this@toBluetoothLEScanOptions.isEmpty()) {
+        acceptAllAdvertisements = true
+    } else {
+        filters = this@toBluetoothLEScanOptions.toBluetoothLEScanFilterInit()
     }
 }

@@ -8,7 +8,7 @@ import com.juul.kable.logs.LoggingBuilder
 public actual class ScannerBuilder {
     @Deprecated(
         message = "Replaced by filters property",
-        level = DeprecationLevel.ERROR,
+        level = DeprecationLevel.HIDDEN,
     )
     public var services: List<Uuid>?
         set(value) {
@@ -33,8 +33,9 @@ public actual class ScannerBuilder {
         logging = Logging().apply(init)
     }
 
+    @OptIn(ObsoleteKableApi::class)
     internal actual fun build(): Scanner = AndroidScanner(
-        filters = filters,
+        filters = filters.orEmpty(),
         scanSettings = scanSettings,
         logging = logging,
     )
