@@ -37,6 +37,30 @@ public final class com/juul/kable/AndroidScanner : com/juul/kable/Scanner {
 	public fun getAdvertisements ()Lkotlinx/coroutines/flow/Flow;
 }
 
+public final class com/juul/kable/Bluetooth {
+	public static final field INSTANCE Lcom/juul/kable/Bluetooth;
+	public final fun getAvailability ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public abstract class com/juul/kable/Bluetooth$Availability {
+}
+
+public final class com/juul/kable/Bluetooth$Availability$Available : com/juul/kable/Bluetooth$Availability {
+	public static final field INSTANCE Lcom/juul/kable/Bluetooth$Availability$Available;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/juul/kable/Bluetooth$Availability$Unavailable : com/juul/kable/Bluetooth$Availability {
+	public fun <init> (Lcom/juul/kable/Reason;)V
+	public final fun component1 ()Lcom/juul/kable/Reason;
+	public final fun copy (Lcom/juul/kable/Reason;)Lcom/juul/kable/Bluetooth$Availability$Unavailable;
+	public static synthetic fun copy$default (Lcom/juul/kable/Bluetooth$Availability$Unavailable;Lcom/juul/kable/Reason;ILjava/lang/Object;)Lcom/juul/kable/Bluetooth$Availability$Unavailable;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Lcom/juul/kable/Reason;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/juul/kable/BluetoothDisabledException : com/juul/kable/BluetoothException {
 	public fun <init> ()V
 }
@@ -51,6 +75,10 @@ public final class com/juul/kable/BondState : java/lang/Enum {
 	public static final field None Lcom/juul/kable/BondState;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/BondState;
 	public static fun values ()[Lcom/juul/kable/BondState;
+}
+
+public final class com/juul/kable/BroadcastReceiverFlowKt {
+	public static final fun broadcastReceiverFlow (Landroid/content/IntentFilter;)Lkotlinx/coroutines/flow/Flow;
 }
 
 public abstract interface class com/juul/kable/Characteristic {
@@ -318,6 +346,15 @@ public final class com/juul/kable/ProfileKt {
 	public static final fun getSignedWrite-G25LNqA (I)Z
 	public static final fun getWrite-G25LNqA (I)Z
 	public static final fun getWriteWithoutResponse-G25LNqA (I)Z
+}
+
+public final class com/juul/kable/Reason : java/lang/Enum {
+	public static final field LocationServicesDisabled Lcom/juul/kable/Reason;
+	public static final field Off Lcom/juul/kable/Reason;
+	public static final field TurningOff Lcom/juul/kable/Reason;
+	public static final field TurningOn Lcom/juul/kable/Reason;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Reason;
+	public static fun values ()[Lcom/juul/kable/Reason;
 }
 
 public final class com/juul/kable/ScanFailedException : java/lang/IllegalStateException {

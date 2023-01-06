@@ -1,13 +1,14 @@
 [versions]
-android-compile = "30"
+android-compile = "31"
 android-min = "21"
-android-target = "30"
+android-target = "31"
 atomicfu = "0.18.5"
 coroutines = "1.6.4"
 kotlin = "1.7.20"
 tuulbox = "6.4.0"
 
 [libraries]
+androidx-core = { module = "androidx.core:core-ktx", version = "1.9.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.1" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu-jvm", version.ref = "atomicfu" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
