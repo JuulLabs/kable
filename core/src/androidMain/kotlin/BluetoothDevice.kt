@@ -87,7 +87,7 @@ internal fun BluetoothDevice.connect(
         else -> connectGatt(context, false, callback)
     } ?: return null
 
-    return Connection(bluetoothGatt, threading.dispatcher, callback, invokeOnClose)
+    return Connection(bluetoothGatt, threading.dispatcher, callback, logging, invokeOnClose)
 }
 
 private val Transport.intValue: Int

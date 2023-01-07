@@ -39,7 +39,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.getOrElse
+import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -255,7 +255,7 @@ internal class Callback(
     }
 
     private fun <E> SendChannel<E>.trySendOrLog(element: E) {
-        trySend(element).getOrElse { cause ->
+        trySend(element).onFailure { cause ->
             logger.warn(cause) {
                 message = "Callback was unable to deliver $element"
             }
