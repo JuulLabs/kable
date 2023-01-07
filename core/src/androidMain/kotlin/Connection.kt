@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import com.juul.kable.ObservationEvent.CharacteristicChange
 import com.juul.kable.gatt.Callback
 import com.juul.kable.gatt.GattStatus
+import com.juul.kable.logs.Logger
+import com.juul.kable.logs.Logging
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -21,6 +23,7 @@ internal class Connection(
     internal val bluetoothGatt: BluetoothGatt,
     internal val dispatcher: CoroutineDispatcher,
     private val callback: Callback,
+    logging: Logging,
     private val invokeOnClose: () -> Unit,
 ) {
 
@@ -28,19 +31,22 @@ internal class Connection(
         callback.invokeOnDisconnected(::close)
     }
 
+    private val logger = Logger(logging, tag = "Kable/Connection", identifier = bluetoothGatt.device.address)
+
     val characteristicChanges = callback.onCharacteristicChanged
         .map { (bluetoothGattCharacteristic, value) ->
             CharacteristicChange(bluetoothGattCharacteristic.toLazyCharacteristic(), value)
         }
 
     private val lock = Mutex()
+    private var pending = false
 
     /**
      * Executes specified [BluetoothGatt] [action].
      *
      * Android Bluetooth Low Energy has strict requirements: all I/O must be executed sequentially. In other words, the
      * response for an [action] must be received before another [action] can be performed. Additionally, the Android BLE
-     * stack can be unstable if I/O isn't performed on a dedicated thread.
+     * stack can become unstable if I/O isn't performed on a dedicated thread.
      *
      * These requirements are fulfilled by ensuring that all [action]s are performed behind a [Mutex]. On Android pre-O
      * a single threaded [CoroutineDispatcher] is used, Android O and newer a [CoroutineDispatcher] backed by an Android
@@ -52,12 +58,25 @@ internal class Connection(
     suspend inline fun <reified T> execute(
         crossinline action: BluetoothGatt.() -> Boolean,
     ): T = lock.withLock {
+        if (pending) {
+            // Discard response as we've performed another `execute` without the previous finishing. This happens if a
+            // previous `execute` was cancelled after invoking GATT action, but before receiving response from callback
+            // channel. See https://github.com/JuulLabs/kable/issues/326 for more details.
+            val response = callback.onResponse.receive()
+            pending = false
+            logger.warn {
+                message = "Discarded response"
+                detail("response", response.toString())
+            }
+        }
+
         withContext(dispatcher) {
+            pending = true
             action.invoke(bluetoothGatt) || throw GattRequestRejectedException()
         }
 
         val response = try {
-            callback.onResponse.receive()
+            callback.onResponse.receive().also { pending = false }
         } catch (e: ConnectionLostException) {
             throw ConnectionLostException(cause = e)
         }

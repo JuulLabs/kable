@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
+import com.juul.kable.logs.Logging
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCharacteristic
@@ -48,6 +49,7 @@ public class CentralManager internal constructor() {
 
     internal suspend fun connectPeripheral(
         cbPeripheral: CBPeripheral,
+        logging: Logging,
         delegate: PeripheralDelegate,
         options: Map<Any?, *>? = null,
     ): Connection {
@@ -55,7 +57,7 @@ public class CentralManager internal constructor() {
             cbPeripheral.delegate = delegate
             cbCentralManager.connectPeripheral(cbPeripheral, options)
         }
-        return Connection(delegate)
+        return Connection(delegate, logging, cbPeripheral.identifier.UUIDString)
     }
 
     internal suspend fun cancelPeripheralConnection(

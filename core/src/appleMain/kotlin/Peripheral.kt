@@ -193,7 +193,7 @@ public class ApplePeripheral internal constructor(
             // todo: Create in `connectPeripheral`.
             val delegate = PeripheralDelegate(canSendWriteWithoutResponse, logging, cbPeripheral.identifier.UUIDString)
 
-            val connection = centralManager.connectPeripheral(cbPeripheral, delegate).also {
+            val connection = centralManager.connectPeripheral(cbPeripheral, logging, delegate).also {
                 _connection.value = it
             }
 
