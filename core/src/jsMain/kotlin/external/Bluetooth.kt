@@ -6,6 +6,6 @@ import kotlin.js.Promise
 /** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth */
 internal abstract external class Bluetooth : EventTarget {
     fun getAvailability(): Promise<Boolean>
-    fun requestDevice(options: dynamic): Promise<BluetoothDevice>
-    fun requestLEScan(options: dynamic): Promise<BluetoothScan>
+    fun requestDevice(options: RequestDeviceOptions): Promise<BluetoothDevice>
+    fun requestLEScan(options: BluetoothLEScanOptions): Promise<BluetoothScan>
 }

@@ -9,6 +9,7 @@ import android.os.ParcelUuid
 import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.ManufacturerData
 import com.juul.kable.Filter.Name
+import com.juul.kable.Filter.NamePrefix
 import com.juul.kable.Filter.Service
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
@@ -19,6 +20,7 @@ import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 
 public class ScanFailedException internal constructor(
@@ -26,7 +28,7 @@ public class ScanFailedException internal constructor(
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
 
 public class AndroidScanner internal constructor(
-    private val filters: List<Filter>?,
+    private val filters: List<Filter>,
     private val scanSettings: ScanSettings,
     logging: Logging,
 ) : Scanner {
@@ -35,6 +37,8 @@ public class AndroidScanner internal constructor(
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         ?: error("Bluetooth not supported")
+
+    private val namePrefixFilters = filters.filterIsInstance<NamePrefix>()
 
     public override val advertisements: Flow<Advertisement> = callbackFlow {
         val scanner = bluetoothAdapter.bluetoothLeScanner ?: throw BluetoothDisabledException()
@@ -63,29 +67,25 @@ public class AndroidScanner internal constructor(
             }
         }
 
-        logger.info {
-            message = if (filters?.isEmpty() != false) {
-                "Starting scan without filters"
-            } else {
-                "Starting scan with ${filters.size} filter(s)"
-            }
-        }
-        val scanFilters = filters?.map { filter ->
+        val scanFilters = filters.map { filter ->
             ScanFilter.Builder().apply {
                 when (filter) {
-                    is Name -> {
-                        setDeviceName(filter.name)
-                    }
-                    is Address -> {
-                        setDeviceAddress(filter.address)
-                    }
-                    is ManufacturerData ->
-                        setManufacturerData(filter.id, filter.data, filter.dataMask)
-                    is Service ->
-                        setServiceUuid(ParcelUuid(filter.uuid)).build()
+                    is Name -> setDeviceName(filter.name)
+                    is NamePrefix -> {} // No-op: Filtering performed via flow.
+                    is Address -> setDeviceAddress(filter.address)
+                    is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
+                    is Service -> setServiceUuid(ParcelUuid(filter.uuid)).build()
                 }
             }.build()
-        }.orEmpty()
+        }
+
+        logger.info {
+            message = if (scanFilters.isEmpty()) {
+                "Starting scan without filters"
+            } else {
+                "Starting scan with ${scanFilters.size} filter(s)"
+            }
+        }
         scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {
@@ -93,7 +93,7 @@ public class AndroidScanner internal constructor(
                 message = if (scanFilters.isEmpty()) {
                     "Stopping scan without filters"
                 } else {
-                    "Stopping scan with ${filters?.size ?: 0} filter(s)"
+                    "Stopping scan with ${scanFilters.size} filter(s)"
                 }
             }
             // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException` means BLE has been disabled.
@@ -103,5 +103,11 @@ public class AndroidScanner internal constructor(
                 logger.warn(e) { message = "Failed to stop scan. " }
             }
         }
+    }.filter { advertisement ->
+        // Short-circuit (i.e. don't filter) if no `Filter.NamePrefix` filters were provided.
+        if (namePrefixFilters.isEmpty()) return@filter true
+
+        // Perform `Filter.NamePrefix` filtering here, since it isn't supported natively.
+        namePrefixFilters.any { filter -> filter.matches(advertisement.name) }
     }.flowOn(Dispatchers.Main.immediate)
 }

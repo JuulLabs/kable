@@ -10,7 +10,8 @@ import android.bluetooth.BluetoothAdapter.STATE_TURNING_ON
 import android.content.Context
 import android.content.IntentFilter
 import android.location.LocationManager
-import android.os.Build
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.R
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
 import com.juul.kable.Bluetooth.Availability.Available
@@ -53,7 +54,7 @@ internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
             }
         }
         .onStart {
-            val availability = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R && !isLocationEnabled) {
+            val availability = if (SDK_INT <= R && !isLocationEnabled) {
                 Unavailable(reason = LocationServicesDisabled)
             } else {
                 when (BluetoothAdapter.getDefaultAdapter()?.isEnabled) {
