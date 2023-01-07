@@ -5,9 +5,11 @@ public final class com/juul/kable/Advertisement {
 	public final fun getBytes ()[B
 	public final fun getManufacturerData ()Lcom/juul/kable/ManufacturerData;
 	public final fun getName ()Ljava/lang/String;
+	public final fun getPeripheralName ()Ljava/lang/String;
 	public final fun getRssi ()I
 	public final fun getTxPower ()Ljava/lang/Integer;
 	public final fun getUuids ()Ljava/util/List;
+	public final fun isConnectable ()Ljava/lang/Boolean;
 	public final fun manufacturerData (I)[B
 	public final fun serviceData (Ljava/util/UUID;)[B
 	public fun toString ()Ljava/lang/String;
@@ -35,6 +37,30 @@ public final class com/juul/kable/AndroidScanner : com/juul/kable/Scanner {
 	public fun getAdvertisements ()Lkotlinx/coroutines/flow/Flow;
 }
 
+public final class com/juul/kable/Bluetooth {
+	public static final field INSTANCE Lcom/juul/kable/Bluetooth;
+	public final fun getAvailability ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public abstract class com/juul/kable/Bluetooth$Availability {
+}
+
+public final class com/juul/kable/Bluetooth$Availability$Available : com/juul/kable/Bluetooth$Availability {
+	public static final field INSTANCE Lcom/juul/kable/Bluetooth$Availability$Available;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/juul/kable/Bluetooth$Availability$Unavailable : com/juul/kable/Bluetooth$Availability {
+	public fun <init> (Lcom/juul/kable/Reason;)V
+	public final fun component1 ()Lcom/juul/kable/Reason;
+	public final fun copy (Lcom/juul/kable/Reason;)Lcom/juul/kable/Bluetooth$Availability$Unavailable;
+	public static synthetic fun copy$default (Lcom/juul/kable/Bluetooth$Availability$Unavailable;Lcom/juul/kable/Reason;ILjava/lang/Object;)Lcom/juul/kable/Bluetooth$Availability$Unavailable;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Lcom/juul/kable/Reason;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/juul/kable/BluetoothDisabledException : com/juul/kable/BluetoothException {
 	public fun <init> ()V
 }
@@ -49,6 +75,10 @@ public final class com/juul/kable/BondState : java/lang/Enum {
 	public static final field None Lcom/juul/kable/BondState;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/BondState;
 	public static fun values ()[Lcom/juul/kable/BondState;
+}
+
+public final class com/juul/kable/BroadcastReceiverFlowKt {
+	public static final fun broadcastReceiverFlow (Landroid/content/IntentFilter;)Lkotlinx/coroutines/flow/Flow;
 }
 
 public abstract interface class com/juul/kable/Characteristic {
@@ -121,16 +151,58 @@ public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
 public abstract class com/juul/kable/Filter {
 }
 
+public final class com/juul/kable/Filter$Address : com/juul/kable/Filter {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/juul/kable/Filter$Address;
+	public static synthetic fun copy$default (Lcom/juul/kable/Filter$Address;Ljava/lang/String;ILjava/lang/Object;)Lcom/juul/kable/Filter$Address;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAddress ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/juul/kable/Filter$ManufacturerData : com/juul/kable/Filter {
 	public fun <init> (I[B[B)V
+	public synthetic fun <init> (I[B[BILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([B[B[B)V
+	public synthetic fun <init> ([B[B[BILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getData ()[B
 	public final fun getDataMask ()[B
 	public final fun getId ()I
 }
 
+public final class com/juul/kable/Filter$Name : com/juul/kable/Filter {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/juul/kable/Filter$Name;
+	public static synthetic fun copy$default (Lcom/juul/kable/Filter$Name;Ljava/lang/String;ILjava/lang/Object;)Lcom/juul/kable/Filter$Name;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/juul/kable/Filter$NamePrefix : com/juul/kable/Filter {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/juul/kable/Filter$NamePrefix;
+	public static synthetic fun copy$default (Lcom/juul/kable/Filter$NamePrefix;Ljava/lang/String;ILjava/lang/Object;)Lcom/juul/kable/Filter$NamePrefix;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPrefix ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/juul/kable/Filter$Service : com/juul/kable/Filter {
 	public fun <init> (Ljava/util/UUID;)V
+	public final fun component1 ()Ljava/util/UUID;
+	public final fun copy (Ljava/util/UUID;)Lcom/juul/kable/Filter$Service;
+	public static synthetic fun copy$default (Lcom/juul/kable/Filter$Service;Ljava/util/UUID;ILjava/lang/Object;)Lcom/juul/kable/Filter$Service;
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun getUuid ()Ljava/util/UUID;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/juul/kable/GattRequestRejectedException : com/juul/kable/BluetoothException {
@@ -276,6 +348,15 @@ public final class com/juul/kable/ProfileKt {
 	public static final fun getWriteWithoutResponse-G25LNqA (I)Z
 }
 
+public final class com/juul/kable/Reason : java/lang/Enum {
+	public static final field LocationServicesDisabled Lcom/juul/kable/Reason;
+	public static final field Off Lcom/juul/kable/Reason;
+	public static final field TurningOff Lcom/juul/kable/Reason;
+	public static final field TurningOn Lcom/juul/kable/Reason;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Reason;
+	public static fun values ()[Lcom/juul/kable/Reason;
+}
+
 public final class com/juul/kable/ScanFailedException : java/lang/IllegalStateException {
 	public final fun getErrorCode ()I
 }
@@ -288,18 +369,18 @@ public final class com/juul/kable/ScannerBuilder {
 	public fun <init> ()V
 	public final fun getFilters ()Ljava/util/List;
 	public final fun getScanSettings ()Landroid/bluetooth/le/ScanSettings;
-	public final fun getServices ()Ljava/util/List;
+	public final synthetic fun getServices ()Ljava/util/List;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun setFilters (Ljava/util/List;)V
 	public final fun setScanSettings (Landroid/bluetooth/le/ScanSettings;)V
-	public final fun setServices (Ljava/util/List;)V
+	public final synthetic fun setServices (Ljava/util/List;)V
 }
 
 public final class com/juul/kable/ScannerKt {
-	public static final fun Scanner (Ljava/util/List;)Lcom/juul/kable/Scanner;
+	public static final synthetic fun Scanner (Ljava/util/List;)Lcom/juul/kable/Scanner;
 	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Scanner;
 	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
-	public static final fun scannerWithFilters (Ljava/util/List;)Lcom/juul/kable/Scanner;
+	public static final synthetic fun scannerWithFilters (Ljava/util/List;)Lcom/juul/kable/Scanner;
 }
 
 public abstract interface class com/juul/kable/Service {

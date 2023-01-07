@@ -30,44 +30,56 @@ val scanner = Scanner {
 }
 ```
 
-To filter scan results at the system level (recommended), specify a list of filters for the services the remote
-peripheral is advertising, for example:
+Scan results can be filtered by providing a list of [`Filter`]s. The following filters are supported:
+
+| Filter             | Android | Apple | JavaScript |
+|--------------------|:-------:|:-----:|:----------:|
+| `Service`          |   ✓✓    |  ✓✓*  |     ✓✓     |
+| `Name`             |   ✓✓    |   ✓   |     ✓✓     |
+| `NamePrefix`       |    ✓    |   ✓   |     ✓✓     |
+| `Address`          |   ✓✓    |       |            |
+| `ManufacturerData` |   ✓✓    |   ✓   |     ✓✓     |
+
+✓✓ = Supported natively  
+✓ = Support provided by Kable via flow filter  
+✓✓* = Supported natively if the only filter type used, otherwise falls back to flow filter  
+
+_When a filter is supported natively, the system will often be able to perform scan optimizations. If feasible, it is
+recommended to provide only `Filter.Service` filters (and at least one) — as it is natively supported on all platforms._
+
+When filters are specified, only [`Advertisement`]s that match at least one [`Filter`] will be emitted. For example, if
+you had the following peripherals nearby when performing a scan:
+
+| ID | Name        | Services                                                                           |
+|:--:|-------------|------------------------------------------------------------------------------------|
+| D1 | "SensorTag" | `0000aa80-0000-1000-8000-00805f9b34fb`                                             |
+| D2 |             | `f484e2db-2efa-4b58-96be-f89372a3ef82`                                             |
+| D3 | "Example"   | `8d7798c7-15bd-493f-a935-785305946870`,<br/>`67bebb9e-6372-4de6-a7bf-e0384583929e` |
+
+To have peripherals D1 and D3 emitted during a scan, you could use the following `filters`:
 
 ```kotlin
 val scanner = Scanner {
     filters = listOf(
-        Filter.Service(uuidFrom("f000aa80-0451-4000-b000-000000000000")),
-        Filter.Service(uuidFrom("f000aa81-0451-4000-b000-000000000000"))
+        Filter.Service(uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb")), // SensorTag
+        Filter.NamePrefix("Ex"),
     )
 }
 ```
 
-In Android source sets, you can also scan with manufacturer data filters. See the Android section below for more details.
-
 Scanning begins when the [`advertisements`] [`Flow`] is collected and stops when the [`Flow`] collection is terminated.
-A [`Flow`] terminal operator (such as [`first`]) may be used to scan until an advertisement is found that matches a
-desired predicate. 
+A [`Flow`] terminal operator (such as [`first`]) may be used to scan until (for example) the first advertisement is
+found matching the specified filters: 
 
 ```kotlin
-val advertisement = Scanner()
-    .advertisements
-    .first { it.name?.startsWith("Example") }
+val advertisement = Scanner {
+    filters = listOf(Filter.Name("Example"))
+}.advertisements.first()
 ```
 
 ### Android
 
-Scan results can be filtered by manufacturer data using the same ID, data, and data mask that you would use with the
-[Android API](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[])):
-
-```kotlin
-val scanner = Scanner {
-    filters = listOf(
-        Filter.ManufacturerData(id = 1, data = byteArrayOf(), dataMask = byteArrayOf())
-    )
-}
-``` 
-
-Android also offers additional settings to customize scanning. They are available via the `scanSettings` property in the
+Android offers additional settings to customize scanning. They are available via the `scanSettings` property in the
 [`Scanner`] builder DSL. Simply set `scanSettings` property to an Android [`ScanSettings`] object, for example:
 
 ```kotlin
@@ -83,8 +95,8 @@ removed when a DSL specific API becomes available._
 
 ### JavaScript
 
-_Scanning for nearby peripherals is supported, but only available on Chrome 79+ with "Experimental Web
-Platform features" enabled via:_ `chrome://flags/#enable-experimental-web-platform-features`
+_Scanning for nearby peripherals is supported, but only available on Chrome 79+ with "Experimental Web Platform
+features" enabled via:_ `chrome://flags/#enable-experimental-web-platform-features`
 
 ## Peripheral
 
@@ -224,16 +236,23 @@ user is then returned (as a [`Peripheral`] object).
 
 ```kotlin
 val options = Options(
-    optionalServices = arrayOf(
-        "f000aa80-0451-4000-b000-000000000000",
-        "f000aa81-0451-4000-b000-000000000000"
+    filters = listOf(
+        Filter.NamePrefix("Example"),
     ),
-    filters = arrayOf(
-        NamePrefix("Example")
-    )
+    optionalServices = listOf(
+        uuidFrom("f000aa80-0451-4000-b000-000000000000"),
+        uuidFrom("f000aa81-0451-4000-b000-000000000000"),
+    ),
 )
 val peripheral = scope.requestPeripheral(options).await()
 ```
+
+> After the user selects a device to pair with this origin, the origin is allowed to access any service whose UUID was
+> listed in the services list in any element of `options.filters` or in `options.optionalServices`.
+> 
+> This implies that if developers filter just by name, they must use `optionalServices` to get access to any services.
+
+— [Web Bluetooth: 4. Device Discovery](https://webbluetoothcg.github.io/web-bluetooth/#device-discovery)
 
 ## Connectivity
 
@@ -435,6 +454,33 @@ cancellation is provided to prevent connection leaks._
 
 ## Setup
 
+### Android
+
+Kable declares common bluetooth permissions but doesn't declare that bluetooth hardware is required. If your app
+requires bluetooth (and won't function without it), then the following should be added to your app's
+`AndroidManifest.xml`:
+
+```xml
+<manifest ..>
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true"/>
+</manifest>
+```
+
+Kable declares the `BLUETOOTH_SCAN` permission with the assumption that your app will not derive physical location from
+scan results. If this is not true (and your app will derive physical location), then the following should be added to
+your app's `AndroidManifest.xml`:
+
+```xml
+<manifest ..>
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:node="remove"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+</manifest>
+```
+
 ### Gradle
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core)
@@ -603,6 +649,7 @@ limitations under the License.
 [`CoroutineScope`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-scope/
 [`Disconnected`]: https://juullabs.github.io/kable/core/com.juul.kable/-state/-disconnected/index.html
 [`Disconnecting`]: https://juullabs.github.io/kable/core/com.juul.kable/-state/-disconnecting/index.html
+[`Filter`]: https://juullabs.github.io/kable/core/com.juul.kable/-filter/index.html
 [`Flow`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/
 [`NotReadyException`]: https://juullabs.github.io/kable/core/com.juul.kable/-not-ready-exception/index.html
 [`Options`]: https://juullabs.github.io/kable/core/com.juul.kable/-options/index.html

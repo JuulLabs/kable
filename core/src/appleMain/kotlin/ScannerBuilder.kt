@@ -9,7 +9,7 @@ import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
 public actual class ScannerBuilder {
     @Deprecated(
         message = "Replaced by filters property",
-        level = DeprecationLevel.ERROR,
+        level = DeprecationLevel.HIDDEN,
     )
     public var services: List<Uuid>?
         set(value) {
@@ -49,7 +49,7 @@ public actual class ScannerBuilder {
 
         return AppleScanner(
             central = CentralManager.Default,
-            services = filters?.filterIsInstance<Filter.Service>()?.map { it.uuid },
+            filters = filters.orEmpty(),
             options = options.toMap(),
             logging = logging,
         )

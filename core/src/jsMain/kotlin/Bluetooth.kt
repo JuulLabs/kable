@@ -1,15 +1,57 @@
 package com.juul.kable
 
-import com.juul.kable.Options.Filter.Name
-import com.juul.kable.Options.Filter.NamePrefix
-import com.juul.kable.Options.Filter.Services
-import com.juul.kable.external.Bluetooth
+import com.benasher44.uuid.Uuid
+import com.juul.kable.Bluetooth.Availability.Available
+import com.juul.kable.Bluetooth.Availability.Unavailable
+import com.juul.kable.Reason.BluetoothUndefined
+import com.juul.kable.external.BluetoothAvailabilityChanged
+import com.juul.kable.external.BluetoothServiceUUID
+import com.juul.kable.external.RequestDeviceOptions
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.await
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.onStart
+import org.w3c.dom.events.Event
 import kotlin.js.Promise
+import com.juul.kable.external.Bluetooth as JsBluetooth
+
+public actual enum class Reason {
+    /** `window.navigator.bluetooth` is undefined. */
+    BluetoothUndefined,
+}
+
+private const val AVAILABILITY_CHANGED = "availabilitychanged"
+
+internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> = callbackFlow {
+    if (safeWebBluetooth == null) return@callbackFlow
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/onavailabilitychanged
+    val listener: (Event) -> Unit = { event ->
+        val isAvailable = event.unsafeCast<BluetoothAvailabilityChanged>().value
+        trySend(if (isAvailable) Available else Unavailable(reason = null))
+    }
+
+    bluetooth.apply {
+        addEventListener(AVAILABILITY_CHANGED, listener)
+        awaitClose {
+            removeEventListener(AVAILABILITY_CHANGED, listener)
+        }
+    }
+}.onStart {
+    val availability = if (safeWebBluetooth == null) {
+        Unavailable(reason = BluetoothUndefined)
+    } else {
+        val isAvailable = bluetooth.getAvailability().await()
+        if (isAvailable) Available else Unavailable(reason = null)
+    }
+    emit(availability)
+}
 
 // Deliberately NOT cast `as Bluetooth` to avoid potential class name collisions.
 @Suppress("UnsafeCastFromDynamic")
-internal val bluetooth: Bluetooth
+internal val bluetooth: JsBluetooth
     get() = checkNotNull(safeWebBluetooth) { "Bluetooth unavailable" }
 
 // In a node build environment (e.g. unit test) there is no window, guard for that to avoid build errors.
@@ -20,11 +62,11 @@ public fun CoroutineScope.requestPeripheral(
     options: Options,
     builderAction: PeripheralBuilderAction = {},
 ): Promise<Peripheral> = bluetooth
-    .requestDevice(options.toDynamic())
+    .requestDevice(options.toRequestDeviceOptions())
     .then { device -> peripheral(device, builderAction) }
 
 /**
- * Converts [Options] to JavaScript friendly object.
+ * Convert public API type to external Web Bluetooth (JavaScript) type.
  *
  * According to the `requestDevice`
  * [example](https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice#example), the form of the
@@ -41,26 +83,19 @@ public fun CoroutineScope.requestPeripheral(
  *   optionalServices: ['battery_service']
  * }
  * ```
- *
- * _Note: Web BLE has a limitation that requires all UUIDS to be lowercase so we enforce that here._
  */
-private fun Options.toDynamic(): dynamic = if (filters == null) {
-    jso {
-        this.acceptAllDevices = true
-        this.optionalServices = optionalServices.lowercase()
+private fun Options.toRequestDeviceOptions(): RequestDeviceOptions = jso {
+    if (this@toRequestDeviceOptions.filters.isNullOrEmpty()) {
+        acceptAllDevices = true
+    } else {
+        filters = this@toRequestDeviceOptions.filters.toBluetoothLEScanFilterInit()
     }
-} else {
-    jso {
-        this.optionalServices = optionalServices.lowercase()
-        this.filters = filters.map { it.toDynamic() }.toTypedArray()
+    if (!this@toRequestDeviceOptions.optionalServices.isNullOrEmpty()) {
+        optionalServices = this@toRequestDeviceOptions.optionalServices
+            .map(Uuid::toBluetoothServiceUUID)
+            .toTypedArray()
     }
 }
 
-private fun Options.Filter.toDynamic(): dynamic =
-    when (this) {
-        is Name -> jso { this.name = name }
-        is NamePrefix -> jso { this.namePrefix = namePrefix }
-        is Services -> jso { this.services = services.lowercase() }
-    }
-
-private fun Array<String>.lowercase(): Array<String> = map { it.lowercase() }.toTypedArray()
+// Note: Web Bluetooth requires that UUIDs be provided as lowercase strings.
+internal fun Uuid.toBluetoothServiceUUID(): BluetoothServiceUUID = toString().lowercase()

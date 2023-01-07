@@ -9,7 +9,7 @@ internal fun ByteArray.toHexString(
     prefix: String? = null,
     lowerCase: Boolean = false,
 ): String {
-    if (size == 0) return ""
+    if (isEmpty()) return ""
     val hexCode = if (lowerCase) "0123456789abcdef" else "0123456789ABCDEF"
     val capacity = size * (2 + (prefix?.length ?: 0)) + (size - 1) * (separator?.length ?: 0)
     val r = StringBuilder(capacity)
@@ -21,3 +21,10 @@ internal fun ByteArray.toHexString(
     }
     return r.toString()
 }
+
+internal fun ByteArray.toShort(): Int {
+    require(size == 2) { "ByteArray must be size of 2 to be converted to a short, was $size" }
+    return this[0] and 0xFF shl 8 or (this[1] and 0xFF)
+}
+
+private inline infix fun Byte.and(other: Int): Int = toInt() and other

@@ -3,11 +3,27 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 
 public expect class Advertisement {
+
     /**
      * The name in the Advertisement.
-     * The same as, or a shortened version of, the local name assigned to the device
+     *
+     * The data source for this property changed in 0.21.0, for the previous (often cached) data source for the name,
+     * use [peripheralName].
      */
     public val name: String?
+
+    /**
+     * It is recommended that [name] be used instead, as the backing value for [peripheralName] may differ between the
+     * various platforms.
+     *
+     * On Apple, this may be a shortened version of the peripheral name.
+     *
+     * On most platforms, this will return the cached peripheral name, but the caching strategy differs per platform.
+     */
+    public val peripheralName: String?
+
+    /** Returns if the peripheral is connectable. */
+    public val isConnectable: Boolean?
 
     /**
      * The received signal strength, in dBm, of the packet received.
