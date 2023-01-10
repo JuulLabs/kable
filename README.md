@@ -454,32 +454,88 @@ cancellation is provided to prevent connection leaks._
 
 ## Setup
 
-### Android
+### Android Permissions
 
-Kable declares common bluetooth permissions but doesn't declare that bluetooth hardware is required. If your app
-requires bluetooth (and won't function without it), then the following should be added to your app's
-`AndroidManifest.xml`:
+Kable [declares permissions for common use cases](core/src/androidMain/AndroidManifest.xml), but your app's
+configuration may need to be adjusted under the following conditions:
+
+<table>
+<tr>
+<td align="center">Your app...</td>
+<td align="center"><code>AndroidManifest.xml</code> additions</td>
+</tr>
+
+<tr>
+<td>
+
+[Obtains the user's location (e.g. maps)](https://developer.android.com/training/location/permissions#foreground)
+
+</td>
+<td>
 
 ```xml
-<manifest ..>
-    <uses-feature
-        android:name="android.hardware.bluetooth_le"
-        android:required="true"/>
-</manifest>
+<uses-permission
+    android:name="android.permission.ACCESS_COURSE_LOCATION"
+    tools:node="replace"/>
+<uses-permission
+    android:name="android.permission.ACCESS_FINE_LOCATION"
+    tools:node="replace"/>
 ```
 
-Kable declares the `BLUETOOTH_SCAN` permission with the assumption that your app will not derive physical location from
-scan results. If this is not true (and your app will derive physical location), then the following should be added to
-your app's `AndroidManifest.xml`:
+</td>
+</tr>
+
+<tr>
+<td>
+
+[Derives the user's location from Bluetooth Low Energy scans](https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#declare-android12-or-higher)
+
+</td>
+<td>
 
 ```xml
-<manifest ..>
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:node="remove"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-</manifest>
+<uses-permission
+    android:name="android.permission.BLUETOOTH_SCAN"
+    tools:node="replace"/>
 ```
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+[Performs background Bluetooth Low Energy scans](https://developer.android.com/training/location/permissions#background)
+
+</td>
+<td>
+
+```xml
+<uses-permission
+    android:name="android.permission.ACCESS_BACKGROUND_LOCATION"
+    android:maxSdkVersion="30"/>
+```
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+[Requires Bluetooth Low Energy (and won't function without it)](https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#features)
+
+</td>
+<td>
+
+```xml
+<uses-feature
+    android:name="android.hardware.bluetooth_le"
+    android:required="true"/>
+```
+
+</td>
+</tr>
+</table>
 
 ### Gradle
 
