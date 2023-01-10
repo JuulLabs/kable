@@ -38,12 +38,26 @@ public data class Options(
 ) {
 
     @Deprecated(
-        message = "Consolidated to com.juul.kable.Filter.",
+        message = "Consolidated to `com.juul.kable.Filter`",
         level = DeprecationLevel.WARNING,
     )
     public sealed class Filter {
+        @Deprecated(
+            message = "Use `com.juul.kable.Filter.Name` instead.",
+            level = DeprecationLevel.WARNING,
+        )
         public data class Name(val name: String) : Filter()
+
+        @Deprecated(
+            message = "Use `com.juul.kable.Filter.NamePrefix` instead.",
+            level = DeprecationLevel.WARNING,
+        )
         public data class NamePrefix(val namePrefix: String) : Filter()
+
+        @Deprecated(
+            message = "Provide each service individually as `com.juul.kable.Filter.Service`.",
+            level = DeprecationLevel.WARNING,
+        )
         public data class Services(val services: List<Uuid>) : Filter()
     }
 }
