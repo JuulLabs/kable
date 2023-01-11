@@ -2,23 +2,6 @@
 
 package com.juul.sensortag.features.scan
 
-import android.Manifest.permission.ACCESS_COARSE_LOCATION
-import android.Manifest.permission.ACCESS_FINE_LOCATION
-import android.Manifest.permission.BLUETOOTH_CONNECT
-import android.Manifest.permission.BLUETOOTH_SCAN
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothAdapter.ACTION_STATE_CHANGED
-import android.bluetooth.BluetoothAdapter.ERROR
-import android.bluetooth.BluetoothAdapter.EXTRA_STATE
-import android.bluetooth.BluetoothAdapter.STATE_CONNECTED
-import android.bluetooth.BluetoothAdapter.STATE_CONNECTING
-import android.bluetooth.BluetoothAdapter.STATE_DISCONNECTED
-import android.bluetooth.BluetoothAdapter.STATE_DISCONNECTING
-import android.bluetooth.BluetoothAdapter.STATE_ON
-import android.bluetooth.BluetoothAdapter.STATE_TURNING_ON
-import android.content.Intent
-import android.content.IntentFilter
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -37,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -69,6 +53,13 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.juul.kable.Advertisement
+import com.juul.kable.Bluetooth
+import com.juul.kable.Bluetooth.Availability.Available
+import com.juul.kable.Bluetooth.Availability.Unavailable
+import com.juul.kable.Reason.LocationServicesDisabled
+import com.juul.kable.Reason.Off
+import com.juul.kable.Reason.TurningOff
+import com.juul.kable.Reason.TurningOn
 import com.juul.sensortag.AppTheme
 import com.juul.sensortag.enableBluetooth
 import com.juul.sensortag.features.scan.ScanStatus.Failed
@@ -78,13 +69,10 @@ import com.juul.sensortag.features.sensor.SensorActivityIntent
 import com.juul.sensortag.icons.BluetoothDisabled
 import com.juul.sensortag.icons.LocationDisabled
 import com.juul.sensortag.openAppDetails
-import com.juul.tuulbox.coroutines.flow.broadcastReceiverFlow
-import kotlinx.coroutines.flow.map
+import com.juul.sensortag.permissionsNeeded
+import com.juul.sensortag.showLocationSettings
 
 class ScanActivity : ComponentActivity() {
-
-    private val isBluetoothEnabled = broadcastReceiverFlow(IntentFilter(ACTION_STATE_CHANGED))
-        .map { intent -> intent.getIsBluetoothEnabled() }
 
     private val viewModel by viewModels<ScanViewModel>()
 
@@ -92,52 +80,72 @@ class ScanActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
-                val isBluetoothEnabled = isBluetoothEnabled
-                    .collectAsState(initial = BluetoothAdapter.getDefaultAdapter().isEnabled)
-                    .value
-
                 Column(Modifier.background(color = MaterialTheme.colors.background)) {
-                    AppBar(viewModel, isBluetoothEnabled)
-
+                    val bluetooth = Bluetooth.availability.collectAsState(initial = null).value
+                    AppBar(viewModel, bluetooth)
                     Box(Modifier.weight(1f)) {
-                        ProvideTextStyle(
-                            TextStyle(color = contentColorFor(backgroundColor = MaterialTheme.colors.background))
-                        ) {
-                            val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                listOf(BLUETOOTH_SCAN, BLUETOOTH_CONNECT)
-                            } else {
-                                listOf(ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION)
-                            }
-                            val permissionsState = rememberMultiplePermissionsState(permissions)
-
-                            var didAskForPermission by remember { mutableStateOf(false) }
-                            if (!didAskForPermission) {
-                                didAskForPermission = true
-                                SideEffect {
-                                    permissionsState.launchMultiplePermissionRequest()
-                                }
-                            }
-
-                            if (permissionsState.allPermissionsGranted) {
-                                if (isBluetoothEnabled) {
-                                    val advertisements = viewModel.advertisements.collectAsState().value
-                                    AdvertisementsList(advertisements, ::onAdvertisementClicked)
-                                } else {
-                                    BluetoothDisabled(::enableBluetooth)
-                                }
-                            } else {
-                                if (permissionsState.shouldShowRationale) {
-                                    BluetoothPermissionsNotGranted(permissionsState)
-                                } else {
-                                    BluetoothPermissionsNotAvailable(::openAppDetails)
-                                }
-                            }
-                        }
-
+                        ScanPane(bluetooth)
                         StatusSnackbar(viewModel)
                     }
                 }
             }
+        }
+    }
+
+    @Composable
+    private fun ScanPane(bluetooth: Bluetooth.Availability?) {
+        ProvideTextStyle(
+            TextStyle(color = contentColorFor(backgroundColor = MaterialTheme.colors.background))
+        ) {
+            val permissionsState = rememberMultiplePermissionsState(Bluetooth.permissionsNeeded)
+
+            var didAskForPermission by remember { mutableStateOf(false) }
+            if (!didAskForPermission) {
+                didAskForPermission = true
+                SideEffect {
+                    permissionsState.launchMultiplePermissionRequest()
+                }
+            }
+
+            if (permissionsState.allPermissionsGranted) {
+                PermissionGranted(bluetooth)
+            } else {
+                if (permissionsState.shouldShowRationale) {
+                    BluetoothPermissionsNotGranted(permissionsState)
+                } else {
+                    BluetoothPermissionsNotAvailable(::openAppDetails)
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun PermissionGranted(bluetooth: Bluetooth.Availability?) {
+        when (bluetooth) {
+            Available -> {
+                val advertisements = viewModel.advertisements.collectAsState().value
+                AdvertisementsList(advertisements, ::onAdvertisementClicked)
+            }
+            is Unavailable -> when (bluetooth.reason) {
+                LocationServicesDisabled -> LocationServicesDisabled(::showLocationSettings)
+                Off, TurningOff -> BluetoothDisabled(::enableBluetooth)
+                TurningOn -> Loading()
+                null -> BluetoothUnavailable()
+            }
+            null -> Loading()
+        }
+    }
+
+    @Composable
+    private fun BluetoothUnavailable() {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            horizontalAlignment = CenterHorizontally,
+            verticalArrangement = Center,
+        ) {
+            Text(text = "Bluetooth unavailable.")
         }
     }
 
@@ -157,7 +165,7 @@ class ScanActivity : ComponentActivity() {
 }
 
 @Composable
-private fun AppBar(viewModel: ScanViewModel, isBluetoothEnabled: Boolean) {
+private fun AppBar(viewModel: ScanViewModel, bluetooth: Bluetooth.Availability?) {
     val status = viewModel.status.collectAsState().value
 
     TopAppBar(
@@ -165,7 +173,7 @@ private fun AppBar(viewModel: ScanViewModel, isBluetoothEnabled: Boolean) {
             Text("SensorTag Example")
         },
         actions = {
-            if (isBluetoothEnabled) {
+            if (bluetooth == Available) {
                 if (status !is Scanning) {
                     IconButton(onClick = viewModel::start) {
                         Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
@@ -185,8 +193,8 @@ private fun BoxScope.StatusSnackbar(viewModel: ScanViewModel) {
 
     if (status !is Stopped) {
         val text = when (status) {
-            is Scanning -> "Scanning"
-            is Stopped -> "Idle"
+            Scanning -> "Scanning"
+            Stopped -> "Idle"
             is Failed -> "Error: ${status.message}"
         }
         Snackbar(
@@ -247,6 +255,17 @@ private fun BluetoothDisabled(enableAction: () -> Unit) {
 }
 
 @Composable
+private fun LocationServicesDisabled(enableAction: () -> Unit) {
+    ActionRequired(
+        icon = Icons.Filled.LocationDisabled,
+        contentDescription = "Location services disabled",
+        description = "Location services are disabled.",
+        buttonText = "Enable",
+        onClick = enableAction,
+    )
+}
+
+@Composable
 private fun BluetoothPermissionsNotGranted(permissions: MultiplePermissionsState) {
     ActionRequired(
         icon = Icons.Filled.LocationDisabled,
@@ -266,6 +285,19 @@ private fun BluetoothPermissionsNotAvailable(openSettingsAction: () -> Unit) {
         buttonText = "Open Settings",
         onClick = openSettingsAction,
     )
+}
+
+@Composable
+private fun Loading() {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        horizontalAlignment = CenterHorizontally,
+        verticalArrangement = Center,
+    ) {
+        CircularProgressIndicator()
+    }
 }
 
 @Composable
@@ -302,9 +334,4 @@ private fun AdvertisementRow(advertisement: Advertisement, onClick: () -> Unit) 
             text = "${advertisement.rssi} dBm",
         )
     }
-}
-
-private fun Intent.getIsBluetoothEnabled(): Boolean = when (getIntExtra(EXTRA_STATE, ERROR)) {
-    STATE_TURNING_ON, STATE_ON, STATE_CONNECTING, STATE_CONNECTED, STATE_DISCONNECTING, STATE_DISCONNECTED -> true
-    else -> false // STATE_TURNING_OFF, STATE_OFF
 }

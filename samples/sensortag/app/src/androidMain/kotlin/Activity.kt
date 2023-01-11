@@ -1,5 +1,7 @@
 package com.juul.sensortag
 
+import android.Manifest.permission.BLUETOOTH_CONNECT
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
@@ -10,8 +12,14 @@ object RequestCode {
     const val EnableBluetooth = 55001
 }
 
+/** @throws SecurityException if [BLUETOOTH_CONNECT] permission has not been granted on Android 12 (API 31) or newer. */
+@SuppressLint("MissingPermission")
 fun Activity.enableBluetooth() {
     startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), RequestCode.EnableBluetooth)
+}
+
+fun Activity.showLocationSettings() {
+    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
 }
 
 fun Activity.openAppDetails() {

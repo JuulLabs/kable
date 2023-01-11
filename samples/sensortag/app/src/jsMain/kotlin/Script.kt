@@ -1,9 +1,12 @@
 package com.juul.sensortag
 
+import com.benasher44.uuid.uuidFrom
+import com.juul.kable.Bluetooth
+import com.juul.kable.Filter
 import com.juul.kable.Options
-import com.juul.kable.Options.Filter.NamePrefix
 import com.juul.kable.State.Disconnected
 import com.juul.kable.requestPeripheral
+import com.juul.sensortag.services
 import com.juul.tuulbox.logging.ConsoleLogger
 import com.juul.tuulbox.logging.ConstantTagGenerator
 import com.juul.tuulbox.logging.Log
@@ -16,21 +19,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-typealias MessageListener = (message: String) -> Unit
-typealias MovementListener = (x: Float, y: Float, z: Float) -> Unit
-
-private fun canonicalUuid(uuid: String): String = when (uuid.length) {
-    4 -> "0000$uuid-0000-1000-8000-00805f9b34fb"
-    else -> error("Canonical UUID length must be 4, was ${uuid.length}")
-}
-
-private const val movementSensorServiceUuid = "f000aa80-0451-4000-b000-000000000000"
-private const val movementSensorDataUuid = "f000aa81-0451-4000-b000-000000000000"
-private const val movementNotificationUuid = "f0002902-0451-4000-b000-000000000000"
-private const val movementConfigurationUuid = "f000aa82-0451-4000-b000-000000000000"
-private const val movementPeriodUuid = "f000aa83-0451-4000-b000-000000000000"
-private val clientCharacteristicConfigUuid = canonicalUuid("2902")
-
 @JsExport
 class Script {
 
@@ -40,53 +28,16 @@ class Script {
     }
 
     private val scope = CoroutineScope(Job())
+    private var connection: Job? = null
+
+    val availability = BluetoothAvailability(Bluetooth.availability).apply { launchIn(scope) }
+    val status = Status()
+    val movement = Movement()
 
     private val options = Options(
-        optionalServices = arrayOf(
-            movementSensorServiceUuid,
-            movementSensorDataUuid,
-            movementNotificationUuid,
-            movementConfigurationUuid,
-            movementPeriodUuid,
-            clientCharacteristicConfigUuid,
-        ),
-        filters = arrayOf(
-            NamePrefix("SensorTag"),
-            NamePrefix("CC2650 SensorTag"),
-        )
+        filters = listOf(Filter.Service(uuidFrom(sensorTagUuid))),
+        optionalServices = services,
     )
-
-    private val statusListeners = mutableListOf<MessageListener>()
-
-    fun addStatusListener(listener: MessageListener) {
-        statusListeners += listener
-    }
-
-    fun removeStatusListener(listener: MessageListener) {
-        statusListeners -= listener
-    }
-
-    private fun emitStatus(status: String) {
-        Log.verbose { status }
-        statusListeners.forEach { it.invoke(status) }
-    }
-
-    private val movementListeners = mutableListOf<MovementListener>()
-
-    fun addMovementListener(listener: MovementListener) {
-        movementListeners += listener
-    }
-
-    fun removeMovementListener(listener: MovementListener) {
-        movementListeners -= listener
-    }
-
-    private fun emitMovement(movement: Vector3f) {
-        val (x, y, z) = movement
-        movementListeners.forEach { it.invoke(x, y, z) }
-    }
-
-    private var connection: Job? = null
 
     fun connect(): Unit {
         disconnect() // Clean up previous connection, if any.
@@ -97,29 +48,28 @@ class Script {
             enableAutoReconnect(sensorTag)
 
             try {
-                sensorTag.gyro.collect(::emitMovement)
+                sensorTag.gyro.collect(movement::emit)
             } finally {
                 sensorTag.disconnect()
             }
         }.apply {
             invokeOnCompletion { cause ->
                 Log.info { "invokeOnCompletion $cause" }
-                emitStatus("Disconnected")
+                status.emit("Disconnected")
             }
         }
     }
 
-    @JsName("disconnect")
     fun disconnect() {
         connection?.cancel()
         connection = null
     }
 
     private suspend fun SensorTag.establishConnection(): Unit = coroutineScope {
-        emitStatus("Connecting")
+        status.emit("Connecting")
         connect()
         enableGyro()
-        emitStatus("Connected")
+        status.emit("Connected")
     }
 
     private fun CoroutineScope.enableAutoReconnect(
@@ -133,4 +83,3 @@ class Script {
         }
     }.launchIn(this)
 }
-

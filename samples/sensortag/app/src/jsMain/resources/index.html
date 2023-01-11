@@ -7,10 +7,13 @@
         <script type="text/javascript" src="app.js"></script>
         <script type="text/javascript">
             var script = new app.com.juul.sensortag.Script();
-            script.addStatusListener(function(message) {
+            script.availability.addListener(function(availability) {
+                console.log("Availability changed: " + availability)
+            });
+            script.status.addListener(function(message) {
                 document.getElementById('status').innerHTML = message;
             });
-            script.addMovementListener(function(x, y, z) {
+            script.movement.addListener(function(x, y, z) {
                 document.getElementById('movement').innerHTML = "x: " + x + "<br/>y: " + y + "<br/>z: " + z;
             });
         </script>
