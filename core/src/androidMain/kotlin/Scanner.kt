@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
@@ -51,6 +52,7 @@ public class AndroidScanner internal constructor(
                     }
             }
 
+            @SuppressLint("NewApi") // `forEach` incorrectly showing as minimum API 24 despite the Kotlin stdlib version being used.
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
                 runCatching {
                     results.forEach {
