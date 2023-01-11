@@ -7,15 +7,6 @@ import platform.CoreBluetooth.CBCentralManagerScanOptionAllowDuplicatesKey
 import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
 
 public actual class ScannerBuilder {
-    @Deprecated(
-        message = "Replaced by filters property",
-        level = DeprecationLevel.HIDDEN,
-    )
-    public var services: List<Uuid>?
-        set(value) {
-            filters = value?.map { Filter.Service(it) }
-        }
-        get() = filters?.filterIsInstance<Filter.Service>()?.map { it.uuid }
 
     public actual var filters: List<Filter>? = null
 
