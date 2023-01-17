@@ -53,40 +53,6 @@ private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONF
 // https://github.com/JuulLabs/kable/issues/295
 private const val DISCOVER_SERVICES_RETRIES = 5
 
-/**
- * @param transport preferred transport for GATT connections to remote dual-mode devices.
- * @param phy preferred PHY for connections to remote LE device.
- */
-@Deprecated(
-    message = "Use builder lambda. This method will be removed in a future release.",
-    level = DeprecationLevel.HIDDEN,
-)
-public fun CoroutineScope.peripheral(
-    advertisement: Advertisement,
-    transport: Transport,
-    phy: Phy = Phy.Le1M,
-): Peripheral = peripheral(advertisement) {
-    this.transport = transport
-    this.phy = phy
-}
-
-/**
- * @param transport preferred transport for GATT connections to remote dual-mode devices.
- * @param phy preferred PHY for connections to remote LE device.
- */
-@Deprecated(
-    message = "Use builder lambda. This method will be removed in a future release.",
-    level = DeprecationLevel.HIDDEN,
-)
-public fun CoroutineScope.peripheral(
-    bluetoothDevice: BluetoothDevice,
-    transport: Transport,
-    phy: Phy = Phy.Le1M,
-): Peripheral = peripheral(bluetoothDevice) {
-    this.transport = transport
-    this.phy = phy
-}
-
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
