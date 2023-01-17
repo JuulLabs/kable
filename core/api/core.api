@@ -313,14 +313,10 @@ public final class com/juul/kable/PeripheralBuilder {
 
 public final class com/juul/kable/PeripheralKt {
 	public static final fun getIdentifier (Lcom/juul/kable/Peripheral;)Ljava/lang/String;
-	public static final synthetic fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
-	public static final synthetic fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
-	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
-	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lcom/juul/kable/Transport;Lcom/juul/kable/Phy;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static final fun toIdentifier (Ljava/lang/String;)Ljava/lang/String;
@@ -376,18 +372,14 @@ public final class com/juul/kable/ScannerBuilder {
 	public fun <init> ()V
 	public final fun getFilters ()Ljava/util/List;
 	public final fun getScanSettings ()Landroid/bluetooth/le/ScanSettings;
-	public final synthetic fun getServices ()Ljava/util/List;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun setFilters (Ljava/util/List;)V
 	public final fun setScanSettings (Landroid/bluetooth/le/ScanSettings;)V
-	public final synthetic fun setServices (Ljava/util/List;)V
 }
 
 public final class com/juul/kable/ScannerKt {
-	public static final synthetic fun Scanner (Ljava/util/List;)Lcom/juul/kable/Scanner;
 	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Scanner;
 	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
-	public static final synthetic fun scannerWithFilters (Ljava/util/List;)Lcom/juul/kable/Scanner;
 }
 
 public abstract interface class com/juul/kable/Service {
