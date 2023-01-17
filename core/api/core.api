@@ -61,6 +61,13 @@ public final class com/juul/kable/Bluetooth$Availability$Unavailable : com/juul/
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/juul/kable/Bluetooth$BaseUuid {
+	public static final field INSTANCE Lcom/juul/kable/Bluetooth$BaseUuid;
+	public final fun plus (I)Ljava/util/UUID;
+	public final fun plus (J)Ljava/util/UUID;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/juul/kable/BluetoothDisabledException : com/juul/kable/BluetoothException {
 	public fun <init> ()V
 }
