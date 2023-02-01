@@ -12,7 +12,7 @@ plugins {
     alias(libs.plugins.java8)
 }
 
-subprojects {
+allprojects {
     repositories {
         mavenLocal()
         google()

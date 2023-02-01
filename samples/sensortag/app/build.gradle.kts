@@ -85,29 +85,3 @@ android {
 dependencies {
     ksp(libs.exercise.compile)
 }
-
-// Workaround for:
-// java.lang.NoSuchMethodError: No static method setContent$default(..)
-// https://youtrack.jetbrains.com/issue/KT-38694
-// https://github.com/avdim/compose_mpp_workaround
-configurations {
-    create("composeCompiler") {
-        isCanBeConsumed = false
-    }
-}
-dependencies {
-    add("composeCompiler", libs.compose.compiler.get())
-}
-android {
-    afterEvaluate {
-        val composeCompilerJar =
-            configurations["composeCompiler"]
-                .resolve()
-                .singleOrNull()
-                ?: error("Please add `androidx.compose.compiler:compiler` as the only `composeCompiler` dependency.")
-        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-            kotlinOptions.freeCompilerArgs += listOf("-Xuse-ir", "-Xplugin=$composeCompilerJar")
-        }
-    }
-}
-// End workaround
