@@ -27,11 +27,6 @@ kotlin {
                 implementation(libs.tuulbox.logging)
                 implementation(libs.tuulbox.encoding)
                 implementation(libs.tuulbox.coroutines)
-
-                // todo: Remove once kotlinx.datetime 0.3.3+ is transitively pulled in.
-                // This is needed because kotlinx.datetime 0.3.2 (which is not Kotlin 1.7.0 compatible) is transitively
-                // pull in, so we explicitly upgrade to a version that is compatible with Kotlin 1.7.x.
-                implementation(libs.datetime)
             }
         }
 
@@ -42,17 +37,6 @@ kotlin {
                 implementation(libs.exercise.annotations)
                 implementation(libs.bundles.krayon)
             }
-        }
-
-        val nativeMain by creating {
-            dependencies {
-                implementation(libs.coroutines.macosx64)
-                implementation(libs.stately)
-            }
-        }
-
-        val macosX64Main by getting {
-            dependsOn(nativeMain)
         }
     }
 }
