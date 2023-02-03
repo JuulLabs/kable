@@ -31,7 +31,6 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.LAZY
-import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -156,6 +155,7 @@ public class AndroidPeripheral internal constructor(
             phy,
             _state,
             _mtu,
+            observers.characteristicChanges,
             logging,
             threading,
             invokeOnClose = { connectJob.value = null },
@@ -165,13 +165,7 @@ public class AndroidPeripheral internal constructor(
     /** Creates a connect [Job] that completes when connection is established, or failure occurs. */
     private fun connectAsync() = scope.async(start = LAZY) {
         try {
-            val connection = establishConnection().also { _connection = it }
-
-            connection
-                .characteristicChanges
-                .onEach(observers.characteristicChanges::emit)
-                .launchIn(scope, start = UNDISPATCHED)
-
+            _connection = establishConnection()
             suspendUntilOrThrow<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))

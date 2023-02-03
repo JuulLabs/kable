@@ -17,6 +17,7 @@ import com.juul.kable.logs.Logging
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.android.asCoroutineDispatcher
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.newSingleThreadContext
 
@@ -68,6 +69,7 @@ internal fun BluetoothDevice.connect(
     phy: Phy,
     state: MutableStateFlow<State>,
     mtu: MutableStateFlow<Int?>,
+    onCharacteristicChanged: MutableSharedFlow<ObservationEvent<ByteArray>>,
     logging: Logging,
     threading: Threading,
     invokeOnClose: () -> Unit,
@@ -76,7 +78,7 @@ internal fun BluetoothDevice.connect(
     // Disconnected before the connection request has kicked off the Connecting state (via Callback).
     state.value = State.Connecting.Bluetooth
 
-    val callback = Callback(state, mtu, logging, address)
+    val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
 
     val bluetoothGatt = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
