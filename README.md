@@ -546,14 +546,6 @@ Kable can be configured via Gradle Kotlin DSL as follows:
 <details open>
 <summary>New memory model</summary>
 
-`gradle.properties`
-
-```kotlin
-kotlin.native.binary.memoryModel=experimental
-```
-
-`build.gradle.kts`
-
 ```kotlin
 plugins {
     id("com.android.application") // or id("com.android.library")
