@@ -26,4 +26,4 @@ dokka = { id = "org.jetbrains.dokka", version = "1.7.20" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "3.13.0" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.24.0" }
-validator = { id = "binary-compatibility-validator", version = "0.5.0" }
+validator = { id = "binary-compatibility-validator", version = "0.13.0" }
