@@ -149,6 +149,13 @@ android {
         disable += "MissingPermission"
     }
 
+    // Android Gradle plugin targets JVM 11 bytecode
+    // https://developer.android.com/studio/releases/gradle-plugin#7-4-0
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
     sourceSets {
         getByName("main").manifest.srcFile("src/androidMain/AndroidManifest.xml")
     }
