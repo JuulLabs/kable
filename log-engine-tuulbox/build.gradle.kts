@@ -45,8 +45,4 @@ android {
         abortOnError = true
         warningsAsErrors = true
     }
-
-    sourceSets {
-        getByName("main").manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    }
 }
