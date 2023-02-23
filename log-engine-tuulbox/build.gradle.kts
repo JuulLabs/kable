@@ -39,6 +39,8 @@ android {
         targetSdk = libs.versions.android.target.get().toInt()
     }
 
+    namespace = "com.juul.kable"
+
     lint {
         abortOnError = true
         warningsAsErrors = true
