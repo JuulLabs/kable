@@ -1,10 +1,10 @@
 package com.juul.kable
 
-import co.touchlab.stately.collections.IsoMutableList
-import co.touchlab.stately.isolate.IsolateState
 import com.juul.kable.ObservationEvent.CharacteristicChange
 import com.juul.kable.ObservationEvent.Error
 import com.juul.kable.logs.Logging
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
@@ -45,7 +45,9 @@ internal class Observers<T>(
 ) {
 
     val characteristicChanges = MutableSharedFlow<ObservationEvent<T>>(extraBufferCapacity = extraBufferCapacity)
-    private val observations = Observations()
+
+    private val observations = mutableMapOf<Characteristic, Observation>()
+    private val lock = SynchronizedObject()
 
     fun acquire(
         characteristic: Characteristic,
@@ -55,12 +57,10 @@ internal class Observers<T>(
         val handler = peripheral.observationHandler()
         val identifier = peripheral.identifier
 
-        // `IsoMutableList` created outside of `getOrPut`, because it would deadlock on Native if created in
-        // `Observation` constructor.
-        val subscribers = IsoMutableList<OnSubscriptionAction>()
-
-        val observation = observations.getOrPut(characteristic) {
-            Observation(state, handler, characteristic, logging, identifier.toString(), subscribers)
+        val observation = synchronized(lock) {
+            observations.getOrPut(characteristic) {
+                Observation(state, handler, characteristic, logging, identifier.toString())
+            }
         }
 
         return characteristicChanges
@@ -92,7 +92,9 @@ internal class Observers<T>(
     }
 
     suspend fun onConnected() {
-        observations.entries.forEach { (_, observation) ->
+        synchronized(lock) {
+            observations.entries
+        }.forEach { (_, observation) ->
             // Pipe failures to `characteristicChanges` while honoring in-flight connection cancellations.
             try {
                 observation.onConnected()
@@ -102,25 +104,5 @@ internal class Observers<T>(
                 throw IOException("Failed to observe characteristic during connection attempt", e)
             }
         }
-    }
-}
-
-private class Observations : IsolateState<MutableMap<Characteristic, Observation>>(
-    producer = { mutableMapOf() },
-) {
-
-    val entries: List<Pair<Characteristic, Observation>>
-        get() = access { observations ->
-            // `map` used as a means to copy entries, to prevent freeze exceptions on Native.
-            observations.entries.map { (characteristic, observation) ->
-                characteristic to observation
-            }
-        }
-
-    fun getOrPut(
-        characteristic: Characteristic,
-        defaultValue: () -> Observation,
-    ): Observation = access { observations ->
-        observations.getOrPut(characteristic, defaultValue)
     }
 }

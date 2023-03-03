@@ -37,7 +37,6 @@ kotlin {
                 api(libs.kotlinx.coroutines.core)
                 api(libs.uuid)
                 implementation(libs.tuulbox.collections)
-                implementation(libs.stately.collections)
             }
         }
 
