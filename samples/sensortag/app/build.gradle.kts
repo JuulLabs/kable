@@ -18,6 +18,14 @@ kotlin {
             }
         }
     }
+    macosArm64 {
+        binaries {
+            executable {
+                baseName = "sensortag"
+                entryPoint = "com.juul.sensortag.main"
+            }
+        }
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -37,6 +45,18 @@ kotlin {
                 implementation(libs.exercise.annotations)
                 implementation(libs.bundles.krayon)
             }
+        }
+
+        val nativeDarwinMain by creating {
+            dependsOn(commonMain)
+        }
+
+        val macosX64Main by getting {
+            dependsOn(nativeDarwinMain)
+        }
+
+        val macosArm64Main by getting {
+            dependsOn(nativeDarwinMain)
         }
     }
 }
@@ -68,5 +88,5 @@ android {
 }
 
 dependencies {
-    ksp(libs.exercise.compile)
+    add("kspAndroid", libs.exercise.compile)
 }
