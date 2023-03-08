@@ -1,12 +1,8 @@
-@file:JvmName("AndroidExceptionsKt") // Removes conflict with commonMain Exceptions.kt
-
 package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.os.RemoteException
-
-public actual typealias IOException = java.io.IOException
 
 /**
  * Thrown when underlying [BluetoothGatt] method call returns `false`. This can occur under the following conditions:
