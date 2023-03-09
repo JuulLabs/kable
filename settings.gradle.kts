@@ -22,6 +22,7 @@ pluginManagement {
 }
 
 include(
+    "exceptions",
     "core",
     "log-engine-tuulbox",
 )

@@ -34,6 +34,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(project(":exceptions"))
                 api(libs.kotlinx.coroutines.core)
                 api(libs.uuid)
                 implementation(libs.tuulbox.collections)
