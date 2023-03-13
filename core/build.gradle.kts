@@ -34,6 +34,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(project(":exceptions"))
                 api(libs.kotlinx.coroutines.core)
                 api(libs.uuid)
                 implementation(libs.tuulbox.collections)
@@ -132,11 +133,7 @@ kotlin {
 
 android {
     compileSdk = libs.versions.android.compile.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.min.get().toInt()
-        targetSdk = libs.versions.android.target.get().toInt()
-    }
+    defaultConfig.minSdk = libs.versions.android.min.get().toInt()
 
     namespace = "com.juul.kable"
 
@@ -149,6 +146,13 @@ android {
         // we disable the "missing permission" lint check. Caution must be taken during later Android version bumps to
         // make sure we aren't missing any newly introduced permission requirements.
         disable += "MissingPermission"
+    }
+
+    // Android Gradle plugin targets JVM 11 bytecode
+    // https://developer.android.com/studio/releases/gradle-plugin#7-4-0
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     sourceSets {
