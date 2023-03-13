@@ -40,11 +40,10 @@ internal expect fun Peripheral.observationHandler(): Observation.Handler
 internal class Observers<T>(
     private val peripheral: Peripheral,
     private val logging: Logging,
-    extraBufferCapacity: Int = 0,
     private val exceptionHandler: ObservationExceptionHandler,
 ) {
 
-    val characteristicChanges = MutableSharedFlow<ObservationEvent<T>>(extraBufferCapacity = extraBufferCapacity)
+    val characteristicChanges = MutableSharedFlow<ObservationEvent<T>>(extraBufferCapacity = Int.MAX_VALUE)
     private val observations = Observations()
 
     fun acquire(
