@@ -1,5 +1,3 @@
-enableFeaturePreview("VERSION_CATALOGS")
-
 pluginManagement {
     repositories {
         google()
@@ -24,6 +22,7 @@ pluginManagement {
 }
 
 include(
+    "exceptions",
     "core",
     "log-engine-tuulbox",
 )
