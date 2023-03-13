@@ -2,13 +2,11 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
-import com.juul.kable.ObservationEvent.CharacteristicChange
 import com.juul.kable.gatt.Callback
 import com.juul.kable.gatt.GattStatus
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -32,11 +30,6 @@ internal class Connection(
     }
 
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = bluetoothGatt.device.address)
-
-    val characteristicChanges = callback.onCharacteristicChanged
-        .map { (bluetoothGattCharacteristic, value) ->
-            CharacteristicChange(bluetoothGattCharacteristic.toLazyCharacteristic(), value)
-        }
 
     private val lock = Mutex()
     private var pending = false

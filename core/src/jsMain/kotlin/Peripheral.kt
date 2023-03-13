@@ -298,7 +298,7 @@ public class JsPeripheral internal constructor(
         .buffer
         .toByteArray()
 
-    private val observers = Observers<DataView>(this, logging, extraBufferCapacity = 64, observationExceptionHandler)
+    private val observers = Observers<DataView>(this, logging, observationExceptionHandler)
 
     public fun observeDataView(
         characteristic: Characteristic,

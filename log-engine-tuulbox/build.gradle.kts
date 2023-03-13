@@ -33,18 +33,19 @@ kotlin {
 
 android {
     compileSdk = libs.versions.android.compile.get().toInt()
+    defaultConfig.minSdk = libs.versions.android.min.get().toInt()
 
-    defaultConfig {
-        minSdk = libs.versions.android.min.get().toInt()
-        targetSdk = libs.versions.android.target.get().toInt()
-    }
+    namespace = "com.juul.kable"
 
     lint {
         abortOnError = true
         warningsAsErrors = true
     }
 
-    sourceSets {
-        getByName("main").manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    // Android Gradle plugin targets JVM 11 bytecode
+    // https://developer.android.com/studio/releases/gradle-plugin#7-4-0
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
