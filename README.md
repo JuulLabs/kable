@@ -543,9 +543,6 @@ configuration may need to be adjusted under the following conditions:
 
 Kable can be configured via Gradle Kotlin DSL as follows:
 
-<details open>
-<summary>New memory model</summary>
-
 ```kotlin
 plugins {
     id("com.android.application") // or id("com.android.library")
@@ -583,89 +580,6 @@ android {
     // ...
 }
 ```
-</details>
-
-<details>
-<summary>Old memory model</summary>
-
-```kotlin
-plugins {
-    id("com.android.application") // or id("com.android.library")
-    kotlin("multiplatform")
-}
-
-repositories {
-    mavenCentral()
-}
-
-kotlin {
-    android()
-    js().browser()
-    macosX64()
-    iosX64()
-    iosArm64()
-
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
-                implementation("com.juul.kable:core:${kableVersion}")
-            }
-        }
-
-        val androidMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}")
-            }
-        }
-
-        val macosX64Main by getting {
-            dependencies {
-                // Need to specify the Coroutines artifact specific for the target platform (`-macosx64`):
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-macosx64:${coroutinesVersion}-native-mt") {
-                    version {
-                        // `strictly` needed to make sure Gradle uses `-native-mt` version.
-                        strictly("${coroutinesVersion}-native-mt")
-                    }
-                }
-            }
-        }
-
-        val iosX64Main by getting {
-            dependencies {
-                // Need to specify the Coroutines artifact specific for the target platform (`-iosx64`):
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosx64:${coroutinesVersion}-native-mt") {
-                    version {
-                        // `strictly` needed to make sure Gradle uses `-native-mt` version.
-                        strictly("${coroutinesVersion}-native-mt")
-                    }
-                }
-            }
-        }
-
-        val iosArm64Main by getting {
-            dependencies {
-                // Need to specify the Coroutines artifact specific for the target platform (`-iosarm64`):
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-iosarm64:${coroutinesVersion}-native-mt") {
-                    version {
-                        // `strictly` needed to make sure Gradle uses `-native-mt` version.
-                        strictly("${coroutinesVersion}-native-mt")
-                    }
-                }
-            }
-        }
-    }
-}
-
-android {
-    // ...
-}
-```
-
-_Note that for compatibility with Kable, Native targets (e.g. `macosX64`) require
-[Coroutines with multithread support for Kotlin/Native] (more specifically: Coroutines library artifacts that are
-suffixed with `-native-mt`)._
-</details>
 
 # License
 
