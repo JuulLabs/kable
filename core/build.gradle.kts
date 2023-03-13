@@ -133,11 +133,7 @@ kotlin {
 
 android {
     compileSdk = libs.versions.android.compile.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.min.get().toInt()
-        targetSdk = libs.versions.android.target.get().toInt()
-    }
+    defaultConfig.minSdk = libs.versions.android.min.get().toInt()
 
     lint {
         abortOnError = true
