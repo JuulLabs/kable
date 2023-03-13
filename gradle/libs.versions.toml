@@ -21,7 +21,7 @@ uuid = { module = "com.benasher44:uuid", version = "0.7.0" }
 [plugins]
 android-library = { id = "com.android.library", version = "7.4.2" }
 atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
-dokka = { id = "org.jetbrains.dokka", version = "1.7.20" }
+dokka = { id = "org.jetbrains.dokka", version = "1.8.10" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "3.13.0" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.24.0" }
