@@ -14,7 +14,6 @@ internal class Observation(
     private val characteristic: Characteristic,
     logging: Logging,
     identifier: String,
-    private val subscribers: MutableList<OnSubscriptionAction> = mutableListOf(),
 ) {
 
     interface Handler {
@@ -24,6 +23,7 @@ internal class Observation(
 
     private val logger = Logger(logging, tag = "Kable/Observation", identifier)
 
+    private val subscribers = mutableListOf<OnSubscriptionAction>()
     private val mutex = Mutex()
 
     private val _didStartObservation = atomic(false)
@@ -34,12 +34,9 @@ internal class Observation(
     private val isConnected: Boolean
         get() = state.value.isAtLeast<Observes>()
 
-    private val hasSubscribers: Boolean
-        get() = subscribers.isNotEmpty()
-
     suspend fun onSubscription(action: OnSubscriptionAction) = mutex.withLock {
         subscribers += action
-        val shouldStartObservation = !didStartObservation && hasSubscribers && isConnected
+        val shouldStartObservation = !didStartObservation && subscribers.isNotEmpty() && isConnected
         if (shouldStartObservation) {
             suppressConnectionExceptions {
                 startObservation()
@@ -50,13 +47,13 @@ internal class Observation(
 
     suspend fun onCompletion(action: OnSubscriptionAction) = mutex.withLock {
         subscribers -= action
-        val shouldStopObservation = didStartObservation && !hasSubscribers && isConnected
+        val shouldStopObservation = didStartObservation && subscribers.isEmpty() && isConnected
         if (shouldStopObservation) stopObservation()
     }
 
     suspend fun onConnected() = mutex.withLock {
         if (isConnected) {
-            if (hasSubscribers) {
+            if (subscribers.isNotEmpty()) {
                 suppressConnectionExceptions {
                     startObservation()
                     subscribers.forEach { it() }
