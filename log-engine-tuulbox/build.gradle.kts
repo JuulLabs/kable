@@ -35,6 +35,8 @@ android {
     compileSdk = libs.versions.android.compile.get().toInt()
     defaultConfig.minSdk = libs.versions.android.min.get().toInt()
 
+    namespace = "com.juul.kable"
+
     lint {
         abortOnError = true
         warningsAsErrors = true
@@ -45,9 +47,5 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    sourceSets {
-        getByName("main").manifest.srcFile("src/androidMain/AndroidManifest.xml")
     }
 }
