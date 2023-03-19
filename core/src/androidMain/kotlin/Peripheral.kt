@@ -63,7 +63,7 @@ public fun CoroutineScope.peripheral(
 ): Peripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
-    return AndroidPeripheral(
+    return BluetoothDeviceAndroidPeripheral(
         coroutineContext,
         bluetoothDevice,
         builder.transport,
@@ -84,7 +84,7 @@ public fun CoroutineScope.peripheral(
 
 public enum class Priority { Low, Balanced, High }
 
-public class AndroidPeripheral internal constructor(
+internal class BluetoothDeviceAndroidPeripheral(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
     private val transport: Transport,
@@ -92,14 +92,14 @@ public class AndroidPeripheral internal constructor(
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
-) : Peripheral {
+) : AndroidPeripheral {
 
     private val logger = Logger(logging, tag = "Kable/Peripheral", identifier = bluetoothDevice.address)
 
     internal val platformIdentifier = bluetoothDevice.address
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
-    public override val state: StateFlow<State> = _state.asStateFlow()
+    override val state: StateFlow<State> = _state.asStateFlow()
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
         invokeOnCompletion {
@@ -119,13 +119,7 @@ public class AndroidPeripheral internal constructor(
     private val threading = bluetoothDevice.threading()
 
     private val _mtu = MutableStateFlow<Int?>(null)
-
-    /**
-     * [StateFlow] of the most recently negotiated MTU. The MTU will change upon a successful request to change the MTU
-     * (via [requestMtu]), or if the peripheral initiates an MTU change. [StateFlow]'s `value` will be `null` until MTU
-     * is negotiated.
-     */
-    public val mtu: StateFlow<Int?> = _mtu.asStateFlow()
+    override val mtu: StateFlow<Int?> = _mtu.asStateFlow()
 
     private val observers = Observers<ByteArray>(this, logging, exceptionHandler = observationExceptionHandler)
 
@@ -135,7 +129,7 @@ public class AndroidPeripheral internal constructor(
         get() = _discoveredServices
             ?: throw IllegalStateException("Services have not been discovered for $this")
 
-    public override val services: List<DiscoveredService>?
+    override val services: List<DiscoveredService>?
         get() = _discoveredServices?.toList()
 
     @Volatile
@@ -168,7 +162,7 @@ public class AndroidPeripheral internal constructor(
             _connection = establishConnection()
             suspendUntilOrThrow<State.Connecting.Services>()
             discoverServices()
-            onServicesDiscovered(ServicesDiscoveredPeripheral(this@AndroidPeripheral))
+            onServicesDiscovered(ServicesDiscoveredPeripheral(this@BluetoothDeviceAndroidPeripheral))
             _state.value = State.Connecting.Observes
             logger.verbose { message = "Configuring characteristic observations" }
             observers.onConnected()
@@ -190,12 +184,12 @@ public class AndroidPeripheral internal constructor(
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
 
-    public override suspend fun connect() {
+    override suspend fun connect() {
         checkBluetoothAdapterState(expected = STATE_ON)
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
-    public override suspend fun disconnect() {
+    override suspend fun disconnect() {
         try {
             _connection?.apply {
                 bluetoothGatt.disconnect()
@@ -206,7 +200,7 @@ public class AndroidPeripheral internal constructor(
         }
     }
 
-    public fun requestConnectionPriority(priority: Priority): Boolean {
+    override fun requestConnectionPriority(priority: Priority): Boolean {
         logger.debug {
             message = "requestConnectionPriority"
             detail("priority", priority.name)
@@ -215,7 +209,7 @@ public class AndroidPeripheral internal constructor(
             .requestConnectionPriority(priority.intValue)
     }
 
-    public override suspend fun rssi(): Int = connection.execute<OnReadRemoteRssi> {
+    override suspend fun rssi(): Int = connection.execute<OnReadRemoteRssi> {
         readRemoteRssi()
     }.rssi
 
@@ -241,16 +235,7 @@ public class AndroidPeripheral internal constructor(
         _discoveredServices = emptyList()
     }
 
-    /**
-     * Requests that the current connection's MTU be changed. Suspends until the MTU changes, or failure occurs. The
-     * negotiated MTU value is returned, which may not be [mtu] value requested if the remote peripheral negotiated an
-     * alternate MTU.
-     *
-     * @throws NotReadyException if invoked without an established [connection][Peripheral.connect].
-     * @throws GattRequestRejectedException if Android was unable to fulfill the MTU change request.
-     * @throws GattStatusException if MTU change request failed.
-     */
-    public suspend fun requestMtu(mtu: Int): Int {
+    override suspend fun requestMtu(mtu: Int): Int {
         logger.debug {
             message = "requestMtu"
             detail("mtu", mtu)
@@ -258,7 +243,7 @@ public class AndroidPeripheral internal constructor(
         return connection.requestMtu(mtu)
     }
 
-    public override suspend fun write(
+    override suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
@@ -278,7 +263,7 @@ public class AndroidPeripheral internal constructor(
         }
     }
 
-    public override suspend fun read(
+    override suspend fun read(
         characteristic: Characteristic,
     ): ByteArray {
         logger.debug {
@@ -292,7 +277,7 @@ public class AndroidPeripheral internal constructor(
         }.value!!
     }
 
-    public override suspend fun write(
+    override suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
     ) {
@@ -315,7 +300,7 @@ public class AndroidPeripheral internal constructor(
         }
     }
 
-    public override suspend fun read(
+    override suspend fun read(
         descriptor: Descriptor,
     ): ByteArray {
         logger.debug {
@@ -329,7 +314,7 @@ public class AndroidPeripheral internal constructor(
         }.value!!
     }
 
-    public override fun observe(
+    override fun observe(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
     ): Flow<ByteArray> = observers.acquire(characteristic, onSubscription)
@@ -466,7 +451,7 @@ private fun checkBluetoothAdapterState(
 public actual typealias Identifier = String
 
 public actual val Peripheral.identifier: Identifier
-    get() = (this as AndroidPeripheral).platformIdentifier
+    get() = (this as BluetoothDeviceAndroidPeripheral).platformIdentifier
 
 public actual fun String.toIdentifier(): Identifier {
     require(BluetoothAdapter.checkBluetoothAddress(this)) {

@@ -45,10 +45,10 @@ public actual fun CoroutineScope.peripheral(
 internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
     builderAction: PeripheralBuilderAction = {},
-): JsPeripheral {
+): WebBluetoothPeripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
-    return JsPeripheral(
+    return BluetoothDeviceWebBluetoothPeripheral(
         coroutineContext,
         bluetoothDevice,
         builder.observationExceptionHandler,
@@ -57,13 +57,13 @@ internal fun CoroutineScope.peripheral(
     )
 }
 
-public class JsPeripheral internal constructor(
+internal class BluetoothDeviceWebBluetoothPeripheral(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     logging: Logging,
-) : Peripheral {
+) : WebBluetoothPeripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job).apply {
         invokeOnCompletion { finalCleanup() }
@@ -78,14 +78,14 @@ public class JsPeripheral internal constructor(
     internal val platformIdentifier = bluetoothDevice.id
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
-    public override val state: StateFlow<State> = _state.asStateFlow()
+    override val state: StateFlow<State> = _state.asStateFlow()
 
     private var _discoveredServices: List<DiscoveredService>? = null
     private val discoveredServices: List<DiscoveredService>
         get() = _discoveredServices
             ?: throw IllegalStateException("Services have not been discovered for $this")
 
-    public override val services: List<DiscoveredService>?
+    override val services: List<DiscoveredService>?
         get() = _discoveredServices?.toList()
 
     private val observationListeners = mutableMapOf<Characteristic, ObservationListener>()
@@ -94,7 +94,7 @@ public class JsPeripheral internal constructor(
 
     override val name: String? get() = bluetoothDevice.name
 
-    public override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
+    override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
         check(supportsAdvertisements) { "watchAdvertisements unavailable" }
 
         lateinit var listener: (JsEvent) -> Unit
@@ -143,11 +143,11 @@ public class JsPeripheral internal constructor(
         closeConnection()
     }
 
-    public override suspend fun connect() {
+    override suspend fun connect() {
         connectJob.getOrAsync().await()
     }
 
-    public override suspend fun disconnect() {
+    override suspend fun disconnect() {
         connectJob.cancelAndJoin()
         disconnectJob.getOrAsync().await()
     }
@@ -166,7 +166,7 @@ public class JsPeripheral internal constructor(
 
         _state.value = State.Connecting.Services
         discoverServices()
-        onServicesDiscovered(ServicesDiscoveredPeripheral(this@JsPeripheral))
+        onServicesDiscovered(ServicesDiscoveredPeripheral(this@BluetoothDeviceWebBluetoothPeripheral))
 
         _state.value = State.Connecting.Observes
         logger.verbose { message = "Configuring characteristic observations" }
@@ -219,7 +219,7 @@ public class JsPeripheral internal constructor(
         _discoveredServices = services
     }
 
-    public override suspend fun write(
+    override suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
@@ -240,7 +240,7 @@ public class JsPeripheral internal constructor(
         }
     }
 
-    public suspend fun readAsDataView(
+    override suspend fun readAsDataView(
         characteristic: Characteristic,
     ): DataView {
         val platformCharacteristic = discoveredServices.obtain(characteristic, Read)
@@ -255,13 +255,13 @@ public class JsPeripheral internal constructor(
         return value
     }
 
-    public override suspend fun read(
+    override suspend fun read(
         characteristic: Characteristic,
     ): ByteArray = readAsDataView(characteristic)
         .buffer
         .toByteArray()
 
-    public override suspend fun write(
+    override suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
     ) {
@@ -277,7 +277,7 @@ public class JsPeripheral internal constructor(
         }
     }
 
-    public suspend fun readAsDataView(
+    override suspend fun readAsDataView(
         descriptor: Descriptor,
     ): DataView {
         val platformDescriptor = discoveredServices.obtain(descriptor)
@@ -292,7 +292,7 @@ public class JsPeripheral internal constructor(
         return value
     }
 
-    public override suspend fun read(
+    override suspend fun read(
         descriptor: Descriptor,
     ): ByteArray = readAsDataView(descriptor)
         .buffer
@@ -300,12 +300,12 @@ public class JsPeripheral internal constructor(
 
     private val observers = Observers<DataView>(this, logging, observationExceptionHandler)
 
-    public fun observeDataView(
+    override fun observeDataView(
         characteristic: Characteristic,
-        onSubscription: OnSubscriptionAction = {},
+        onSubscription: OnSubscriptionAction,
     ): Flow<DataView> = observers.acquire(characteristic, onSubscription)
 
-    public override fun observe(
+    override fun observe(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
     ): Flow<ByteArray> = observeDataView(characteristic, onSubscription)

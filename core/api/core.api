@@ -15,22 +15,10 @@ public final class com/juul/kable/Advertisement {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral {
-	public fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getName ()Ljava/lang/String;
-	public fun getServices ()Ljava/util/List;
-	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
-	public fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun read (Lcom/juul/kable/Descriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun requestConnectionPriority (Lcom/juul/kable/Priority;)Z
-	public final fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun rssi (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-	public fun write (Lcom/juul/kable/Characteristic;[BLcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun write (Lcom/juul/kable/Descriptor;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral {
+	public abstract fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun requestConnectionPriority (Lcom/juul/kable/Priority;)Z
+	public abstract fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/juul/kable/AndroidScanner : com/juul/kable/Scanner {
