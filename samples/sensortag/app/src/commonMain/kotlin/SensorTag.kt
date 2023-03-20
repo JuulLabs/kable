@@ -2,6 +2,7 @@ package com.juul.sensortag
 
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuidFrom
+import com.juul.kable.Bluetooth
 import com.juul.kable.Filter
 import com.juul.kable.Peripheral
 import com.juul.kable.Scanner
@@ -21,7 +22,7 @@ private val movementSensorDataUuid = sensorTagUuid("aa81")
 private val movementNotificationUuid = sensorTagUuid("2902")
 private val movementConfigurationUuid = sensorTagUuid("aa82")
 private val movementPeriodUuid = sensorTagUuid("aa83")
-private val clientCharacteristicConfigUuid = canonicalUuid("2902")
+private val clientCharacteristicConfigUuid = Bluetooth.BaseUuid + 0x2902
 
 private val movementConfigCharacteristic = characteristicOf(
     service = movementSensorServiceUuid,
@@ -93,11 +94,6 @@ class SensorTag(
 
 private fun sensorTagUuid(short16BitUuid: String): Uuid =
     uuidFrom("f000${short16BitUuid.lowercase()}-0451-4000-b000-000000000000")
-
-private fun canonicalUuid(uuid: String): Uuid = when (uuid.length) {
-    4 -> uuidFrom("0000$uuid-0000-1000-8000-00805f9b34fb")
-    else -> error("Canonical UUID length must be 4, was ${uuid.length}")
-}
 
 private fun characteristicOf(service: Uuid, characteristic: Uuid) =
     characteristicOf(service.toString(), characteristic.toString())
