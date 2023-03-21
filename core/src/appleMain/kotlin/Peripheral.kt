@@ -95,10 +95,10 @@ public fun CoroutineScope.peripheral(
 public fun CoroutineScope.peripheral(
     cbPeripheral: CBPeripheral,
     builderAction: PeripheralBuilderAction,
-): Peripheral {
+): CoreBluetoothPeripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
-    return ApplePeripheral(
+    return CBPeripheralCoreBluetoothPeripheral(
         coroutineContext,
         cbPeripheral,
         builder.observationExceptionHandler,
@@ -107,14 +107,13 @@ public fun CoroutineScope.peripheral(
     )
 }
 
-@OptIn(ExperimentalStdlibApi::class) // for CancellationException in @Throws
-public class ApplePeripheral internal constructor(
+internal class CBPeripheralCoreBluetoothPeripheral(
     parentCoroutineContext: CoroutineContext,
     private val cbPeripheral: CBPeripheral,
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
-) : Peripheral {
+) : CoreBluetoothPeripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
     private val scope = CoroutineScope(parentCoroutineContext + job)
@@ -162,7 +161,7 @@ public class ApplePeripheral internal constructor(
         get() = _discoveredServices.value
             ?: throw IllegalStateException("Services have not been discovered for $this")
 
-    public override val services: List<DiscoveredService>?
+    override val services: List<DiscoveredService>?
         get() = _discoveredServices.value?.toList()
 
     private val _connection = atomic<Connection?>(null)
@@ -215,7 +214,7 @@ public class ApplePeripheral internal constructor(
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
             suspendUntil<State.Connecting.Services>()
             discoverServices()
-            onServicesDiscovered(ServicesDiscoveredPeripheral(this@ApplePeripheral))
+            onServicesDiscovered(ServicesDiscoveredPeripheral(this@CBPeripheralCoreBluetoothPeripheral))
 
             _state.value = State.Connecting.Observes
             logger.verbose { message = "Configuring characteristic observations" }
@@ -233,13 +232,13 @@ public class ApplePeripheral internal constructor(
         _state.value = State.Connected
     }
 
-    public override suspend fun connect() {
+    override suspend fun connect() {
         // Check CBCentral State since connecting can result in an api misuse message
         centralManager.checkBluetoothState(CBManagerStatePoweredOn)
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()
     }
 
-    public override suspend fun disconnect() {
+    override suspend fun disconnect() {
         try {
             connectionScope.coroutineContext.job.cancelAndJoinChildren()
         } finally {
@@ -251,7 +250,7 @@ public class ApplePeripheral internal constructor(
     }
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public override suspend fun rssi(): Int = connection.execute<DidReadRssi> {
+    override suspend fun rssi(): Int = connection.execute<DidReadRssi> {
         centralManager.readRssi(cbPeripheral)
     }.rssi.intValue
 
@@ -281,14 +280,14 @@ public class ApplePeripheral internal constructor(
     }
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public override suspend fun write(
+    override suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
     ): Unit = write(characteristic, data.toNSData(), writeType)
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public suspend fun write(
+    override suspend fun write(
         characteristic: Characteristic,
         data: NSData,
         writeType: WriteType,
@@ -315,12 +314,12 @@ public class ApplePeripheral internal constructor(
     }
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public override suspend fun read(
+    override suspend fun read(
         characteristic: Characteristic,
     ): ByteArray = readAsNSData(characteristic).toByteArray()
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public suspend fun readAsNSData(
+    override suspend fun readAsNSData(
         characteristic: Characteristic,
     ): NSData {
         logger.debug {
@@ -341,13 +340,13 @@ public class ApplePeripheral internal constructor(
     }
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public override suspend fun write(
+    override suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
     ): Unit = write(descriptor, data.toNSData())
 
     @Throws(CancellationException::class, IOException::class)
-    public suspend fun write(
+    override suspend fun write(
         descriptor: Descriptor,
         data: NSData,
     ) {
@@ -364,12 +363,12 @@ public class ApplePeripheral internal constructor(
     }
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public override suspend fun read(
+    override suspend fun read(
         descriptor: Descriptor,
     ): ByteArray = readAsNSData(descriptor).toByteArray()
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
-    public suspend fun readAsNSData(
+    override suspend fun readAsNSData(
         descriptor: Descriptor,
     ): NSData {
         logger.debug {
@@ -383,14 +382,14 @@ public class ApplePeripheral internal constructor(
         }.descriptor.value as NSData
     }
 
-    public override fun observe(
+    override fun observe(
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction,
     ): Flow<ByteArray> = observeAsNSData(characteristic, onSubscription).map(NSData::toByteArray)
 
-    public fun observeAsNSData(
+    override fun observeAsNSData(
         characteristic: Characteristic,
-        onSubscription: OnSubscriptionAction = {},
+        onSubscription: OnSubscriptionAction,
     ): Flow<NSData> = observers.acquire(characteristic, onSubscription)
 
     internal suspend fun startNotifications(characteristic: Characteristic) {
