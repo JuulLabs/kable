@@ -1,7 +1,7 @@
 [versions]
 android-compile = "31"
 android-min = "21"
-atomicfu = "0.20.0"
+atomicfu = "0.20.1"
 coroutines = "1.6.4"
 kotlin = "1.8.10"
 tuulbox = "6.4.0"
