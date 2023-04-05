@@ -32,6 +32,7 @@ internal class Connection(
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = bluetoothGatt.device.address)
 
     private val lock = Mutex()
+
     private var pending = false
 
     /**
@@ -55,17 +56,21 @@ internal class Connection(
             // Discard response as we've performed another `execute` without the previous finishing. This happens if a
             // previous `execute` was cancelled after invoking GATT action, but before receiving response from callback
             // channel. See https://github.com/JuulLabs/kable/issues/326 for more details.
-            val response = callback.onResponse.receive()
-            pending = false
+            val response = try {
+                callback.onResponse.receive()
+            } finally {
+                pending = false
+            }
             logger.warn {
                 message = "Discarded response"
                 detail("response", response.toString())
             }
         }
 
-        withContext(dispatcher) {
+        if (withContext(dispatcher) { action.invoke(bluetoothGatt) }) {
             pending = true
-            action.invoke(bluetoothGatt) || throw GattRequestRejectedException()
+        } else {
+            throw GattRequestRejectedException()
         }
 
         val response = try {

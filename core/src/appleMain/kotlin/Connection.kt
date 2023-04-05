@@ -25,8 +25,11 @@ internal class Connection(
             // Discard response as we've performed another `execute` without the previous finishing. This happens if a
             // previous `execute` was cancelled after invoking GATT action, but before receiving response from callback
             // channel. See https://github.com/JuulLabs/kable/issues/326 for more details.
-            val response = delegate.response.receive()
-            pending = false
+            val response = try {
+                delegate.response.receive()
+            } finally {
+                pending = false
+            }
             logger.warn {
                 message = "Discarded response"
                 detail("response", response.toString())
@@ -36,9 +39,12 @@ internal class Connection(
         pending = true
         action.invoke()
         val response = delegate.response.receive()
-        pending = false
         val error = response.error
-        if (error != null) throw IOException(error.description, cause = null)
+        if (error == null) {
+            pending = false
+        } else {
+            throw IOException(error.description, cause = null)
+        }
         response as T
     }
 
