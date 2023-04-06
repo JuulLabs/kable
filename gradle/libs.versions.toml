@@ -1,5 +1,5 @@
 [versions]
-android-compile = "31"
+android-compile = "33"
 android-min = "21"
 atomicfu = "0.20.1"
 coroutines = "1.6.4"
