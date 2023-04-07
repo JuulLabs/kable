@@ -16,35 +16,29 @@ internal class Connection(
     // Using Semaphore as Mutex never relinquished lock when multiple concurrent `withLock`s are executed.
     val semaphore = Semaphore(1)
 
-    private var pending = false
+    private var awaitingResponse = false
 
     suspend inline fun <T> execute(
         action: () -> Unit,
     ): T = semaphore.withPermit {
-        if (pending) {
+        if (awaitingResponse) {
             // Discard response as we've performed another `execute` without the previous finishing. This happens if a
             // previous `execute` was cancelled after invoking GATT action, but before receiving response from callback
             // channel. See https://github.com/JuulLabs/kable/issues/326 for more details.
-            val response = try {
-                delegate.response.receive()
-            } finally {
-                pending = false
-            }
+            val response = delegate.response.tryReceive()
+            awaitingResponse = false
             logger.warn {
                 message = "Discarded response"
                 detail("response", response.toString())
             }
         }
 
-        pending = true
         action.invoke()
+        awaitingResponse = true
         val response = delegate.response.receive()
+        awaitingResponse = false
         val error = response.error
-        if (error == null) {
-            pending = false
-        } else {
-            throw IOException(error.description, cause = null)
-        }
+        if (error != null) throw IOException(error.description, cause = null)
         response as T
     }
 

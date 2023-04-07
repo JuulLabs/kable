@@ -33,7 +33,7 @@ internal class Connection(
 
     private val lock = Mutex()
 
-    private var pending = false
+    private var awaitingResponse = false
 
     /**
      * Executes specified [BluetoothGatt] [action].
@@ -52,15 +52,12 @@ internal class Connection(
     suspend inline fun <reified T> execute(
         crossinline action: BluetoothGatt.() -> Boolean,
     ): T = lock.withLock {
-        if (pending) {
+        if (awaitingResponse) {
             // Discard response as we've performed another `execute` without the previous finishing. This happens if a
             // previous `execute` was cancelled after invoking GATT action, but before receiving response from callback
             // channel. See https://github.com/JuulLabs/kable/issues/326 for more details.
-            val response = try {
-                callback.onResponse.receive()
-            } finally {
-                pending = false
-            }
+            val response = callback.onResponse.tryReceive()
+            awaitingResponse = false
             logger.warn {
                 message = "Discarded response"
                 detail("response", response.toString())
@@ -68,16 +65,17 @@ internal class Connection(
         }
 
         if (withContext(dispatcher) { action.invoke(bluetoothGatt) }) {
-            pending = true
+            awaitingResponse = true
         } else {
             throw GattRequestRejectedException()
         }
 
         val response = try {
-            callback.onResponse.receive().also { pending = false }
+            callback.onResponse.receive()
         } catch (e: ConnectionLostException) {
             throw ConnectionLostException(cause = e)
         }
+        awaitingResponse = false
 
         if (response.status != GattSuccess) throw GattStatusException(response.toString())
 
