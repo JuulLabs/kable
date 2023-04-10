@@ -62,7 +62,19 @@ internal class Callback(
         disconnectedAction = action
     }
 
-    val onResponse = Channel<Response>(CONFLATED)
+    @Volatile
+    var awaitingResponse = false
+
+    suspend fun discardResponse() {
+        val response = onResponse.receive()
+        awaitingResponse = false
+        logger.warn {
+            message = "Discarded response"
+            detail("response", response.toString())
+        }
+    }
+
+    val onResponse = Channel<Response>(CONFLATED) { awaitingResponse = false }
     val onMtuChanged = Channel<OnMtuChanged>(CONFLATED)
 
     override fun onPhyUpdate(
