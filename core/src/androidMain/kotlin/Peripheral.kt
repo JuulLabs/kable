@@ -186,6 +186,8 @@ internal class BluetoothDeviceAndroidPeripheral(
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
 
+    override val address: String = bluetoothDevice.address
+
     override suspend fun connect() {
         checkBluetoothAdapterState(expected = STATE_ON)
         connectJob.updateAndGet { it ?: connectAsync() }!!.await()

@@ -1,5 +1,5 @@
 [versions]
-android-compile = "31"
+android-compile = "33"
 android-min = "21"
 atomicfu = "0.20.1"
 coroutines = "1.6.4"
@@ -23,5 +23,5 @@ atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "1.8.10" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "3.14.0" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.25.0" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.25.1" }
 validator = { id = "binary-compatibility-validator", version = "0.13.0" }
