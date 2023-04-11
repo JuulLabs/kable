@@ -4,6 +4,13 @@ import kotlinx.coroutines.flow.StateFlow
 
 public interface AndroidPeripheral : Peripheral {
 
+    /**
+     * Returns the hardware address of this [AndroidPeripheral].
+     *
+     * For example, "00:11:22:AA:BB:CC".
+     */
+    public val address: String
+
     public fun requestConnectionPriority(priority: Priority): Boolean
 
     /**
