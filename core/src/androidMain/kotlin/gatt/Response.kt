@@ -109,7 +109,8 @@ internal data class OnMtuChanged(
  * - [BluetoothGatt.GATT_CONNECTION_CONGESTED]
  * - [BluetoothGatt.GATT_FAILURE]
  */
-internal inline class GattStatus(private val value: Int) {
+@JvmInline
+internal value class GattStatus(private val value: Int) {
     override fun toString(): String = when (value) {
         GATT_SUCCESS -> "GATT_SUCCESS"
         GATT_INVALID_HANDLE -> "GATT_INVALID_HANDLE"
