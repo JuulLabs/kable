@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
@@ -144,6 +145,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     private fun establishConnection(): Connection {
         logger.info { message = "Connecting" }
         return bluetoothDevice.connect(
+            scope.coroutineContext,
             applicationContext,
             transport,
             phy,

@@ -48,16 +48,19 @@ public class CentralManager internal constructor() {
             .firstOrNull() as? CBPeripheral
 
     internal suspend fun connectPeripheral(
-        cbPeripheral: CBPeripheral,
+        peripheral: CBPeripheralCoreBluetoothPeripheral,
         logging: Logging,
-        delegate: PeripheralDelegate,
         options: Map<Any?, *>? = null,
     ): Connection {
+        val parentCoroutineContext = peripheral.connectionScope.coroutineContext
+        val cbPeripheral = peripheral.cbPeripheral
+        val identifier = cbPeripheral.identifier.UUIDString
+        val delegate = PeripheralDelegate(peripheral.canSendWriteWithoutResponse, logging, identifier)
         withContext(dispatcher) {
             cbPeripheral.delegate = delegate
             cbCentralManager.connectPeripheral(cbPeripheral, options)
         }
-        return Connection(delegate, logging, cbPeripheral.identifier.UUIDString)
+        return Connection(parentCoroutineContext, delegate, logging, identifier)
     }
 
     internal suspend fun cancelPeripheralConnection(

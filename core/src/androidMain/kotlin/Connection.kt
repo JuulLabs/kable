@@ -4,12 +4,19 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import com.juul.kable.gatt.Callback
 import com.juul.kable.gatt.GattStatus
+import com.juul.kable.gatt.Response
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 public class OutOfOrderGattCallbackException internal constructor(
     message: String,
@@ -18,6 +25,7 @@ public class OutOfOrderGattCallbackException internal constructor(
 private val GattSuccess = GattStatus(GATT_SUCCESS)
 
 internal class Connection(
+    parentCoroutineContext: CoroutineContext,
     internal val bluetoothGatt: BluetoothGatt,
     internal val dispatcher: CoroutineDispatcher,
     private val callback: Callback,
@@ -29,9 +37,12 @@ internal class Connection(
         callback.invokeOnDisconnected(::close)
     }
 
+    private val scope = CoroutineScope(parentCoroutineContext + Job(parentCoroutineContext[Job]))
+
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = bluetoothGatt.device.address)
 
     private val lock = Mutex()
+    private var deferredResponse: Deferred<Response>? = null
 
     /**
      * Executes specified [BluetoothGatt] [action].
@@ -50,25 +61,33 @@ internal class Connection(
     suspend inline fun <reified T> execute(
         crossinline action: BluetoothGatt.() -> Boolean,
     ): T = lock.withLock {
-        if (callback.awaitingResponse) {
-            // Discard response as we've performed another `execute` without the previous finishing. This happens if a
-            // previous `execute` was cancelled after invoking GATT action, but before receiving response from callback
-            // channel. See https://github.com/JuulLabs/kable/issues/326 for more details.
-            callback.discardResponse()
+        deferredResponse?.let {
+            if (it.isActive) {
+                // Discard response as we've performed another `execute` without the previous finishing. This happens if
+                // a previous `execute` was cancelled after invoking GATT action, but before receiving response from
+                // callback channel. See the following issues for more details:
+                // https://github.com/JuulLabs/kable/issues/326
+                // https://github.com/JuulLabs/kable/issues/450
+                val response = it.await()
+                logger.warn {
+                    message = "Discarded response"
+                    detail("response", response.toString())
+                }
+            }
         }
 
-        if (withContext(dispatcher) { action.invoke(bluetoothGatt) }) {
-            callback.awaitingResponse = true
-        } else {
-            throw GattRequestRejectedException()
+        withContext(dispatcher) {
+            if (!bluetoothGatt.action()) throw GattRequestRejectedException()
         }
+        val deferred = scope.async { callback.onResponse.receive() }
+        deferredResponse = deferred
 
         val response = try {
-            callback.onResponse.receive()
+            deferred.await()
         } catch (e: ConnectionLostException) {
             throw ConnectionLostException(cause = e)
         }
-        callback.awaitingResponse = false
+        deferredResponse = null
 
         if (response.status != GattSuccess) throw GattStatusException(response.toString())
 
@@ -106,6 +125,7 @@ internal class Connection(
     }
 
     fun close() {
+        scope.cancel()
         bluetoothGatt.close()
         invokeOnClose.invoke()
     }
