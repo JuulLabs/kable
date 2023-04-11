@@ -539,7 +539,7 @@ configuration may need to be adjusted under the following conditions:
 
 ### Gradle
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core)
+[![Maven Central](https://img.shields.io/maven-central/v/com.juul.kable/core)](https://central.sonatype.com/search?q=g%253Acom.juul.kable)
 
 Kable can be configured via Gradle Kotlin DSL as follows:
 
