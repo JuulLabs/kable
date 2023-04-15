@@ -21,6 +21,9 @@ import com.juul.kable.Reason.Off
 import com.juul.kable.Reason.TurningOff
 import com.juul.kable.Reason.TurningOn
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import android.bluetooth.BluetoothAdapter.ACTION_STATE_CHANGED as BLUETOOTH_STATE_CHANGED
@@ -38,10 +41,21 @@ private val Context.locationManager: LocationManager
     get() = ContextCompat.getSystemService(this, LocationManager::class.java)
         ?: error("LocationManager system service unavailable")
 
-private val isLocationEnabled: Boolean
-    get() = LocationManagerCompat.isLocationEnabled(applicationContext.locationManager)
+private fun isLocationEnabled(): Boolean {
+    return LocationManagerCompat.isLocationEnabled(applicationContext.locationManager)
+}
 
-internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
+private val locationNotNeededStateFlow: Flow<Boolean> =
+    when {
+        SDK_INT > R -> MutableStateFlow(true)
+        else -> broadcastReceiverFlow(IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
+            .map { intent ->
+                intent.getBooleanExtra(LocationManager.EXTRA_PROVIDER_ENABLED, false)
+            }
+            .onStart { emit(isLocationEnabled() || SDK_INT > R) }.distinctUntilChanged()
+    }
+
+private val bluetoothStateChangeReceiverFlow =
     broadcastReceiverFlow(IntentFilter(BLUETOOTH_STATE_CHANGED))
         .map { intent -> intent.getIntExtra(EXTRA_STATE, ERROR) }
         .map { state ->
@@ -54,7 +68,7 @@ internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
             }
         }
         .onStart {
-            val availability = if (SDK_INT <= R && !isLocationEnabled) {
+            val availability = if (SDK_INT <= R && !isLocationEnabled()) {
                 Unavailable(reason = LocationServicesDisabled)
             } else {
                 when (BluetoothAdapter.getDefaultAdapter()?.isEnabled) {
@@ -64,3 +78,11 @@ internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
             }
             emit(availability)
         }
+
+internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
+    combine(
+        bluetoothStateChangeReceiverFlow,
+        locationNotNeededStateFlow,
+    ) { bluetooth, locationNotNeededStateFlow ->
+        if (locationNotNeededStateFlow) bluetooth else Unavailable(reason = LocationServicesDisabled)
+    }
