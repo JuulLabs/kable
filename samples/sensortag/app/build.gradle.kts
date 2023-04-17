@@ -5,6 +5,8 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(11)
+
     android()
     js {
         browser()
