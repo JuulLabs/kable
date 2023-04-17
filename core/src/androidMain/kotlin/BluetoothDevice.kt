@@ -20,6 +20,7 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.newSingleThreadContext
+import kotlin.coroutines.CoroutineContext
 
 internal sealed class Threading {
 
@@ -64,6 +65,7 @@ internal fun BluetoothDevice.threading(): Threading =
  * @param phy is only used on API level >= 26.
  */
 internal fun BluetoothDevice.connect(
+    parentCoroutineContext: CoroutineContext,
     context: Context,
     transport: Transport,
     phy: Phy,
@@ -89,7 +91,7 @@ internal fun BluetoothDevice.connect(
         else -> connectGatt(context, false, callback)
     } ?: return null
 
-    return Connection(bluetoothGatt, threading.dispatcher, callback, logging, invokeOnClose)
+    return Connection(parentCoroutineContext, bluetoothGatt, threading.dispatcher, callback, logging, invokeOnClose)
 }
 
 private val Transport.intValue: Int
