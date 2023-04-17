@@ -21,9 +21,9 @@ import com.juul.kable.Reason.Off
 import com.juul.kable.Reason.TurningOff
 import com.juul.kable.Reason.TurningOn
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import android.bluetooth.BluetoothAdapter.ACTION_STATE_CHANGED as BLUETOOTH_STATE_CHANGED
@@ -47,7 +47,7 @@ private fun isLocationEnabled(): Boolean {
 
 private val locationNotNeededStateFlow: Flow<Boolean> =
     when {
-        SDK_INT > R -> MutableStateFlow(true)
+        SDK_INT > R -> flow { emit(true) }
         else -> broadcastReceiverFlow(IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
             .map { intent ->
                 intent.getBooleanExtra(LocationManager.EXTRA_PROVIDER_ENABLED, false)
