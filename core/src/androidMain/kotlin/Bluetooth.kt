@@ -10,6 +10,8 @@ import android.bluetooth.BluetoothAdapter.STATE_TURNING_ON
 import android.content.Context
 import android.content.IntentFilter
 import android.location.LocationManager
+import android.location.LocationManager.EXTRA_PROVIDER_ENABLED
+import android.location.LocationManager.PROVIDERS_CHANGED_ACTION
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.R
 import androidx.core.content.ContextCompat
@@ -23,7 +25,7 @@ import com.juul.kable.Reason.TurningOn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import android.bluetooth.BluetoothAdapter.ACTION_STATE_CHANGED as BLUETOOTH_STATE_CHANGED
@@ -45,17 +47,16 @@ private fun isLocationEnabled(): Boolean {
     return LocationManagerCompat.isLocationEnabled(applicationContext.locationManager)
 }
 
-private val locationNotNeededStateFlow: Flow<Boolean> =
-    when {
-        SDK_INT > R -> flow { emit(true) }
-        else -> broadcastReceiverFlow(IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
-            .map { intent ->
-                intent.getBooleanExtra(LocationManager.EXTRA_PROVIDER_ENABLED, false)
-            }
-            .onStart { emit(isLocationEnabled() || SDK_INT > R) }.distinctUntilChanged()
-    }
+private val locationEnabledFlow = when {
+    SDK_INT > R -> flowOf(true)
+    SDK_INT == R -> broadcastReceiverFlow(IntentFilter(PROVIDERS_CHANGED_ACTION))
+        .map { intent -> intent.getBooleanExtra(EXTRA_PROVIDER_ENABLED, false) }
+        .onStart { emit(isLocationEnabled()) }
+        .distinctUntilChanged()
+    else -> flowOf(isLocationEnabled())
+}
 
-private val bluetoothStateChangeReceiverFlow =
+private val bluetoothStateFlow =
     broadcastReceiverFlow(IntentFilter(BLUETOOTH_STATE_CHANGED))
         .map { intent -> intent.getIntExtra(EXTRA_STATE, ERROR) }
         .map { state ->
@@ -68,21 +69,17 @@ private val bluetoothStateChangeReceiverFlow =
             }
         }
         .onStart {
-            val availability = if (SDK_INT <= R && !isLocationEnabled()) {
-                Unavailable(reason = LocationServicesDisabled)
-            } else {
-                when (BluetoothAdapter.getDefaultAdapter()?.isEnabled) {
-                    true -> Available
-                    else -> Unavailable(reason = Off)
-                }
+            val isEnabled = when (BluetoothAdapter.getDefaultAdapter()?.isEnabled) {
+                true -> Available
+                else -> Unavailable(reason = Off)
             }
-            emit(availability)
+            emit(isEnabled)
         }
 
 internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
     combine(
-        bluetoothStateChangeReceiverFlow,
-        locationNotNeededStateFlow,
-    ) { bluetooth, locationNotNeededStateFlow ->
-        if (locationNotNeededStateFlow) bluetooth else Unavailable(reason = LocationServicesDisabled)
+        locationEnabledFlow,
+        bluetoothStateFlow,
+    ) { locationEnabled, bluetoothState ->
+        if (locationEnabled) bluetoothState else Unavailable(reason = LocationServicesDisabled)
     }
