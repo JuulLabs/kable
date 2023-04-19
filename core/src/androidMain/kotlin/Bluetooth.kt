@@ -87,4 +87,3 @@ internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
     ) { locationEnabled, bluetoothState ->
         if (locationEnabled) bluetoothState else Unavailable(reason = LocationServicesDisabled)
     }
-
