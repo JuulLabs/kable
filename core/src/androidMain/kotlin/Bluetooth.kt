@@ -43,17 +43,18 @@ private val Context.locationManager: LocationManager
     get() = ContextCompat.getSystemService(this, LocationManager::class.java)
         ?: error("LocationManager system service unavailable")
 
-private fun isLocationEnabled(): Boolean {
-    return LocationManagerCompat.isLocationEnabled(applicationContext.locationManager)
-}
+private val isLocationEnabled: Boolean
+    get() = LocationManagerCompat.isLocationEnabled(applicationContext.locationManager)
 
 private val locationEnabledFlow = when {
     SDK_INT > R -> flowOf(true)
-    SDK_INT == R -> broadcastReceiverFlow(IntentFilter(PROVIDERS_CHANGED_ACTION))
-        .map { intent -> intent.getBooleanExtra(EXTRA_PROVIDER_ENABLED, false) }
-        .onStart { emit(isLocationEnabled()) }
+    else -> broadcastReceiverFlow(IntentFilter(PROVIDERS_CHANGED_ACTION))
+        .map { intent ->
+            if (SDK_INT == R) intent.getBooleanExtra(EXTRA_PROVIDER_ENABLED, false)
+            else isLocationEnabled
+        }
+        .onStart { emit(isLocationEnabled) }
         .distinctUntilChanged()
-    else -> flowOf(isLocationEnabled())
 }
 
 private val bluetoothStateFlow =
