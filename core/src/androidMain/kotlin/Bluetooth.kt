@@ -50,8 +50,11 @@ private val locationEnabledFlow = when {
     SDK_INT > R -> flowOf(true)
     else -> broadcastReceiverFlow(IntentFilter(PROVIDERS_CHANGED_ACTION))
         .map { intent ->
-            if (SDK_INT == R) intent.getBooleanExtra(EXTRA_PROVIDER_ENABLED, false)
-            else isLocationEnabled
+            if (SDK_INT == R) {
+                intent.getBooleanExtra(EXTRA_PROVIDER_ENABLED, false)
+            } else {
+                isLocationEnabled
+            }
         }
         .onStart { emit(isLocationEnabled) }
         .distinctUntilChanged()
@@ -84,3 +87,4 @@ internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
     ) { locationEnabled, bluetoothState ->
         if (locationEnabled) bluetoothState else Unavailable(reason = LocationServicesDisabled)
     }
+
