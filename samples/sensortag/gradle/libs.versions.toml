@@ -16,7 +16,7 @@ tuulbox = "6.4.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
-compose-activity = { module = "androidx.activity:activity-compose", version = "1.7.0" }
+compose-activity = { module = "androidx.activity:activity-compose", version = "1.7.1" }
 compose-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "compose-compiler" }
 compose-material = { module = "androidx.compose.material:material", version = "1.4.1" }
 compose-tooling = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
