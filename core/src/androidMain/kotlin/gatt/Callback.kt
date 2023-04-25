@@ -1,3 +1,5 @@
+@file:Suppress("DeprecatedCallableAddReplaceWith") // `ReplaceWith` is unnecessary for `internal` class.
+
 package com.juul.kable.gatt
 
 import android.bluetooth.BluetoothGatt
@@ -132,12 +134,23 @@ internal class Callback(
         onResponse.trySendOrLog(event)
     }
 
+    @Deprecated("Deprecated in API 33.")
     override fun onCharacteristicRead(
         gatt: BluetoothGatt,
         characteristic: BluetoothGattCharacteristic,
         status: Int,
     ) {
-        val value = characteristic.value
+        @Suppress("DEPRECATION")
+        onCharacteristicRead(gatt, characteristic, characteristic.value, status)
+    }
+
+    // Added in API 33.
+    override fun onCharacteristicRead(
+        gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray,
+        status: Int,
+    ) {
         val event = OnCharacteristicRead(characteristic, value, GattStatus(status))
         logger.debug {
             message = "onCharacteristicRead"
@@ -162,11 +175,21 @@ internal class Callback(
         onResponse.trySendOrLog(event)
     }
 
+    @Deprecated("Deprecated in API 33.")
     override fun onCharacteristicChanged(
         gatt: BluetoothGatt,
         characteristic: BluetoothGattCharacteristic,
     ) {
-        val value = characteristic.value
+        @Suppress("DEPRECATION")
+        onCharacteristicChanged(gatt, characteristic, characteristic.value)
+    }
+
+    // Added in API 33.
+    override fun onCharacteristicChanged(
+        gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray,
+    ) {
         logger.debug {
             message = "onCharacteristicChanged"
             detail(characteristic)
@@ -176,12 +199,23 @@ internal class Callback(
         onCharacteristicChanged.tryEmitOrLog(event)
     }
 
+    @Deprecated("Deprecated in API 33.")
     override fun onDescriptorRead(
         gatt: BluetoothGatt,
         descriptor: BluetoothGattDescriptor,
         status: Int,
     ) {
-        val value = descriptor.value
+        @Suppress("DEPRECATION")
+        onDescriptorRead(gatt, descriptor, status, descriptor.value)
+    }
+
+    // Added in API 33.
+    override fun onDescriptorRead(
+        gatt: BluetoothGatt,
+        descriptor: BluetoothGattDescriptor,
+        status: Int,
+        value: ByteArray,
+    ) {
         val event = OnDescriptorRead(descriptor, value, GattStatus(status))
         logger.debug {
             message = "onDescriptorRead"

@@ -30,6 +30,7 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.detail
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
@@ -109,15 +110,15 @@ public fun CoroutineScope.peripheral(
 
 internal class CBPeripheralCoreBluetoothPeripheral(
     parentCoroutineContext: CoroutineContext,
-    private val cbPeripheral: CBPeripheral,
+    internal val cbPeripheral: CBPeripheral,
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
 ) : CoreBluetoothPeripheral {
 
     private val job = SupervisorJob(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
-    private val scope = CoroutineScope(parentCoroutineContext + job)
-    private val connectionScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]))
+    private val scope = CoroutineScope(parentCoroutineContext + job + CoroutineName("Kable/Peripheral@${cbPeripheral.identifier.UUIDString}"))
+    internal val connectionScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]) + CoroutineName("Kable/Connect@${cbPeripheral.identifier.UUIDString}"))
 
     private val centralManager: CentralManager = CentralManager.Default
 
@@ -154,7 +155,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             .launchIn(scope)
     }
 
-    private val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
+    internal val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
 
     private val _discoveredServices = atomic<List<DiscoveredService>?>(null)
     private val discoveredServices: List<DiscoveredService>
@@ -189,10 +190,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         }.launchIn(connectionScope)
 
         try {
-            // todo: Create in `connectPeripheral`.
-            val delegate = PeripheralDelegate(canSendWriteWithoutResponse, logging, cbPeripheral.identifier.UUIDString)
-
-            val connection = centralManager.connectPeripheral(cbPeripheral, logging, delegate).also {
+            val connection = centralManager.connectPeripheral(this@CBPeripheralCoreBluetoothPeripheral, logging).also {
                 _connection.value = it
             }
 

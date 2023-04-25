@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
@@ -144,6 +145,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     private fun establishConnection(): Connection {
         logger.info { message = "Connecting" }
         return bluetoothDevice.connect(
+            scope.coroutineContext,
             applicationContext,
             transport,
             phy,
@@ -183,6 +185,8 @@ internal class BluetoothDeviceAndroidPeripheral(
         // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
+
+    override val address: String = bluetoothDevice.address
 
     override suspend fun connect() {
         checkBluetoothAdapterState(expected = STATE_ON)
