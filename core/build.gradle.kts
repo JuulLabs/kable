@@ -19,14 +19,12 @@ plugins {
  */
 kotlin {
     explicitApi()
+    jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
-    android {
-        publishAllLibraryVariants()
-    }
+    android().publishAllLibraryVariants()
     js().browser()
     iosX64()
     macosArm64()
-    iosArm32()
     iosArm64()
     iosSimulatorArm64()
     macosX64()
@@ -101,14 +99,6 @@ kotlin {
             dependsOn(appleTest)
         }
 
-        val iosArm32Main by getting {
-            dependsOn(appleMain)
-        }
-
-        val iosArm32Test by getting {
-            dependsOn(appleTest)
-        }
-
         val iosArm64Main by getting {
             dependsOn(appleMain)
         }
@@ -131,6 +121,13 @@ kotlin {
 }
 
 android {
+    // Workaround (for `jvmToolchain` not being honored) needed until AGP 8.1.0-alpha09.
+    // https://kotlinlang.org/docs/gradle-configure-project.html#gradle-java-toolchains-support
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
     compileSdk = libs.versions.android.compile.get().toInt()
     defaultConfig.minSdk = libs.versions.android.min.get().toInt()
 
@@ -145,12 +142,5 @@ android {
         // we disable the "missing permission" lint check. Caution must be taken during later Android version bumps to
         // make sure we aren't missing any newly introduced permission requirements.
         disable += "MissingPermission"
-    }
-
-    // Android Gradle plugin targets JVM 11 bytecode
-    // https://developer.android.com/studio/releases/gradle-plugin#7-4-0
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }

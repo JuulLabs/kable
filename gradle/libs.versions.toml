@@ -3,7 +3,8 @@ android-compile = "33"
 android-min = "21"
 atomicfu = "0.20.2"
 coroutines = "1.6.4"
-kotlin = "1.8.20"
+jvm-toolchain = "11"
+kotlin = "1.8.21"
 tuulbox = "6.4.0"
 
 [libraries]
