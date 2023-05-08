@@ -76,6 +76,8 @@ android {
         targetSdk = libs.versions.android.target.get().toInt()
     }
 
+    namespace = "com.juul.sensortag"
+
     buildFeatures {
         compose = true
     }
