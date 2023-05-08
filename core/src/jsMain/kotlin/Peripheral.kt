@@ -40,7 +40,10 @@ private typealias ObservationListener = (JsEvent) -> Unit
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
-): Peripheral = peripheral(advertisement.bluetoothDevice, builderAction)
+): Peripheral {
+    advertisement as BluetoothAdvertisingEventWebBluetoothAdvertisement
+    return peripheral(advertisement.bluetoothDevice, builderAction)
+}
 
 internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,

@@ -82,7 +82,10 @@ import kotlin.coroutines.cancellation.CancellationException
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
-): Peripheral = peripheral(advertisement.cbPeripheral, builderAction)
+): Peripheral {
+    advertisement as CBPeripheralCoreBluetoothAdvertisement
+    return peripheral(advertisement.cbPeripheral, builderAction)
+}
 
 public fun CoroutineScope.peripheral(
     identifier: Identifier,

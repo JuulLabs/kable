@@ -11,21 +11,15 @@ import android.os.Build.VERSION_CODES
 import android.os.ParcelUuid
 import com.benasher44.uuid.Uuid
 
-public enum class BondState {
-    None,
-    Bonding,
-    Bonded,
-}
-
-public actual class Advertisement(
+internal class ScanResultAndroidAdvertisement(
     private val scanResult: ScanResult,
-) {
+) : AndroidAdvertisement {
 
     internal val bluetoothDevice: BluetoothDevice
         get() = scanResult.device
 
     /** @see ScanRecord.getDeviceName */
-    public actual val name: String?
+    override val name: String?
         get() = scanResult.scanRecord?.deviceName
 
     /**
@@ -33,20 +27,20 @@ public actual class Advertisement(
      *
      * @see BluetoothDevice.getName
      */
-    public actual val peripheralName: String?
+    override val peripheralName: String?
         get() = bluetoothDevice.name
 
     /**
      * Returns if the peripheral is connectable. Available on Android Oreo (API 26) and newer, on older versions of
      * Android, returns `null`.
      */
-    public actual val isConnectable: Boolean?
+    override val isConnectable: Boolean?
         get() = if (VERSION.SDK_INT >= VERSION_CODES.O) scanResult.isConnectable else null
 
-    public val address: String
+    override val address: String
         get() = bluetoothDevice.address
 
-    public val bondState: BondState
+    override val bondState: BondState
         get() = when (bluetoothDevice.bondState) {
             BOND_NONE -> BondState.None
             BOND_BONDING -> BondState.Bonding
@@ -55,25 +49,25 @@ public actual class Advertisement(
         }
 
     /** Returns raw bytes of the underlying scan record. */
-    public val bytes: ByteArray?
+    override val bytes: ByteArray?
         get() = scanResult.scanRecord?.bytes
 
-    public actual val rssi: Int
+    override val rssi: Int
         get() = scanResult.rssi
 
-    public actual val txPower: Int?
+    override val txPower: Int?
         get() = scanResult.scanRecord?.txPowerLevel
 
-    public actual val uuids: List<Uuid>
+    override val uuids: List<Uuid>
         get() = scanResult.scanRecord?.serviceUuids?.map { it.uuid } ?: emptyList()
 
-    public actual fun serviceData(uuid: Uuid): ByteArray? =
+    override fun serviceData(uuid: Uuid): ByteArray? =
         scanResult.scanRecord?.serviceData?.get(ParcelUuid(uuid))
 
-    public actual fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
+    override fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
         scanResult.scanRecord?.getManufacturerSpecificData(companyIdentifierCode)
 
-    public actual val manufacturerData: ManufacturerData?
+    override val manufacturerData: ManufacturerData?
         get() = scanResult.scanRecord?.manufacturerSpecificData?.takeIf { it.size() > 0 }?.let {
             ManufacturerData(
                 it.keyAt(0),
@@ -82,5 +76,5 @@ public actual class Advertisement(
         }
 
     override fun toString(): String =
-        "Advertisement(name=$name, bluetoothDevice=$bluetoothDevice, rssi=$rssi, txPower=$txPower)"
+        "Advertisement(address=$address, name=$name, rssi=$rssi, txPower=$txPower)"
 }

@@ -2,6 +2,8 @@ package com.juul.kable
 
 import kotlinx.coroutines.flow.StateFlow
 
+public enum class Priority { Low, Balanced, High }
+
 public interface AndroidPeripheral : Peripheral {
 
     /**

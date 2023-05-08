@@ -29,7 +29,7 @@ public actual class ScannerBuilder {
         logging = Logging().apply(init)
     }
 
-    internal actual fun build(): Scanner {
+    internal actual fun build(): PlatformScanner {
         val options = mutableMapOf<String, Any>()
         allowDuplicateKeys?.also {
             options[CBCentralManagerScanOptionAllowDuplicatesKey] = it
@@ -38,7 +38,7 @@ public actual class ScannerBuilder {
             options[CBCentralManagerScanOptionSolicitedServiceUUIDsKey] = it.toTypedArray()
         }
 
-        return AppleScanner(
+        return CentralManagerCoreBluetoothScanner(
             central = CentralManager.Default,
             filters = filters.orEmpty(),
             options = options.toMap(),

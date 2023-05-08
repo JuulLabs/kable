@@ -2,7 +2,7 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 
-public expect class Advertisement {
+public interface Advertisement {
 
     /**
      * The name in the Advertisement.
