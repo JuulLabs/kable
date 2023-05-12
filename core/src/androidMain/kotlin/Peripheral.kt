@@ -82,7 +82,7 @@ public fun CoroutineScope.peripheral(
     identifier: Identifier,
     builderAction: PeripheralBuilderAction = {},
 ): Peripheral {
-    val bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(identifier)
+    val bluetoothDevice = getBluetoothAdapter().getRemoteDevice(identifier)
     return peripheral(bluetoothDevice, builderAction)
 }
 
@@ -445,7 +445,7 @@ private fun checkBluetoothAdapterState(
         STATE_TURNING_ON -> "TurningOn"
         else -> "Unknown"
     }
-    val actual = BluetoothAdapter.getDefaultAdapter().state
+    val actual = getBluetoothAdapter().state
     if (expected != actual) {
         val actualName = nameFor(actual)
         val expectedName = nameFor(expected)
