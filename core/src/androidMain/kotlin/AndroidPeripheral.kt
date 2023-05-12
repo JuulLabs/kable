@@ -2,9 +2,15 @@ package com.juul.kable
 
 import kotlinx.coroutines.flow.StateFlow
 
-public enum class Priority { Low, Balanced, High }
+@Deprecated(
+    message = "Moved as nested class of `AndroidPeripheral`.",
+    replaceWith = ReplaceWith("AndroidPeripheral.Priority"),
+)
+public typealias Priority = AndroidPeripheral.Priority
 
 public interface AndroidPeripheral : Peripheral {
+
+    public enum class Priority { Low, Balanced, High }
 
     /**
      * Returns the hardware address of this [AndroidPeripheral].
