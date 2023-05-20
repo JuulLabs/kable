@@ -111,5 +111,5 @@ public class AndroidScanner internal constructor(
 
         // Perform `Filter.NamePrefix` filtering here, since it isn't supported natively.
         namePrefixFilters.any { filter -> filter.matches(advertisement.name) }
-    }.flowOn(Dispatchers.Main.immediate)
+    }
 }
