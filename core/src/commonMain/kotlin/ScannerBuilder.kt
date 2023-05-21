@@ -12,5 +12,5 @@ public expect class ScannerBuilder internal constructor() {
     public var filters: List<Filter>?
 
     public fun logging(init: LoggingBuilder)
-    internal fun build(): Scanner
+    internal fun build(): PlatformScanner
 }

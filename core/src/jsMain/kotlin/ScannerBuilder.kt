@@ -13,7 +13,7 @@ public actual class ScannerBuilder {
         logging = Logging().apply(init)
     }
 
-    internal actual fun build(): Scanner = JsScanner(
+    internal actual fun build(): PlatformScanner = BluetoothWebBluetoothScanner(
         bluetooth = bluetooth,
         filters = filters.orEmpty(),
         logging = logging,

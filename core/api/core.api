@@ -1,29 +1,46 @@
-public final class com/juul/kable/Advertisement {
-	public fun <init> (Landroid/bluetooth/le/ScanResult;)V
-	public final fun getAddress ()Ljava/lang/String;
-	public final fun getBondState ()Lcom/juul/kable/BondState;
-	public final fun getBytes ()[B
-	public final fun getManufacturerData ()Lcom/juul/kable/ManufacturerData;
-	public final fun getName ()Ljava/lang/String;
-	public final fun getPeripheralName ()Ljava/lang/String;
-	public final fun getRssi ()I
-	public final fun getTxPower ()Ljava/lang/Integer;
-	public final fun getUuids ()Ljava/util/List;
-	public final fun isConnectable ()Ljava/lang/Boolean;
-	public final fun manufacturerData (I)[B
-	public final fun serviceData (Ljava/util/UUID;)[B
-	public fun toString ()Ljava/lang/String;
+public abstract interface class com/juul/kable/Advertisement {
+	public abstract fun getManufacturerData ()Lcom/juul/kable/ManufacturerData;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getPeripheralName ()Ljava/lang/String;
+	public abstract fun getRssi ()I
+	public abstract fun getTxPower ()Ljava/lang/Integer;
+	public abstract fun getUuids ()Ljava/util/List;
+	public abstract fun isConnectable ()Ljava/lang/Boolean;
+	public abstract fun manufacturerData (I)[B
+	public abstract fun serviceData (Ljava/util/UUID;)[B
+}
+
+public abstract interface class com/juul/kable/AndroidAdvertisement : com/juul/kable/Advertisement {
+	public abstract fun getAddress ()Ljava/lang/String;
+	public abstract fun getBondState ()Lcom/juul/kable/AndroidAdvertisement$BondState;
+	public abstract fun getBytes ()[B
+}
+
+public final class com/juul/kable/AndroidAdvertisement$BondState : java/lang/Enum {
+	public static final field Bonded Lcom/juul/kable/AndroidAdvertisement$BondState;
+	public static final field Bonding Lcom/juul/kable/AndroidAdvertisement$BondState;
+	public static final field None Lcom/juul/kable/AndroidAdvertisement$BondState;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/AndroidAdvertisement$BondState;
+	public static fun values ()[Lcom/juul/kable/AndroidAdvertisement$BondState;
 }
 
 public abstract interface class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral {
 	public abstract fun getAddress ()Ljava/lang/String;
 	public abstract fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun requestConnectionPriority (Lcom/juul/kable/Priority;)Z
+	public abstract fun requestConnectionPriority (Lcom/juul/kable/AndroidPeripheral$Priority;)Z
 	public abstract fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class com/juul/kable/AndroidScanner : com/juul/kable/Scanner {
-	public fun getAdvertisements ()Lkotlinx/coroutines/flow/Flow;
+public final class com/juul/kable/AndroidPeripheral$Priority : java/lang/Enum {
+	public static final field Balanced Lcom/juul/kable/AndroidPeripheral$Priority;
+	public static final field High Lcom/juul/kable/AndroidPeripheral$Priority;
+	public static final field Low Lcom/juul/kable/AndroidPeripheral$Priority;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/AndroidPeripheral$Priority;
+	public static fun values ()[Lcom/juul/kable/AndroidPeripheral$Priority;
+}
+
+public abstract interface class com/juul/kable/AndroidScanner : com/juul/kable/Scanner {
+	public abstract fun getAdvertisements ()Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class com/juul/kable/Bluetooth {
@@ -55,14 +72,6 @@ public final class com/juul/kable/Bluetooth$BaseUuid {
 	public final fun plus (I)Ljava/util/UUID;
 	public final fun plus (J)Ljava/util/UUID;
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class com/juul/kable/BondState : java/lang/Enum {
-	public static final field Bonded Lcom/juul/kable/BondState;
-	public static final field Bonding Lcom/juul/kable/BondState;
-	public static final field None Lcom/juul/kable/BondState;
-	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/BondState;
-	public static fun values ()[Lcom/juul/kable/BondState;
 }
 
 public final class com/juul/kable/BroadcastReceiverFlowKt {
@@ -291,14 +300,6 @@ public final class com/juul/kable/Phy : java/lang/Enum {
 	public static fun values ()[Lcom/juul/kable/Phy;
 }
 
-public final class com/juul/kable/Priority : java/lang/Enum {
-	public static final field Balanced Lcom/juul/kable/Priority;
-	public static final field High Lcom/juul/kable/Priority;
-	public static final field Low Lcom/juul/kable/Priority;
-	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Priority;
-	public static fun values ()[Lcom/juul/kable/Priority;
-}
-
 public final class com/juul/kable/ProfileKt {
 	public static final fun characteristicOf (Ljava/lang/String;Ljava/lang/String;)Lcom/juul/kable/Characteristic;
 	public static final fun descriptorOf (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/juul/kable/Descriptor;
@@ -339,8 +340,8 @@ public final class com/juul/kable/ScannerBuilder {
 }
 
 public final class com/juul/kable/ScannerKt {
-	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Scanner;
-	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
+	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/AndroidScanner;
+	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/AndroidScanner;
 }
 
 public abstract interface class com/juul/kable/Service {

@@ -20,11 +20,11 @@ private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
  *
  * See also: [Chrome Platform Status: Web Bluetooth Scanning](https://www.chromestatus.com/feature/5346724402954240)
  */
-public class JsScanner internal constructor(
+internal class BluetoothWebBluetoothScanner(
     bluetooth: Bluetooth,
     filters: List<Filter>,
     logging: Logging,
-) : Scanner {
+) : WebBluetoothScanner {
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
@@ -33,14 +33,14 @@ public class JsScanner internal constructor(
 
     private val options = filters.toBluetoothLEScanOptions()
 
-    public override val advertisements: Flow<Advertisement> = callbackFlow {
+    override val advertisements: Flow<WebBluetoothAdvertisement> = callbackFlow {
         check(supportsScanning) { "Scanning unavailable" }
 
         logger.info { message = "Starting scan" }
         val scan = bluetooth.requestLEScan(options).await()
 
         val listener: (Event) -> Unit = { event ->
-            trySend(Advertisement(event.unsafeCast<BluetoothAdvertisingEvent>())).getOrElse {
+            trySend(BluetoothAdvertisingEventWebBluetoothAdvertisement(event.unsafeCast<BluetoothAdvertisingEvent>())).getOrElse {
                 logger.warn { message = "Unable to deliver advertisement event due to failure in flow or premature closing." }
             }
         }

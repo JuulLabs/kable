@@ -28,11 +28,11 @@ public class ScanFailedException internal constructor(
     public val errorCode: Int,
 ) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
 
-public class AndroidScanner internal constructor(
+internal class BluetoothLeScannerAndroidScanner(
     private val filters: List<Filter>,
     private val scanSettings: ScanSettings,
     logging: Logging,
-) : Scanner {
+) : AndroidScanner {
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
@@ -41,12 +41,12 @@ public class AndroidScanner internal constructor(
 
     private val namePrefixFilters = filters.filterIsInstance<NamePrefix>()
 
-    public override val advertisements: Flow<Advertisement> = callbackFlow {
+    override val advertisements: Flow<AndroidAdvertisement> = callbackFlow {
         val scanner = bluetoothAdapter.bluetoothLeScanner ?: throw BluetoothDisabledException()
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                trySendBlocking(Advertisement(result))
+                trySendBlocking(ScanResultAndroidAdvertisement(result))
                     .onFailure {
                         logger.warn { message = "Unable to deliver scan result due to failure in flow or premature closing." }
                     }
@@ -56,7 +56,7 @@ public class AndroidScanner internal constructor(
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
                 runCatching {
                     results.forEach {
-                        trySendBlocking(Advertisement(it)).getOrThrow()
+                        trySendBlocking(ScanResultAndroidAdvertisement(it)).getOrThrow()
                     }
                 }.onFailure {
                     logger.warn { message = "Unable to deliver batch scan results due to failure in flow or premature closing." }

@@ -1,0 +1,7 @@
+package com.juul.kable
+
+import kotlinx.coroutines.flow.Flow
+
+public interface CoreBluetoothScanner : Scanner {
+    public override val advertisements: Flow<CoreBluetoothAdvertisement>
+}

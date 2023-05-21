@@ -16,12 +16,12 @@ import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.CoreBluetooth.CBManagerStateUnauthorized
 import platform.CoreBluetooth.CBManagerStateUnsupported
 
-public class AppleScanner internal constructor(
+internal class CentralManagerCoreBluetoothScanner(
     central: CentralManager,
     filters: List<Filter>,
     options: Map<Any?, *>?,
     logging: Logging,
-) : Scanner {
+) : CoreBluetoothScanner {
 
     init {
         require(filters.none { it is Filter.Address }) {
@@ -47,7 +47,7 @@ public class AppleScanner internal constructor(
         }
     }
 
-    public override val advertisements: Flow<Advertisement> =
+    override val advertisements: Flow<CoreBluetoothAdvertisement> =
         central.delegate
             .response
             .onStart {
@@ -81,7 +81,7 @@ public class AppleScanner internal constructor(
                 }
             }
             .map { (cbPeripheral, rssi, advertisementData) ->
-                Advertisement(rssi.intValue, advertisementData, cbPeripheral)
+                CBPeripheralCoreBluetoothAdvertisement(rssi.intValue, advertisementData, cbPeripheral)
             }
 }
 

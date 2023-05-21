@@ -6,6 +6,7 @@ public interface Scanner {
     public val advertisements: Flow<Advertisement>
 }
 
+@Suppress("FunctionName") // Builder function.
 public fun Scanner(
     builderAction: ScannerBuilder.() -> Unit = {},
-): Scanner = ScannerBuilder().apply(builderAction).build()
+): PlatformScanner = ScannerBuilder().apply(builderAction).build()

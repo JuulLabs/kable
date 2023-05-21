@@ -56,7 +56,10 @@ private const val DISCOVER_SERVICES_RETRIES = 5
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
-): Peripheral = peripheral(advertisement.bluetoothDevice, builderAction)
+): Peripheral {
+    advertisement as ScanResultAndroidAdvertisement
+    return peripheral(advertisement.bluetoothDevice, builderAction)
+}
 
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
@@ -82,8 +85,6 @@ public fun CoroutineScope.peripheral(
     val bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(identifier)
     return peripheral(bluetoothDevice, builderAction)
 }
-
-public enum class Priority { Low, Balanced, High }
 
 internal class BluetoothDeviceAndroidPeripheral(
     parentCoroutineContext: CoroutineContext,

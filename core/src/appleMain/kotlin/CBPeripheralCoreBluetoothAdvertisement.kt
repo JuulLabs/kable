@@ -13,16 +13,16 @@ import platform.Foundation.NSData
 import platform.Foundation.NSNumber
 import platform.Foundation.NSUUID
 
-public actual data class Advertisement(
-    public actual val rssi: Int,
+internal class CBPeripheralCoreBluetoothAdvertisement(
+    override val rssi: Int,
     val data: Map<String, Any>,
     internal val cbPeripheral: CBPeripheral,
-) {
+) : CoreBluetoothAdvertisement {
 
-    val identifier: NSUUID
+    override val identifier: NSUUID
         get() = cbPeripheral.identifier
 
-    public actual val name: String?
+    override val name: String?
         get() = data[CBAdvertisementDataLocalNameKey] as? String
 
     /**
@@ -36,39 +36,48 @@ public actual data class Advertisement(
      *
      * https://developer.apple.com/forums/thread/72343
      */
-    public actual val peripheralName: String?
+    override val peripheralName: String?
         get() = cbPeripheral.name
 
     /** https://developer.apple.com/documentation/corebluetooth/cbadvertisementdataisconnectable */
-    public actual val isConnectable: Boolean?
+    override val isConnectable: Boolean?
         get() = data[CBAdvertisementDataIsConnectable] as? Boolean
 
-    public actual val txPower: Int?
+    override val txPower: Int?
         get() = (data[CBAdvertisementDataTxPowerLevelKey] as? NSNumber)?.intValue
 
-    actual val uuids: List<Uuid>
+    override val uuids: List<Uuid>
         get() = (data[CBAdvertisementDataServiceUUIDsKey] as? List<CBUUID>)?.map { it.toUuid() } ?: emptyList()
 
-    public actual fun serviceData(uuid: Uuid): ByteArray? =
+    override fun serviceData(uuid: Uuid): ByteArray? =
         serviceDataAsNSData(uuid)?.toByteArray()
 
-    public fun serviceDataAsNSData(uuid: Uuid): NSData? =
+    override fun serviceDataAsNSData(uuid: Uuid): NSData? =
         (data[CBAdvertisementDataServiceDataKey] as? Map<CBUUID, NSData>)?.get(uuid.toCBUUID())
 
-    public actual fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
+    override fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
         manufacturerData?.takeIf { (it.code == companyIdentifierCode) }?.data
 
-    public actual val manufacturerData: ManufacturerData?
+    override val manufacturerData: ManufacturerData?
         get() = manufacturerDataAsNSData?.toManufacturerData()
 
-    public fun manufacturerDataAsNSData(companyIdentifierCode: Int): NSData? =
+    override fun manufacturerDataAsNSData(companyIdentifierCode: Int): NSData? =
         manufacturerData(companyIdentifierCode)?.toNSData()
 
-    public val manufacturerDataAsNSData: NSData?
+    override val manufacturerDataAsNSData: NSData?
         get() = data[CBAdvertisementDataManufacturerDataKey] as? NSData
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CoreBluetoothAdvertisement) return false
+        if (identifier.UUIDString != other.identifier.UUIDString) return false
+        return true
+    }
+
+    override fun hashCode(): Int = identifier.hashCode()
+
     override fun toString(): String =
-        "Advertisement(name=$name, cbPeripheral=$cbPeripheral, rssi=$rssi, txPower=$txPower)"
+        "Advertisement(identifier=${identifier.UUIDString}, name=$name, rssi=$rssi, txPower=$txPower)"
 }
 
 internal fun NSData.toManufacturerData(): ManufacturerData? = toByteArray().toManufacturerData()

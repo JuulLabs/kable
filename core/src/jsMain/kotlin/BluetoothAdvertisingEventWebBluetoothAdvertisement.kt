@@ -6,43 +6,47 @@ import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.iterable
 import org.khronos.webgl.DataView
 
-public actual class Advertisement internal constructor(
+internal class BluetoothAdvertisingEventWebBluetoothAdvertisement(
     private val advertisement: BluetoothAdvertisingEvent,
-) {
+) : WebBluetoothAdvertisement {
+
     internal val bluetoothDevice: BluetoothDevice
         get() = advertisement.device
 
-    public actual val name: String?
+    override val identifier: String
+        get() = advertisement.device.id
+
+    override val name: String?
         get() = advertisement.name
 
-    public actual val peripheralName: String?
-        get() = bluetoothDevice.name
+    override val peripheralName: String?
+        get() = advertisement.device.name
 
     /** Property is unavailable on JavaScript. Always returns `null`. */
-    public actual val isConnectable: Boolean? = null
+    override val isConnectable: Boolean? = null
 
-    public actual val rssi: Int
+    override val rssi: Int
         get() = advertisement.rssi ?: Int.MIN_VALUE
 
-    public actual val txPower: Int?
+    override val txPower: Int?
         get() = advertisement.txPower
 
-    public actual val uuids: List<Uuid>
+    override val uuids: List<Uuid>
         get() = advertisement.uuids.map { it.toUuid() }
 
-    public actual fun serviceData(uuid: Uuid): ByteArray? =
+    override fun serviceData(uuid: Uuid): ByteArray? =
         serviceDataAsDataView(uuid)?.buffer?.toByteArray()
 
-    public actual fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
+    override fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
         manufacturerDataAsDataView(companyIdentifierCode)?.buffer?.toByteArray()
 
-    public fun serviceDataAsDataView(uuid: Uuid): DataView? =
+    override fun serviceDataAsDataView(uuid: Uuid): DataView? =
         advertisement.serviceData.asDynamic().get(uuid.toString()) as? DataView
 
-    public fun manufacturerDataAsDataView(companyIdentifierCode: Int): DataView? =
+    override fun manufacturerDataAsDataView(companyIdentifierCode: Int): DataView? =
         advertisement.manufacturerData.asDynamic().get(companyIdentifierCode.toString()) as? DataView
 
-    public actual val manufacturerData: ManufacturerData?
+    override val manufacturerData: ManufacturerData?
         get() = advertisement.manufacturerData.entries().iterable().firstOrNull()?.let { entry ->
             ManufacturerData(
                 entry[0] as Int,
@@ -51,5 +55,5 @@ public actual class Advertisement internal constructor(
         }
 
     override fun toString(): String =
-        "Advertisement(name=$name, bluetoothDevice=$bluetoothDevice, rssi=$rssi, txPower=$txPower)"
+        "Advertisement(identifier=$identifier, name=$name, rssi=$rssi, txPower=$txPower)"
 }
