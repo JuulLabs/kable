@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothAdapter.ERROR
 import android.bluetooth.BluetoothAdapter.EXTRA_STATE
 import android.bluetooth.BluetoothAdapter.STATE_OFF
@@ -73,7 +72,7 @@ private val bluetoothStateFlow =
             }
         }
         .onStart {
-            val isEnabled = when (BluetoothAdapter.getDefaultAdapter()?.isEnabled) {
+            val isEnabled = when (getBluetoothAdapterOrNull()?.isEnabled) {
                 true -> Available
                 else -> Unavailable(reason = Off)
             }
