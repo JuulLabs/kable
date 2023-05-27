@@ -32,13 +32,10 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -172,25 +169,31 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val connection: Connection
         inline get() = _connection.value ?: throw NotReadyException(toString())
 
-    private val connectJob = atomic<Deferred<Unit>?>(null)
-
     override val name: String? get() = cbPeripheral.name
+
+    private val connectAction = connectionScope.sharedRepeatableAction(::establishConnection)
 
     private fun onDisconnected() {
         logger.info { message = "Disconnected" }
-        connectJob.value?.cancel()
-        connectJob.value = null
+        connectAction.cancel()
         _connection.value?.close()
         _connection.value = null
     }
 
-    private fun connectAsync() = connectionScope.async(start = LAZY) {
+    override suspend fun connect() {
+        connectAction.getOrAsync().await()
+    }
+
+    private suspend fun establishConnection(scope: CoroutineScope) {
+        // Check CBCentral State since connecting can result in an API misuse message.
+        centralManager.checkBluetoothState(CBManagerStatePoweredOn)
+
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
 
         centralManager.delegate.onDisconnected.onEach { identifier ->
             if (identifier == cbPeripheral.identifier) onDisconnected()
-        }.launchIn(connectionScope)
+        }.launchIn(scope)
 
         try {
             val connection = centralManager.connectPeripheral(this@CBPeripheralCoreBluetoothPeripheral, logging).also {
@@ -209,7 +212,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
                     )
                 }
                 .onEach(observers.characteristicChanges::emit)
-                .launchIn(connectionScope, start = UNDISPATCHED)
+                .launchIn(scope, start = UNDISPATCHED)
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
@@ -233,15 +236,9 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         _state.value = State.Connected
     }
 
-    override suspend fun connect() {
-        // Check CBCentral State since connecting can result in an api misuse message
-        centralManager.checkBluetoothState(CBManagerStatePoweredOn)
-        connectJob.updateAndGet { it ?: connectAsync() }!!.await()
-    }
-
     override suspend fun disconnect() {
         try {
-            connectionScope.coroutineContext.job.cancelAndJoinChildren()
+            connectAction.cancelAndJoin()
         } finally {
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)
