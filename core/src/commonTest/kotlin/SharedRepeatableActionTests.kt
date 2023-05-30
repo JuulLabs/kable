@@ -5,6 +5,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -36,7 +37,7 @@ class SharedRepeatableActionTests {
                 throw IllegalStateException()
             }
 
-            val deferred = action.getOrAsync()
+            val deferred = async { action.await() }
             started.first { it }
             assertFalse { innerJob.isCompleted }
             asserted.value = true
@@ -59,7 +60,7 @@ class SharedRepeatableActionTests {
             }
 
             assertFailsWith<CancellationException> {
-                action.getOrAsync().await()
+                action.await()
             }
         }
     }
@@ -78,7 +79,8 @@ class SharedRepeatableActionTests {
             }
             actionRuns.send(++actionCounter)
             awaitCancellation()
-        }.apply { getOrAsync() }
+        }
+        val job = launch(start = UNDISPATCHED) { action.await() }
 
         assertEquals(
             expected = 1,
@@ -89,9 +91,10 @@ class SharedRepeatableActionTests {
             actual = actionRuns.receive(),
         )
 
-        action.cancelAndJoin()
-        action.getOrAsync()
+        action.resetAndJoin()
+        assertTrue { job.isCancelled }
 
+        launch(start = UNDISPATCHED) { action.await() }
         assertEquals(
             expected = 2,
             actual = innerRuns.receive(),
@@ -101,7 +104,7 @@ class SharedRepeatableActionTests {
             actual = actionRuns.receive(),
         )
 
-        action.cancel()
+        coroutineContext.cancelChildren()
     }
 
     @Test
@@ -114,7 +117,7 @@ class SharedRepeatableActionTests {
         }
 
         val results = (1..10).map {
-            async { action.getOrAsync().await() }
+            async { action.await() }
         }.awaitAll()
 
         assertEquals(
@@ -122,6 +125,6 @@ class SharedRepeatableActionTests {
             actual = results,
         )
 
-        action.cancel()
+        coroutineContext.cancelChildren()
     }
 }

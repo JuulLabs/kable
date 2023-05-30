@@ -175,13 +175,13 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
     private fun onDisconnected() {
         logger.info { message = "Disconnected" }
-        connectAction.cancel()
+        connectAction.reset()
         _connection.value?.close()
         _connection.value = null
     }
 
     override suspend fun connect() {
-        connectAction.getOrAsync().await()
+        connectAction.await()
     }
 
     private suspend fun establishConnection(scope: CoroutineScope) {
@@ -238,7 +238,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
     override suspend fun disconnect() {
         try {
-            connectAction.cancelAndJoin()
+            connectAction.resetAndJoin()
         } finally {
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)

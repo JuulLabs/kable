@@ -13,20 +13,20 @@ import kotlin.coroutines.CoroutineContext
 /**
  * A mechanism for launching and awaiting a shared action ([Deferred]) repeatedly.
  *
- * The [action] is started by calling [getOrAsync]. Subsequent calls to [getOrAsync] will return the
- * same (i.e. shared) [action] until cancelled or failure occurs.
+ * The [action] is started by calling [await]. Subsequent calls to [await] will return the same
+ * (i.e. shared) [action] until cancelled or failure occurs.
  *
  * The [action] is passed a [scope][CoroutineScope] that can be used to spawn coroutines that can
- * outlive the [action]. [getOrAsync] will continue to return the same action until either
- * [cancelled][cancel], or a failures occurs in either the [action] or any coroutines spawned from
+ * outlive the [action]. [await] will continue to return the same action until either
+ * [cancelled][reset], or a failures occurs in either the [action] or any coroutines spawned from
  * the [scope][CoroutineScope] provided to [action].
  *
  * An exception thrown from [action] will cancel any coroutines spawned from the
  * [scope][CoroutineScope] that was provided to the [action].
  *
- * Calling [cancel] or [cancelAndJoin] will cancel the [action] and any coroutines created from the
- * [scope][CoroutineScope] provided to the [action]. A subsequent call to [getOrAsync] will then
- * start the [action] again.
+ * Calling [reset] or [resetAndJoin] will cancel the [action] and any coroutines created from the
+ * [scope][CoroutineScope] provided to the [action]. A subsequent call to [await] will then start
+ * the [action] again.
  */
 internal class SharedRepeatableAction<T>(
     private val coroutineContext: CoroutineContext,
@@ -42,7 +42,9 @@ internal class SharedRepeatableAction<T>(
     private var jobs: Jobs<T>? = null
     private val guard = reentrantLock()
 
-    fun getOrAsync(): Deferred<T> = guard.withLock {
+    suspend fun await() = getOrAsync().await()
+
+    internal fun getOrAsync(): Deferred<T> = guard.withLock {
         // ktlint-disable indent
         (
             jobs?.takeUnless { it.isCancelled } ?: run {
@@ -50,7 +52,7 @@ internal class SharedRepeatableAction<T>(
                 val rootScope = CoroutineScope(coroutineContext + rootJob)
                 val actionJob = rootScope.async { action(rootScope) }.apply {
                     invokeOnCompletion { cause ->
-                        if (cause != null) this@SharedRepeatableAction.cancel()
+                        if (cause != null) this@SharedRepeatableAction.reset()
                     }
                 }
                 Jobs(rootJob, actionJob)
@@ -59,13 +61,13 @@ internal class SharedRepeatableAction<T>(
         // ktlint-enable indent
     }
 
-    fun cancel() {
+    fun reset() {
         guard.withLock {
             jobs?.apply { isCancelled = true }
         }?.root?.cancel()
     }
 
-    suspend fun cancelAndJoin() {
+    suspend fun resetAndJoin() {
         guard.withLock {
             jobs?.apply { isCancelled = true }
         }?.root?.cancelAndJoin()
