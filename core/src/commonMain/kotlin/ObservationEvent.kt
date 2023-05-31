@@ -1,20 +1,27 @@
 package com.juul.kable
 
-internal sealed class ObservationEvent<T> {
+internal sealed class ObservationEvent<out T> {
 
-    abstract val characteristic: Characteristic
+    open val characteristic: Characteristic? get() = null
 
     data class CharacteristicChange<T>(
         override val characteristic: Characteristic,
         val data: T,
     ) : ObservationEvent<T>()
 
-    data class Error<T>(
+    data class Error(
         override val characteristic: Characteristic,
         val cause: Exception,
-    ) : ObservationEvent<T>()
+    ) : ObservationEvent<Nothing>()
+
+    // Only used on Apple (where characteristic change callback is used for characteristic reads).
+    object Disconnected : ObservationEvent<Nothing>()
 }
 
 internal fun <T> ObservationEvent<T>.isAssociatedWith(characteristic: Characteristic): Boolean =
-    this.characteristic.characteristicUuid == characteristic.characteristicUuid &&
-        this.characteristic.serviceUuid == characteristic.serviceUuid
+    when (val eventCharacteristic = this.characteristic) {
+        null -> true // `characteristic` is null for Disconnected, which applies to all characteristics.
+        else ->
+            eventCharacteristic.characteristicUuid == characteristic.characteristicUuid &&
+                eventCharacteristic.serviceUuid == characteristic.serviceUuid
+    }

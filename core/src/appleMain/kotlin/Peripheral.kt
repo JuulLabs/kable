@@ -5,10 +5,6 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
-import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic
-import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Closed
-import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Data
-import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Error
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForService
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
@@ -32,7 +28,6 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
@@ -44,10 +39,8 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withPermit
@@ -196,23 +189,11 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         }.launchIn(scope)
 
         try {
-            val connection = centralManager.connectPeripheral(this@CBPeripheralCoreBluetoothPeripheral, logging).also {
-                _connection.value = it
-            }
-
-            connection
-                .delegate
-                .characteristicChanges
-                .takeWhile { it !== Closed }
-                .mapNotNull { it as? Data }
-                .map {
-                    ObservationEvent.CharacteristicChange(
-                        characteristic = it.cbCharacteristic.toLazyCharacteristic(),
-                        data = it.data,
-                    )
-                }
-                .onEach(observers.characteristicChanges::emit)
-                .launchIn(scope, start = UNDISPATCHED)
+            _connection.value = centralManager.connectPeripheral(
+                this@CBPeripheralCoreBluetoothPeripheral,
+                observers.characteristicChanges,
+                logging,
+            )
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
@@ -325,15 +306,19 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             detail(characteristic)
         }
 
-        val connection = this.connection
         val platformCharacteristic = discoveredServices.obtain(characteristic, Read)
 
-        return connection.semaphore.withPermit {
-            connection
-                .delegate
+        val event = connection.semaphore.withPermit {
+            observers
                 .characteristicChanges
                 .onSubscription { centralManager.read(cbPeripheral, platformCharacteristic) }
-                .firstOrThrow { it.cbCharacteristic.UUID == platformCharacteristic.UUID }
+                .first { event -> event.isAssociatedWith(characteristic) }
+        }
+
+        return when (event) {
+            is ObservationEvent.CharacteristicChange -> event.data
+            is ObservationEvent.Error -> throw IOException(cause = event.cause)
+            ObservationEvent.Disconnected -> throw ConnectionLostException()
         }
     }
 
@@ -415,14 +400,6 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     }
 
     override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"
-}
-
-private suspend fun Flow<DidUpdateValueForCharacteristic>.firstOrThrow(
-    predicate: suspend (Data) -> Boolean,
-): NSData = when (val value = first { it !is Data || predicate.invoke(it) }) {
-    is Data -> value.data
-    is Error -> throw IOException(value.error.description, cause = null)
-    Closed -> throw ConnectionLostException()
 }
 
 private fun ConnectionEvent.toState(): State = when (this) {
