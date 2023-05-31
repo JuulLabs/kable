@@ -33,13 +33,14 @@ internal class SharedRepeatableAction<T>(
     private val action: suspend (scope: CoroutineScope) -> T,
 ) {
 
-    private class Jobs<T>(
+    private class State<T>(
         val root: Job,
         val action: Deferred<T>,
-        var isCancelled: Boolean = false,
-    )
+    ) {
+        var isCancelled: Boolean = false
+    }
 
-    private var jobs: Jobs<T>? = null
+    private var state: State<T>? = null
     private val guard = reentrantLock()
 
     suspend fun await() = getOrAsync().await()
@@ -47,7 +48,7 @@ internal class SharedRepeatableAction<T>(
     internal fun getOrAsync(): Deferred<T> = guard.withLock {
         // ktlint-disable indent
         (
-            jobs?.takeUnless { it.isCancelled } ?: run {
+            state?.takeUnless { it.isCancelled } ?: run {
                 val rootJob = Job(coroutineContext.job)
                 val rootScope = CoroutineScope(coroutineContext + rootJob)
                 val actionJob = rootScope.async { action(rootScope) }.apply {
@@ -55,21 +56,21 @@ internal class SharedRepeatableAction<T>(
                         if (cause != null) this@SharedRepeatableAction.reset()
                     }
                 }
-                Jobs(rootJob, actionJob)
-            }.also { jobs = it }
+                State(rootJob, actionJob)
+            }.also { state = it }
         ).action
         // ktlint-enable indent
     }
 
     fun reset() {
         guard.withLock {
-            jobs?.apply { isCancelled = true }
+            state?.apply { isCancelled = true }
         }?.root?.cancel()
     }
 
     suspend fun resetAndJoin() {
         guard.withLock {
-            jobs?.apply { isCancelled = true }
+            state?.apply { isCancelled = true }
         }?.root?.cancelAndJoin()
     }
 }
