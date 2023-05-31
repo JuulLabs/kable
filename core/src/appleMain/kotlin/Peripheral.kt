@@ -43,7 +43,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.job
-import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
@@ -283,7 +283,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             WithResponse -> connection.execute<DidWriteValueForCharacteristic> {
                 centralManager.write(cbPeripheral, data, platformCharacteristic, CBCharacteristicWriteWithResponse)
             }
-            WithoutResponse -> connection.semaphore.withPermit {
+            WithoutResponse -> connection.guard.withLock {
                 if (!canSendWriteWithoutResponse.updateAndGet { cbPeripheral.canSendWriteWithoutResponse }) {
                     canSendWriteWithoutResponse.first { it }
                 }
@@ -308,7 +308,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, Read)
 
-        val event = connection.semaphore.withPermit {
+        val event = connection.guard.withLock {
             observers
                 .characteristicChanges
                 .onSubscription { centralManager.read(cbPeripheral, platformCharacteristic) }
