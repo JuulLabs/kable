@@ -66,6 +66,8 @@ class SensorTag(
 
     /** Set period, allowable range is 100-2550 ms. */
     suspend fun writeGyroPeriod(periodMillis: Long) {
+        require(periodMillis in 100..2550) { "Period must be in the range 100-2550, was $periodMillis." }
+
         val value = periodMillis / 10
         val data = byteArrayOf(value.toByte())
 
@@ -78,7 +80,7 @@ class SensorTag(
     suspend fun readGyroPeriod(): Int {
         val value = peripheral.read(movementPeriodCharacteristic)
         Log.info { "movement → readPeriod → value = ${value.toHexString()}" }
-        return value[0] * 10
+        return value[0].toInt() and 0xFF * 10
     }
 
     suspend fun enableGyro() {
