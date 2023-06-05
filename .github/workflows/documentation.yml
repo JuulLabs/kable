@@ -10,6 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: ./gradlew dokkaHtmlMultiModule
-      - uses: JamesIves/github-pages-deploy-action@v4.4.1
+      - uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: build/dokkaHtmlMultiModule
