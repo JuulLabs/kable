@@ -15,29 +15,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - uses: actions/cache@v3
+      - name: check
+        uses: gradle/gradle-build-action@v2
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.konan
-            ~/.android/build-cache
-            ~/.android/cache
-          key: ${{ runner.os }}-publish-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-publish-
-            ${{ runner.os }}-
+          arguments: check
 
-      - run: ./gradlew check
-      - run: >-
-          ./gradlew
-          -PVERSION_NAME="${GITHUB_REF/refs\/tags\//}"
-          -PsigningInMemoryKey="${{ secrets.SIGNING_KEY }}"
-          -PsigningInMemoryKeyPassword="${{ secrets.SIGNING_PASSWORD }}"
-          -PmavenCentralUsername="${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}"
-          -PmavenCentralPassword="${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}"
-          publish
-
-      - run: |
-          rm -f ~/.gradle/caches/modules-2/modules-2.lock
-          rm -f ~/.gradle/caches/modules-2/gc.properties
+      - name: publish
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: |
+            -PVERSION_NAME=${{ github.ref_name }}
+            -PsigningInMemoryKey=${{ secrets.SIGNING_KEY }}
+            -PsigningInMemoryKeyPassword=${{ secrets.SIGNING_PASSWORD }}
+            -PmavenCentralUsername=${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
+            -PmavenCentralPassword=${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
+            publish
