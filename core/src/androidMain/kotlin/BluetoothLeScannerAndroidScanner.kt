@@ -1,7 +1,6 @@
 package com.juul.kable
 
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -36,13 +35,10 @@ internal class BluetoothLeScannerAndroidScanner(
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
-    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        ?: error("Bluetooth not supported")
-
     private val namePrefixFilters = filters.filterIsInstance<NamePrefix>()
 
     override val advertisements: Flow<AndroidAdvertisement> = callbackFlow {
-        val scanner = bluetoothAdapter.bluetoothLeScanner ?: throw BluetoothDisabledException()
+        val scanner = getBluetoothAdapter().bluetoothLeScanner ?: throw BluetoothDisabledException()
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {

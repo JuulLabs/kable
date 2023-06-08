@@ -6,6 +6,10 @@ import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
 import android.bluetooth.BluetoothAdapter.STATE_TURNING_ON
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC
+import android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL
+import android.bluetooth.BluetoothDevice.DEVICE_TYPE_LE
+import android.bluetooth.BluetoothDevice.DEVICE_TYPE_UNKNOWN
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_INDICATE
 import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
@@ -15,6 +19,7 @@ import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
 import com.benasher44.uuid.uuidFrom
+import com.juul.kable.AndroidPeripheral.Type
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
@@ -82,7 +87,7 @@ public fun CoroutineScope.peripheral(
     identifier: Identifier,
     builderAction: PeripheralBuilderAction = {},
 ): Peripheral {
-    val bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(identifier)
+    val bluetoothDevice = getBluetoothAdapter().getRemoteDevice(identifier)
     return peripheral(bluetoothDevice, builderAction)
 }
 
@@ -186,6 +191,9 @@ internal class BluetoothDeviceAndroidPeripheral(
         // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
+
+    override val type: Type
+        get() = typeFrom(bluetoothDevice.type)
 
     override val address: String = bluetoothDevice.address
 
@@ -445,7 +453,7 @@ private fun checkBluetoothAdapterState(
         STATE_TURNING_ON -> "TurningOn"
         else -> "Unknown"
     }
-    val actual = BluetoothAdapter.getDefaultAdapter().state
+    val actual = getBluetoothAdapter().state
     if (expected != actual) {
         val actualName = nameFor(actual)
         val expectedName = nameFor(expected)
@@ -463,4 +471,12 @@ public actual fun String.toIdentifier(): Identifier {
         "MAC Address has invalid format: $this"
     }
     return this
+}
+
+private fun typeFrom(value: Int): Type = when (value) {
+    DEVICE_TYPE_UNKNOWN -> Type.Unknown
+    DEVICE_TYPE_CLASSIC -> Type.Classic
+    DEVICE_TYPE_DUAL -> Type.DualMode
+    DEVICE_TYPE_LE -> Type.LowEnergy
+    else -> error("Unsupported device type: $value")
 }

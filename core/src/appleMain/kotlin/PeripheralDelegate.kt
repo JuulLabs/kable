@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.juul.kable.PeripheralDelegate.DidUpdateValueForCharacteristic.Closed
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
@@ -15,7 +14,6 @@ import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBL2CAPChannel
@@ -31,6 +29,7 @@ import platform.darwin.NSObject
 // https://developer.apple.com/documentation/corebluetooth/cbperipheraldelegate
 internal class PeripheralDelegate(
     private val canSendWriteWithoutResponse: MutableStateFlow<Boolean>,
+    private val characteristicChanges: MutableSharedFlow<ObservationEvent<NSData>>,
     logging: Logging,
     identifier: String,
 ) : NSObject(), CBPeripheralDelegateProtocol {
@@ -78,25 +77,6 @@ internal class PeripheralDelegate(
 
     private val _response = Channel<Response>(BUFFERED)
     val response: ReceiveChannel<Response> = _response
-
-    sealed class DidUpdateValueForCharacteristic {
-
-        data class Data(
-            val cbCharacteristic: CBCharacteristic,
-            val data: NSData,
-        ) : DidUpdateValueForCharacteristic()
-
-        data class Error(
-            val cbCharacteristic: CBCharacteristic,
-            val error: NSError,
-        ) : DidUpdateValueForCharacteristic()
-
-        /** Signal to downstream that [PeripheralDelegate] has been [closed][close]. */
-        object Closed : DidUpdateValueForCharacteristic()
-    }
-
-    private val _characteristicChanges = MutableSharedFlow<DidUpdateValueForCharacteristic>(extraBufferCapacity = 64)
-    val characteristicChanges = _characteristicChanges.asSharedFlow()
 
     private val logger = Logger(logging, tag = "Kable/Delegate", identifier = identifier)
 
@@ -178,16 +158,17 @@ internal class PeripheralDelegate(
             detail(didUpdateValueForCharacteristic.value)
         }
 
+        val characteristic = didUpdateValueForCharacteristic.toLazyCharacteristic()
         val change = if (error == null) {
             // Assumption: `value == null` and `error == null` are mutually exclusive.
             // i.e. When `error == null` then `CBCharacteristic`'s `value` is non-null.
             val data = didUpdateValueForCharacteristic.value!!
-            DidUpdateValueForCharacteristic.Data(didUpdateValueForCharacteristic, data)
+            ObservationEvent.CharacteristicChange(characteristic, data)
         } else {
-            DidUpdateValueForCharacteristic.Error(didUpdateValueForCharacteristic, error)
+            ObservationEvent.Error(characteristic, IOException(error.description, cause = null))
         }
 
-        _characteristicChanges.emitBlocking(change)
+        characteristicChanges.emitBlocking(change)
     }
 
     // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
@@ -321,7 +302,7 @@ internal class PeripheralDelegate(
 
     fun close() {
         _response.close(ConnectionLostException())
-        _characteristicChanges.emitBlocking(Closed)
+        characteristicChanges.emitBlocking(ObservationEvent.Disconnected)
     }
 }
 

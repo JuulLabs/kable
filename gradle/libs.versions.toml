@@ -16,10 +16,10 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
-uuid = { module = "com.benasher44:uuid", version = "0.7.0" }
+uuid = { module = "com.benasher44:uuid", version = "0.7.1" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "8.0.1" }
+android-library = { id = "com.android.library", version = "8.0.2" }
 atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "1.8.10" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
