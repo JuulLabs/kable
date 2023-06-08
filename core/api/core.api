@@ -27,6 +27,7 @@ public final class com/juul/kable/AndroidAdvertisement$BondState : java/lang/Enu
 public abstract interface class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral {
 	public abstract fun getAddress ()Ljava/lang/String;
 	public abstract fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getType ()Lcom/juul/kable/AndroidPeripheral$Type;
 	public abstract fun requestConnectionPriority (Lcom/juul/kable/AndroidPeripheral$Priority;)Z
 	public abstract fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -37,6 +38,15 @@ public final class com/juul/kable/AndroidPeripheral$Priority : java/lang/Enum {
 	public static final field Low Lcom/juul/kable/AndroidPeripheral$Priority;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/AndroidPeripheral$Priority;
 	public static fun values ()[Lcom/juul/kable/AndroidPeripheral$Priority;
+}
+
+public final class com/juul/kable/AndroidPeripheral$Type : java/lang/Enum {
+	public static final field Classic Lcom/juul/kable/AndroidPeripheral$Type;
+	public static final field DualMode Lcom/juul/kable/AndroidPeripheral$Type;
+	public static final field LowEnergy Lcom/juul/kable/AndroidPeripheral$Type;
+	public static final field Unknown Lcom/juul/kable/AndroidPeripheral$Type;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/AndroidPeripheral$Type;
+	public static fun values ()[Lcom/juul/kable/AndroidPeripheral$Type;
 }
 
 public abstract interface class com/juul/kable/AndroidScanner : com/juul/kable/Scanner {
