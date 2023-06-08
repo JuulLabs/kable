@@ -8,8 +8,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
 
 internal class Connection(
@@ -23,14 +23,12 @@ internal class Connection(
 
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = identifier)
 
-    // Using Semaphore as Mutex never relinquished lock when multiple concurrent `withLock`s are executed.
-    val semaphore = Semaphore(1)
-
     private var deferredResponse: Deferred<PeripheralDelegate.Response>? = null
+    val guard = Mutex()
 
     suspend inline fun <T> execute(
         action: () -> Unit,
-    ): T = semaphore.withPermit {
+    ): T = guard.withLock {
         deferredResponse?.let {
             if (it.isActive) {
                 // Discard response as we've performed another `execute` without the previous finishing. This happens if
