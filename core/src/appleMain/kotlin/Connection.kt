@@ -7,19 +7,22 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.coroutines.CoroutineContext
 
 internal class Connection(
-    parentCoroutineContext: CoroutineContext,
+    scope: CoroutineScope,
     val delegate: PeripheralDelegate,
     logging: Logging,
     identifier: String,
 ) {
 
-    private val scope = CoroutineScope(parentCoroutineContext + Job(parentCoroutineContext[Job]) + CoroutineName("Kable/Connection@$identifier"))
+    private val job = Job(scope.coroutineContext[Job]).apply {
+        invokeOnCompletion {
+            delegate.close()
+        }
+    }
+    val scope = CoroutineScope(scope.coroutineContext + job + CoroutineName("Kable/Connection/$identifier"))
 
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = identifier)
 
@@ -58,10 +61,5 @@ internal class Connection(
         val error = response.error
         if (error != null) throw IOException(error.description, cause = null)
         response as T
-    }
-
-    fun close() {
-        scope.cancel()
-        delegate.close()
     }
 }

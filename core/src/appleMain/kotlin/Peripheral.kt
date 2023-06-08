@@ -28,7 +28,6 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +41,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -109,9 +109,11 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val logging: Logging,
 ) : CoreBluetoothPeripheral {
 
-    private val job = SupervisorJob(parentCoroutineContext.job) // todo: Disconnect/dispose CBPeripheral on completion?
-    private val scope = CoroutineScope(parentCoroutineContext + job + CoroutineName("Kable/Peripheral@${cbPeripheral.identifier.UUIDString}"))
-    internal val connectionScope = CoroutineScope(scope.coroutineContext + Job(scope.coroutineContext[Job]) + CoroutineName("Kable/Connect@${cbPeripheral.identifier.UUIDString}"))
+    private val scope = CoroutineScope(
+        parentCoroutineContext +
+            SupervisorJob(parentCoroutineContext.job) +
+            CoroutineName("Kable/Peripheral/${cbPeripheral.identifier.UUIDString}"),
+    )
 
     private val centralManager: CentralManager = CentralManager.Default
 
@@ -160,18 +162,11 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
     private val _connection = atomic<Connection?>(null)
     private val connection: Connection
-        inline get() = _connection.value ?: throw NotReadyException(toString())
+        inline get() = _connection.value?.takeIf { it.scope.isActive } ?: throw NotReadyException(toString())
 
     override val name: String? get() = cbPeripheral.name
 
-    private val connectAction = connectionScope.sharedRepeatableAction(::establishConnection)
-
-    private fun onDisconnected() {
-        logger.info { message = "Disconnected" }
-        connectAction.reset()
-        _connection.value?.close()
-        _connection.value = null
-    }
+    private val connectAction = scope.sharedRepeatableAction(::establishConnection)
 
     override suspend fun connect() {
         connectAction.await()
@@ -185,11 +180,15 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         _state.value = State.Connecting.Bluetooth
 
         centralManager.delegate.onDisconnected.onEach { identifier ->
-            if (identifier == cbPeripheral.identifier) onDisconnected()
+            if (identifier == cbPeripheral.identifier) {
+                connectAction.reset()
+                logger.info { message = "Disconnected" }
+            }
         }.launchIn(scope)
 
         try {
             _connection.value = centralManager.connectPeripheral(
+                scope,
                 this@CBPeripheralCoreBluetoothPeripheral,
                 observers.characteristicChanges,
                 logging,
@@ -208,7 +207,6 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             logger.error(e) { message = "Failed to connect" }
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)
-                _connection.value = null
             }
             throw e
         }
@@ -224,7 +222,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             withContext(NonCancellable) {
                 centralManager.cancelPeripheralConnection(cbPeripheral)
             }
-            onDisconnected()
+            logger.info { message = "Disconnected" }
         }
     }
 
