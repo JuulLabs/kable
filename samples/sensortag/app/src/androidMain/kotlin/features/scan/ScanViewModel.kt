@@ -3,7 +3,7 @@ package com.juul.sensortag.features.scan
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.juul.kable.Advertisement
+import com.juul.kable.AndroidAdvertisement
 import com.juul.sensortag.cancelChildren
 import com.juul.sensortag.childScope
 import com.juul.sensortag.features.scan.ScanStatus.Scanning
@@ -29,12 +29,12 @@ sealed class ScanStatus {
 class ScanViewModel(application: Application) : AndroidViewModel(application) {
 
     private val scanScope = viewModelScope.childScope()
-    private val found = hashMapOf<String, Advertisement>()
+    private val found = hashMapOf<String, AndroidAdvertisement>()
 
     private val _status = MutableStateFlow<ScanStatus>(Stopped)
     val status = _status.asStateFlow()
 
-    private val _advertisements = MutableStateFlow<List<Advertisement>>(emptyList())
+    private val _advertisements = MutableStateFlow<List<AndroidAdvertisement>>(emptyList())
     val advertisements = _advertisements.asStateFlow()
 
     fun start() {

@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.juul.kable.Advertisement
+import com.juul.kable.AndroidAdvertisement
 import com.juul.kable.Bluetooth
 import com.juul.kable.Bluetooth.Availability.Available
 import com.juul.kable.Bluetooth.Availability.Unavailable
@@ -123,8 +123,10 @@ class ScanActivity : ComponentActivity() {
     private fun PermissionGranted(bluetooth: Bluetooth.Availability?) {
         when (bluetooth) {
             Available -> {
-                val advertisements = viewModel.advertisements.collectAsState().value
-                AdvertisementsList(advertisements, ::onAdvertisementClicked)
+                AdvertisementsList(
+                    advertisements = viewModel.advertisements.collectAsState().value,
+                    onRowClick = ::onAdvertisementClicked
+                )
             }
             is Unavailable -> when (bluetooth.reason) {
                 LocationServicesDisabled -> LocationServicesDisabled(::showLocationSettings)
@@ -149,7 +151,7 @@ class ScanActivity : ComponentActivity() {
         }
     }
 
-    private fun onAdvertisementClicked(advertisement: Advertisement) {
+    private fun onAdvertisementClicked(advertisement: AndroidAdvertisement) {
         viewModel.stop()
         val intent = SensorActivityIntent(
             context = this@ScanActivity,
@@ -302,8 +304,8 @@ private fun Loading() {
 
 @Composable
 private fun AdvertisementsList(
-    advertisements: List<Advertisement>,
-    onRowClick: (Advertisement) -> Unit
+    advertisements: List<AndroidAdvertisement>,
+    onRowClick: (AndroidAdvertisement) -> Unit
 ) {
     LazyColumn {
         items(advertisements.size) { index ->
@@ -314,7 +316,7 @@ private fun AdvertisementsList(
 }
 
 @Composable
-private fun AdvertisementRow(advertisement: Advertisement, onClick: () -> Unit) {
+private fun AdvertisementRow(advertisement: AndroidAdvertisement, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
