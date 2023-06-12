@@ -2,6 +2,8 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCharacteristic
@@ -48,19 +50,20 @@ public class CentralManager internal constructor() {
             .firstOrNull() as? CBPeripheral
 
     internal suspend fun connectPeripheral(
+        scope: CoroutineScope,
         peripheral: CBPeripheralCoreBluetoothPeripheral,
+        characteristicChanges: MutableSharedFlow<ObservationEvent<NSData>>,
         logging: Logging,
         options: Map<Any?, *>? = null,
     ): Connection {
-        val parentCoroutineContext = peripheral.connectionScope.coroutineContext
         val cbPeripheral = peripheral.cbPeripheral
         val identifier = cbPeripheral.identifier.UUIDString
-        val delegate = PeripheralDelegate(peripheral.canSendWriteWithoutResponse, logging, identifier)
+        val delegate = PeripheralDelegate(peripheral.canSendWriteWithoutResponse, characteristicChanges, logging, identifier)
         withContext(dispatcher) {
             cbPeripheral.delegate = delegate
             cbCentralManager.connectPeripheral(cbPeripheral, options)
         }
-        return Connection(parentCoroutineContext, delegate, logging, identifier)
+        return Connection(scope, delegate, logging, identifier)
     }
 
     internal suspend fun cancelPeripheralConnection(
