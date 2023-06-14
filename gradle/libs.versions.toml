@@ -11,11 +11,13 @@ tuulbox = "6.4.1"
 androidx-core = { module = "androidx.core:core-ktx", version = "1.10.1" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.1" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu-jvm", version.ref = "atomicfu" }
+bluez-dbus = { module = "com.github.hypfvieh:bluez-dbus", version = "0.1.4" }
+dbus = { module = "com.github.hypfvieh:dbus-java-core", version = "4.3.0" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
+tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
 uuid = { module = "com.benasher44:uuid", version = "0.7.1" }
 
 [plugins]

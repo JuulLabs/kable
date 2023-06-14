@@ -11,6 +11,7 @@ plugins {
 /* ```
  *   common
  *   |-- js
+ *   |-- jvm
  *   |-- android
  *   '-- apple
  *       |-- ios
@@ -21,6 +22,7 @@ kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
+    jvm()
     android().publishAllLibraryVariants()
     js().browser()
     iosX64()
@@ -51,6 +53,13 @@ kotlin {
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
+            }
+        }
+
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.bluez.dbus)
+                implementation(libs.dbus)
             }
         }
 
