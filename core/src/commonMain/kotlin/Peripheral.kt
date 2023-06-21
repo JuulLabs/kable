@@ -3,6 +3,7 @@
 
 package com.juul.kable
 
+import com.benasher44.uuid.Uuid
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -60,6 +61,17 @@ public interface Peripheral {
      * ```
      */
     public val state: StateFlow<State>
+
+    /**
+     * Platform specific identifier for the remote peripheral.
+     *
+     * | Platform   | Type     | Notes       |
+     * |------------|----------|-------------|
+     * | Android    | [String] | MAC address |
+     * | Apple      | [Uuid]   |             |
+     * | JavaScript | [String] |             |
+     */
+    public val identifier: Identifier
 
     /**
      * The peripheral name, as provided by the underlying bluetooth system. This value is system dependent

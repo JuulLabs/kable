@@ -103,10 +103,10 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     private val logger = Logger(logging, tag = "Kable/Peripheral", identifier = bluetoothDevice.address)
 
-    internal val platformIdentifier = bluetoothDevice.address
-
     private val _state = MutableStateFlow<State>(State.Disconnected())
     override val state: StateFlow<State> = _state.asStateFlow()
+
+    override val identifier: String = bluetoothDevice.address
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
         invokeOnCompletion {
@@ -462,9 +462,6 @@ private fun checkBluetoothAdapterState(
 }
 
 public actual typealias Identifier = String
-
-public actual val Peripheral.identifier: Identifier
-    get() = (this as BluetoothDeviceAndroidPeripheral).platformIdentifier
 
 public actual fun String.toIdentifier(): Identifier {
     require(BluetoothAdapter.checkBluetoothAddress(this)) {

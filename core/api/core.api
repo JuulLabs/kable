@@ -265,6 +265,7 @@ public final class com/juul/kable/OutOfOrderGattCallbackException : java/lang/Il
 public abstract interface class com/juul/kable/Peripheral {
 	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getIdentifier ()Ljava/lang/String;
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getServices ()Ljava/util/List;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
@@ -292,7 +293,6 @@ public final class com/juul/kable/PeripheralBuilder {
 }
 
 public final class com/juul/kable/PeripheralKt {
-	public static final fun getIdentifier (Lcom/juul/kable/Peripheral;)Ljava/lang/String;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
