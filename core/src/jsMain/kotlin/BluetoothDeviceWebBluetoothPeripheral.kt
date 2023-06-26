@@ -78,10 +78,10 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
 
     private val ioLock = Mutex()
 
-    internal val platformIdentifier = bluetoothDevice.id
-
     private val _state = MutableStateFlow<State>(State.Disconnected())
     override val state: StateFlow<State> = _state.asStateFlow()
+
+    override val identifier: String = bluetoothDevice.id
 
     private var _discoveredServices: List<DiscoveredService>? = null
     private val discoveredServices: List<DiscoveredService>
