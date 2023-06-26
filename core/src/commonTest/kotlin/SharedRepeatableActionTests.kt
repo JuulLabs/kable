@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -9,6 +10,7 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.test.runTest
@@ -124,6 +126,23 @@ class SharedRepeatableActionTests {
             expected = List(10) { 1 },
             actual = results,
         )
+
+        coroutineContext.cancelChildren()
+    }
+
+    @Test
+    fun nothingLaunchedFromScope_remainsActive() = runTest {
+        lateinit var actionScope: CoroutineScope
+        val action = sharedRepeatableAction { scope ->
+            actionScope = scope
+            1
+        }
+
+        assertEquals(
+            expected = 1,
+            actual = action.await(),
+        )
+        assertTrue { actionScope.isActive }
 
         coroutineContext.cancelChildren()
     }
