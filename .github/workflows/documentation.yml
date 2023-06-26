@@ -9,11 +9,18 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
+      - uses: gradle/wrapper-validation-action@v1
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
-      - run: ./gradlew dokkaHtmlMultiModule
+
+      - name: dokkaHtmlMultiModule
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: true
+          arguments: dokkaHtmlMultiModule
+
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: build/dokkaHtmlMultiModule
