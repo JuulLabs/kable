@@ -122,9 +122,9 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val _state = MutableStateFlow<State>(State.Disconnected())
     override val state: StateFlow<State> = _state.asStateFlow()
 
-    private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
+    override val identifier: Uuid = cbPeripheral.identifier.toUuid()
 
-    internal val platformIdentifier = cbPeripheral.identifier
+    private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
 
     init {
         centralManager.delegate
