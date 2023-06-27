@@ -1,7 +1,6 @@
 [versions]
 android-compile = "33"
 android-min = "21"
-atomicfu = "0.20.2"
 coroutines = "1.7.1"
 jvm-toolchain = "11"
 kotlin = "1.8.22"
@@ -10,7 +9,6 @@ tuulbox = "6.4.1"
 [libraries]
 androidx-core = { module = "androidx.core:core-ktx", version = "1.10.1" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.1" }
-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu-jvm", version.ref = "atomicfu" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
@@ -20,7 +18,7 @@ uuid = { module = "com.benasher44:uuid", version = "0.7.1" }
 
 [plugins]
 android-library = { id = "com.android.library", version = "8.0.2" }
-atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
+atomicfu = { id = "kotlinx-atomicfu", version = "0.21.0" }
 dokka = { id = "org.jetbrains.dokka", version = "1.8.20" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "3.15.0" }
