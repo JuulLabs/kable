@@ -1,7 +1,7 @@
 [versions]
 android-compile = "33"
 android-min = "21"
-coroutines = "1.7.1"
+coroutines = "1.7.2"
 jvm-toolchain = "11"
 kotlin = "1.8.22"
 tuulbox = "6.4.1"
