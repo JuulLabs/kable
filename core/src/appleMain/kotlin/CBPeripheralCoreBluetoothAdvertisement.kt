@@ -19,8 +19,8 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
     internal val cbPeripheral: CBPeripheral,
 ) : CoreBluetoothAdvertisement {
 
-    override val identifier: NSUUID
-        get() = cbPeripheral.identifier
+    override val identifier: Uuid
+        get() = cbPeripheral.identifier.toUuid()
 
     override val name: String?
         get() = data[CBAdvertisementDataLocalNameKey] as? String
@@ -70,14 +70,14 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CoreBluetoothAdvertisement) return false
-        if (identifier.UUIDString != other.identifier.UUIDString) return false
+        if (identifier.toString() != other.identifier.toString()) return false
         return true
     }
 
     override fun hashCode(): Int = identifier.hashCode()
 
     override fun toString(): String =
-        "Advertisement(identifier=${identifier.UUIDString}, name=$name, rssi=$rssi, txPower=$txPower)"
+        "Advertisement(identifier=${identifier}, name=$name, rssi=$rssi, txPower=$txPower)"
 }
 
 internal fun NSData.toManufacturerData(): ManufacturerData? = toByteArray().toManufacturerData()
