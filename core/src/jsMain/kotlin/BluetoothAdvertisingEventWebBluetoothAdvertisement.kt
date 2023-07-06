@@ -13,7 +13,7 @@ internal class BluetoothAdvertisingEventWebBluetoothAdvertisement(
     internal val bluetoothDevice: BluetoothDevice
         get() = advertisement.device
 
-    override val identifier: String
+    override val identifier: Identifier
         get() = advertisement.device.id
 
     override val name: String?

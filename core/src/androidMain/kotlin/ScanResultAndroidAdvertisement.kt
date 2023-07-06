@@ -40,6 +40,9 @@ internal class ScanResultAndroidAdvertisement(
     override val address: String
         get() = bluetoothDevice.address
 
+    override val identifier: Identifier
+        get() = bluetoothDevice.address
+
     override val bondState: BondState
         get() = when (bluetoothDevice.bondState) {
             BOND_NONE -> BondState.None
