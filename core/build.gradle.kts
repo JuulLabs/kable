@@ -59,6 +59,10 @@ kotlin {
                 api(libs.kotlinx.coroutines.android)
                 implementation(libs.androidx.core)
                 implementation(libs.androidx.startup)
+
+                // Workaround for AtomicFU plugin not automatically adding JVM dependency for Android.
+                // https://github.com/Kotlin/kotlinx-atomicfu/issues/145
+                implementation(libs.atomicfu)
             }
         }
 
