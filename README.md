@@ -108,6 +108,10 @@ connection handling and I/O operations.
 val peripheral = scope.peripheral(advertisement)
 ```
 
+Note that if the scope is closed, the peripheral is automatically disconnected. Ensure that the lifetime of the used
+scope matches the required lifetime of the peripheral connection. See more deatils about this in the [Structured
+Concurrency](#structured-concurrency) section below.
+
 ### Configuration
 
 To configure a `peripheral`, options may be set in the builder lambda:
