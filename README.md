@@ -475,7 +475,7 @@ configuration may need to be adjusted under the following conditions:
 
 ```xml
 <uses-permission
-    android:name="android.permission.ACCESS_COURSE_LOCATION"
+    android:name="android.permission.ACCESS_COARSE_LOCATION"
     tools:node="replace"/>
 <uses-permission
     android:name="android.permission.ACCESS_FINE_LOCATION"
