@@ -29,10 +29,8 @@ jobs:
           arguments: check
 
       - name: publishToMavenLocal
-        if: github.repository_owner == 'JuulLabs'
         uses: gradle/gradle-build-action@v2
         with:
           arguments: |
-            -PsigningInMemoryKey=${{ secrets.SIGNING_KEY }}
-            -PsigningInMemoryKeyPassword=${{ secrets.SIGNING_PASSWORD }}
+            -PRELEASE_SIGNING_ENABLED=false
             publishToMavenLocal
