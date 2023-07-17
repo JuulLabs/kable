@@ -21,7 +21,7 @@ kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
-    android().publishAllLibraryVariants()
+    androidTarget().publishAllLibraryVariants()
     js().browser()
     iosX64()
     macosArm64()
