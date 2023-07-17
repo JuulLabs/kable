@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package com.juul.kable.test
 
 import com.juul.kable.toByteArray
+import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSData
 import platform.Foundation.create
 import kotlin.test.Test
