@@ -554,7 +554,7 @@ repositories {
 }
 
 kotlin {
-    android()
+    androidTarget()
     js().browser()
     macosX64()
     iosX64()
