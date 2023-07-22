@@ -541,6 +541,17 @@ configuration may need to be adjusted under the following conditions:
 </tr>
 </table>
 
+> On **Android 12** (S) and above, accessing background location is granted exclusively to system apps (with certain 
+> exceptions). To overcome this limitation [strongly assert that your app doesn't derive physical location](https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#assert-never-for-location):
+> ```xml
+> <uses-permission
+>     android:name="android.permission.BLUETOOTH_SCAN"
+>     android:usesPermissionFlags="neverForLocation"
+>     tools:targetApi="s" />
+>  ```
+> 
+> For more detailed information on accessing nearby Bluetooth devices and related permissions, refer to the official [Documentation: Access nearby Bluetooth devices](https://developer.android.com/guide/topics/connectivity/bluetooth/permissions)
+
 ### Gradle
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/core)
