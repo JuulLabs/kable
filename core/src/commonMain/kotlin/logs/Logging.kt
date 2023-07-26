@@ -1,5 +1,7 @@
 package com.juul.kable.logs
 
+import com.benasher44.uuid.Uuid
+
 internal typealias LoggingBuilder = Logging.() -> Unit
 
 public class Logging {
@@ -41,7 +43,12 @@ public class Logging {
     }
 
     public fun interface DataProcessor {
-        public fun process(data: ByteArray): String
+        public fun process(
+            data: ByteArray,
+            serviceUuid: Uuid?,
+            characteristicUuid: Uuid?,
+            descriptorUuid: Uuid?,
+        ): String
     }
 
     /**

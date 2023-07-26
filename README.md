@@ -174,7 +174,7 @@ val peripheral = scope.peripheral(advertisement) {
 
         // or...
 
-        data = DataProcessor { bytes ->
+        data = DataProcessor { bytes, _, _, _ ->
             // todo: Convert `bytes` to desired String representation, for example:
             bytes.joinToString { byte -> byte.toString() } // Show data as integer representation of bytes.
         }

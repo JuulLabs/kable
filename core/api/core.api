@@ -531,7 +531,7 @@ public final class com/juul/kable/logs/Logging {
 }
 
 public abstract interface class com/juul/kable/logs/Logging$DataProcessor {
-	public abstract fun process ([B)Ljava/lang/String;
+	public abstract fun process ([BLjava/util/UUID;Ljava/util/UUID;Ljava/util/UUID;)Ljava/lang/String;
 }
 
 public final class com/juul/kable/logs/Logging$Format : java/lang/Enum {
