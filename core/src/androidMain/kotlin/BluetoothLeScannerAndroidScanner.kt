@@ -13,7 +13,6 @@ import com.juul.kable.Filter.NamePrefix
 import com.juul.kable.Filter.Service
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
@@ -21,7 +20,6 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOn
 
 public class ScanFailedException internal constructor(
     public val errorCode: Int,
@@ -107,5 +105,5 @@ internal class BluetoothLeScannerAndroidScanner(
 
         // Perform `Filter.NamePrefix` filtering here, since it isn't supported natively.
         namePrefixFilters.any { filter -> filter.matches(advertisement.name) }
-    }.flowOn(Dispatchers.Main.immediate)
+    }
 }
