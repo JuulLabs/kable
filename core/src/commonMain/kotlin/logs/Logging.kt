@@ -1,6 +1,7 @@
 package com.juul.kable.logs
 
 import com.benasher44.uuid.Uuid
+import com.juul.kable.ObsoleteKableApi
 
 internal typealias LoggingBuilder = Logging.() -> Unit
 
@@ -42,6 +43,7 @@ public class Logging {
         Multiline,
     }
 
+    @ObsoleteKableApi // Planned to be replaced w/ I/O interceptors: https://github.com/JuulLabs/kable/issues/539
     public fun interface DataProcessor {
 
         public enum class Operation { Read, Write, Change }
@@ -67,5 +69,7 @@ public class Logging {
     public var engine: LogEngine = SystemLogEngine
     public var level: Level = Level.Warnings
     public var format: Format = Format.Multiline
+
+    @ObsoleteKableApi // Planned to be replaced w/ I/O interceptors: https://github.com/JuulLabs/kable/issues/539
     public var data: DataProcessor = Hex
 }
