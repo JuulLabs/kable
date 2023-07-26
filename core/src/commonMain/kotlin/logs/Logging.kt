@@ -43,8 +43,12 @@ public class Logging {
     }
 
     public fun interface DataProcessor {
+
+        public enum class Operation { Read, Write, Change }
+
         public fun process(
             data: ByteArray,
+            operation: Operation?,
             serviceUuid: Uuid?,
             characteristicUuid: Uuid?,
             descriptorUuid: Uuid?,

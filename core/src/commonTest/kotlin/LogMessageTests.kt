@@ -3,10 +3,10 @@ package com.juul.kable
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.logs.LogMessage
 import com.juul.kable.logs.Logging
+import com.juul.kable.logs.Logging.DataProcessor.Operation.Read
 import com.juul.kable.logs.Logging.Format.Compact
 import com.juul.kable.logs.Logging.Format.Multiline
 import com.juul.kable.logs.Logging.Level.Data
-import com.juul.kable.logs.detail
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -210,7 +210,7 @@ class LogMessageTests {
         }
         val log = LogMessage(logging, platformIdentifier = "example").apply {
             message = "Compact"
-            detail(byteArrayOf(1, 2))
+            detail(byteArrayOf(1, 2), Read)
         }
         assertEquals(
             expected = "example Compact",
@@ -226,7 +226,7 @@ class LogMessageTests {
         }
         val log = LogMessage(logging, platformIdentifier = "example").apply {
             message = "Compact"
-            detail(byteArrayOf(1, 2))
+            detail(byteArrayOf(1, 2), Read)
         }
         assertEquals(
             expected = "example Compact(data=01 02)",

@@ -15,7 +15,7 @@ public class HexBuilder internal constructor() {
 
 public fun Hex(init: HexBuilder.() -> Unit = {}): Logging.DataProcessor {
     val config = HexBuilder().apply(init)
-    return Logging.DataProcessor { data, _, _, _ ->
+    return Logging.DataProcessor { data, _, _, _, _ ->
         data.toHexString(separator = config.separator, lowerCase = config.lowerCase)
     }
 }
