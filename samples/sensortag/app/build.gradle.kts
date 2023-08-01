@@ -7,7 +7,7 @@ plugins {
 kotlin {
     jvmToolchain(11)
 
-    android()
+    androidTarget()
     js {
         browser()
         binaries.executable()
