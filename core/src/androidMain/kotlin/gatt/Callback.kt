@@ -141,7 +141,7 @@ internal class Callback(
         status: Int,
     ) {
         @Suppress("DEPRECATION")
-        onCharacteristicRead(gatt, characteristic, characteristic.value, status)
+        onCharacteristicRead(gatt, characteristic, characteristic.value ?: byteArrayOf(), status)
     }
 
     // Added in API 33.
@@ -181,7 +181,7 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic,
     ) {
         @Suppress("DEPRECATION")
-        onCharacteristicChanged(gatt, characteristic, characteristic.value)
+        onCharacteristicChanged(gatt, characteristic, characteristic.value ?: byteArrayOf())
     }
 
     // Added in API 33.
@@ -206,7 +206,7 @@ internal class Callback(
         status: Int,
     ) {
         @Suppress("DEPRECATION")
-        onDescriptorRead(gatt, descriptor, status, descriptor.value)
+        onDescriptorRead(gatt, descriptor, status, descriptor.value ?: byteArrayOf())
     }
 
     // Added in API 33.
