@@ -1,9 +1,14 @@
 name: CI
 on:
   pull_request:
+  # Trigger on merges to `main` to allow `gradle/gradle-build-action` runs to write their caches.
+  # https://github.com/gradle/gradle-build-action#using-the-caches-read-only
+  push:
+    branches:
+      - main
 
 env:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
 
 jobs:
   build:
@@ -15,22 +20,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - uses: actions/cache@v3
+      - name: assemble
+        uses: gradle/gradle-build-action@v2
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.konan
-            ~/.android/build-cache
-            ~/.android/cache
-          key: ${{ runner.os }}-build-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          arguments: assemble
 
-      - run: ./gradlew assemble
-      - run: ./gradlew check
-
-      - run: |
-          rm -f ~/.gradle/caches/modules-2/modules-2.lock
-          rm -f ~/.gradle/caches/modules-2/gc.properties
+      - name: check
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: check
