@@ -14,9 +14,12 @@ import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import platform.CoreBluetooth.CBCentralManagerOptionRestoreIdentifierKey
 import platform.Foundation.NSData
+import platform.Foundation.NSUUID
+import platform.Foundation.NSUserDefaults
 
 private const val DISPATCH_QUEUE_LABEL = "central"
-private const val CBCENTRALMANAGER_RESTORATION_ID = "kable-central-manager" // add a unique id to it
+private const val CBCENTRALMANAGER_RESTORATION_ID = "kable-central-manager"
+private const val CBCENTRALMANAGER_CONSUMER_ID_KEY = "kable-central-manager-consumer-id"
 
 public class CentralManager internal constructor() {
 
@@ -24,9 +27,26 @@ public class CentralManager internal constructor() {
         val Default: CentralManager by lazy { CentralManager() }
     }
 
+    private val userDefaults = NSUserDefaults.standardUserDefaults
+
+    // This value is needed to ensure multiple instances of Kable running on the same iOS device
+    // do not cross pollinate restored instances of CBCentralManager. The value will live for the
+    // lifetime of the consuming app.
+    private val consumerId: String
+        get() {
+            val id = userDefaults.stringForKey(CBCENTRALMANAGER_CONSUMER_ID_KEY)
+            return if (id != null) {
+                id
+            } else {
+                val id = NSUUID().UUIDString()
+                userDefaults.setObject(id, CBCENTRALMANAGER_CONSUMER_ID_KEY)
+                id
+            }
+        }
+
     private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
     internal val delegate = CentralManagerDelegate()
-    private val cbOptions = mutableMapOf<Any?, Any>(CBCentralManagerOptionRestoreIdentifierKey to CBCENTRALMANAGER_RESTORATION_ID).toMap()
+    private val cbOptions = mutableMapOf<Any?, Any>(CBCentralManagerOptionRestoreIdentifierKey to CBCENTRALMANAGER_RESTORATION_ID + consumerId).toMap()
     private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue, cbOptions)
 
     internal suspend fun scanForPeripheralsWithServices(
