@@ -6,13 +6,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCentralManager
+import platform.CoreBluetooth.CBCentralManagerOptionRestoreIdentifierKey
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
-import platform.CoreBluetooth.CBCentralManagerOptionRestoreIdentifierKey
 import platform.Foundation.NSData
 import platform.Foundation.NSUUID
 import platform.Foundation.NSUserDefaults
