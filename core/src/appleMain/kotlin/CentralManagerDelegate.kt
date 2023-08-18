@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCentralManagerDelegateProtocol
+import platform.CoreBluetooth.CBCentralManagerRestoredStatePeripheralsKey
 import platform.CoreBluetooth.CBManagerState
 import platform.CoreBluetooth.CBManagerStateUnknown
 import platform.CoreBluetooth.CBPeripheral
@@ -73,6 +74,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         central: CBCentralManager,
         didConnectPeripheral: CBPeripheral,
     ) {
+        println("Batman: Connected!")
         _connectionState.emitBlocking(DidConnect(didConnectPeripheral.identifier))
     }
 
@@ -82,6 +84,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didDisconnectPeripheral: CBPeripheral,
         error: NSError?,
     ) {
+        println("Batman: Disconnected!")
         _onDisconnected.emitBlocking(didDisconnectPeripheral.identifier) // Used to notify `Peripheral` of disconnect.
         _connectionState.emitBlocking(DidDisconnect(didDisconnectPeripheral.identifier, error))
     }
@@ -92,6 +95,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didFailToConnectPeripheral: CBPeripheral,
         error: NSError?,
     ) {
+        println("Batman: Failed to connect!")
         _connectionState.emitBlocking(DidFailToConnect(didFailToConnectPeripheral.identifier, error))
     }
 
@@ -121,6 +125,10 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     }
 
     // todo: func centralManager(CBCentralManager, willRestoreState: [String : Any])
+    override fun centralManager(central: CBCentralManager, willRestoreState: Map<Any?, *>) {
+//        val peripherals = willRestoreState[CBCentralManagerRestoredStatePeripheralsKey]
+        // NO OP
+    }
 
     /* Monitoring the Central Manager’s Authorization */
 

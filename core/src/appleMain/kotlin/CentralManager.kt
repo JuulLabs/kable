@@ -12,9 +12,11 @@ import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
+import platform.CoreBluetooth.CBCentralManagerOptionRestoreIdentifierKey
 import platform.Foundation.NSData
 
 private const val DISPATCH_QUEUE_LABEL = "central"
+private const val CBCENTRALMANAGER_RESTORATION_ID = "kable-central-manager" // add a unique id to it
 
 public class CentralManager internal constructor() {
 
@@ -24,7 +26,8 @@ public class CentralManager internal constructor() {
 
     private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
     internal val delegate = CentralManagerDelegate()
-    private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue)
+    private val cbOptions = mutableMapOf<Any?, Any>(CBCentralManagerOptionRestoreIdentifierKey to CBCENTRALMANAGER_RESTORATION_ID).toMap()
+    private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue, cbOptions)
 
     internal suspend fun scanForPeripheralsWithServices(
         services: List<Uuid>?,
