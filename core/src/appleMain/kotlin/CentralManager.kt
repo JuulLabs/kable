@@ -33,16 +33,10 @@ public class CentralManager internal constructor() {
     // do not cross pollinate restored instances of CBCentralManager. The value will live for the
     // lifetime of the consuming app.
     private val consumerId: String
-        get() {
-            val id = userDefaults.stringForKey(CBCENTRALMANAGER_CONSUMER_ID_KEY)
-            return if (id != null) {
-                id
-            } else {
-                val id = NSUUID().UUIDString()
-                userDefaults.setObject(id, CBCENTRALMANAGER_CONSUMER_ID_KEY)
-                id
+        get() = userDefaults.stringForKey(CBCENTRALMANAGER_CONSUMER_ID_KEY)
+            ?: NSUUID().UUIDString().also {
+                userDefaults.setObject(it, CBCENTRALMANAGER_CONSUMER_ID_KEY)
             }
-        }
 
     private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
     internal val delegate = CentralManagerDelegate()
