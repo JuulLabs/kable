@@ -120,7 +120,9 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         _state.value = central.state
     }
 
-    // todo: func centralManager(CBCentralManager, willRestoreState: [String : Any])
+    override fun centralManager(central: CBCentralManager, willRestoreState: Map<Any?, *>) {
+        // NO OP
+    }
 
     /* Monitoring the Central Manager’s Authorization */
 
