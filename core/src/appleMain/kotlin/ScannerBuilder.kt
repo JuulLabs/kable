@@ -5,7 +5,6 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 import platform.CoreBluetooth.CBCentralManagerScanOptionAllowDuplicatesKey
 import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
-import platform.Foundation.NSArray
 
 public actual class ScannerBuilder {
 
