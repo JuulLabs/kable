@@ -40,8 +40,11 @@ public class CentralManager internal constructor() {
 
     private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
     internal val delegate = CentralManagerDelegate()
-    private val cbOptions = mutableMapOf<Any?, Any>(CBCentralManagerOptionRestoreIdentifierKey to CBCENTRALMANAGER_RESTORATION_ID + consumerId).toMap()
-    private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue, cbOptions)
+    private val cbCentralManager = CBCentralManager(
+        delegate,
+        dispatcher.dispatchQueue,
+        options = mapOf(CBCentralManagerOptionRestoreIdentifierKey to "$CBCENTRALMANAGER_RESTORATION_ID-$consumerId"),
+    )
 
     internal suspend fun scanForPeripheralsWithServices(
         services: List<Uuid>?,
