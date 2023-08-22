@@ -163,7 +163,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
-            suspendUntil<State.Connecting.Services>()
+            suspendUntilOrThrow<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@CBPeripheralCoreBluetoothPeripheral))
 
