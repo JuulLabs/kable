@@ -75,6 +75,8 @@ internal class BluetoothLeScannerAndroidScanner(
             }.build()
         }
 
+        checkBluetoothAdapterState(BluetoothAdapter.STATE_ON)
+
         logger.info {
             message = if (scanFilters.isEmpty()) {
                 "Starting scan without filters"
