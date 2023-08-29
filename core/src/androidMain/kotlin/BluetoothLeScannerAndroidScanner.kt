@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -75,7 +76,7 @@ internal class BluetoothLeScannerAndroidScanner(
             }.build()
         }
 
-        checkBluetoothAdapterState(BluetoothAdapter.STATE_ON)
+        checkBluetoothAdapterState(STATE_ON)
 
         logger.info {
             message = if (scanFilters.isEmpty()) {

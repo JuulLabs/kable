@@ -22,7 +22,6 @@ internal fun getBluetoothAdapterOrNull(): BluetoothAdapter? =
 internal fun getBluetoothAdapter(): BluetoothAdapter =
     getBluetoothAdapterOrNull() ?: error("Bluetooth not supported")
 
-
 /**
  * Explicitly check the adapter state before connecting in order to respect system settings.
  * Android doesn't actually turn bluetooth off when the setting is disabled, so without this
