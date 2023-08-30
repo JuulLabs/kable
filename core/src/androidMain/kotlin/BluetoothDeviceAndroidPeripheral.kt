@@ -2,8 +2,6 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothAdapter.STATE_OFF
 import android.bluetooth.BluetoothAdapter.STATE_ON
-import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
-import android.bluetooth.BluetoothAdapter.STATE_TURNING_ON
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC
 import android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL
@@ -402,29 +400,6 @@ private val PlatformCharacteristic.supportsNotify: Boolean
 
 private val PlatformCharacteristic.supportsIndicate: Boolean
     get() = properties and PROPERTY_INDICATE != 0
-
-/**
- * Explicitly check the adapter state before connecting in order to respect system settings.
- * Android doesn't actually turn bluetooth off when the setting is disabled, so without this
- * check we're able to reconnect the device illegally.
- */
-private fun checkBluetoothAdapterState(
-    expected: Int,
-) {
-    fun nameFor(value: Int) = when (value) {
-        STATE_OFF -> "Off"
-        STATE_ON -> "On"
-        STATE_TURNING_OFF -> "TurningOff"
-        STATE_TURNING_ON -> "TurningOn"
-        else -> "Unknown"
-    }
-    val actual = getBluetoothAdapter().state
-    if (expected != actual) {
-        val actualName = nameFor(actual)
-        val expectedName = nameFor(expected)
-        throw BluetoothDisabledException("Bluetooth adapter state is $actualName ($actual), but $expectedName ($expected) was required.")
-    }
-}
 
 private fun typeFrom(value: Int): Type = when (value) {
     DEVICE_TYPE_UNKNOWN -> Type.Unknown
