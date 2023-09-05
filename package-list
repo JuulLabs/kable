@@ -1,5 +1,6 @@
 $dokka.format:html-v1
 $dokka.linkExtension:html
+$dokka.location:com.juul.kable/Reason/entries/#/PointingToDeclaration/core/com.juul.kable/-reason/[js]entries.html
 $dokka.location:com.juul.kable/Reason/valueOf/#kotlin.String/PointingToDeclaration/core/com.juul.kable/-reason/[js]value-of.html
 $dokka.location:com.juul.kable/Reason/values/#/PointingToDeclaration/core/com.juul.kable/-reason/[js]values.html
 module:core
