@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -82,6 +83,7 @@ internal class BluetoothLeScannerAndroidScanner(
                 "Starting scan with ${scanFilters.size} filter(s)"
             }
         }
+        checkBluetoothAdapterState(STATE_ON)
         scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {

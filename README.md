@@ -456,6 +456,19 @@ scope.cancel() // All `peripherals` will implicitly disconnect and be disposed.
 _[`Peripheral.disconnect`] is the preferred method of disconnecting peripherals, but disposal via Coroutine scope
 cancellation is provided to prevent connection leaks._
 
+## Background Support
+
+To enable [background support] on Apple, configure the `CentralManager` _before_ using most of Kable's functionality:
+
+```kotlin
+CentralManager.configure {
+    stateRestoration = true // `false` by default.
+}
+```
+
+The `CentralManager` is initialized on first use (e.g. scanning or creating a peripheral), attempts to `configure` it
+after initialization will result in an `IllegalStateException` being thrown.
+
 ## Setup
 
 ### Android Permissions
@@ -638,6 +651,7 @@ limitations under the License.
 [`writeWithoutResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/write-without-response.html
 [`write`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/write.html
 [`observationExceptionHandler`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral-builder/observation-exception-handler.html
+[background support]: https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html
 [badge-android]: http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat
 [badge-ios]: http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat
 [badge-js]: http://img.shields.io/badge/platform-js-F8DB5D.svg?style=flat
