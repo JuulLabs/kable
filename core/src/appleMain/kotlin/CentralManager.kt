@@ -21,15 +21,24 @@ public class CentralManager internal constructor(
     options: Map<Any?, *>?,
 ) {
 
+    public data class Configuration(
+        val stateRestoration: Boolean,
+    ) {
+
+        public class Builder internal constructor() {
+            public var stateRestoration: Boolean = false
+        }
+    }
+
     public companion object {
 
-        private val _Default = atomic<CentralManager?>(null)
-        internal val Default: CentralManager
-            get() = _Default.value ?: error("CentralManager has not been initialized.")
+        private val configuration = atomic<Configuration?>(null)
+        private val lazyDefault = lazy { CentralManager(configuration.value?.toOptions()) }
+        internal val Default by lazyDefault
 
-        public fun initialize(builderAction: CentralBuilder.() -> Unit) {
-            val newValue = CentralBuilder().apply(builderAction).build()
-            if (!_Default.compareAndSet(null, newValue)) error("CentralManager already initialized.")
+        public fun configure(builderAction: Configuration.Builder.() -> Unit) {
+            check(!lazyDefault.isInitialized()) { "Cannot configure CentralManager, it has already initialized." }
+            configuration.value = Configuration.Builder().apply(builderAction).build()
         }
     }
 
