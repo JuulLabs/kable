@@ -26,6 +26,9 @@ public class CentralManager internal constructor(
     ) {
 
         public class Builder internal constructor() {
+            /** Enables support for
+             * [Core Bluetooth Background Processing for iOS Apps](https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html)
+             * by enabling [CentralManager] state preservation and restoration. */
             public var stateRestoration: Boolean = false
         }
     }
