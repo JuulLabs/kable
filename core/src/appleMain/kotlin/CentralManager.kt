@@ -2,11 +2,11 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCentralManager
-import platform.CoreBluetooth.CBCentralManagerOptionRestoreIdentifierKey
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBDescriptor
@@ -14,37 +14,28 @@ import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSData
-import platform.Foundation.NSUUID
-import platform.Foundation.NSUserDefaults
 
 private const val DISPATCH_QUEUE_LABEL = "central"
-private const val CBCENTRALMANAGER_RESTORATION_ID = "kable-central-manager"
-private const val CBCENTRALMANAGER_CONSUMER_ID_KEY = "kable-central-manager-consumer-id"
 
-public class CentralManager internal constructor() {
+public actual class CentralManager actual constructor(
+    options: Map<Any?, *>?,
+) {
 
-    internal companion object {
-        val Default: CentralManager by lazy { CentralManager() }
+    public actual companion object {
+
+        private val _Default = atomic<CentralManager?>(null)
+        internal val Default: CentralManager
+            get() = _Default.value ?: error("CentralManager has not been initialized.")
+
+        public actual fun initialize(builderAction: CentralBuilder.() -> Unit) {
+            val newValue = CentralBuilder().apply(builderAction).build()
+            if (!_Default.compareAndSet(null, newValue)) error("CentralManager already initialized.")
+        }
     }
-
-    private val userDefaults = NSUserDefaults.standardUserDefaults
-
-    // This value is needed to ensure multiple instances of Kable running on the same iOS device
-    // do not cross pollinate restored instances of CBCentralManager. The value will live for the
-    // lifetime of the consuming app.
-    private val consumerId: String
-        get() = userDefaults.stringForKey(CBCENTRALMANAGER_CONSUMER_ID_KEY)
-            ?: NSUUID().UUIDString().also {
-                userDefaults.setObject(it, CBCENTRALMANAGER_CONSUMER_ID_KEY)
-            }
 
     private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
     internal val delegate = CentralManagerDelegate()
-    private val cbCentralManager = CBCentralManager(
-        delegate,
-        dispatcher.dispatchQueue,
-        options = mapOf(CBCentralManagerOptionRestoreIdentifierKey to "$CBCENTRALMANAGER_RESTORATION_ID-$consumerId"),
-    )
+    private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue, options)
 
     internal suspend fun scanForPeripheralsWithServices(
         services: List<Uuid>?,
