@@ -92,21 +92,6 @@ public final class com/juul/kable/BroadcastReceiverFlowKt {
 	public static final fun broadcastReceiverFlow (Landroid/content/IntentFilter;)Lkotlinx/coroutines/flow/Flow;
 }
 
-public final class com/juul/kable/CentralBuilder {
-	public final fun getStateRestoration ()Z
-	public final fun setStateRestoration (Z)V
-}
-
-public final class com/juul/kable/CentralManager {
-	public static final field Companion Lcom/juul/kable/CentralManager$Companion;
-	public fun <init> (Ljava/util/Map;)V
-}
-
-public final class com/juul/kable/CentralManager$Companion {
-	public final fun initialize (Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun initialize$default (Lcom/juul/kable/CentralManager$Companion;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-}
-
 public abstract interface class com/juul/kable/Characteristic {
 	public abstract fun getCharacteristicUuid ()Ljava/util/UUID;
 	public abstract fun getServiceUuid ()Ljava/util/UUID;

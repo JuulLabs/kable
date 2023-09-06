@@ -17,17 +17,17 @@ import platform.Foundation.NSData
 
 private const val DISPATCH_QUEUE_LABEL = "central"
 
-public actual class CentralManager actual constructor(
+public class CentralManager internal constructor(
     options: Map<Any?, *>?,
 ) {
 
-    public actual companion object {
+    public companion object {
 
         private val _Default = atomic<CentralManager?>(null)
         internal val Default: CentralManager
             get() = _Default.value ?: error("CentralManager has not been initialized.")
 
-        public actual fun initialize(builderAction: CentralBuilder.() -> Unit) {
+        public fun initialize(builderAction: CentralBuilder.() -> Unit) {
             val newValue = CentralBuilder().apply(builderAction).build()
             if (!_Default.compareAndSet(null, newValue)) error("CentralManager already initialized.")
         }

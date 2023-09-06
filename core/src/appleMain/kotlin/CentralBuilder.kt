@@ -16,11 +16,11 @@ private val consumerId: String
             NSUserDefaults.standardUserDefaults.setObject(it, CBCENTRALMANAGER_CONSUMER_ID_KEY)
         }
 
-public actual class CentralBuilder internal actual constructor() {
+public class CentralBuilder internal constructor() {
 
-    public actual var stateRestoration: Boolean = false
+    public var stateRestoration: Boolean = false
 
-    internal actual fun build(): CentralManager {
+    internal fun build(): CentralManager {
         val options: Map<Any?, *>? = if (stateRestoration) {
             mapOf(CBCentralManagerOptionRestoreIdentifierKey to "$CBCENTRALMANAGER_RESTORATION_ID-$consumerId")
         } else {
