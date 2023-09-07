@@ -92,6 +92,14 @@ public actual class PeripheralBuilder internal actual constructor() {
         observationExceptionHandler = handler
     }
 
+    /**
+     * Whether to directly connect to the remote device (`false` — connection attempts timeout after
+     * ~30 seconds) or to automatically connect as soon as the remote device becomes available
+     * (`true` — [connection][Peripheral.connect] attempts will wait indefinitely unless wrapped in
+     * a `withTimeout`).
+     */
+    public var autoConnect: Boolean = true
+
     /** Preferred transport for GATT connections to remote dual-mode devices. */
     public var transport: Transport = Transport.Le
 

@@ -54,6 +54,7 @@ private const val DISCOVER_SERVICES_RETRIES = 5
 internal class BluetoothDeviceAndroidPeripheral(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
+    private val autoConnect: Boolean,
     private val transport: Transport,
     private val phy: Phy,
     observationExceptionHandler: ObservationExceptionHandler,
@@ -121,6 +122,7 @@ internal class BluetoothDeviceAndroidPeripheral(
             _connection = bluetoothDevice.connect(
                 scope,
                 applicationContext,
+                autoConnect,
                 transport,
                 phy,
                 _state,

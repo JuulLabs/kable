@@ -67,6 +67,7 @@ internal fun BluetoothDevice.threading(): Threading =
 internal fun BluetoothDevice.connect(
     scope: CoroutineScope,
     context: Context,
+    autoConnect: Boolean,
     transport: Transport,
     phy: Phy,
     state: MutableStateFlow<State>,
@@ -80,10 +81,10 @@ internal fun BluetoothDevice.connect(
     val bluetoothGatt = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
             val handler = (threading as Threading.Handler).handler
-            connectGatt(context, false, callback, transport.intValue, phy.intValue, handler)
+            connectGatt(context, autoConnect, callback, transport.intValue, phy.intValue, handler)
         }
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> connectGatt(context, false, callback, transport.intValue)
-        else -> connectGatt(context, false, callback)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> connectGatt(context, autoConnect, callback, transport.intValue)
+        else -> connectGatt(context, autoConnect, callback)
     } ?: return null
 
     return Connection(scope, bluetoothGatt, threading.dispatcher, callback, logging)

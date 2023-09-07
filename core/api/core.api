@@ -287,11 +287,13 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 }
 
 public final class com/juul/kable/PeripheralBuilder {
+	public final fun getAutoConnect ()Z
 	public final fun getPhy ()Lcom/juul/kable/Phy;
 	public final fun getTransport ()Lcom/juul/kable/Transport;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun observationExceptionHandler (Lkotlin/jvm/functions/Function3;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
+	public final fun setAutoConnect (Z)V
 	public final fun setPhy (Lcom/juul/kable/Phy;)V
 	public final fun setTransport (Lcom/juul/kable/Transport;)V
 }
