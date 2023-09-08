@@ -18,7 +18,7 @@ tuulbox = "6.4.1"
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.7.2" }
 compose-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "compose-compiler" }
-compose-material = { module = "androidx.compose.material:material", version = "1.4.3" }
+compose-material = { module = "androidx.compose.material:material", version = "1.5.1" }
 compose-tooling = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-ui = { module = "androidx.compose.ui:ui", version = "compose" }
 compose-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
