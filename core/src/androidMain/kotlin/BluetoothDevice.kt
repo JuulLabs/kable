@@ -75,10 +75,6 @@ internal fun BluetoothDevice.connect(
     logging: Logging,
     threading: Threading,
 ): Connection? {
-    // Explicitly set Connecting state so when Peripheral is suspending until Connected, it doesn't incorrectly see
-    // Disconnected before the connection request has kicked off the Connecting state (via Callback).
-    state.value = State.Connecting.Bluetooth
-
     val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
 
     val bluetoothGatt = when {

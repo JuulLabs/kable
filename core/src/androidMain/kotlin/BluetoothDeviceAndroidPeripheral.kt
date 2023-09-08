@@ -17,6 +17,7 @@ import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.AndroidPeripheral.Type
+import com.juul.kable.State.Disconnected
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -61,7 +63,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     private val logger = Logger(logging, tag = "Kable/Peripheral", identifier = bluetoothDevice.address)
 
-    private val _state = MutableStateFlow<State>(State.Disconnected())
+    private val _state = MutableStateFlow<State>(Disconnected())
     override val state: StateFlow<State> = _state.asStateFlow()
 
     override val identifier: String = bluetoothDevice.address
@@ -109,6 +111,11 @@ internal class BluetoothDeviceAndroidPeripheral(
     private suspend fun establishConnection(scope: CoroutineScope) {
         checkBluetoothAdapterState(expected = STATE_ON)
         logger.info { message = "Connecting" }
+        _state.value = State.Connecting.Bluetooth
+
+        state.filterIsInstance<Disconnected>()
+            .onEach { connectAction.reset() }
+            .launchIn(scope)
 
         try {
             _connection = bluetoothDevice.connect(
@@ -162,7 +169,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     private fun setDisconnected() {
         // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
-        _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
+        _state.update { previous -> previous as? Disconnected ?: Disconnected() }
     }
 
     override fun requestConnectionPriority(priority: Priority): Boolean {
