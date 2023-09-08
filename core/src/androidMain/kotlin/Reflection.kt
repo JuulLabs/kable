@@ -45,15 +45,19 @@ private fun BluetoothGatt(
     iBluetoothGatt: Any,
     bluetoothDevice: BluetoothDevice,
     transport: Int,
-): BluetoothGatt = BluetoothGatt::class.java.declaredConstructors[0]
-    .apply { isAccessible = true }
-    .run {
-        when (val parameters = parameterTypes.size) {
-            3 -> newInstance(context, iBluetoothGatt, bluetoothDevice)
-            4 -> newInstance(context, iBluetoothGatt, bluetoothDevice, transport)
-            else -> error("Unsupported BluetoothGatt constructor with $parameters parameters")
-        } as BluetoothGatt
-    }
+): BluetoothGatt {
+    val constructors = BluetoothGatt::class.java.declaredConstructors
+
+    val withTransport = constructors.firstOrNull { it.parameterTypes.size == 4 }
+        ?.apply { isAccessible }
+        ?.run { newInstance(context, iBluetoothGatt, bluetoothDevice, transport) as BluetoothGatt }
+    if (withTransport != null) return withTransport
+
+    return constructors.firstOrNull { it.parameterTypes.size == 3 }
+        ?.apply { isAccessible = true }
+        ?.run { newInstance(context, iBluetoothGatt, bluetoothDevice) as BluetoothGatt }
+        ?: error("Unsupported BluetoothGatt constructor.")
+}
 
 private fun BluetoothGatt.setAutoConnect(value: Boolean) {
     javaClass.getDeclaredField("mAutoConnect").apply {
