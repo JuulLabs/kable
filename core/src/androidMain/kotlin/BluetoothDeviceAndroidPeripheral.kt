@@ -17,6 +17,7 @@ import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.AndroidPeripheral.Type
+import com.juul.kable.State.Disconnected
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
@@ -29,19 +30,15 @@ import com.juul.kable.gatt.Response.OnServicesDiscovered
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.detail
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart.LAZY
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -66,14 +63,14 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     private val logger = Logger(logging, tag = "Kable/Peripheral", identifier = bluetoothDevice.address)
 
-    private val _state = MutableStateFlow<State>(State.Disconnected())
+    private val _state = MutableStateFlow<State>(Disconnected())
     override val state: StateFlow<State> = _state.asStateFlow()
 
     override val identifier: String = bluetoothDevice.address
 
     private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
         invokeOnCompletion {
-            closeConnection()
+            close()
             threading.close()
         }
     }
@@ -82,7 +79,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     init {
         bluetoothState
             .filter { state -> state == STATE_OFF }
-            .onEach { closeConnection() }
+            .onEach { disconnect() }
             .launchIn(scope)
     }
 
@@ -107,52 +104,47 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val connection: Connection
         inline get() = _connection ?: throw NotReadyException(toString())
 
-    private val connectJob = atomic<Deferred<Unit>?>(null)
-
     override val name: String? get() = bluetoothDevice.name
 
-    private fun establishConnection(): Connection {
-        logger.info { message = "Connecting" }
-        return bluetoothDevice.connect(
-            scope.coroutineContext,
-            applicationContext,
-            transport,
-            phy,
-            _state,
-            _mtu,
-            observers.characteristicChanges,
-            logging,
-            threading,
-            invokeOnClose = { connectJob.value = null },
-        ) ?: throw ConnectionRejectedException()
-    }
+    private val connectAction = scope.sharedRepeatableAction(::establishConnection)
 
-    /** Creates a connect [Job] that completes when connection is established, or failure occurs. */
-    private fun connectAsync() = scope.async(start = LAZY) {
+    private suspend fun establishConnection(scope: CoroutineScope) {
+        checkBluetoothAdapterState(expected = STATE_ON)
+        logger.info { message = "Connecting" }
+        _state.value = State.Connecting.Bluetooth
+
+        state.filterIsInstance<Disconnected>()
+            .onEach { connectAction.reset() }
+            .launchIn(scope)
+
         try {
-            _connection = establishConnection()
+            _connection = bluetoothDevice.connect(
+                scope,
+                applicationContext,
+                transport,
+                phy,
+                _state,
+                _mtu,
+                observers.characteristicChanges,
+                logging,
+                threading,
+            ) ?: throw ConnectionRejectedException()
+
             suspendUntilOrThrow<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@BluetoothDeviceAndroidPeripheral))
+
             _state.value = State.Connecting.Observes
             logger.verbose { message = "Configuring characteristic observations" }
             observers.onConnected()
-        } catch (t: Throwable) {
-            closeConnection()
-            logger.error(t) { message = "Failed to connect" }
-            throw t
+        } catch (e: Exception) {
+            setDisconnected()
+            logger.error(e) { message = "Failed to connect" }
+            throw e
         }
 
         logger.info { message = "Connected" }
         _state.value = State.Connected
-    }
-
-    private fun closeConnection() {
-        _connection?.close()
-        _connection = null
-
-        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
-        _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
 
     override val type: Type
@@ -161,19 +153,23 @@ internal class BluetoothDeviceAndroidPeripheral(
     override val address: String = bluetoothDevice.address
 
     override suspend fun connect() {
-        checkBluetoothAdapterState(expected = STATE_ON)
-        connectJob.updateAndGet { it ?: connectAsync() }!!.await()
+        connectAction.await()
     }
 
     override suspend fun disconnect() {
-        try {
-            _connection?.apply {
-                bluetoothGatt.disconnect()
-                suspendUntil<State.Disconnected>()
-            }
-        } finally {
-            closeConnection()
-        }
+        connectAction.resetAndJoin()
+        setDisconnected()
+        logger.info { message = "Disconnected" }
+    }
+
+    private fun close() {
+        connectAction.reset()
+        setDisconnected()
+    }
+
+    private fun setDisconnected() {
+        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
+        _state.update { previous -> previous as? Disconnected ?: Disconnected() }
     }
 
     override fun requestConnectionPriority(priority: Priority): Boolean {
