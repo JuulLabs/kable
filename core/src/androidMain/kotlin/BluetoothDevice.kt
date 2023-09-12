@@ -15,12 +15,12 @@ import android.os.HandlerThread
 import com.juul.kable.gatt.Callback
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.newSingleThreadContext
-import kotlin.coroutines.CoroutineContext
 
 internal sealed class Threading {
 
@@ -65,7 +65,7 @@ internal fun BluetoothDevice.threading(): Threading =
  * @param phy is only used on API level >= 26.
  */
 internal fun BluetoothDevice.connect(
-    parentCoroutineContext: CoroutineContext,
+    scope: CoroutineScope,
     context: Context,
     transport: Transport,
     phy: Phy,
@@ -74,12 +74,7 @@ internal fun BluetoothDevice.connect(
     onCharacteristicChanged: MutableSharedFlow<ObservationEvent<ByteArray>>,
     logging: Logging,
     threading: Threading,
-    invokeOnClose: () -> Unit,
 ): Connection? {
-    // Explicitly set Connecting state so when Peripheral is suspending until Connected, it doesn't incorrectly see
-    // Disconnected before the connection request has kicked off the Connecting state (via Callback).
-    state.value = State.Connecting.Bluetooth
-
     val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
 
     val bluetoothGatt = when {
@@ -91,7 +86,7 @@ internal fun BluetoothDevice.connect(
         else -> connectGatt(context, false, callback)
     } ?: return null
 
-    return Connection(parentCoroutineContext, bluetoothGatt, threading.dispatcher, callback, logging, invokeOnClose)
+    return Connection(scope, bluetoothGatt, threading.dispatcher, callback, logging)
 }
 
 private val Transport.intValue: Int

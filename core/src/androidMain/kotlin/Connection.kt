@@ -8,15 +8,14 @@ import com.juul.kable.gatt.Response
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
 
 public class OutOfOrderGattCallbackException internal constructor(
     message: String,
@@ -25,19 +24,19 @@ public class OutOfOrderGattCallbackException internal constructor(
 private val GattSuccess = GattStatus(GATT_SUCCESS)
 
 internal class Connection(
-    parentCoroutineContext: CoroutineContext,
+    scope: CoroutineScope,
     internal val bluetoothGatt: BluetoothGatt,
     internal val dispatcher: CoroutineDispatcher,
     private val callback: Callback,
     logging: Logging,
-    private val invokeOnClose: () -> Unit,
 ) {
 
-    init {
-        callback.invokeOnDisconnected(::close)
+    private val job = Job(scope.coroutineContext[Job]).apply {
+        invokeOnCompletion {
+            bluetoothGatt.close()
+        }
     }
-
-    private val scope = CoroutineScope(parentCoroutineContext + Job(parentCoroutineContext[Job]))
+    private val scope = CoroutineScope(scope.coroutineContext + job + CoroutineName("Kable/Connection/${bluetoothGatt.device.address}"))
 
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = bluetoothGatt.device.address)
 
@@ -122,11 +121,5 @@ internal class Connection(
 
         if (response.status != GattSuccess) throw GattStatusException(response.toString())
         response.mtu
-    }
-
-    fun close() {
-        scope.cancel()
-        bluetoothGatt.close()
-        invokeOnClose.invoke()
     }
 }
