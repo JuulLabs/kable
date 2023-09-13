@@ -8,7 +8,7 @@ kotlin = "1.9.10"
 tuulbox = "6.4.1"
 
 [libraries]
-androidx-core = { module = "androidx.core:core-ktx", version = "1.10.1" }
+androidx-core = { module = "androidx.core:core-ktx", version = "1.12.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.1" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
