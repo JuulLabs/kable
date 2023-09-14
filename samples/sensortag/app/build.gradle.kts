@@ -89,6 +89,10 @@ android {
     lint {
         abortOnError = false
     }
+
+    packaging {
+        resources.excludes.add("/META-INF/versions/*/previous-compilation-data.bin")
+    }
 }
 
 dependencies {
