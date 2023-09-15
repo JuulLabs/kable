@@ -95,10 +95,10 @@ public actual class PeripheralBuilder internal actual constructor() {
     internal var autoConnectPredicate: () -> Boolean = { false }
 
     /**
-     * Whether to directly connect to the remote device ([predicate] returns `false` — connection
-     * attempts timeout after ~30 seconds) or to automatically connect as soon as the remote device
-     * becomes available ([predicate] returns `true` — [connection][Peripheral.connect] attempts
-     * will wait indefinitely unless wrapped in a `withTimeout`).
+     * Whether to automatically connect as soon as the remote device becomes available ([predicate]
+     * returns `true` — [connection][Peripheral.connect] attempts will wait indefinitely unless
+     * wrapped in a `withTimeout`), or to directly connect to the remote device ([predicate] returns
+     * `false` — connection attempts timeout after ~30 seconds).
      *
      * [predicate] is called once per connection attempt, not per call to
      * [connect][Peripheral.connect].
