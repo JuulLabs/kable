@@ -2,6 +2,7 @@ package com.juul.kable
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
@@ -25,45 +25,43 @@ class SharedRepeatableActionTests {
 
     @Test
     fun exceptionThrownFromAction_cancelsCoroutinesLaunchedFromScope() = runTest {
-        supervisorScope {
-            lateinit var innerJob: Job
-            val started = MutableStateFlow(false)
-            val asserted = MutableStateFlow(false)
+        lateinit var innerJob: Job
+        val started = MutableStateFlow(false)
+        val asserted = MutableStateFlow(false)
 
-            val action = sharedRepeatableAction { scope ->
-                innerJob = scope.launch(start = UNDISPATCHED) {
-                    awaitCancellation()
-                }
-                started.value = true
-                asserted.first { it }
-                throw IllegalStateException()
+        val action = sharedRepeatableAction { scope ->
+            innerJob = scope.launch(start = UNDISPATCHED) {
+                awaitCancellation()
             }
-
-            val deferred = async { action.await() }
-            started.first { it }
-            assertFalse { innerJob.isCompleted }
-            asserted.value = true
-
-            assertFailsWith<IllegalStateException> {
-                deferred.await()
-            }
-            assertTrue { innerJob.isCompleted }
+            started.value = true
+            asserted.first { it }
+            throw IllegalStateException("ouch")
         }
+
+        // GlobalScope used to prevent propagation of failure to the parent runTest scope.
+        val deferred = GlobalScope.async { action.await() }
+
+        started.first { it }
+        assertFalse { innerJob.isCompleted }
+        asserted.value = true
+
+        assertFailsWith<IllegalStateException> {
+            deferred.await()
+        }
+        assertTrue { innerJob.isCompleted }
     }
 
     @Test
     fun exceptionThrownFromCoroutineLaunchedFromScope_cancelsAction() = runTest {
-        supervisorScope {
-            val action = sharedRepeatableAction { scope ->
-                scope.launch {
-                    throw IllegalStateException()
-                }
-                awaitCancellation()
+        val action = sharedRepeatableAction { scope ->
+            scope.launch {
+                throw IllegalStateException()
             }
+            awaitCancellation()
+        }
 
-            assertFailsWith<CancellationException> {
-                action.await()
-            }
+        assertFailsWith<CancellationException> {
+            action.await()
         }
     }
 
