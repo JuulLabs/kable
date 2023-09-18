@@ -45,8 +45,8 @@ internal class SharedRepeatableAction<T>(
 
     suspend fun await() = getOrAsync().await()
 
+    @Suppress("ktlint:standard:indent")
     internal fun getOrAsync(): Deferred<T> = guard.withLock {
-        // ktlint-disable indent
         (
             state?.takeUnless { it.isCancelled } ?: run {
                 val rootJob = Job(coroutineContext.job)
@@ -59,7 +59,6 @@ internal class SharedRepeatableAction<T>(
                 State(rootJob, actionJob)
             }.also { state = it }
         ).action
-        // ktlint-enable indent
     }
 
     fun reset() {

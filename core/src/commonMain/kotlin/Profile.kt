@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:no-multi-spaces")
+
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
@@ -11,7 +13,6 @@ public interface Service {
     public val serviceUuid: Uuid
 }
 
-/* ktlint-disable no-multi-spaces */
 internal val Broadcast = Properties(1 shl 0)            // 0x01
 internal val Read = Properties(1 shl 1)                 // 0x02
 internal val WriteWithoutResponse = Properties(1 shl 2) // 0x04
@@ -20,7 +21,6 @@ internal val Notify = Properties(1 shl 4)               // 0x10
 internal val Indicate = Properties(1 shl 5)             // 0x20
 internal val SignedWrite = Properties(1 shl 6)          // 0x40
 internal val ExtendedProperties = Properties(1 shl 7)   // 0x80
-/* ktlint-enable no-multi-spaces */
 
 public val Properties.broadcast: Boolean
     get() = value and Broadcast.value != 0
