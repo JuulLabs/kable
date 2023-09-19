@@ -279,17 +279,6 @@ attempt. The [`disconnect`] function suspends until the peripheral has settled o
 peripheral.disconnect()
 ```
 
-_If the underlying subsystem fails to deliver the disconnected state then the [`disconnect`] call could potentially
-stall indefinitely. To prevent this (and ensure underlying resources are cleaned up in a timely manner) it is
-recommended that [`disconnect`] be wrapped with a timeout, for example:_
-
-```kotlin
-// Allow 5 seconds for graceful disconnect before forcefully closing `Peripheral`.
-withTimeoutOrNull(5_000L) {
-    peripheral.disconnect()
-}
-```
-
 #### State
 
 The connection state of a [`Peripheral`] can be monitored via its [`state`] [`Flow`].

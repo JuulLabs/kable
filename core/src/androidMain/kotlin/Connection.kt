@@ -8,10 +8,8 @@ import com.juul.kable.gatt.Response
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -24,19 +22,12 @@ public class OutOfOrderGattCallbackException internal constructor(
 private val GattSuccess = GattStatus(GATT_SUCCESS)
 
 internal class Connection(
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     internal val bluetoothGatt: BluetoothGatt,
     internal val dispatcher: CoroutineDispatcher,
     private val callback: Callback,
     logging: Logging,
 ) {
-
-    private val job = Job(scope.coroutineContext[Job]).apply {
-        invokeOnCompletion {
-            bluetoothGatt.close()
-        }
-    }
-    private val scope = CoroutineScope(scope.coroutineContext + job + CoroutineName("Kable/Connection/${bluetoothGatt.device.address}"))
 
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = bluetoothGatt.device.address)
 
@@ -83,8 +74,17 @@ internal class Connection(
 
         val response = try {
             deferred.await()
-        } catch (e: ConnectionLostException) {
-            throw ConnectionLostException(cause = e)
+        } catch (e: Exception) {
+            // The `async` above is a sibling coroutine to that of the coroutines launched from the
+            // connect process. When (for example) BLE is disabled, it fails the connection scope;
+            // being that `async` is a sibling scope, the `async` above will **cancel** when BLE is
+            // disabled (rather than fail). We actually want to fail this `execute`, so we unwrap
+            // `CancellationException` for the underlying exception that failed the connection scope.
+            // todo: Figure out how to handle cancellation (discard GATT callback response) while running in the calling coroutine context (rather than using passed in scope).
+            when (val unwrapped = e.unwrap()) {
+                is ConnectionLostException -> throw ConnectionLostException(cause = unwrapped)
+                else -> throw unwrapped
+            }
         }
         deferredResponse = null
 
