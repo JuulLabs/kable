@@ -8,6 +8,8 @@ import android.bluetooth.BluetoothDevice.PHY_LE_CODED_MASK
 import android.bluetooth.BluetoothDevice.TRANSPORT_AUTO
 import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
 import android.content.Context
 import android.os.Build
 import android.os.Handler
@@ -67,6 +69,7 @@ internal fun BluetoothDevice.threading(): Threading =
 internal fun BluetoothDevice.connect(
     scope: CoroutineScope,
     context: Context,
+    autoConnect: Boolean,
     transport: Transport,
     phy: Phy,
     state: MutableStateFlow<State>,
@@ -80,13 +83,27 @@ internal fun BluetoothDevice.connect(
     val bluetoothGatt = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
             val handler = (threading as Threading.Handler).handler
-            connectGatt(context, false, callback, transport.intValue, phy.intValue, handler)
+            connectGatt(context, autoConnect, callback, transport.intValue, phy.intValue, handler)
         }
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> connectGatt(context, false, callback, transport.intValue)
-        else -> connectGatt(context, false, callback)
+
+        Build.VERSION.SDK_INT <= Build.VERSION_CODES.M && autoConnect ->
+            connectGattWithReflection(context, true, callback, transport.intValue)
+                ?: connectGattCompat(context, true, callback, transport.intValue)
+
+        else -> connectGattCompat(context, autoConnect, callback, transport.intValue)
     } ?: return null
 
     return Connection(scope, bluetoothGatt, threading.dispatcher, callback, logging)
+}
+
+private fun BluetoothDevice.connectGattCompat(
+    context: Context,
+    autoConnect: Boolean,
+    callback: BluetoothGattCallback,
+    transport: Int,
+): BluetoothGatt = when {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> connectGatt(context, autoConnect, callback, transport)
+    else -> connectGatt(context, autoConnect, callback)
 }
 
 private val Transport.intValue: Int

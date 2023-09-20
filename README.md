@@ -222,6 +222,7 @@ On Android targets, additional configuration options are available (all configur
 
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
+    autoConnectIf { true }
     onServicesDiscovered {
         requestMtu(...)
     }
