@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
@@ -132,7 +133,6 @@ internal class BluetoothDeviceAndroidPeripheral(
             closeConnection()
             val failure = e.unwrap()
             logger.error(failure) { message = "Failed to connect" }
-            _state.value = Disconnected()
             throw failure
         }
 
@@ -190,6 +190,12 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     private fun closeConnection() {
         _connection?.bluetoothGatt?.close()
+        setDisconnected()
+    }
+
+    private fun setDisconnected() {
+        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
+        _state.update { previous -> previous as? Disconnected ?: Disconnected() }
     }
 
     override fun requestConnectionPriority(priority: Priority): Boolean {
