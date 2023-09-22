@@ -114,10 +114,6 @@ internal class BluetoothDeviceAndroidPeripheral(
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
 
-        state.filterIsInstance<Disconnected>()
-            .onEach { connectAction.reset() }
-            .launchIn(scope)
-
         try {
             _connection = bluetoothDevice.connect(
                 scope,
@@ -144,6 +140,10 @@ internal class BluetoothDeviceAndroidPeripheral(
             logger.error(e) { message = "Failed to connect" }
             throw e
         }
+
+        state.filterIsInstance<Disconnected>()
+            .onEach { connectAction.reset() }
+            .launchIn(scope)
 
         logger.info { message = "Connected" }
         _state.value = State.Connected

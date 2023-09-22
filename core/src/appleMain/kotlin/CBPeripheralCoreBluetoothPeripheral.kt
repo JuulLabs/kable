@@ -146,13 +146,6 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
 
-        centralManager.delegate.onDisconnected.onEach { identifier ->
-            if (identifier == cbPeripheral.identifier) {
-                connectAction.reset()
-                logger.info { message = "Disconnected" }
-            }
-        }.launchIn(scope)
-
         try {
             _connection.value = centralManager.connectPeripheral(
                 scope,
@@ -177,6 +170,13 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             }
             throw e
         }
+
+        centralManager.delegate.onDisconnected.onEach { identifier ->
+            if (identifier == cbPeripheral.identifier) {
+                connectAction.reset()
+                logger.info { message = "Disconnected" }
+            }
+        }.launchIn(scope)
 
         logger.info { message = "Connected" }
         _state.value = State.Connected
