@@ -160,7 +160,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             observers.onConnected()
         } catch (e: Exception) {
             closeConnection()
-            val failure = e.unwrap()
+            val failure = e.unwrapCancellationCause()
             logger.error(failure) { message = "Failed to connect" }
             throw failure
         }

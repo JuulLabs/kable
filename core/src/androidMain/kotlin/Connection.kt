@@ -81,7 +81,7 @@ internal class Connection(
             // disabled (rather than fail). We actually want to fail this `execute`, so we unwrap
             // `CancellationException` for the underlying exception that failed the connection scope.
             // todo: Figure out how to handle cancellation (discard GATT callback response) while running in the calling coroutine context (rather than using passed in scope).
-            when (val unwrapped = e.unwrap()) {
+            when (val unwrapped = e.unwrapCancellationCause()) {
                 is ConnectionLostException -> throw ConnectionLostException(cause = unwrapped)
                 else -> throw unwrapped
             }

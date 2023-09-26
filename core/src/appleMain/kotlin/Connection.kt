@@ -52,7 +52,7 @@ internal class Connection(
         val response = try {
             deferred.await()
         } catch (e: Exception) {
-            when (val unwrapped = e.unwrap()) {
+            when (val unwrapped = e.unwrapCancellationCause()) {
                 is ConnectionLostException -> throw ConnectionLostException(cause = unwrapped)
                 else -> throw unwrapped
             }
