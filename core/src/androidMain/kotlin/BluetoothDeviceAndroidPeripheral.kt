@@ -46,6 +46,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 
 private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
@@ -178,7 +179,13 @@ internal class BluetoothDeviceAndroidPeripheral(
     }
 
     override suspend fun disconnect() {
-        _connection?.bluetoothGatt?.disconnect()
+        if (state.value is State.Connected) {
+            // Disconnect from active connection.
+            _connection?.bluetoothGatt?.disconnect()
+        } else {
+            // Cancel in-flight connection attempt.
+            connectAction.cancelAndJoin(CancellationException(NotConnectedException()))
+        }
         suspendUntil<Disconnected>()
         logger.info { message = "Disconnected" }
     }
