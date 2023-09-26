@@ -287,6 +287,7 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 }
 
 public final class com/juul/kable/PeripheralBuilder {
+	public final fun autoConnectIf (Lkotlin/jvm/functions/Function0;)V
 	public final fun getPhy ()Lcom/juul/kable/Phy;
 	public final fun getTransport ()Lcom/juul/kable/Transport;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V

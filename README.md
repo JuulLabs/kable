@@ -222,11 +222,52 @@ On Android targets, additional configuration options are available (all configur
 
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
+    autoConnectIf { false } // default
     onServicesDiscovered {
         requestMtu(...)
     }
     transport = Transport.Le // default
     phy = Phy.Le1M // default
+}
+```
+
+#### `autoConnect`
+
+Per the [`connectGatt`] documentation, `autoConnect` determines:
+
+> Whether to directly connect to the remote device (`false`) or to automatically connect as soon as the remote device
+> becomes available (`true`).
+
+With respect to [`connect`]ing:
+
+| `autoConnect` value | [`connect`] timeout |
+|:-------------------:|:-------------------:|
+|       `false`       |     ~30 seconds     |
+|       `true`        |        Never        |
+
+Per [answer](https://stackoverflow.com/a/50273724) to "What exactly does Android's Bluetooth `autoConnect` parameter do?":
+
+> Direct connect has a different scan interval and scan window at a higher duty than auto connect, meaning it will
+> dedicate more radio time to listen for connectable advertisements for the remote device, i.e. the connection will be
+> established faster.
+
+One possible strategy for a fast initial connection attempt that falls back to lower battery usage connection attempts is:
+
+```kotlin
+val autoConnect = MutableStateFlow(false)
+
+val peripheral = scope.peripheral {
+    autoConnectIf { autoConnect.value }
+}
+
+while (peripheral.state.value != Connected) {
+    autoConnect.value = try {
+        peripheral.connect()
+        false
+    } catch (e: Exception) {
+        if (e is CancellationException) throw e
+        true
+    }
 }
 ```
 
@@ -276,17 +317,6 @@ attempt. The [`disconnect`] function suspends until the peripheral has settled o
 
 ```kotlin
 peripheral.disconnect()
-```
-
-_If the underlying subsystem fails to deliver the disconnected state then the [`disconnect`] call could potentially
-stall indefinitely. To prevent this (and ensure underlying resources are cleaned up in a timely manner) it is
-recommended that [`disconnect`] be wrapped with a timeout, for example:_
-
-```kotlin
-// Allow 5 seconds for graceful disconnect before forcefully closing `Peripheral`.
-withTimeoutOrNull(5_000L) {
-    peripheral.disconnect()
-}
 ```
 
 #### State
@@ -455,6 +485,19 @@ scope.cancel() // All `peripherals` will implicitly disconnect and be disposed.
 
 _[`Peripheral.disconnect`] is the preferred method of disconnecting peripherals, but disposal via Coroutine scope
 cancellation is provided to prevent connection leaks._
+
+## Background Support
+
+To enable [background support] on Apple, configure the `CentralManager` _before_ using most of Kable's functionality:
+
+```kotlin
+CentralManager.configure {
+    stateRestoration = true // `false` by default.
+}
+```
+
+The `CentralManager` is initialized on first use (e.g. scanning or creating a peripheral), attempts to `configure` it
+after initialization will result in an `IllegalStateException` being thrown.
 
 ## Setup
 
@@ -629,6 +672,7 @@ limitations under the License.
 [`advertisements`]: https://juullabs.github.io/kable/core/com.juul.kable/-scanner/advertisements.html
 [`characteristicOf`]: https://juullabs.github.io/kable/core/com.juul.kable/characteristic-of.html
 [`connect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/connect.html
+[`connectGatt`]: https://developer.android.com/reference/android/bluetooth/BluetoothDevice#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback)
 [`descriptorOf`]: https://juullabs.github.io/kable/core/com.juul.kable/descriptor-of.html
 [`disconnect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/disconnect.html
 [`first`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/first.html
@@ -638,6 +682,7 @@ limitations under the License.
 [`writeWithoutResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/write-without-response.html
 [`write`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/write.html
 [`observationExceptionHandler`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral-builder/observation-exception-handler.html
+[background support]: https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html
 [badge-android]: http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat
 [badge-ios]: http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat
 [badge-js]: http://img.shields.io/badge/platform-js-F8DB5D.svg?style=flat

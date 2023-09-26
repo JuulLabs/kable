@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -13,7 +14,6 @@ import com.juul.kable.Filter.NamePrefix
 import com.juul.kable.Filter.Service
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
@@ -21,7 +21,6 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOn
 
 public class ScanFailedException internal constructor(
     public val errorCode: Int,
@@ -84,6 +83,7 @@ internal class BluetoothLeScannerAndroidScanner(
                 "Starting scan with ${scanFilters.size} filter(s)"
             }
         }
+        checkBluetoothAdapterState(STATE_ON)
         scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {
@@ -107,5 +107,5 @@ internal class BluetoothLeScannerAndroidScanner(
 
         // Perform `Filter.NamePrefix` filtering here, since it isn't supported natively.
         namePrefixFilters.any { filter -> filter.matches(advertisement.name) }
-    }.flowOn(Dispatchers.Main.immediate)
+    }
 }

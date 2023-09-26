@@ -28,6 +28,8 @@ import com.juul.kable.logs.detail
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
@@ -40,9 +42,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
@@ -66,6 +69,7 @@ import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSData
 import platform.Foundation.NSError
+import platform.Foundation.NSUUID
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -79,13 +83,13 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
     private val scope = CoroutineScope(
         parentCoroutineContext +
-            SupervisorJob(parentCoroutineContext.job) +
+            SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
             CoroutineName("Kable/Peripheral/${cbPeripheral.identifier.UUIDString}"),
     )
 
-    private val centralManager: CentralManager = CentralManager.Default
-
     private val logger = Logger(logging, identifier = cbPeripheral.identifier.UUIDString)
+
+    private val centralManager: CentralManager = CentralManager.Default
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
     override val state: StateFlow<State> = _state.asStateFlow()
@@ -95,15 +99,6 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
 
     init {
-        centralManager.delegate
-            .state
-            .filter { state -> state == CBManagerStatePoweredOff }
-            .onEach {
-                disconnect()
-                _state.value = State.Disconnected()
-            }
-            .launchIn(scope)
-
         centralManager.delegate
             .connectionState
             .filter { event -> event.identifier == cbPeripheral.identifier }
@@ -130,7 +125,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
     private val _connection = atomic<Connection?>(null)
     private val connection: Connection
-        inline get() = _connection.value?.takeIf { it.scope.isActive } ?: throw NotReadyException(toString())
+        inline get() = _connection.value ?: throw NotReadyException(toString())
 
     override val name: String? get() = cbPeripheral.name
 
@@ -147,13 +142,6 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
 
-        centralManager.delegate.onDisconnected.onEach { identifier ->
-            if (identifier == cbPeripheral.identifier) {
-                connectAction.reset()
-                logger.info { message = "Disconnected" }
-            }
-        }.launchIn(scope)
-
         try {
             _connection.value = centralManager.connectPeripheral(
                 scope,
@@ -164,7 +152,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
             // fixme: Handle centralManager:didFailToConnectPeripheral:error:
             // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
-            suspendUntil<State.Connecting.Services>()
+            suspendUntilOrThrow<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@CBPeripheralCoreBluetoothPeripheral))
 
@@ -172,26 +160,62 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             logger.verbose { message = "Configuring characteristic observations" }
             observers.onConnected()
         } catch (e: Exception) {
-            logger.error(e) { message = "Failed to connect" }
-            withContext(NonCancellable) {
-                centralManager.cancelPeripheralConnection(cbPeripheral)
-            }
-            throw e
+            closeConnection()
+            val failure = e.unwrapCancellationCause()
+            logger.error(failure) { message = "Failed to connect" }
+            throw failure
         }
 
         logger.info { message = "Connected" }
         _state.value = State.Connected
+
+        centralManager.delegate.state.watchForDisablingIn(scope)
+        centralManager.delegate.onDisconnected.watchForConnectionLossIn(scope)
     }
 
-    override suspend fun disconnect() {
-        try {
-            connectAction.resetAndJoin()
-        } finally {
-            withContext(NonCancellable) {
-                centralManager.cancelPeripheralConnection(cbPeripheral)
+    private fun Flow<CBManagerState>.watchForDisablingIn(scope: CoroutineScope) =
+        filter { state -> state != CBManagerStatePoweredOn }
+            .onEach { state ->
+                logger.info {
+                    message = "Bluetooth unavailable"
+                    detail("state", state)
+                }
+                closeConnection()
+                throw ConnectionLostException("$this $state")
             }
-            logger.info { message = "Disconnected" }
+            .launchIn(scope)
+
+    private fun Flow<NSUUID>.watchForConnectionLossIn(scope: CoroutineScope) =
+        filter { identifier -> identifier == cbPeripheral.identifier }
+            .onEach {
+                logger.info { message = "Disconnected" }
+                throw ConnectionLostException("$this disconnected")
+            }
+            .launchIn(scope)
+
+    override suspend fun disconnect() {
+        closeConnection()
+        suspendUntil<State.Disconnected>()
+        logger.info { message = "Disconnected" }
+    }
+
+    private suspend fun closeConnection() {
+        withContext(NonCancellable) {
+            centralManager.cancelPeripheralConnection(cbPeripheral)
         }
+    }
+
+    private fun dispose(cause: Throwable?) {
+        GlobalScope.launch(start = UNDISPATCHED) {
+            closeConnection()
+            setDisconnected()
+            logger.info(cause) { message = "$this disposed" }
+        }
+    }
+
+    private fun setDisconnected() {
+        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
+        _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)

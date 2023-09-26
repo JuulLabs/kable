@@ -49,8 +49,6 @@ import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 
-private typealias DisconnectedAction = () -> Unit
-
 internal class Callback(
     private val state: MutableStateFlow<State>,
     private val mtu: MutableStateFlow<Int?>,
@@ -60,11 +58,6 @@ internal class Callback(
 ) : BluetoothGattCallback() {
 
     private val logger = Logger(logging, tag = "Kable/Callback", identifier = macAddress)
-
-    private var disconnectedAction: DisconnectedAction? = null
-    fun invokeOnDisconnected(action: DisconnectedAction) {
-        disconnectedAction = action
-    }
 
     val onResponse = Channel<Response>(CONFLATED)
     val onMtuChanged = Channel<OnMtuChanged>(CONFLATED)
@@ -110,10 +103,7 @@ internal class Callback(
             detail("newState", newState.connectionStateString)
         }
 
-        if (newState == STATE_DISCONNECTED) {
-            gatt.close()
-            disconnectedAction?.invoke()
-        }
+        if (newState == STATE_DISCONNECTED) gatt.close()
 
         when (newState) {
             STATE_CONNECTING -> state.value = State.Connecting.Bluetooth
@@ -143,7 +133,7 @@ internal class Callback(
         status: Int,
     ) {
         @Suppress("DEPRECATION")
-        onCharacteristicRead(gatt, characteristic, characteristic.value, status)
+        onCharacteristicRead(gatt, characteristic, characteristic.value ?: byteArrayOf(), status)
     }
 
     // Added in API 33.
@@ -183,7 +173,7 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic,
     ) {
         @Suppress("DEPRECATION")
-        onCharacteristicChanged(gatt, characteristic, characteristic.value)
+        onCharacteristicChanged(gatt, characteristic, characteristic.value ?: byteArrayOf())
     }
 
     // Added in API 33.
@@ -208,7 +198,7 @@ internal class Callback(
         status: Int,
     ) {
         @Suppress("DEPRECATION")
-        onDescriptorRead(gatt, descriptor, status, descriptor.value)
+        onDescriptorRead(gatt, descriptor, status, descriptor.value ?: byteArrayOf())
     }
 
     // Added in API 33.

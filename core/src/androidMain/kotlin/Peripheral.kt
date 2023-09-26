@@ -30,6 +30,7 @@ public fun CoroutineScope.peripheral(
     return BluetoothDeviceAndroidPeripheral(
         coroutineContext,
         bluetoothDevice,
+        builder.autoConnectPredicate,
         builder.transport,
         builder.phy,
         builder.observationExceptionHandler,

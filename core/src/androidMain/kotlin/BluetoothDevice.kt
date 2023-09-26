@@ -8,6 +8,8 @@ import android.bluetooth.BluetoothDevice.PHY_LE_CODED_MASK
 import android.bluetooth.BluetoothDevice.TRANSPORT_AUTO
 import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
 import android.content.Context
 import android.os.Build
 import android.os.Handler
@@ -15,12 +17,12 @@ import android.os.HandlerThread
 import com.juul.kable.gatt.Callback
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.newSingleThreadContext
-import kotlin.coroutines.CoroutineContext
 
 internal sealed class Threading {
 
@@ -65,8 +67,9 @@ internal fun BluetoothDevice.threading(): Threading =
  * @param phy is only used on API level >= 26.
  */
 internal fun BluetoothDevice.connect(
-    parentCoroutineContext: CoroutineContext,
+    scope: CoroutineScope,
     context: Context,
+    autoConnect: Boolean,
     transport: Transport,
     phy: Phy,
     state: MutableStateFlow<State>,
@@ -74,24 +77,33 @@ internal fun BluetoothDevice.connect(
     onCharacteristicChanged: MutableSharedFlow<ObservationEvent<ByteArray>>,
     logging: Logging,
     threading: Threading,
-    invokeOnClose: () -> Unit,
 ): Connection? {
-    // Explicitly set Connecting state so when Peripheral is suspending until Connected, it doesn't incorrectly see
-    // Disconnected before the connection request has kicked off the Connecting state (via Callback).
-    state.value = State.Connecting.Bluetooth
-
     val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
 
     val bluetoothGatt = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
             val handler = (threading as Threading.Handler).handler
-            connectGatt(context, false, callback, transport.intValue, phy.intValue, handler)
+            connectGatt(context, autoConnect, callback, transport.intValue, phy.intValue, handler)
         }
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> connectGatt(context, false, callback, transport.intValue)
-        else -> connectGatt(context, false, callback)
+
+        Build.VERSION.SDK_INT <= Build.VERSION_CODES.M && autoConnect ->
+            connectGattWithReflection(context, true, callback, transport.intValue)
+                ?: connectGattCompat(context, true, callback, transport.intValue)
+
+        else -> connectGattCompat(context, autoConnect, callback, transport.intValue)
     } ?: return null
 
-    return Connection(parentCoroutineContext, bluetoothGatt, threading.dispatcher, callback, logging, invokeOnClose)
+    return Connection(scope, bluetoothGatt, threading.dispatcher, callback, logging)
+}
+
+private fun BluetoothDevice.connectGattCompat(
+    context: Context,
+    autoConnect: Boolean,
+    callback: BluetoothGattCallback,
+    transport: Int,
+): BluetoothGatt = when {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> connectGatt(context, autoConnect, callback, transport)
+    else -> connectGatt(context, autoConnect, callback)
 }
 
 private val Transport.intValue: Int

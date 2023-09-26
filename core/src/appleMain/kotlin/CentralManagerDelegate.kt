@@ -120,7 +120,11 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         _state.value = central.state
     }
 
-    // todo: func centralManager(CBCentralManager, willRestoreState: [String : Any])
+    override fun centralManager(central: CBCentralManager, willRestoreState: Map<Any?, *>) {
+        // No-op: From the documentation: Tells the delegate the system is about to restore the central manager, as part of relaunching the app into the background.
+        // Use this method to synchronize the state of your app with the state of the Bluetooth system.
+        // Since the rest of Kable is handling the "synchronize," there's nothing to do here.
+    }
 
     /* Monitoring the Central Manager’s Authorization */
 
