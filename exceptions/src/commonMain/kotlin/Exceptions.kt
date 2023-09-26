@@ -6,6 +6,11 @@ public open class BluetoothException(
     cause: Throwable? = null,
 ) : Exception(message, cause)
 
+public class LocationManagerUnavailableException(
+    message: String? = null,
+    cause: Throwable? = null,
+) : BluetoothException(message, cause)
+
 public class BluetoothDisabledException(
     message: String? = null,
     cause: Throwable? = null,
