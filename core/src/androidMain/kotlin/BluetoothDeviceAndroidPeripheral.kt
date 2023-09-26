@@ -327,7 +327,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         val platformCharacteristic = discoveredServices.obtain(characteristic, Notify or Indicate)
         connection
             .bluetoothGatt
-            .setCharacteristicNotification(platformCharacteristic, true)
+            .setCharacteristicNotificationOrThrow(platformCharacteristic, true)
         setConfigDescriptor(platformCharacteristic, enable = true)
     }
 
@@ -342,7 +342,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         }
         connection
             .bluetoothGatt
-            .setCharacteristicNotification(platformCharacteristic, false)
+            .setCharacteristicNotificationOrThrow(platformCharacteristic, false)
     }
 
     private suspend fun setConfigDescriptor(
