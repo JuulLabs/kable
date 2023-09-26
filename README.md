@@ -222,12 +222,52 @@ On Android targets, additional configuration options are available (all configur
 
 ```kotlin
 val peripheral = scope.peripheral(advertisement) {
-    autoConnectIf { true }
+    autoConnectIf { false } // default
     onServicesDiscovered {
         requestMtu(...)
     }
     transport = Transport.Le // default
     phy = Phy.Le1M // default
+}
+```
+
+#### `autoConnect`
+
+Per the [`connectGatt`] documentation, `autoConnect` determines:
+
+> Whether to directly connect to the remote device (`false`) or to automatically connect as soon as the remote device
+> becomes available (`true`).
+
+With respect to [`connect`]ing:
+
+| `autoConnect` value | [`connect`] timeout |
+|:-------------------:|:-------------------:|
+|       `false`       |     ~30 seconds     |
+|       `true`        |        Never        |
+
+Per [answer](https://stackoverflow.com/a/50273724) to "What exactly does Android's Bluetooth `autoConnect` parameter do?":
+
+> Direct connect has a different scan interval and scan window at a higher duty than auto connect, meaning it will
+> dedicate more radio time to listen for connectable advertisements for the remote device, i.e. the connection will be
+> established faster.
+
+One possible strategy for a fast initial connection attempt that falls back to lower battery usage connection attempts is:
+
+```kotlin
+val autoConnect = MutableStateFlow(false)
+
+val peripheral = scope.peripheral {
+    autoConnectIf { autoConnect.value }
+}
+
+while (peripheral.state.value != Connected) {
+    autoConnect.value = try {
+        peripheral.connect()
+        false
+    } catch (e: Exception) {
+        if (e is CancellationException) throw e
+        true
+    }
 }
 ```
 
@@ -632,6 +672,7 @@ limitations under the License.
 [`advertisements`]: https://juullabs.github.io/kable/core/com.juul.kable/-scanner/advertisements.html
 [`characteristicOf`]: https://juullabs.github.io/kable/core/com.juul.kable/characteristic-of.html
 [`connect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/connect.html
+[`connectGatt`]: https://developer.android.com/reference/android/bluetooth/BluetoothDevice#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback)
 [`descriptorOf`]: https://juullabs.github.io/kable/core/com.juul.kable/descriptor-of.html
 [`disconnect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/disconnect.html
 [`first`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/first.html
