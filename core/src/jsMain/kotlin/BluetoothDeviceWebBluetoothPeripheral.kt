@@ -11,6 +11,7 @@ import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -208,7 +209,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
             message = "write"
             detail(characteristic)
             detail(writeType)
-            detail(data)
+            detail(data, Operation.Write)
         }
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
@@ -230,7 +231,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         logger.debug {
             message = "read"
             detail(characteristic)
-            detail(value)
+            detail(value, Operation.Read)
         }
         return value
     }
@@ -248,7 +249,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         logger.debug {
             message = "write"
             detail(descriptor)
-            detail(data)
+            detail(data, Operation.Write)
         }
 
         val platformDescriptor = discoveredServices.obtain(descriptor)
@@ -267,7 +268,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         logger.debug {
             message = "read"
             detail(descriptor)
-            detail(value)
+            detail(value, Operation.Read)
         }
         return value
     }
@@ -373,7 +374,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         logger.debug {
             message = CHARACTERISTIC_VALUE_CHANGED
             detail(this@createListener)
-            detail(data)
+            detail(data, Operation.Change)
         }
         val characteristicChange = ObservationEvent.CharacteristicChange(this, data)
 

@@ -8,6 +8,7 @@ import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.logs.LogMessage
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.logs.Logging.DataProcessor.Operation.Change
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
@@ -155,7 +156,7 @@ internal class PeripheralDelegate(
         logger.debug(error) {
             message = "didUpdateValueForCharacteristic"
             detail(didUpdateValueForCharacteristic)
-            detail(didUpdateValueForCharacteristic.value)
+            detail(didUpdateValueForCharacteristic.value, Change)
         }
 
         val characteristic = didUpdateValueForCharacteristic.toLazyCharacteristic()

@@ -38,6 +38,8 @@ import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.logs.Logging.DataProcessor.Operation.Change
+import com.juul.kable.logs.Logging.DataProcessor.Operation.Read
 import com.juul.kable.logs.detail
 import com.juul.kable.toLazyCharacteristic
 import kotlinx.coroutines.channels.Channel
@@ -146,7 +148,7 @@ internal class Callback(
             message = "onCharacteristicRead"
             detail(characteristic)
             detail(event.status)
-            detail(value)
+            detail(value, Read)
         }
         onResponse.trySendOrLog(event)
     }
@@ -183,7 +185,7 @@ internal class Callback(
         logger.debug {
             message = "onCharacteristicChanged"
             detail(characteristic)
-            detail(value)
+            detail(value, Change)
         }
         val event = CharacteristicChange(characteristic.toLazyCharacteristic(), value)
         onCharacteristicChanged.tryEmitOrLog(event)
@@ -211,7 +213,7 @@ internal class Callback(
             message = "onDescriptorRead"
             detail(descriptor)
             detail(event.status)
-            detail(value)
+            detail(value, Read)
         }
         onResponse.trySendOrLog(event)
     }

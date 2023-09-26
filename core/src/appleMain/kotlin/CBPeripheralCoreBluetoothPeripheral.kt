@@ -23,6 +23,7 @@ import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.logs.Logging.DataProcessor.Operation.Write
 import com.juul.kable.logs.detail
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
@@ -264,7 +265,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             message = "write"
             detail(characteristic)
             detail(writeType)
-            detail(data)
+            detail(data, Write)
         }
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
@@ -325,7 +326,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         logger.debug {
             message = "write"
             detail(descriptor)
-            detail(data)
+            detail(data, Write)
         }
 
         val platformDescriptor = discoveredServices.obtain(descriptor)

@@ -30,6 +30,7 @@ import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -250,7 +251,7 @@ internal class BluetoothDeviceAndroidPeripheral(
             message = "write"
             detail(characteristic)
             detail(writeType)
-            detail(data)
+            detail(data, Operation.Write)
         }
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
@@ -289,7 +290,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         logger.debug {
             message = "write"
             detail(platformDescriptor)
-            detail(data)
+            detail(data, Operation.Write)
         }
 
         connection.execute<OnDescriptorWrite> {
