@@ -186,7 +186,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     private fun dispose(cause: Throwable?) {
         closeConnection()
         threading.close()
-        logger.info(cause) { message = "$this disposed" }
+        logger.info(cause) { message = "Disposed" }
     }
 
     private fun closeConnection() {
