@@ -2,6 +2,7 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothAdapter.STATE_OFF
 import android.bluetooth.BluetoothAdapter.STATE_ON
+import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC
 import android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL
@@ -30,18 +31,18 @@ import com.juul.kable.gatt.Response.OnServicesDiscovered
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.detail
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
@@ -62,6 +63,12 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val logging: Logging,
 ) : AndroidPeripheral {
 
+    private val scope = CoroutineScope(
+        parentCoroutineContext +
+            SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
+            CoroutineName("Kable/Peripheral/${bluetoothDevice.address}"),
+    )
+
     private val logger = Logger(logging, tag = "Kable/Peripheral", identifier = bluetoothDevice.address)
 
     private val _state = MutableStateFlow<State>(Disconnected())
@@ -69,21 +76,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     override val identifier: String = bluetoothDevice.address
 
-    private val job = SupervisorJob(parentCoroutineContext[Job]).apply {
-        invokeOnCompletion {
-            close()
-            threading.close()
-        }
-    }
-    private val scope = CoroutineScope(parentCoroutineContext + job)
-
-    init {
-        bluetoothState
-            .filter { state -> state == STATE_OFF }
-            .onEach { disconnect() }
-            .launchIn(scope)
-    }
-
+    // todo: Spin up/down w/ connection, rather than matching lifecycle of peripheral.
     private val threading = bluetoothDevice.threading()
 
     private val _mtu = MutableStateFlow<Int?>(null)
@@ -111,6 +104,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     private suspend fun establishConnection(scope: CoroutineScope) {
         checkBluetoothAdapterState(expected = STATE_ON)
+
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
 
@@ -136,18 +130,42 @@ internal class BluetoothDeviceAndroidPeripheral(
             logger.verbose { message = "Configuring characteristic observations" }
             observers.onConnected()
         } catch (e: Exception) {
-            setDisconnected()
-            logger.error(e) { message = "Failed to connect" }
-            throw e
+            closeConnection()
+            val failure = e.unwrapCancellationCause()
+            logger.error(failure) { message = "Failed to connect" }
+            throw failure
         }
-
-        state.filterIsInstance<Disconnected>()
-            .onEach { connectAction.reset() }
-            .launchIn(scope)
 
         logger.info { message = "Connected" }
         _state.value = State.Connected
+
+        bluetoothState.watchForDisablingIn(scope)
+        state.watchForConnectionLossIn(scope)
     }
+
+    private fun Flow<Int>.watchForDisablingIn(scope: CoroutineScope) =
+        filter { state -> state == STATE_TURNING_OFF || state == STATE_OFF }
+            .onEach { state ->
+                logger.debug {
+                    message = "Bluetooth disabled"
+                    detail("state", state)
+                }
+                closeConnection()
+                throw BluetoothDisabledException()
+            }
+            .launchIn(scope)
+
+    private fun Flow<State>.watchForConnectionLossIn(scope: CoroutineScope) =
+        state
+            .filter { it == State.Disconnecting || it is Disconnected }
+            .onEach { state ->
+                logger.debug {
+                    message = "Disconnect detected"
+                    detail("state", state.toString())
+                }
+                throw ConnectionLostException("$this $state")
+            }
+            .launchIn(scope)
 
     override val type: Type
         get() = typeFrom(bluetoothDevice.type)
@@ -159,13 +177,19 @@ internal class BluetoothDeviceAndroidPeripheral(
     }
 
     override suspend fun disconnect() {
-        connectAction.resetAndJoin()
-        setDisconnected()
+        _connection?.bluetoothGatt?.disconnect()
+        suspendUntil<Disconnected>()
         logger.info { message = "Disconnected" }
     }
 
-    private fun close() {
-        connectAction.reset()
+    private fun dispose(cause: Throwable?) {
+        closeConnection()
+        threading.close()
+        logger.info(cause) { message = "$this disposed" }
+    }
+
+    private fun closeConnection() {
+        _connection?.bluetoothGatt?.close()
         setDisconnected()
     }
 

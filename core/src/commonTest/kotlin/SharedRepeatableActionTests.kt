@@ -1,20 +1,24 @@
 package com.juul.kable
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.test.runTest
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -52,6 +56,34 @@ class SharedRepeatableActionTests {
     }
 
     @Test
+    fun actionCompletes_failureFromLaunch_canStartAgain() = runTest {
+        val actionDidComplete = MutableStateFlow(false)
+        var actionRuns = 0
+        supervisorScope {
+            val action = sharedRepeatableAction { scope ->
+                scope.launch {
+                    actionDidComplete.first { it }
+                    throw IllegalStateException()
+                }
+                ++actionRuns
+            }
+
+            assertEquals(
+                expected = 1,
+                actual = action.await(),
+            )
+
+            actionDidComplete.value = true
+            action.join()
+
+            assertEquals(
+                expected = 2,
+                actual = action.await(),
+            )
+        }
+    }
+
+    @Test
     fun exceptionThrownFromCoroutineLaunchedFromScope_cancelsAction() = runTest {
         supervisorScope {
             val action = sharedRepeatableAction { scope ->
@@ -74,7 +106,12 @@ class SharedRepeatableActionTests {
         val actionRuns = Channel<Int>()
         var actionCounter = 0
 
-        val action = sharedRepeatableAction { scope ->
+        val testScope = CoroutineScope(
+            coroutineContext +
+                SupervisorJob(coroutineContext.job) +
+                CoroutineExceptionHandler { _, cause -> cause.printStackTrace() },
+        )
+        val action = testScope.sharedRepeatableAction { scope ->
             scope.launch {
                 innerRuns.send(++innerCounter)
                 awaitCancellation()
@@ -82,7 +119,7 @@ class SharedRepeatableActionTests {
             actionRuns.send(++actionCounter)
             awaitCancellation()
         }
-        val job = launch(start = UNDISPATCHED) { action.await() }
+        val job = testScope.launch(start = UNDISPATCHED) { action.await() }
 
         assertEquals(
             expected = 1,
@@ -93,10 +130,10 @@ class SharedRepeatableActionTests {
             actual = actionRuns.receive(),
         )
 
-        action.resetAndJoin()
+        action.cancelAndJoin()
         assertTrue { job.isCancelled }
 
-        launch(start = UNDISPATCHED) { action.await() }
+        testScope.launch(start = UNDISPATCHED) { action.await() }
         assertEquals(
             expected = 2,
             actual = innerRuns.receive(),
@@ -106,6 +143,7 @@ class SharedRepeatableActionTests {
             actual = actionRuns.receive(),
         )
 
+        job.join()
         coroutineContext.cancelChildren()
     }
 
@@ -145,5 +183,34 @@ class SharedRepeatableActionTests {
         assertTrue { actionScope.isActive }
 
         coroutineContext.cancelChildren()
+    }
+
+    @Test
+    fun honorsCancellationOfParentScope() = runTest {
+        val didCancel = MutableStateFlow(false)
+        val parentScope = CoroutineScope(
+            coroutineContext +
+                SupervisorJob(coroutineContext.job) +
+                CoroutineExceptionHandler { _, cause -> cause.printStackTrace() },
+        )
+        val action = parentScope.sharedRepeatableAction { scope ->
+            scope.launch(start = UNDISPATCHED) {
+                try {
+                    awaitCancellation()
+                } catch (e: Exception) {
+                    if (e is CancellationException) didCancel.value = true
+                    throw e
+                }
+            }
+            1
+        }
+
+        assertEquals(
+            expected = 1,
+            actual = action.await(),
+        )
+
+        parentScope.cancel()
+        didCancel.first { it }
     }
 }
