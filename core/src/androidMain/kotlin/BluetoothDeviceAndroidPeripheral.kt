@@ -34,16 +34,20 @@ import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
@@ -106,6 +110,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     private suspend fun establishConnection(scope: CoroutineScope) {
         checkBluetoothAdapterState(expected = STATE_ON)
+        bluetoothState.watchForDisablingIn(scope)
 
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
@@ -141,21 +146,21 @@ internal class BluetoothDeviceAndroidPeripheral(
         logger.info { message = "Connected" }
         _state.value = State.Connected
 
-        bluetoothState.watchForDisablingIn(scope)
         state.watchForConnectionLossIn(scope)
     }
 
-    private fun Flow<Int>.watchForDisablingIn(scope: CoroutineScope) =
-        filter { state -> state == STATE_TURNING_OFF || state == STATE_OFF }
-            .onEach { state ->
-                logger.debug {
-                    message = "Bluetooth disabled"
-                    detail("state", state)
+    private fun Flow<Int>.watchForDisablingIn(scope: CoroutineScope): Job =
+        scope.launch(start = UNDISPATCHED) {
+            filter { state -> state == STATE_TURNING_OFF || state == STATE_OFF }
+                .collect { state ->
+                    logger.debug {
+                        message = "Bluetooth disabled"
+                        detail("state", state)
+                    }
+                    closeConnection()
+                    throw BluetoothDisabledException()
                 }
-                closeConnection()
-                throw BluetoothDisabledException()
-            }
-            .launchIn(scope)
+        }
 
     private fun Flow<State>.watchForConnectionLossIn(scope: CoroutineScope) =
         state
