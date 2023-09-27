@@ -138,6 +138,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private suspend fun establishConnection(scope: CoroutineScope) {
         // Check CBCentral State since connecting can result in an API misuse message.
         centralManager.checkBluetoothState(CBManagerStatePoweredOn)
+        centralManager.delegate.state.watchForDisablingIn(scope)
 
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
@@ -169,21 +170,21 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         logger.info { message = "Connected" }
         _state.value = State.Connected
 
-        centralManager.delegate.state.watchForDisablingIn(scope)
         centralManager.delegate.onDisconnected.watchForConnectionLossIn(scope)
     }
 
     private fun Flow<CBManagerState>.watchForDisablingIn(scope: CoroutineScope) =
-        filter { state -> state != CBManagerStatePoweredOn }
-            .onEach { state ->
-                logger.info {
-                    message = "Bluetooth unavailable"
-                    detail("state", state)
+        scope.launch(start = UNDISPATCHED) {
+            filter { state -> state != CBManagerStatePoweredOn }
+                .collect { state ->
+                    logger.info {
+                        message = "Bluetooth unavailable"
+                        detail("state", state)
+                    }
+                    closeConnection()
+                    throw ConnectionLostException("$this $state")
                 }
-                closeConnection()
-                throw ConnectionLostException("$this $state")
-            }
-            .launchIn(scope)
+        }
 
     private fun Flow<NSUUID>.watchForConnectionLossIn(scope: CoroutineScope) =
         filter { identifier -> identifier == cbPeripheral.identifier }
