@@ -5,6 +5,9 @@ package com.juul.sensortag.features.sensor
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.juul.kable.Bluetooth
+import com.juul.kable.Bluetooth.Availability.Available
+import com.juul.kable.Bluetooth.Availability.Unavailable
 import com.juul.kable.ConnectionLostException
 import com.juul.kable.NotReadyException
 import com.juul.kable.Peripheral
@@ -15,11 +18,15 @@ import com.juul.sensortag.SensorTag
 import com.juul.sensortag.Vector3f
 import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState
 import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState.AxisState
+import com.juul.sensortag.peripheralScope
 import com.juul.tuulbox.logging.Log
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
@@ -30,21 +37,22 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.absoluteValue
-import kotlin.math.pow
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
-private val DISCONNECT_TIMEOUT = TimeUnit.SECONDS.toMillis(5)
+private val reconnectDelay = 1.seconds
 
 sealed class ViewState {
 
-    object Connecting : ViewState()
+    data object BluetoothUnavailable : ViewState()
+
+    data object Connecting : ViewState()
 
     data class Connected(
         val rssi: Int,
@@ -64,13 +72,14 @@ sealed class ViewState {
         }
     }
 
-    object Disconnecting : ViewState()
+    data object Disconnecting : ViewState()
 
-    object Disconnected : ViewState()
+    data object Disconnected : ViewState()
 }
 
-val ViewState.label: CharSequence
+val ViewState.label: String
     get() = when (this) {
+        ViewState.BluetoothUnavailable -> "Bluetooth unavailable"
         ViewState.Connecting -> "Connecting"
         is ViewState.Connected -> "Connected"
         ViewState.Disconnecting -> "Disconnecting"
@@ -82,9 +91,16 @@ class SensorViewModel(
     macAddress: String
 ) : AndroidViewModel(application) {
 
-    private val peripheral = viewModelScope.peripheral(macAddress)
+    private val autoConnect = MutableStateFlow(false)
+
+    // Intermediary scope needed until https://github.com/JuulLabs/kable/issues/577 is resolved.
+    private val scope = CoroutineScope(peripheralScope.coroutineContext + Job(peripheralScope.coroutineContext.job))
+
+    private val peripheral = scope.peripheral(macAddress) {
+        autoConnectIf(autoConnect::value)
+    }
     private val sensorTag = SensorTag(peripheral)
-    private val connectionAttempt = AtomicInteger()
+    private val state = combine(Bluetooth.availability, peripheral.state, ::Pair)
 
     private val periodProgress = AtomicInteger()
 
@@ -100,47 +116,52 @@ class SensorViewModel(
 
     init {
         viewModelScope.enableAutoReconnect()
-        viewModelScope.connect()
     }
 
     private fun CoroutineScope.enableAutoReconnect() {
-        peripheral.state
-            .filter { it is State.Disconnected }
-            .onEach {
-                val timeMillis =
-                    backoff(base = 500L, multiplier = 2f, retry = connectionAttempt.getAndIncrement())
-                Log.info { "Waiting $timeMillis ms to reconnect..." }
-                delay(timeMillis)
-                connect()
-            }
-            .launchIn(this)
+        state.filter { (bluetoothAvailability, connectionState) ->
+            bluetoothAvailability == Available && connectionState is State.Disconnected
+        }.onEach {
+            ensureActive()
+            Log.info { "Waiting $reconnectDelay to reconnect..." }
+            delay(reconnectDelay)
+            connect()
+        }.launchIn(this)
     }
 
     private fun CoroutineScope.connect() {
-        connectionAttempt.incrementAndGet()
         launch {
-            Log.debug { "connect" }
+            Log.debug { "Connecting" }
             try {
                 peripheral.connect()
+                autoConnect.value = true
                 sensorTag.enableGyro()
                 sensorTag.writeGyroPeriodProgress(periodProgress.get())
-                connectionAttempt.set(0)
             } catch (e: ConnectionLostException) {
+                autoConnect.value = false
                 Log.warn(e) { "Connection attempt failed" }
             }
         }
     }
 
-    val viewState: Flow<ViewState> = peripheral.state.flatMapLatest { state ->
-        when (state) {
-            is State.Connecting -> flowOf(ViewState.Connecting)
-            State.Connected -> combine(peripheral.remoteRssi(), sensorTag.gyro) { rssi, gyro ->
-                ViewState.Connected(rssi, gyroState(gyro))
+    val viewState: Flow<ViewState> = state
+        .flatMapLatest { (bluetoothAvailability, state) ->
+            if (bluetoothAvailability is Unavailable) {
+                return@flatMapLatest flowOf(ViewState.BluetoothUnavailable)
             }
-            State.Disconnecting -> flowOf(ViewState.Disconnecting)
-            is State.Disconnected -> flowOf(ViewState.Disconnected)
+            when (state) {
+                is State.Connecting -> flowOf(ViewState.Connecting)
+                State.Connected -> combine(
+                    peripheral.remoteRssi(),
+                    sensorTag.gyro
+                ) { rssi, gyro ->
+                    ViewState.Connected(rssi, gyroState(gyro))
+                }
+
+                State.Disconnecting -> flowOf(ViewState.Disconnecting)
+                is State.Disconnected -> flowOf(ViewState.Disconnected)
+            }
         }
-    }
 
     private val max = Max()
     private fun gyroState(gyro: Vector3f): GyroState {
@@ -160,10 +181,10 @@ class SensorViewModel(
     }
 
     override fun onCleared() {
-        GlobalScope.launch {
-            withTimeoutOrNull(DISCONNECT_TIMEOUT) {
-                peripheral.disconnect()
-            }
+        peripheralScope.launch {
+            viewModelScope.coroutineContext.job.join()
+            peripheral.disconnect()
+            scope.cancel()
         }
     }
 }
@@ -205,32 +226,3 @@ private data class Max(
         z = maxOf(z, vector.z.absoluteValue)
     }
 }
-
-/**
- * Exponential backoff using the following formula:
- *
- * ```
- * delay = base * multiplier ^ retry
- * ```
- *
- * For example (using `base = 100` and `multiplier = 2`):
- *
- * | retry | delay |
- * |-------|-------|
- * |   1   |   100 |
- * |   2   |   200 |
- * |   3   |   400 |
- * |   4   |   800 |
- * |   5   |  1600 |
- * |  ...  |   ... |
- *
- * Inspired by:
- * [Exponential Backoff And Jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/)
- *
- * @return Backoff delay (in units matching [base] units, e.g. if [base] units are milliseconds then returned delay will be milliseconds).
- */
-private fun backoff(
-    base: Long,
-    multiplier: Float,
-    retry: Int,
-): Long = (base * multiplier.pow(retry - 1)).toLong()

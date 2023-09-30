@@ -18,6 +18,7 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.contentColorFor
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,7 +67,7 @@ class SensorActivity : ComponentActivity() {
                         Column(Modifier.padding(20.dp)) {
                             val viewState = viewModel.viewState.collectAsState(Disconnected).value
 
-                            Text(viewState.javaClass.simpleName.toString(), fontSize = 18.sp)
+                            Text(viewState.label, fontSize = 18.sp)
                             Spacer(Modifier.size(10.dp))
 
                             AndroidView(
@@ -83,7 +84,7 @@ class SensorActivity : ComponentActivity() {
                             Spacer(Modifier.size(20.dp))
                             Text("Period:")
 
-                            var sliderPosition by remember { mutableStateOf(0f) }
+                            var sliderPosition by remember { mutableFloatStateOf(0f) }
                             Slider(
                                 value = sliderPosition,
                                 valueRange = 0f..100f,

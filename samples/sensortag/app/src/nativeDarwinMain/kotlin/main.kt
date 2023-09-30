@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration.Companion.seconds
 
 fun main() = runBlocking<Unit> {
     Log.tagGenerator = ConstantTagGenerator(tag = "SensorTag")
@@ -42,10 +43,21 @@ fun main() = runBlocking<Unit> {
 
     Log.info { "Configuring auto connector" }
     peripheral.state.onEach { state ->
-        Log.info { state.toString() }
+        Log.info { "Received state: $state" }
         if (state is Disconnected) {
-            connect()
-            delay(5_000L) // Throttle reconnects so we don't hammer the system if connection immediately drops.
+            try {
+                Log.verbose { "Attempting connection" }
+                connect()
+            } catch (e: Exception) {
+                Log.error(e) { "Connect failed." }
+                throw e
+            }
+            Log.verbose { "Waiting to reconnect" }
+            delay(2.seconds) // Throttle reconnects so we don't hammer the system if connection immediately drops.
         }
-    }.launchIn(this)
+    }.launchIn(this).apply {
+        invokeOnCompletion { cause ->
+            Log.warn(cause) { "Auto connector complete" }
+        }
+    }
 }
