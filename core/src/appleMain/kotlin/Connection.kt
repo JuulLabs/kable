@@ -2,27 +2,25 @@ package com.juul.kable
 
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 internal class Connection(
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     val delegate: PeripheralDelegate,
     logging: Logging,
     identifier: String,
 ) {
 
-    private val job = Job(scope.coroutineContext[Job]).apply {
-        invokeOnCompletion {
+    init {
+        scope.coroutineContext.job.invokeOnCompletion {
             delegate.close()
         }
     }
-    val scope = CoroutineScope(scope.coroutineContext + job + CoroutineName("Kable/Connection/$identifier"))
 
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = identifier)
 
@@ -53,8 +51,11 @@ internal class Connection(
 
         val response = try {
             deferred.await()
-        } catch (e: ConnectionLostException) {
-            throw ConnectionLostException(cause = e)
+        } catch (e: Exception) {
+            when (val unwrapped = e.unwrapCancellationCause()) {
+                is ConnectionLostException -> throw ConnectionLostException(cause = unwrapped)
+                else -> throw unwrapped
+            }
         }
         deferredResponse = null
 

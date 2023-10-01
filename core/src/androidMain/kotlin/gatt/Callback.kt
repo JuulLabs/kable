@@ -38,6 +38,8 @@ import com.juul.kable.gatt.Response.OnReadRemoteRssi
 import com.juul.kable.gatt.Response.OnServicesDiscovered
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.logs.Logging.DataProcessor.Operation.Change
+import com.juul.kable.logs.Logging.DataProcessor.Operation.Read
 import com.juul.kable.logs.detail
 import com.juul.kable.toLazyCharacteristic
 import kotlinx.coroutines.channels.Channel
@@ -46,8 +48,6 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-
-private typealias DisconnectedAction = () -> Unit
 
 internal class Callback(
     private val state: MutableStateFlow<State>,
@@ -58,11 +58,6 @@ internal class Callback(
 ) : BluetoothGattCallback() {
 
     private val logger = Logger(logging, tag = "Kable/Callback", identifier = macAddress)
-
-    private var disconnectedAction: DisconnectedAction? = null
-    fun invokeOnDisconnected(action: DisconnectedAction) {
-        disconnectedAction = action
-    }
 
     val onResponse = Channel<Response>(CONFLATED)
     val onMtuChanged = Channel<OnMtuChanged>(CONFLATED)
@@ -108,10 +103,7 @@ internal class Callback(
             detail("newState", newState.connectionStateString)
         }
 
-        if (newState == STATE_DISCONNECTED) {
-            gatt.close()
-            disconnectedAction?.invoke()
-        }
+        if (newState == STATE_DISCONNECTED) gatt.close()
 
         when (newState) {
             STATE_CONNECTING -> state.value = State.Connecting.Bluetooth
@@ -141,7 +133,7 @@ internal class Callback(
         status: Int,
     ) {
         @Suppress("DEPRECATION")
-        onCharacteristicRead(gatt, characteristic, characteristic.value, status)
+        onCharacteristicRead(gatt, characteristic, characteristic.value ?: byteArrayOf(), status)
     }
 
     // Added in API 33.
@@ -156,7 +148,7 @@ internal class Callback(
             message = "onCharacteristicRead"
             detail(characteristic)
             detail(event.status)
-            detail(value)
+            detail(value, Read)
         }
         onResponse.trySendOrLog(event)
     }
@@ -181,7 +173,7 @@ internal class Callback(
         characteristic: BluetoothGattCharacteristic,
     ) {
         @Suppress("DEPRECATION")
-        onCharacteristicChanged(gatt, characteristic, characteristic.value)
+        onCharacteristicChanged(gatt, characteristic, characteristic.value ?: byteArrayOf())
     }
 
     // Added in API 33.
@@ -193,7 +185,7 @@ internal class Callback(
         logger.debug {
             message = "onCharacteristicChanged"
             detail(characteristic)
-            detail(value)
+            detail(value, Change)
         }
         val event = CharacteristicChange(characteristic.toLazyCharacteristic(), value)
         onCharacteristicChanged.tryEmitOrLog(event)
@@ -206,7 +198,7 @@ internal class Callback(
         status: Int,
     ) {
         @Suppress("DEPRECATION")
-        onDescriptorRead(gatt, descriptor, status, descriptor.value)
+        onDescriptorRead(gatt, descriptor, status, descriptor.value ?: byteArrayOf())
     }
 
     // Added in API 33.
@@ -221,7 +213,7 @@ internal class Callback(
             message = "onDescriptorRead"
             detail(descriptor)
             detail(event.status)
-            detail(value)
+            detail(value, Read)
         }
         onResponse.trySendOrLog(event)
     }

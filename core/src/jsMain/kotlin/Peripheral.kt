@@ -1,38 +1,27 @@
 package com.juul.kable
 
-import android.bluetooth.BluetoothDevice
+import com.juul.kable.external.BluetoothDevice
 import kotlinx.coroutines.CoroutineScope
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
 ): Peripheral {
-    advertisement as ScanResultAndroidAdvertisement
+    advertisement as BluetoothAdvertisingEventWebBluetoothAdvertisement
     return peripheral(advertisement.bluetoothDevice, builderAction)
 }
 
-public fun CoroutineScope.peripheral(
+internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
     builderAction: PeripheralBuilderAction = {},
-): Peripheral {
+): WebBluetoothPeripheral {
     val builder = PeripheralBuilder()
     builder.builderAction()
-    return BluetoothDeviceAndroidPeripheral(
+    return BluetoothDeviceWebBluetoothPeripheral(
         coroutineContext,
         bluetoothDevice,
-        builder.autoConnectPredicate,
-        builder.transport,
-        builder.phy,
         builder.observationExceptionHandler,
         builder.onServicesDiscovered,
         builder.logging,
     )
-}
-
-public fun CoroutineScope.peripheral(
-    identifier: Identifier,
-    builderAction: PeripheralBuilderAction = {},
-): Peripheral {
-    val bluetoothDevice = getBluetoothAdapter().getRemoteDevice(identifier)
-    return peripheral(bluetoothDevice, builderAction)
 }

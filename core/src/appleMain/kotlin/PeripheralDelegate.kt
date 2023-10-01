@@ -8,6 +8,7 @@ import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
 import com.juul.kable.logs.LogMessage
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.logs.Logging.DataProcessor.Operation.Change
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
@@ -87,7 +88,7 @@ internal class PeripheralDelegate(
         didDiscoverServices: NSError?,
     ) {
         logger.debug {
-            message = "${peripheral.identifier} didDiscoverServices"
+            message = "didDiscoverServices"
             detail(didDiscoverServices)
         }
         _response.sendBlocking(DidDiscoverServices(peripheral.identifier, didDiscoverServices))
@@ -101,7 +102,7 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didDiscoverIncludedServicesForService"
+            message = "didDiscoverIncludedServicesForService"
             detail(didDiscoverIncludedServicesForService)
         }
         // todo
@@ -117,7 +118,7 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didDiscoverCharacteristicsForService"
+            message = "didDiscoverCharacteristicsForService"
             detail(didDiscoverCharacteristicsForService)
         }
         _response.sendBlocking(
@@ -137,7 +138,7 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didDiscoverDescriptorsForCharacteristic"
+            message = "didDiscoverDescriptorsForCharacteristic"
             detail(didDiscoverDescriptorsForCharacteristic)
         }
         // todo
@@ -153,9 +154,9 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didUpdateValueForCharacteristic"
+            message = "didUpdateValueForCharacteristic"
             detail(didUpdateValueForCharacteristic)
-            detail(didUpdateValueForCharacteristic.value)
+            detail(didUpdateValueForCharacteristic.value, Change)
         }
 
         val characteristic = didUpdateValueForCharacteristic.toLazyCharacteristic()
@@ -179,7 +180,7 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didUpdateValueForDescriptor"
+            message = "didUpdateValueForDescriptor"
             detail(didUpdateValueForDescriptor)
         }
         _response.sendBlocking(
@@ -197,7 +198,7 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didWriteValueForCharacteristic"
+            message = "didWriteValueForCharacteristic"
             detail(didWriteValueForCharacteristic)
         }
         _response.sendBlocking(
@@ -217,7 +218,7 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didWriteValueForDescriptor"
+            message = "didWriteValueForDescriptor"
             detail(didWriteValueForDescriptor)
         }
         // todo
@@ -227,7 +228,7 @@ internal class PeripheralDelegate(
         peripheral: CBPeripheral,
     ) {
         logger.debug {
-            message = "${peripheral.identifier} peripheralIsReadyToSendWriteWithoutResponse"
+            message = "peripheralIsReadyToSendWriteWithoutResponse"
         }
         canSendWriteWithoutResponse.value = true
     }
@@ -242,7 +243,7 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didUpdateNotificationStateForCharacteristic"
+            message = "didUpdateNotificationStateForCharacteristic"
             detail(didUpdateNotificationStateForCharacteristic)
         }
         _response.sendBlocking(
@@ -262,7 +263,7 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didReadRSSI"
+            message = "didReadRSSI"
             detail("rssi", didReadRSSI.stringValue)
         }
         _response.sendBlocking(DidReadRssi(peripheral.identifier, didReadRSSI, error))
@@ -272,7 +273,7 @@ internal class PeripheralDelegate(
 
     override fun peripheralDidUpdateName(peripheral: CBPeripheral) {
         logger.debug {
-            message = "${peripheral.identifier} peripheralDidUpdateName"
+            message = "peripheralDidUpdateName"
         }
         // todo
     }
@@ -282,7 +283,7 @@ internal class PeripheralDelegate(
         didModifyServices: List<*>,
     ) {
         logger.debug {
-            message = "${peripheral.identifier} didModifyServices"
+            message = "didModifyServices"
         }
         // todo
     }
@@ -295,7 +296,7 @@ internal class PeripheralDelegate(
         error: NSError?,
     ) {
         logger.debug(error) {
-            message = "${peripheral.identifier} didOpenL2CAPChannel"
+            message = "didOpenL2CAPChannel"
         }
         // todo
     }

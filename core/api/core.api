@@ -1,4 +1,5 @@
 public abstract interface class com/juul/kable/Advertisement {
+	public abstract fun getIdentifier ()Ljava/lang/String;
 	public abstract fun getManufacturerData ()Lcom/juul/kable/ManufacturerData;
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getPeripheralName ()Ljava/lang/String;
@@ -20,6 +21,7 @@ public final class com/juul/kable/AndroidAdvertisement$BondState : java/lang/Enu
 	public static final field Bonded Lcom/juul/kable/AndroidAdvertisement$BondState;
 	public static final field Bonding Lcom/juul/kable/AndroidAdvertisement$BondState;
 	public static final field None Lcom/juul/kable/AndroidAdvertisement$BondState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/AndroidAdvertisement$BondState;
 	public static fun values ()[Lcom/juul/kable/AndroidAdvertisement$BondState;
 }
@@ -37,6 +39,7 @@ public final class com/juul/kable/AndroidPeripheral$Bond : java/lang/Enum {
 	public static final field Bonded Lcom/juul/kable/AndroidPeripheral$Bond;
 	public static final field Bonding Lcom/juul/kable/AndroidPeripheral$Bond;
 	public static final field None Lcom/juul/kable/AndroidPeripheral$Bond;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/AndroidPeripheral$Bond;
 	public static fun values ()[Lcom/juul/kable/AndroidPeripheral$Bond;
 }
@@ -45,6 +48,7 @@ public final class com/juul/kable/AndroidPeripheral$Priority : java/lang/Enum {
 	public static final field Balanced Lcom/juul/kable/AndroidPeripheral$Priority;
 	public static final field High Lcom/juul/kable/AndroidPeripheral$Priority;
 	public static final field Low Lcom/juul/kable/AndroidPeripheral$Priority;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/AndroidPeripheral$Priority;
 	public static fun values ()[Lcom/juul/kable/AndroidPeripheral$Priority;
 }
@@ -54,6 +58,7 @@ public final class com/juul/kable/AndroidPeripheral$Type : java/lang/Enum {
 	public static final field DualMode Lcom/juul/kable/AndroidPeripheral$Type;
 	public static final field LowEnergy Lcom/juul/kable/AndroidPeripheral$Type;
 	public static final field Unknown Lcom/juul/kable/AndroidPeripheral$Type;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/AndroidPeripheral$Type;
 	public static fun values ()[Lcom/juul/kable/AndroidPeripheral$Type;
 }
@@ -217,6 +222,10 @@ public final class com/juul/kable/GattRequestRejectedException : com/juul/kable/
 	public fun <init> ()V
 }
 
+public final class com/juul/kable/IdentifierKt {
+	public static final fun toIdentifier (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class com/juul/kable/Kable {
 	public static final field INSTANCE Lcom/juul/kable/Kable;
 }
@@ -274,6 +283,7 @@ public final class com/juul/kable/OutOfOrderGattCallbackException : java/lang/Il
 public abstract interface class com/juul/kable/Peripheral {
 	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getIdentifier ()Ljava/lang/String;
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getServices ()Ljava/util/List;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
@@ -291,6 +301,7 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 }
 
 public final class com/juul/kable/PeripheralBuilder {
+	public final fun autoConnectIf (Lkotlin/jvm/functions/Function0;)V
 	public final fun getPhy ()Lcom/juul/kable/Phy;
 	public final fun getTransport ()Lcom/juul/kable/Transport;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
@@ -301,20 +312,19 @@ public final class com/juul/kable/PeripheralBuilder {
 }
 
 public final class com/juul/kable/PeripheralKt {
-	public static final fun getIdentifier (Lcom/juul/kable/Peripheral;)Ljava/lang/String;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
-	public static final fun toIdentifier (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class com/juul/kable/Phy : java/lang/Enum {
 	public static final field Le1M Lcom/juul/kable/Phy;
 	public static final field Le2M Lcom/juul/kable/Phy;
 	public static final field LeCoded Lcom/juul/kable/Phy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Phy;
 	public static fun values ()[Lcom/juul/kable/Phy;
 }
@@ -337,6 +347,7 @@ public final class com/juul/kable/Reason : java/lang/Enum {
 	public static final field Off Lcom/juul/kable/Reason;
 	public static final field TurningOff Lcom/juul/kable/Reason;
 	public static final field TurningOn Lcom/juul/kable/Reason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Reason;
 	public static fun values ()[Lcom/juul/kable/Reason;
 }
@@ -475,6 +486,7 @@ public final class com/juul/kable/Transport : java/lang/Enum {
 	public static final field Auto Lcom/juul/kable/Transport;
 	public static final field BrEdr Lcom/juul/kable/Transport;
 	public static final field Le Lcom/juul/kable/Transport;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Transport;
 	public static fun values ()[Lcom/juul/kable/Transport;
 }
@@ -483,6 +495,7 @@ public final class com/juul/kable/WriteNotificationDescriptor : java/lang/Enum {
 	public static final field Always Lcom/juul/kable/WriteNotificationDescriptor;
 	public static final field Auto Lcom/juul/kable/WriteNotificationDescriptor;
 	public static final field Never Lcom/juul/kable/WriteNotificationDescriptor;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/WriteNotificationDescriptor;
 	public static fun values ()[Lcom/juul/kable/WriteNotificationDescriptor;
 }
@@ -490,6 +503,7 @@ public final class com/juul/kable/WriteNotificationDescriptor : java/lang/Enum {
 public final class com/juul/kable/WriteType : java/lang/Enum {
 	public static final field WithResponse Lcom/juul/kable/WriteType;
 	public static final field WithoutResponse Lcom/juul/kable/WriteType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/WriteType;
 	public static fun values ()[Lcom/juul/kable/WriteType;
 }
@@ -531,12 +545,22 @@ public final class com/juul/kable/logs/Logging {
 }
 
 public abstract interface class com/juul/kable/logs/Logging$DataProcessor {
-	public abstract fun process ([B)Ljava/lang/String;
+	public abstract fun process ([BLcom/juul/kable/logs/Logging$DataProcessor$Operation;Ljava/util/UUID;Ljava/util/UUID;Ljava/util/UUID;)Ljava/lang/String;
+}
+
+public final class com/juul/kable/logs/Logging$DataProcessor$Operation : java/lang/Enum {
+	public static final field Change Lcom/juul/kable/logs/Logging$DataProcessor$Operation;
+	public static final field Read Lcom/juul/kable/logs/Logging$DataProcessor$Operation;
+	public static final field Write Lcom/juul/kable/logs/Logging$DataProcessor$Operation;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/logs/Logging$DataProcessor$Operation;
+	public static fun values ()[Lcom/juul/kable/logs/Logging$DataProcessor$Operation;
 }
 
 public final class com/juul/kable/logs/Logging$Format : java/lang/Enum {
 	public static final field Compact Lcom/juul/kable/logs/Logging$Format;
 	public static final field Multiline Lcom/juul/kable/logs/Logging$Format;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/logs/Logging$Format;
 	public static fun values ()[Lcom/juul/kable/logs/Logging$Format;
 }
@@ -545,6 +569,7 @@ public final class com/juul/kable/logs/Logging$Level : java/lang/Enum {
 	public static final field Data Lcom/juul/kable/logs/Logging$Level;
 	public static final field Events Lcom/juul/kable/logs/Logging$Level;
 	public static final field Warnings Lcom/juul/kable/logs/Logging$Level;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/logs/Logging$Level;
 	public static fun values ()[Lcom/juul/kable/logs/Logging$Level;
 }

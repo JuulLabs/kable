@@ -1,6 +1,8 @@
 package com.juul.kable.logs
 
+import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.toByteArray
+import com.juul.kable.toUuid
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBService
@@ -9,8 +11,8 @@ import platform.Foundation.NSError
 
 internal actual val LOG_INDENT: String? = "  "
 
-internal fun LogMessage.detail(data: NSData?) {
-    if (data != null) detail(data.toByteArray())
+internal fun LogMessage.detail(data: NSData?, operation: Operation) {
+    detail(data?.toByteArray(), operation)
 }
 
 internal fun LogMessage.detail(error: NSError?) {
@@ -22,11 +24,16 @@ internal fun LogMessage.detail(service: CBService) {
 }
 
 internal fun LogMessage.detail(characteristic: CBCharacteristic) {
-    detail(characteristic.service!!)
-    detail("characteristic", characteristic.UUID.UUIDString)
+    detail(
+        characteristic.service!!.UUID.toUuid(),
+        characteristic.UUID.toUuid(),
+    )
 }
 
 internal fun LogMessage.detail(descriptor: CBDescriptor) {
-    detail(descriptor.characteristic!!)
-    detail("descriptor", descriptor.UUID.UUIDString)
+    detail(
+        descriptor.characteristic!!.service!!.UUID.toUuid(),
+        descriptor.characteristic!!.UUID.toUuid(),
+        descriptor.UUID.toUuid(),
+    )
 }

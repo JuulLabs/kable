@@ -92,6 +92,21 @@ public actual class PeripheralBuilder internal actual constructor() {
         observationExceptionHandler = handler
     }
 
+    internal var autoConnectPredicate: () -> Boolean = { false }
+
+    /**
+     * Whether to automatically connect as soon as the remote device becomes available ([predicate]
+     * returns `true` — [connection][Peripheral.connect] attempts will wait indefinitely unless
+     * wrapped in a `withTimeout`), or to directly connect to the remote device ([predicate] returns
+     * `false` — connection attempts timeout after ~30 seconds).
+     *
+     * [predicate] is called once per connection attempt, not per call to
+     * [connect][Peripheral.connect].
+     */
+    public fun autoConnectIf(predicate: () -> Boolean) {
+        autoConnectPredicate = predicate
+    }
+
     /** Preferred transport for GATT connections to remote dual-mode devices. */
     public var transport: Transport = Transport.Le
 

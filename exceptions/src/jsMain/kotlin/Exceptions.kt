@@ -1,4 +1,4 @@
-// ktlint-disable filename
+@file:Suppress("ktlint:standard:filename")
 
 package com.juul.kable
 

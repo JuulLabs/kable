@@ -40,7 +40,7 @@ public actual enum class Reason {
 
 private val Context.locationManager: LocationManager
     get() = ContextCompat.getSystemService(this, LocationManager::class.java)
-        ?: error("LocationManager system service unavailable")
+        ?: throw LocationManagerUnavailableException("LocationManager system service unavailable")
 
 private val isLocationEnabled: Boolean
     get() = LocationManagerCompat.isLocationEnabled(applicationContext.locationManager)

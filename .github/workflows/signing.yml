@@ -1,11 +1,12 @@
-name: Publish
+name: Validate Maven Signing
 on:
-  release:
-    types:
-      - published
+  push:
+    branches:
+      - main
 
 jobs:
-  publish:
+  signing:
+    if: github.repository_owner == 'JuulLabs'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,18 +16,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: check
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: check
-
-      - name: publish
+      - name: publishToMavenLocal
         uses: gradle/gradle-build-action@v2
         with:
           arguments: |
-            -PVERSION_NAME=${{ github.ref_name }}
             -PsigningInMemoryKey=${{ secrets.SIGNING_KEY }}
             -PsigningInMemoryKeyPassword=${{ secrets.SIGNING_PASSWORD }}
-            -PmavenCentralUsername=${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
-            -PmavenCentralPassword=${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
-            publish
+            publishToMavenLocal

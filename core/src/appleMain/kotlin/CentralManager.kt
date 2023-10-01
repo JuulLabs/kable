@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
@@ -16,15 +17,37 @@ import platform.Foundation.NSData
 
 private const val DISPATCH_QUEUE_LABEL = "central"
 
-public class CentralManager internal constructor() {
+public class CentralManager internal constructor(
+    options: Map<Any?, *>?,
+) {
 
-    internal companion object {
-        val Default: CentralManager by lazy { CentralManager() }
+    public data class Configuration(
+        val stateRestoration: Boolean,
+    ) {
+
+        public class Builder internal constructor() {
+            /** Enables support for
+             * [Core Bluetooth Background Processing for iOS Apps](https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html)
+             * by enabling [CentralManager] state preservation and restoration. */
+            public var stateRestoration: Boolean = false
+        }
+    }
+
+    public companion object {
+
+        private val configuration = atomic<Configuration?>(null)
+        private val lazyDefault = lazy { CentralManager(configuration.value?.toOptions()) }
+        internal val Default by lazyDefault
+
+        public fun configure(builderAction: Configuration.Builder.() -> Unit) {
+            check(!lazyDefault.isInitialized()) { "Cannot configure CentralManager, it has already initialized." }
+            configuration.value = Configuration.Builder().apply(builderAction).build()
+        }
     }
 
     private val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
     internal val delegate = CentralManagerDelegate()
-    private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue)
+    private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue, options)
 
     internal suspend fun scanForPeripheralsWithServices(
         services: List<Uuid>?,

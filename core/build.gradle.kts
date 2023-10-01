@@ -21,7 +21,7 @@ kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
-    android().publishAllLibraryVariants()
+    androidTarget().publishAllLibraryVariants()
     js().browser()
     iosX64()
     macosArm64()
@@ -57,9 +57,12 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 api(libs.kotlinx.coroutines.android)
-                implementation(libs.atomicfu)
                 implementation(libs.androidx.core)
                 implementation(libs.androidx.startup)
+
+                // Workaround for AtomicFU plugin not automatically adding JVM dependency for Android.
+                // https://github.com/Kotlin/kotlinx-atomicfu/issues/145
+                implementation(libs.atomicfu)
             }
         }
 
@@ -142,5 +145,7 @@ android {
         // we disable the "missing permission" lint check. Caution must be taken during later Android version bumps to
         // make sure we aren't missing any newly introduced permission requirements.
         disable += "MissingPermission"
+
+        disable += "GradleDependency"
     }
 }

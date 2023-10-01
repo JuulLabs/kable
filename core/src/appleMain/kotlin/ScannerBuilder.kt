@@ -34,8 +34,8 @@ public actual class ScannerBuilder {
         allowDuplicateKeys?.also {
             options[CBCentralManagerScanOptionAllowDuplicatesKey] = it
         }
-        solicitedServiceUuids?.also {
-            options[CBCentralManagerScanOptionSolicitedServiceUUIDsKey] = it.toTypedArray()
+        solicitedServiceUuids?.also { uuids ->
+            options[CBCentralManagerScanOptionSolicitedServiceUUIDsKey] = uuids.map(Uuid::toCBUUID)
         }
 
         return CentralManagerCoreBluetoothScanner(

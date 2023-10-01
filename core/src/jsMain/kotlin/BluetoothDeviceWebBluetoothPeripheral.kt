@@ -11,6 +11,7 @@ import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -37,29 +38,6 @@ private const val CHARACTERISTIC_VALUE_CHANGED = "characteristicvaluechanged"
 
 private typealias ObservationListener = (JsEvent) -> Unit
 
-public actual fun CoroutineScope.peripheral(
-    advertisement: Advertisement,
-    builderAction: PeripheralBuilderAction,
-): Peripheral {
-    advertisement as BluetoothAdvertisingEventWebBluetoothAdvertisement
-    return peripheral(advertisement.bluetoothDevice, builderAction)
-}
-
-internal fun CoroutineScope.peripheral(
-    bluetoothDevice: BluetoothDevice,
-    builderAction: PeripheralBuilderAction = {},
-): WebBluetoothPeripheral {
-    val builder = PeripheralBuilder()
-    builder.builderAction()
-    return BluetoothDeviceWebBluetoothPeripheral(
-        coroutineContext,
-        bluetoothDevice,
-        builder.observationExceptionHandler,
-        builder.onServicesDiscovered,
-        builder.logging,
-    )
-}
-
 internal class BluetoothDeviceWebBluetoothPeripheral(
     parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
@@ -78,10 +56,10 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
 
     private val ioLock = Mutex()
 
-    internal val platformIdentifier = bluetoothDevice.id
-
     private val _state = MutableStateFlow<State>(State.Disconnected())
     override val state: StateFlow<State> = _state.asStateFlow()
+
+    override val identifier: String = bluetoothDevice.id
 
     private var _discoveredServices: List<DiscoveredService>? = null
     private val discoveredServices: List<DiscoveredService>
@@ -231,7 +209,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
             message = "write"
             detail(characteristic)
             detail(writeType)
-            detail(data)
+            detail(data, Operation.Write)
         }
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
@@ -253,7 +231,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         logger.debug {
             message = "read"
             detail(characteristic)
-            detail(value)
+            detail(value, Operation.Read)
         }
         return value
     }
@@ -271,7 +249,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         logger.debug {
             message = "write"
             detail(descriptor)
-            detail(data)
+            detail(data, Operation.Write)
         }
 
         val platformDescriptor = discoveredServices.obtain(descriptor)
@@ -290,7 +268,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         logger.debug {
             message = "read"
             detail(descriptor)
-            detail(value)
+            detail(value, Operation.Read)
         }
         return value
     }
@@ -396,7 +374,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         logger.debug {
             message = CHARACTERISTIC_VALUE_CHANGED
             detail(this@createListener)
-            detail(data)
+            detail(data, Operation.Change)
         }
         val characteristicChange = ObservationEvent.CharacteristicChange(this, data)
 
