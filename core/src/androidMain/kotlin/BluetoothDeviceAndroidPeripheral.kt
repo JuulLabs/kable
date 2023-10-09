@@ -57,6 +57,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -123,8 +124,10 @@ internal class BluetoothDeviceAndroidPeripheral(
             .filter { intent ->
                 bluetoothDevice == IntentCompat.getParcelableExtra(intent, EXTRA_DEVICE, BluetoothDevice::class.java)
             }
-            .map { intent ->
-                when (val state = intent.getIntExtra(EXTRA_BOND_STATE, ERROR)) {
+            .map { intent -> intent.getIntExtra(EXTRA_BOND_STATE, ERROR) }
+            .onStart { emit(bluetoothDevice.bondState) }
+            .map { state ->
+                when (state) {
                     BOND_NONE -> Bond.None
                     BOND_BONDING -> Bond.Bonding
                     BOND_BONDED -> Bond.Bonded
