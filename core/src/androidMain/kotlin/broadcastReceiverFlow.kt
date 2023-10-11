@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
+@Deprecated("Was not intended to be public. Will not be available (will be `internal`) in a future release.")
 public fun broadcastReceiverFlow(
     intentFilter: IntentFilter,
 ): Flow<Intent> = callbackFlow {
