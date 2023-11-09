@@ -76,7 +76,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         _connectionState.emitBlocking(DidConnect(didConnectPeripheral.identifier))
     }
 
-    @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
+    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
+    @Suppress("CONFLICTING_OVERLOADS")
     override fun centralManager(
         central: CBCentralManager,
         didDisconnectPeripheral: CBPeripheral,
@@ -86,7 +87,8 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         _connectionState.emitBlocking(DidDisconnect(didDisconnectPeripheral.identifier, error))
     }
 
-    @Suppress("CONFLICTING_OVERLOADS") // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
+    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
+    @Suppress("CONFLICTING_OVERLOADS")
     override fun centralManager(
         central: CBCentralManager,
         didFailToConnectPeripheral: CBPeripheral,
@@ -121,9 +123,10 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
     }
 
     override fun centralManager(central: CBCentralManager, willRestoreState: Map<Any?, *>) {
-        // No-op: From the documentation: Tells the delegate the system is about to restore the central manager, as part of relaunching the app into the background.
-        // Use this method to synchronize the state of your app with the state of the Bluetooth system.
-        // Since the rest of Kable is handling the "synchronize," there's nothing to do here.
+        // No-op: From the documentation: Tells the delegate the system is about to restore the
+        // central manager, as part of relaunching the app into the background. Use this method to
+        // synchronize the state of your app with the state of the Bluetooth system. Since the rest
+        // of Kable is handling the "synchronize," there's nothing to do here.
     }
 
     /* Monitoring the Central Manager’s Authorization */

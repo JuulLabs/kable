@@ -1,4 +1,23 @@
 [*.{kt,kts}]
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
+
+ktlint_standard_blank-line-before-declaration = disabled
 ktlint_standard_filename = disabled
+ktlint_standard_function-naming = disabled
+ktlint_standard_function-signature = disabled
+ktlint_standard_no-blank-line-in-list = disabled
+ktlint_standard_no-empty-first-line-in-class-body = disabled
+ktlint_standard_no-single-line-block-comment = disabled
+ktlint_standard_property-naming = disabled
+ktlint_standard_property-wrapping = disabled
+ktlint_standard_statement-wrapping = disabled
+
+# `string-template-indent` is disabled because it depends on `multiline-expression-wrapping`.
+ktlint_standard_multiline-expression-wrapping = disabled
+ktlint_standard_string-template-indent = disabled
+
+[**/*Test/kotlin/**/*.{kt,kts}]
+# `if-else-wrapping` is disabled because it depends on `discouraged-comment-location`.
+ktlint_standard_discouraged-comment-location = disabled
+ktlint_standard_if-else-wrapping = disabled

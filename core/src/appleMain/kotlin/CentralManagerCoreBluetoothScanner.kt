@@ -39,6 +39,7 @@ internal class CentralManagerCoreBluetoothScanner(
     init {
         if (!nativeServiceFiltering) {
             logger.warn {
+                @Suppress("ktlint:standard:max-line-length")
                 message = "According to Core Bluetooth documentation: " +
                     "\"The recommended practice is to populate the serviceUUIDs parameter rather than leaving it nil.\" " +
                     "This means providing only (and at least 1) filter(s) of type `Filter.Service` to Scanner. " +
@@ -66,8 +67,11 @@ internal class CentralManagerCoreBluetoothScanner(
             }
             .filterIsInstance<DidDiscoverPeripheral>()
             .filter { didDiscoverPeripheral ->
-                if (nativeServiceFiltering) return@filter true // Short-circuit (i.e. don't filter) when scan is using native service filtering.
-                if (filters.isEmpty()) return@filter true // Short-circuit (i.e. don't filter) if no filters were provided.
+                // Short-circuit (i.e. don't filter) when scan is using native service filtering.
+                if (nativeServiceFiltering) return@filter true
+
+                // Short-circuit (i.e. don't filter) if no filters were provided.
+                if (filters.isEmpty()) return@filter true
 
                 val advertisementData = didDiscoverPeripheral.advertisementData.asAdvertisementData()
                 filters.any { filter ->
