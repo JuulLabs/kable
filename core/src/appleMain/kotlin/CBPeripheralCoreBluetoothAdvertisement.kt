@@ -11,6 +11,7 @@ import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSData
 import platform.Foundation.NSNumber
+import kotlin.experimental.ExperimentalNativeApi
 
 internal class CBPeripheralCoreBluetoothAdvertisement(
     override val rssi: Int,
@@ -81,6 +82,7 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
 
 internal fun NSData.toManufacturerData(): ManufacturerData? = toByteArray().toManufacturerData()
 
+@OptIn(ExperimentalNativeApi::class)
 private fun ByteArray.toManufacturerData(): ManufacturerData? =
     takeIf { size >= 2 }?.getShortAt(0)?.let { code ->
         ManufacturerData(
