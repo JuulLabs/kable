@@ -36,7 +36,6 @@ kotlin {
                 api(libs.kotlinx.coroutines.core)
                 api(libs.uuid)
                 implementation(libs.tuulbox.collections)
-                implementation(libs.tuulbox.coroutines)
             }
         }
 
@@ -64,6 +63,7 @@ kotlin {
                 // Workaround for AtomicFU plugin not automatically adding JVM dependency for Android.
                 // https://github.com/Kotlin/kotlinx-atomicfu/issues/145
                 implementation(libs.atomicfu)
+                implementation(libs.tuulbox.coroutines)
             }
         }
 
