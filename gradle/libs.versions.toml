@@ -1,11 +1,11 @@
 [versions]
-android-compile = "33"
+android-compile = "34"
 android-min = "21"
 atomicfu = "0.22.0"
 coroutines = "1.7.3"
 jvm-toolchain = "11"
 kotlin = "1.9.10"
-tuulbox = "6.5.0"
+tuulbox = "7.0.0"
 
 [libraries]
 androidx-core = { module = "androidx.core:core-ktx", version = "1.12.0" }
@@ -15,6 +15,7 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
+tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
 uuid = { module = "com.benasher44:uuid", version = "0.8.1" }
 

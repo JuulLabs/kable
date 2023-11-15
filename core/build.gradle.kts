@@ -63,6 +63,8 @@ kotlin {
                 // Workaround for AtomicFU plugin not automatically adding JVM dependency for Android.
                 // https://github.com/Kotlin/kotlinx-atomicfu/issues/145
                 implementation(libs.atomicfu)
+
+                implementation(libs.tuulbox.coroutines)
             }
         }
 
