@@ -308,7 +308,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
         return when (event) {
             is ObservationEvent.CharacteristicChange -> event.data
-            is ObservationEvent.Error -> throw IOException(cause = event.cause)
+            is ObservationEvent.Error -> throw IOException(message = null, cause = event.cause)
             ObservationEvent.Disconnected -> throw ConnectionLostException()
         }
     }
