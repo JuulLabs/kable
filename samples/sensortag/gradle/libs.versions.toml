@@ -12,7 +12,7 @@ kable = "0.28.0-rc"
 kotlin = "1.9.20"
 krayon = "0.16.0"
 ksp = "1.9.10-1.0.13"
-tuulbox = "6.5.0"
+tuulbox = "7.0.0"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
