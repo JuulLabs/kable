@@ -17,7 +17,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
 tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
 tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox" }
-uuid = { module = "com.benasher44:uuid", version = "0.8.1" }
+uuid = { module = "com.benasher44:uuid", version = "0.8.2" }
 
 [plugins]
 android-library = { id = "com.android.library", version = "8.1.3" }
