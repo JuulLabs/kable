@@ -17,9 +17,13 @@ public class BluetoothDisabledException(
 ) : BluetoothException(message, cause)
 
 public expect open class IOException(
-    message: String? = null,
-    cause: Throwable? = null,
-) : Exception
+    message: String?,
+    cause: Throwable?,
+) : Exception {
+    public constructor()
+    public constructor(message: String?)
+    public constructor(cause: Throwable?)
+}
 
 public open class NotConnectedException(
     message: String? = null,
