@@ -12,19 +12,16 @@ kotlin {
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
     androidTarget().publishAllLibraryVariants()
-    js().browser()
-
-    iosX64()
     iosArm64()
-    macosX64()
+    iosX64()
+    js().browser()
     macosArm64()
+    macosX64()
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                api(project(":core"))
-                api(libs.tuulbox.logging)
-            }
+        commonMain.dependencies {
+            api(project(":core"))
+            api(libs.tuulbox.logging)
         }
     }
 }
