@@ -118,10 +118,6 @@ kotlin {
         val iosSimulatorArm64Test by getting {
             dependsOn(appleTest)
         }
-
-        all {
-            languageSettings.enableLanguageFeature("InlineClasses")
-        }
     }
 }
 
