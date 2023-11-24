@@ -1,7 +1,7 @@
 [versions]
 android-compile = "34"
 android-min = "21"
-atomicfu = "0.22.0"
+atomicfu = "0.23.1"
 coroutines = "1.7.3"
 jvm-toolchain = "11"
 kotlin = "1.9.20"
