@@ -46,10 +46,6 @@ kotlin {
 
             implementation(libs.tuulbox.coroutines)
         }
-
-        all {
-            languageSettings.enableLanguageFeature("InlineClasses")
-        }
     }
 }
 
