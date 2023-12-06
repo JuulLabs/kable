@@ -3,7 +3,7 @@ package com.juul.kable.logs
 import com.benasher44.uuid.Uuid
 import com.juul.kable.ObsoleteKableApi
 
-internal typealias LoggingBuilder = Logging.() -> Unit
+public typealias LoggingBuilder = Logging.() -> Unit
 
 public class Logging {
 
