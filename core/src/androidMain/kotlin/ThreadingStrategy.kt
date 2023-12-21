@@ -20,6 +20,10 @@ public interface ThreadingStrategy {
     public fun release(threading: Threading)
 }
 
+/**
+ * A [ThreadingStrategy] that creates ["threads"][Threading] immediately as needed and immediately
+ * shuts down when immediately when [released][release].
+ */
 public object OnDemandThreadingStrategy : ThreadingStrategy {
 
     override fun acquire(): Threading = Threading(generateThreadName())
@@ -29,6 +33,19 @@ public object OnDemandThreadingStrategy : ThreadingStrategy {
     }
 }
 
+/**
+ * A [ThreadingStrategy] that pools unused ["threads"][Threading] until [evictAfter] time has
+ * elapsed.
+ *
+ * You should only create a single [PooledThreadingStrategy] instance per application run, as it
+ * holds the "shared" pool of unused ["threads"][Threading].
+ *
+ * Useful for when [Peripheral] connections are quickly being spun down and up again — as they can
+ * [acquire] their ["threads"][Threading] from the unused pool.
+ *
+ * If [Peripheral] connections are expected to be long running, or for there to be long down times
+ * between connections, [OnDemandThreadingStrategy] may be a better choice.
+ */
 public class PooledThreadingStrategy(
     scope: CoroutineScope = GlobalScope,
     private val evictAfter: Duration = 1.minutes,
