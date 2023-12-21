@@ -328,6 +328,7 @@ public final class com/juul/kable/PooledThreadingStrategy : com/juul/kable/Threa
 	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineScope;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineScope;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun acquire ()Lcom/juul/kable/Threading;
+	public final fun cancel ()V
 	public fun release (Lcom/juul/kable/Threading;)V
 }
 

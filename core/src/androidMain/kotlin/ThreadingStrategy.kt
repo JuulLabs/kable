@@ -4,7 +4,6 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart.LAZY
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -38,7 +37,7 @@ public class PooledThreadingStrategy(
     private val pool = mutableListOf<Pair<TimeMark, Threading>>()
     private val guard = reentrantLock()
 
-    private val evictionJob = scope.launch(start = LAZY) {
+    private val job = scope.launch {
         while (true) {
             guard.withLock {
                 pool.removeAll { (timeMark) -> timeMark.hasPassedNow() }
@@ -47,7 +46,7 @@ public class PooledThreadingStrategy(
         }
     }
 
-    internal fun start(): Boolean = evictionJob.start()
+    public fun cancel(): Unit = job.cancel()
 
     override fun acquire(): Threading = guard.withLock {
         pool.removeFirstOrNull()?.second
