@@ -5,7 +5,7 @@ atomicfu = "0.23.1"
 coroutines = "1.7.3"
 jvm-toolchain = "11"
 kotlin = "1.9.21"
-tuulbox = "7.0.0"
+tuulbox = "7.0.1"
 
 [libraries]
 androidx-core = { module = "androidx.core:core-ktx", version = "1.12.0" }
