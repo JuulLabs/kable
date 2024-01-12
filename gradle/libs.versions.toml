@@ -4,7 +4,7 @@ android-min = "21"
 atomicfu = "0.23.1"
 coroutines = "1.7.3"
 jvm-toolchain = "11"
-kotlin = "1.9.21"
+kotlin = "1.9.22"
 tuulbox = "7.0.1"
 
 [libraries]
