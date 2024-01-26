@@ -19,6 +19,7 @@ kotlin {
     js().browser()
     macosArm64()
     macosX64()
+    jvm()
 
     sourceSets {
         commonMain.dependencies {
@@ -46,6 +47,9 @@ kotlin {
 
             implementation(libs.tuulbox.coroutines)
         }
+
+        jvmMain.dependencies {  }
+
     }
 }
 
@@ -75,3 +79,4 @@ android {
         disable += "GradleDependency"
     }
 }
+
