@@ -1,7 +1,7 @@
 [versions]
 android-compile = "34"
 android-min = "21"
-atomicfu = "0.23.1"
+atomicfu = "0.23.2"
 coroutines = "1.7.3"
 jvm-toolchain = "11"
 kotlin = "1.9.22"
@@ -20,7 +20,7 @@ tuulbox-logging = { module = "com.juul.tuulbox:logging", version.ref = "tuulbox"
 uuid = { module = "com.benasher44:uuid", version = "0.8.2" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "8.2.1" }
+android-library = { id = "com.android.library", version = "8.2.2" }
 atomicfu = { id = "kotlinx-atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "1.9.10" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
