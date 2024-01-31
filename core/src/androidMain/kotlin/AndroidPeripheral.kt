@@ -3,6 +3,7 @@ package com.juul.kable
 import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresPermission
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 @Deprecated(
@@ -14,6 +15,8 @@ public typealias Priority = AndroidPeripheral.Priority
 public interface AndroidPeripheral : Peripheral {
 
     public enum class Priority { Low, Balanced, High }
+
+    public enum class Bond { None, Bonding, Bonded }
 
     public enum class Type {
 
@@ -81,4 +84,6 @@ public interface AndroidPeripheral : Peripheral {
      * is negotiated.
      */
     public val mtu: StateFlow<Int?>
+
+    public val bondState: Flow<Bond>
 }
