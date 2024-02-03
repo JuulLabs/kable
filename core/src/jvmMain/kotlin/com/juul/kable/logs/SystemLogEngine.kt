@@ -5,7 +5,7 @@ import com.juul.kable.jvmNotImplementedException
 public actual object SystemLogEngine : LogEngine {
 
     override fun verbose(throwable: Throwable?, tag: String, message: String) {
-        debug(throwable, tag, message)
+        jvmNotImplementedException()
     }
 
     override fun debug(throwable: Throwable?, tag: String, message: String) {
