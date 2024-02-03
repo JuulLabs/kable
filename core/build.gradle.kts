@@ -47,9 +47,6 @@ kotlin {
 
             implementation(libs.tuulbox.coroutines)
         }
-
-        jvmMain.dependencies {  }
-
     }
 }
 
