@@ -87,10 +87,6 @@ public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
 	public fun getServiceUuid ()Ljava/util/UUID;
 }
 
-public final class com/juul/kable/ExceptionsKt {
-	public static final fun jvmNotImplementedException ()Ljava/lang/Void;
-}
-
 public abstract class com/juul/kable/Filter {
 }
 
