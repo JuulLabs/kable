@@ -1,8 +1,20 @@
 $dokka.format:html-v1
 $dokka.linkExtension:html
-$dokka.location:com.juul.kable/Reason/entries/#/PointingToDeclaration/core/com.juul.kable/-reason/[js]entries.html
-$dokka.location:com.juul.kable/Reason/valueOf/#kotlin.String/PointingToDeclaration/core/com.juul.kable/-reason/[js]value-of.html
-$dokka.location:com.juul.kable/Reason/values/#/PointingToDeclaration/core/com.juul.kable/-reason/[js]values.html
+$dokka.location:com.juul.kable.logs/SystemLogEngine/assert/#kotlin.Throwable?#kotlin.String#kotlin.String/PointingToDeclaration/core/com.juul.kable.logs/-system-log-engine/[jvm]assert.html
+$dokka.location:com.juul.kable.logs/SystemLogEngine/debug/#kotlin.Throwable?#kotlin.String#kotlin.String/PointingToDeclaration/core/com.juul.kable.logs/-system-log-engine/[jvm]debug.html
+$dokka.location:com.juul.kable.logs/SystemLogEngine/error/#kotlin.Throwable?#kotlin.String#kotlin.String/PointingToDeclaration/core/com.juul.kable.logs/-system-log-engine/[jvm]error.html
+$dokka.location:com.juul.kable.logs/SystemLogEngine/info/#kotlin.Throwable?#kotlin.String#kotlin.String/PointingToDeclaration/core/com.juul.kable.logs/-system-log-engine/[jvm]info.html
+$dokka.location:com.juul.kable.logs/SystemLogEngine/verbose/#kotlin.Throwable?#kotlin.String#kotlin.String/PointingToDeclaration/core/com.juul.kable.logs/-system-log-engine/[jvm]verbose.html
+$dokka.location:com.juul.kable.logs/SystemLogEngine/warn/#kotlin.Throwable?#kotlin.String#kotlin.String/PointingToDeclaration/core/com.juul.kable.logs/-system-log-engine/[jvm]warn.html
+$dokka.location:com.juul.kable/DiscoveredCharacteristic/characteristicUuid/#/PointingToDeclaration/core/com.juul.kable/-discovered-characteristic/[jvm]characteristic-uuid.html
+$dokka.location:com.juul.kable/DiscoveredCharacteristic/serviceUuid/#/PointingToDeclaration/core/com.juul.kable/-discovered-characteristic/[jvm]service-uuid.html
+$dokka.location:com.juul.kable/DiscoveredDescriptor/characteristicUuid/#/PointingToDeclaration/core/com.juul.kable/-discovered-descriptor/[jvm]characteristic-uuid.html
+$dokka.location:com.juul.kable/DiscoveredDescriptor/descriptorUuid/#/PointingToDeclaration/core/com.juul.kable/-discovered-descriptor/[jvm]descriptor-uuid.html
+$dokka.location:com.juul.kable/DiscoveredDescriptor/serviceUuid/#/PointingToDeclaration/core/com.juul.kable/-discovered-descriptor/[jvm]service-uuid.html
+$dokka.location:com.juul.kable/DiscoveredService/serviceUuid/#/PointingToDeclaration/core/com.juul.kable/-discovered-service/[jvm]service-uuid.html
+$dokka.location:com.juul.kable/Reason/entries/#/PointingToDeclaration/core/com.juul.kable/-reason/[jvm]entries.html
+$dokka.location:com.juul.kable/Reason/valueOf/#kotlin.String/PointingToDeclaration/core/com.juul.kable/-reason/[jvm]value-of.html
+$dokka.location:com.juul.kable/Reason/values/#/PointingToDeclaration/core/com.juul.kable/-reason/[jvm]values.html
 module:core
 com.juul.kable
 com.juul.kable.logs
