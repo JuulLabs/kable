@@ -17,6 +17,7 @@ kotlin {
     js().browser()
     macosArm64()
     macosX64()
+    jvm()
 
     sourceSets {
         commonMain.dependencies {
