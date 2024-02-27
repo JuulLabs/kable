@@ -28,13 +28,6 @@ kotlin {
 }
 
 android {
-    // Workaround (for `jvmToolchain` not being honored) needed until AGP 8.1.0-alpha09.
-    // https://kotlinlang.org/docs/gradle-configure-project.html#gradle-java-toolchains-support
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
     compileSdk = libs.versions.android.compile.get().toInt()
     defaultConfig.minSdk = libs.versions.android.min.get().toInt()
 
