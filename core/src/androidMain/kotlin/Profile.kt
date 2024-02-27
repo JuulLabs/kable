@@ -38,7 +38,7 @@ public actual data class DiscoveredCharacteristic internal constructor(
     override val serviceUuid: Uuid get() = characteristic.service.uuid
     override val characteristicUuid: Uuid get() = characteristic.uuid
     val instanceId: Int get() = characteristic.instanceId
-    actual val properties: Properties get() = Properties(characteristic.properties)
+    public actual val properties: Properties get() = Properties(characteristic.properties)
 }
 
 public actual data class DiscoveredDescriptor internal constructor(
