@@ -12,6 +12,8 @@ ktlint_standard_no-single-line-block-comment = disabled
 ktlint_standard_property-naming = disabled
 ktlint_standard_property-wrapping = disabled
 ktlint_standard_statement-wrapping = disabled
+ktlint_standard_value-argument-comment = disabled
+ktlint_standard_value-parameter-comment = disabled
 
 # `string-template-indent` is disabled because it depends on `multiline-expression-wrapping`.
 ktlint_standard_multiline-expression-wrapping = disabled
