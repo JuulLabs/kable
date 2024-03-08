@@ -19,7 +19,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":core"))
-            api(libs.khronicle.core)
+            api(libs.khronicle)
         }
     }
 }
