@@ -20,5 +20,7 @@ com.juul.kable
 com.juul.kable.logs
 module:exceptions
 com.juul.kable
+module:log-engine-khronicle
+com.juul.kable.logs.khronicle
 module:log-engine-tuulbox
 com.juul.kable.logs
