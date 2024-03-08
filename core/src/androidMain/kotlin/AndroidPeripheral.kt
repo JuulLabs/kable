@@ -1,6 +1,10 @@
 package com.juul.kable
 
 import android.Manifest
+import android.Manifest.permission.BLUETOOTH_CONNECT
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothStatusCodes
 import android.os.Build
 import androidx.annotation.RequiresPermission
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +37,62 @@ public interface AndroidPeripheral : Peripheral {
         DualMode,
 
         /** https://developer.android.com/reference/android/bluetooth/BluetoothDevice#DEVICE_TYPE_UNKNOWN */
+        Unknown,
+    }
+
+    /**
+     * Represents possible write operation results, as defined by Android's
+     * [WriteOperationReturnValues](https://cs.android.com/android/platform/superproject/main/+/b7a389a145ff443550e1a942bf713c60c2bd6a14:packages/modules/Bluetooth/framework/java/android/bluetooth/BluetoothGatt.java;l=1587-1593)
+     * `IntDef`.
+     */
+    public enum class WriteResult {
+
+        /**
+         * Error code indicating that the Bluetooth Device specified is not connected, but is bonded.
+         *
+         * https://cs.android.com/android/platform/superproject/main/+/main:packages/modules/Bluetooth/framework/java/android/bluetooth/BluetoothStatusCodes.java;l=50
+         */
+        NotConnected,
+
+        /**
+         * A GATT writeCharacteristic request is not permitted on the remote device.
+         *
+         * See: [BluetoothStatusCodes.ERROR_GATT_WRITE_NOT_ALLOWED]
+         * https://developer.android.com/reference/kotlin/android/bluetooth/BluetoothStatusCodes#error_gatt_write_not_allowed
+         */
+        WriteNotAllowed,
+
+        /**
+         * A GATT writeCharacteristic request is issued to a busy remote device.
+         *
+         * See: [BluetoothStatusCodes.ERROR_GATT_WRITE_REQUEST_BUSY]
+         * https://developer.android.com/reference/kotlin/android/bluetooth/BluetoothStatusCodes#error_gatt_write_request_busy
+         */
+        WriteRequestBusy,
+
+        /**
+         * Error code indicating that the caller does not have the [BLUETOOTH_CONNECT] permission.
+         *
+         * See: [BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION]
+         * https://developer.android.com/reference/kotlin/android/bluetooth/BluetoothStatusCodes#error_missing_bluetooth_connect_permission
+         */
+        MissingBluetoothConnectPermission,
+
+        /**
+         * Error code indicating that the profile service is not bound. You can bind a profile service
+         * by calling [BluetoothAdapter.getProfileProxy].
+         *
+         * See: [BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND]
+         * https://developer.android.com/reference/kotlin/android/bluetooth/BluetoothStatusCodes#error_profile_service_not_bound
+         */
+        ProfileServiceNotBound,
+
+        /**
+         * Indicates that an unknown error has occurred.
+         *
+         * See: [BluetoothStatusCodes.ERROR_UNKNOWN]
+         * https://developer.android.com/reference/kotlin/android/bluetooth/BluetoothStatusCodes#error_unknown
+         */
         Unknown,
     }
 
@@ -74,6 +134,24 @@ public interface AndroidPeripheral : Peripheral {
      * @throws GattStatusException if MTU change request failed.
      */
     public suspend fun requestMtu(mtu: Int): Int
+
+    /**
+     * @see Peripheral.write
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws GattWriteException if underlying [BluetoothGatt] write operation call fails.
+     */
+    override suspend fun write(
+        characteristic: Characteristic,
+        data: ByteArray,
+        writeType: WriteType,
+    )
+
+    /**
+     * @see Peripheral.write
+     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws GattWriteException if underlying [BluetoothGatt] write operation call fails.
+     */
+    override suspend fun write(descriptor: Descriptor, data: ByteArray)
 
     /**
      * [StateFlow] of the most recently negotiated MTU. The MTU will change upon a successful request to change the MTU

@@ -45,11 +45,10 @@ internal class Connection(
      * a single threaded [CoroutineDispatcher] is used, Android O and newer a [CoroutineDispatcher] backed by an Android
      * `Handler` is used (and is also used in the Android BLE [Callback]).
      *
-     * @throws GattRequestRejectedException if underlying `BluetoothGatt` method call returns `false`.
      * @throws GattStatusException if response has a non-`GATT_SUCCESS` status.
      */
     suspend inline fun <reified T> execute(
-        crossinline action: BluetoothGatt.() -> Boolean,
+        crossinline action: BluetoothGatt.() -> Unit,
     ): T = lock.withLock {
         deferredResponse?.let {
             if (it.isActive) {
@@ -67,7 +66,7 @@ internal class Connection(
         }
 
         withContext(dispatcher) {
-            if (!bluetoothGatt.action()) throw GattRequestRejectedException()
+            bluetoothGatt.action()
         }
         val deferred = scope.async { callback.onResponse.receive() }
         deferredResponse = deferred

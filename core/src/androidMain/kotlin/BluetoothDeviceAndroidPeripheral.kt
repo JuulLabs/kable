@@ -41,7 +41,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -221,7 +220,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     }
 
     override suspend fun rssi(): Int = connection.execute<OnReadRemoteRssi> {
-        readRemoteRssi()
+        readRemoteRssiOrThrow()
     }.rssi
 
     private suspend fun discoverServices() {
@@ -229,7 +228,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
         repeat(DISCOVER_SERVICES_RETRIES) { attempt ->
             connection.execute<OnServicesDiscovered> {
-                discoverServices()
+                discoverServicesOrThrow()
             }
             val services = withContext(connection.dispatcher) {
                 connection.bluetoothGatt.services.map(::DiscoveredService)
@@ -268,9 +267,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
         connection.execute<OnCharacteristicWrite> {
-            platformCharacteristic.value = data
-            platformCharacteristic.writeType = writeType.intValue
-            writeCharacteristic(platformCharacteristic)
+            writeCharacteristicOrThrow(platformCharacteristic, data, writeType.intValue)
         }
     }
 
@@ -284,7 +281,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, Read)
         return connection.execute<OnCharacteristicRead> {
-            readCharacteristic(platformCharacteristic)
+            readCharacteristicOrThrow(platformCharacteristic)
         }.value!!
     }
 
@@ -306,8 +303,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         }
 
         connection.execute<OnDescriptorWrite> {
-            platformDescriptor.value = data
-            writeDescriptor(platformDescriptor)
+            writeDescriptorOrThrow(platformDescriptor, data)
         }
     }
 
@@ -321,7 +317,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
         val platformDescriptor = discoveredServices.obtain(descriptor)
         return connection.execute<OnDescriptorRead> {
-            readDescriptor(platformDescriptor)
+            readDescriptorOrThrow(platformDescriptor)
         }.value!!
     }
 
@@ -417,15 +413,6 @@ private val Priority.intValue: Int
         Priority.Balanced -> BluetoothGatt.CONNECTION_PRIORITY_BALANCED
         Priority.High -> BluetoothGatt.CONNECTION_PRIORITY_HIGH
     }
-
-/** @throws GattRequestRejectedException if [BluetoothGatt.setCharacteristicNotification] returns `false`. */
-private fun BluetoothGatt.setCharacteristicNotificationOrThrow(
-    characteristic: PlatformCharacteristic,
-    enable: Boolean,
-) {
-    setCharacteristicNotification(characteristic, enable) ||
-        throw GattRequestRejectedException()
-}
 
 private val PlatformCharacteristic.configDescriptor: PlatformDescriptor?
     get() = descriptors.firstOrNull { clientCharacteristicConfigUuid == it.uuid }
