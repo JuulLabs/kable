@@ -24,5 +24,6 @@ pluginManagement {
 include(
     "exceptions",
     "core",
+    "log-engine-khronicle",
     "log-engine-tuulbox",
 )

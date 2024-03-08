@@ -1,20 +1,13 @@
-package com.juul.kable.logs
+package com.juul.kable.logs.khronicle
 
-import com.juul.tuulbox.logging.HideFromStackTraceTag
-import com.juul.tuulbox.logging.Key
-import com.juul.tuulbox.logging.Log
+import com.juul.kable.logs.LogEngine
+import com.juul.khronicle.HideFromStackTraceTag
+import com.juul.khronicle.Key
+import com.juul.khronicle.Log
 
-@Deprecated(
-    "Tuulbox logging has been deprecated in favor of Khronicle",
-    replaceWith = ReplaceWith("Kable", "com.juul.kable.logs.khronicle.Kable"),
-)
 public object Kable : Key<Boolean>
 
-@Deprecated(
-    message = "Tuulbox logging has been deprecated in favor of Khronicle",
-    replaceWith = ReplaceWith("KhronicleLogEngine", "com.juul.kable.logs.khronicle.KhronicleLogEngine"),
-)
-public object TuulboxLogEngine : LogEngine, HideFromStackTraceTag {
+public object KhronicleLogEngine : LogEngine, HideFromStackTraceTag {
     override fun verbose(throwable: Throwable?, tag: String, message: String) {
         Log.verbose(throwable, tag) { metadata ->
             metadata[Kable] = true
