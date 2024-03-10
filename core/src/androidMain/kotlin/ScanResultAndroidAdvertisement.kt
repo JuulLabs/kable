@@ -8,7 +8,9 @@ import android.bluetooth.le.ScanRecord
 import android.bluetooth.le.ScanResult
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
+import android.os.Parcel
 import android.os.ParcelUuid
+import android.os.Parcelable
 import com.benasher44.uuid.Uuid
 
 internal class ScanResultAndroidAdvertisement(
@@ -77,6 +79,20 @@ internal class ScanResultAndroidAdvertisement(
                 it.valueAt(0),
             )
         }
+
+    override fun describeContents(): Int = 0
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeParcelable(scanResult, flags)
+    }
+
+    companion object CREATOR : Parcelable.Creator<AndroidAdvertisement?> {
+        override fun createFromParcel(parcel: Parcel): AndroidAdvertisement =
+            ScanResultAndroidAdvertisement(ScanResult.CREATOR.createFromParcel(parcel))
+
+        override fun newArray(size: Int): Array<AndroidAdvertisement?> =
+            arrayOfNulls(size)
+    }
 
     override fun toString(): String =
         "Advertisement(address=$address, name=$name, rssi=$rssi, txPower=$txPower)"

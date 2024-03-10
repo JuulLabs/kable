@@ -11,7 +11,7 @@ public abstract interface class com/juul/kable/Advertisement {
 	public abstract fun serviceData (Ljava/util/UUID;)[B
 }
 
-public abstract interface class com/juul/kable/AndroidAdvertisement : com/juul/kable/Advertisement {
+public abstract interface class com/juul/kable/AndroidAdvertisement : android/os/Parcelable, com/juul/kable/Advertisement {
 	public abstract fun getAddress ()Ljava/lang/String;
 	public abstract fun getBondState ()Lcom/juul/kable/AndroidAdvertisement$BondState;
 	public abstract fun getBytes ()[B
