@@ -3,6 +3,9 @@ buildscript {
         google()
         mavenCentral()
     }
+    dependencies {
+        classpath(libs.atomicfu)
+    }
 }
 
 plugins {
@@ -11,7 +14,6 @@ plugins {
     alias(libs.plugins.kotlinter) apply false
     alias(libs.plugins.maven.publish) apply false
     alias(libs.plugins.dokka)
-    alias(libs.plugins.atomicfu) apply false
     alias(libs.plugins.validator)
 }
 
