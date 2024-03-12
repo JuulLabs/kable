@@ -343,6 +343,14 @@ public final class com/juul/kable/ScanFailedException : java/lang/IllegalStateEx
 	public final fun getErrorCode ()I
 }
 
+public final class com/juul/kable/ScanResultAndroidAdvertisement$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/juul/kable/ScanResultAndroidAdvertisement;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/juul/kable/ScanResultAndroidAdvertisement;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
 public abstract interface class com/juul/kable/Scanner {
 	public abstract fun getAdvertisements ()Lkotlinx/coroutines/flow/Flow;
 }
