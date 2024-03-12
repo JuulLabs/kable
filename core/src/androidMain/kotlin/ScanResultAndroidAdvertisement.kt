@@ -80,8 +80,6 @@ internal class ScanResultAndroidAdvertisement(
             )
         }
 
-    override fun describeContents(): Int = 0
-
     override fun toString(): String =
         "Advertisement(address=$address, name=$name, rssi=$rssi, txPower=$txPower)"
 }

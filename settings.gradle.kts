@@ -13,9 +13,6 @@ pluginManagement {
 
                 requested.id.namespace == "com.android" ->
                     useModule("com.android.tools.build:gradle:${requested.version}")
-
-                requested.id.id == "kotlinx-atomicfu" ->
-                    useModule("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${requested.version}")
             }
         }
     }
