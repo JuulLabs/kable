@@ -14,7 +14,7 @@ plugins {
     alias(libs.plugins.kotlinter) apply false
     alias(libs.plugins.maven.publish) apply false
     alias(libs.plugins.dokka)
-    alias(libs.plugins.validator)
+    alias(libs.plugins.api)
 }
 
 tasks.dokkaHtmlMultiModule.configure {
