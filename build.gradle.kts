@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath(libs.atomicfu)
+        classpath(libs.atomicfu.gradle)
     }
 }
 
