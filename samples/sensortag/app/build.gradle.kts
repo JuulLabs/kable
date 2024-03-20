@@ -30,35 +30,19 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                api(libs.coroutines.core)
-                implementation(libs.kable)
-                implementation(libs.tuulbox.logging)
-                implementation(libs.tuulbox.encoding)
-                implementation(libs.tuulbox.coroutines)
-            }
+        commonMain.dependencies {
+            api(libs.coroutines.core)
+            implementation(libs.kable)
+            implementation(libs.tuulbox.coroutines)
+            implementation(libs.tuulbox.encoding)
+            implementation(libs.tuulbox.logging)
         }
 
-        val androidMain by getting {
-            dependencies {
-                implementation(libs.bundles.compose)
-                implementation(libs.bundles.accompanist)
-                implementation(libs.exercise.annotations)
-                implementation(libs.bundles.krayon)
-            }
-        }
-
-        val nativeDarwinMain by creating {
-            dependsOn(commonMain)
-        }
-
-        val macosX64Main by getting {
-            dependsOn(nativeDarwinMain)
-        }
-
-        val macosArm64Main by getting {
-            dependsOn(nativeDarwinMain)
+        androidMain.dependencies {
+            implementation(libs.bundles.accompanist)
+            implementation(libs.bundles.compose)
+            implementation(libs.bundles.krayon)
+            implementation(libs.exercise.annotations)
         }
     }
 }
