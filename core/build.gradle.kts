@@ -55,12 +55,13 @@ android {
         abortOnError = true
         warningsAsErrors = true
 
+        disable += "AndroidGradlePluginVersion"
+        disable += "GradleDependency"
+
         // Calls to many functions on `BluetoothDevice`, `BluetoothGatt`, etc require `BLUETOOTH_CONNECT` permission,
         // which has been specified in the `AndroidManifest.xml`; rather than needing to annotate a number of classes,
         // we disable the "missing permission" lint check. Caution must be taken during later Android version bumps to
         // make sure we aren't missing any newly introduced permission requirements.
         disable += "MissingPermission"
-
-        disable += "GradleDependency"
     }
 }
