@@ -11,7 +11,7 @@ public abstract interface class com/juul/kable/Advertisement {
 	public abstract fun serviceData (Ljava/util/UUID;)[B
 }
 
-public abstract interface class com/juul/kable/AndroidAdvertisement : com/juul/kable/Advertisement {
+public abstract interface class com/juul/kable/AndroidAdvertisement : android/os/Parcelable, com/juul/kable/Advertisement {
 	public abstract fun getAddress ()Ljava/lang/String;
 	public abstract fun getBondState ()Lcom/juul/kable/AndroidAdvertisement$BondState;
 	public abstract fun getBytes ()[B
@@ -341,6 +341,14 @@ public final class com/juul/kable/Reason : java/lang/Enum {
 
 public final class com/juul/kable/ScanFailedException : java/lang/IllegalStateException {
 	public final fun getErrorCode ()I
+}
+
+public final class com/juul/kable/ScanResultAndroidAdvertisement$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/juul/kable/ScanResultAndroidAdvertisement;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/juul/kable/ScanResultAndroidAdvertisement;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
 }
 
 public abstract interface class com/juul/kable/Scanner {
