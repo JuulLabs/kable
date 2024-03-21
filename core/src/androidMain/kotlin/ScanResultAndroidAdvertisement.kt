@@ -10,7 +10,9 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.ParcelUuid
 import com.benasher44.uuid.Uuid
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 internal class ScanResultAndroidAdvertisement(
     private val scanResult: ScanResult,
 ) : AndroidAdvertisement {
