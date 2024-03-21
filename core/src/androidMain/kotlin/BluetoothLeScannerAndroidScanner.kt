@@ -22,10 +22,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 
-public class ScanFailedException internal constructor(
-    public val errorCode: Int,
-) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
-
 internal class BluetoothLeScannerAndroidScanner(
     private val filters: List<Filter>,
     private val scanSettings: ScanSettings,
