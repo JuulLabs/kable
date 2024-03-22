@@ -6,7 +6,14 @@ import androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
 import com.juul.tuulbox.coroutines.flow.broadcastReceiverFlow
 import kotlinx.coroutines.flow.Flow
 
-@Deprecated("Was not intended to be public. Will not be available (will be `internal`) in a future release.")
+@Deprecated(
+    "Was not intended to be public. Use `broadcastReceiverFlow` from https://github.com/JuulLabs/tuulbox instead.",
+    replaceWith = ReplaceWith(
+        "broadcastReceiverFlow(intentFilter)",
+        "com.juul.tuulbox.coroutines.flow.broadcastReceiverFlow",
+    ),
+    level = DeprecationLevel.ERROR,
+)
 public fun broadcastReceiverFlow(
     intentFilter: IntentFilter,
 ): Flow<Intent> = broadcastReceiverFlow(intentFilter, RECEIVER_NOT_EXPORTED)
