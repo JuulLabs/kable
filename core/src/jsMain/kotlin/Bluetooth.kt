@@ -86,7 +86,11 @@ public fun CoroutineScope.requestPeripheral(
  */
 private fun Options.toRequestDeviceOptions(): RequestDeviceOptions = jso {
     if (this@toRequestDeviceOptions.filters.isNullOrEmpty()) {
-        acceptAllDevices = true
+        if (this@toRequestDeviceOptions.filterSets.isNullOrEmpty()) {
+            acceptAllDevices = true
+        } else {
+            filters = this@toRequestDeviceOptions.filterSets.toBluetoothLEScanFilterInit()
+        }
     } else {
         filters = this@toRequestDeviceOptions.filters.toBluetoothLEScanFilterInit()
     }

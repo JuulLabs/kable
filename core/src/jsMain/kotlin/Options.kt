@@ -17,7 +17,14 @@ public fun Options(
 
 /** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice */
 public data class Options(
+    @Deprecated(
+        message = "Use filterSets",
+        replaceWith = ReplaceWith("filterSets"),
+        level = DeprecationLevel.WARNING,
+    )
     val filters: List<KFilter>? = null,
+
+    val filterSets: List<FilterSet>? = null,
 
     /**
      * Access is only granted to services listed as [service filters][KFilter.Service] in [filters]. If any additional
