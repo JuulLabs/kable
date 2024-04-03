@@ -68,12 +68,6 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val logging: Logging,
 ) : AndroidPeripheral {
 
-    private val scope = CoroutineScope(
-        parentCoroutineContext +
-            SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
-            CoroutineName("Kable/Peripheral/${bluetoothDevice.address}"),
-    )
-
     private val logger = Logger(logging, tag = "Kable/Peripheral", identifier = bluetoothDevice.address)
 
     private val _state = MutableStateFlow<State>(Disconnected())
@@ -104,6 +98,17 @@ internal class BluetoothDeviceAndroidPeripheral(
         inline get() = _connection ?: throw NotReadyException(toString())
 
     override val name: String? get() = bluetoothDevice.name
+
+    /**
+     * It's important that we instantiate this scope as late as possible, since [dispose] will be
+     * called immediately if the parent job is already complete. Doing so late in <init> is fine,
+     * but early in <init> it could reference non-nullable variables that are not yet set and crash.
+     */
+    private val scope = CoroutineScope(
+        parentCoroutineContext +
+                SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
+                CoroutineName("Kable/Peripheral/${bluetoothDevice.address}"),
+    )
 
     private val connectAction = scope.sharedRepeatableAction(::establishConnection)
 

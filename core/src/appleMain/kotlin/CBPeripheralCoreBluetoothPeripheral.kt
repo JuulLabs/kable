@@ -81,12 +81,6 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val logging: Logging,
 ) : CoreBluetoothPeripheral {
 
-    private val scope = CoroutineScope(
-        parentCoroutineContext +
-            SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
-            CoroutineName("Kable/Peripheral/${cbPeripheral.identifier.UUIDString}"),
-    )
-
     private val logger = Logger(logging, identifier = cbPeripheral.identifier.UUIDString)
 
     private val centralManager: CentralManager = CentralManager.Default
@@ -97,6 +91,17 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     override val identifier: Uuid = cbPeripheral.identifier.toUuid()
 
     private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
+
+    /**
+     * It's important that we instantiate this scope as late as possible, since [dispose] will be
+     * called immediately if the parent job is already complete. Doing so late in <init> is fine,
+     * but early in <init> it could reference non-nullable variables that are not yet set and crash.
+     */
+    private val scope = CoroutineScope(
+        parentCoroutineContext +
+                SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
+                CoroutineName("Kable/Peripheral/${cbPeripheral.identifier.UUIDString}"),
+    )
 
     init {
         centralManager.delegate
