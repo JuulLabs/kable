@@ -10,7 +10,7 @@ package com.juul.kable.external
  *
  * https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
  */
-internal abstract external class BluetoothDataFilterInit {
+internal external interface BluetoothDataFilterInit {
     var dataPrefix: BufferSource?
     var mask: BufferSource?
 }

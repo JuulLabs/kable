@@ -9,6 +9,6 @@ package com.juul.kable.external
  *
  * https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
  */
-internal external class BluetoothManufacturerDataFilterInit : BluetoothDataFilterInit {
+internal external interface BluetoothManufacturerDataFilterInit : BluetoothDataFilterInit {
     var companyIdentifier: Int?
 }
