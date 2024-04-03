@@ -4,6 +4,13 @@ import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothLEScanFilterInit
 import com.juul.kable.external.BluetoothManufacturerDataFilterInit
 
+/**
+ * Filtering on Service Data is not supported because it is not implemented:
+ * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md
+ *
+ * Filtering on Manufacturer Data is supported and a good explanation can be found here:
+ * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md
+ */
 public data class FilterSet(
     public val services: List<Filter.Service> = emptyList(),
     public val name: Filter.Name? = null,
