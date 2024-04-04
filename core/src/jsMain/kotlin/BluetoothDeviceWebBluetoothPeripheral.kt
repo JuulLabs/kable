@@ -46,12 +46,6 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     logging: Logging,
 ) : WebBluetoothPeripheral {
 
-    private val job = SupervisorJob(parentCoroutineContext.job).apply {
-        invokeOnCompletion { finalCleanup() }
-    }
-
-    private val scope = CoroutineScope(parentCoroutineContext + job)
-
     private val logger = Logger(logging, identifier = bluetoothDevice.id)
 
     private val ioLock = Mutex()
@@ -74,6 +68,17 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     private val supportsAdvertisements = js("BluetoothDevice.prototype.watchAdvertisements") != null
 
     override val name: String? get() = bluetoothDevice.name
+
+    /**
+     * It's important that we instantiate this job as late as possible, since [finalCleanup] will be
+     * called immediately if the parent job is already complete. Doing so late in <init> is fine,
+     * but early in <init> it could reference non-nullable variables that are not yet set and crash.
+     */
+    private val job = SupervisorJob(parentCoroutineContext.job).apply {
+        invokeOnCompletion { finalCleanup() }
+    }
+
+    private val scope = CoroutineScope(parentCoroutineContext + job)
 
     override suspend fun rssi(): Int = suspendCancellableCoroutine { continuation ->
         check(supportsAdvertisements) { "watchAdvertisements unavailable" }
