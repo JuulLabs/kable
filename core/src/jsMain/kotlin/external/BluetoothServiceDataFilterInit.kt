@@ -9,6 +9,6 @@ package com.juul.kable.external
  *
  * https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
  */
-internal external interface BluetoothServiceDataFilterInit {
-    val service: BluetoothServiceUUID
+internal external interface BluetoothServiceDataFilterInit : BluetoothDataFilterInit {
+    var service: BluetoothServiceUUID
 }
