@@ -106,8 +106,8 @@ internal class BluetoothDeviceAndroidPeripheral(
      */
     private val scope = CoroutineScope(
         parentCoroutineContext +
-                SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
-                CoroutineName("Kable/Peripheral/${bluetoothDevice.address}"),
+            SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
+            CoroutineName("Kable/Peripheral/${bluetoothDevice.address}"),
     )
 
     private val connectAction = scope.sharedRepeatableAction(::establishConnection)

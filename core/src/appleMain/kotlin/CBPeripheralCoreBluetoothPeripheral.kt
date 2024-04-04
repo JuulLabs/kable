@@ -99,8 +99,8 @@ internal class CBPeripheralCoreBluetoothPeripheral(
      */
     private val scope = CoroutineScope(
         parentCoroutineContext +
-                SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
-                CoroutineName("Kable/Peripheral/${cbPeripheral.identifier.UUIDString}"),
+            SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
+            CoroutineName("Kable/Peripheral/${cbPeripheral.identifier.UUIDString}"),
     )
 
     init {
