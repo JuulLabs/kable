@@ -18,13 +18,20 @@ public fun Options(
 /** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice */
 public data class Options(
     @Deprecated(
-        message = "Use filterSets",
-        replaceWith = ReplaceWith("filterSets"),
+        message = "Use predicates",
+        replaceWith = ReplaceWith("predicates"),
         level = DeprecationLevel.WARNING,
     )
     val filters: List<KFilter>? = null,
 
+    @Deprecated(
+        message = "Use predicate",
+        replaceWith = ReplaceWith("predicates"),
+        level = DeprecationLevel.WARNING,
+    )
     val filterSets: List<FilterSet>? = null,
+
+    val predicates: FilterPredicateSetBuilder.() -> Unit = { },
 
     /**
      * Access is only granted to services listed as [service filters][KFilter.Service] in [filters]. If any additional

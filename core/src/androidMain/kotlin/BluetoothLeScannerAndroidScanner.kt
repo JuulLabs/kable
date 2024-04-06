@@ -22,15 +22,13 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 
 internal class BluetoothLeScannerAndroidScanner(
-    private val filters: List<Filter>,
+    private val predicates: FilterPredicateSet,
     private val scanSettings: ScanSettings,
     private val preConflate: Boolean,
     logging: Logging,
 ) : PlatformScanner {
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
-
-    private val namePrefixFilters = filters.filterIsInstance<NamePrefix>()
 
     override val advertisements: Flow<PlatformAdvertisement> = callbackFlow {
         val scanner = getBluetoothAdapter().bluetoothLeScanner ?: throw BluetoothDisabledException()
@@ -61,17 +59,7 @@ internal class BluetoothLeScannerAndroidScanner(
             }
         }
 
-        val scanFilters = filters.map { filter ->
-            ScanFilter.Builder().apply {
-                when (filter) {
-                    is Name -> setDeviceName(filter.name)
-                    is NamePrefix -> {} // No-op: Filtering performed via flow.
-                    is Address -> setDeviceAddress(filter.address)
-                    is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
-                    is Service -> setServiceUuid(ParcelUuid(filter.uuid)).build()
-                }
-            }.build()
-        }
+        val scanFilters = predicates.toScanFilters()
 
         logger.info {
             message = logMessage("Starting", preConflate, scanFilters)
@@ -91,11 +79,8 @@ internal class BluetoothLeScannerAndroidScanner(
             }
         }
     }.filter { advertisement ->
-        // Short-circuit (i.e. don't filter) if no `Filter.NamePrefix` filters were provided.
-        if (namePrefixFilters.isEmpty()) return@filter true
-
         // Perform `Filter.NamePrefix` filtering here, since it isn't supported natively.
-        namePrefixFilters.any { filter -> filter.matches(advertisement.name) }
+        predicates.matches(name = advertisement.name)
     }
 }
 
@@ -112,3 +97,20 @@ private fun logMessage(prefix: String, preConflate: Boolean, scanFilters: List<S
         append("with ${scanFilters.size} filter(s)")
     }
 }
+
+private fun FilterPredicate.toScanFilter(): ScanFilter =
+    ScanFilter.Builder().apply {
+        require(filters.isNotEmpty())
+        filters.map { filter ->
+            when (filter) {
+                is Name -> setDeviceName(filter.name)
+                is NamePrefix -> {} // No-op: Filtering performed via flow.
+                is Address -> setDeviceAddress(filter.address)
+                is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
+                is Service -> setServiceUuid(ParcelUuid(filter.uuid)).build()
+            }
+        }
+    }.build()
+
+private fun FilterPredicateSet.toScanFilters(): List<ScanFilter> =
+    predicates.mapNotNull(FilterPredicate::toScanFilter)

@@ -48,5 +48,16 @@ internal fun FilterSet.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit 
     return filter
 }
 
-internal fun List<FilterSet>.toBluetoothLEScanFilterInit(): Array<BluetoothLEScanFilterInit> =
-    map(FilterSet::toBluetoothLEScanFilterInit).toTypedArray()
+internal fun List<FilterSet>.toBluetoothLEScanFilterInit(): List<BluetoothLEScanFilterInit> =
+    map(FilterSet::toBluetoothLEScanFilterInit)
+
+internal fun FilterPredicateSet.toBluetoothLEScanFilterInit(): List<BluetoothLEScanFilterInit> =
+    predicates.map(FilterPredicate::toBluetoothLEScanFilterInit)
+
+internal fun FilterPredicate.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit =
+    FilterSet(
+        filters.filterIsInstance<Filter.Service>(),
+        filters.filterIsInstance<Filter.Name>().firstOrNull(),
+        filters.filterIsInstance<Filter.NamePrefix>().firstOrNull(),
+        filters.filterIsInstance<Filter.ManufacturerData>(),
+    ).toBluetoothLEScanFilterInit()

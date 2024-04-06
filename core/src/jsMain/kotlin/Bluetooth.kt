@@ -5,6 +5,7 @@ import com.juul.kable.Bluetooth.Availability.Available
 import com.juul.kable.Bluetooth.Availability.Unavailable
 import com.juul.kable.Reason.BluetoothUndefined
 import com.juul.kable.external.BluetoothAvailabilityChanged
+import com.juul.kable.external.BluetoothLEScanFilterInit
 import com.juul.kable.external.BluetoothServiceUUID
 import com.juul.kable.external.RequestDeviceOptions
 import kotlinx.coroutines.CoroutineScope
@@ -85,14 +86,11 @@ public fun CoroutineScope.requestPeripheral(
  * ```
  */
 private fun Options.toRequestDeviceOptions(): RequestDeviceOptions = jso {
-    when {
-        this@toRequestDeviceOptions.filterSets?.isNotEmpty() == true ->
-            filters = this@toRequestDeviceOptions.filterSets.toBluetoothLEScanFilterInit()
-
-        this@toRequestDeviceOptions.filters?.isNotEmpty() == true ->
-            filters = this@toRequestDeviceOptions.filters.toBluetoothLEScanFilterInit()
-
-        else -> acceptAllDevices = true
+    val jsFilters = this@toRequestDeviceOptions.filters()
+    if (jsFilters.isNotEmpty()) {
+        filters = jsFilters.toTypedArray()
+    } else {
+        acceptAllDevices = true
     }
     if (!this@toRequestDeviceOptions.optionalServices.isNullOrEmpty()) {
         optionalServices = this@toRequestDeviceOptions.optionalServices
@@ -100,6 +98,13 @@ private fun Options.toRequestDeviceOptions(): RequestDeviceOptions = jso {
             .toTypedArray()
     }
 }
+
+private fun Options.filters(): List<BluetoothLEScanFilterInit> =
+    when {
+        filterSets?.isNotEmpty() == true -> filterSets.toBluetoothLEScanFilterInit()
+        filters?.isNotEmpty() == true -> filters.toBluetoothLEScanFilterInit()
+        else -> FilterPredicateSetBuilder().apply(predicates).build().toBluetoothLEScanFilterInit()
+    }
 
 // Note: Web Bluetooth requires that UUIDs be provided as lowercase strings.
 internal fun Uuid.toBluetoothServiceUUID(): BluetoothServiceUUID = toString().lowercase()

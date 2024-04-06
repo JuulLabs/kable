@@ -121,6 +121,11 @@ internal fun Filter.Service.matches(services: List<Uuid>?): Boolean {
     return this.uuid in services
 }
 
+internal fun Filter.Address.matches(address: String?): Boolean {
+    if (address == null) return false
+    return this.address == address
+}
+
 internal fun Filter.Name.matches(name: String?): Boolean {
     if (name == null) return false
     return this.name == name
@@ -139,6 +144,11 @@ internal fun Filter.ManufacturerData.matches(data: ByteArray?): Boolean {
         if (dataMask[i] and this.data[i] != dataMask[i] and data[i]) return false
     }
     return true
+}
+
+internal fun Filter.ManufacturerData.matches(id: Int?, data: ByteArray?): Boolean {
+    if (this.id != id) return false
+    return matches(data)
 }
 
 private fun requireDataAndMaskHaveSameLength(data: ByteArray, dataMask: ByteArray) =

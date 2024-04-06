@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import com.benasher44.uuid.Uuid
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
@@ -18,26 +19,23 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 
 internal class CentralManagerCoreBluetoothScanner(
     central: CentralManager,
-    filters: List<Filter>,
+    predicates: FilterPredicateSet,
     options: Map<Any?, *>?,
     logging: Logging,
 ) : PlatformScanner {
 
     init {
-        require(filters.none { it is Filter.Address }) {
+        require(predicates.flatten().none { it is Filter.Address }) {
             "Filtering by address (`Filter.Address`) is not supported on Apple platforms"
         }
     }
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
-    private val serviceFilters = filters.filterIsInstance<Filter.Service>().map(Filter.Service::uuid)
-
-    // Native filtering of advertisements is performed if: `filters` contains only (and at least one) `Filter.Service`.
-    private val nativeServiceFiltering = filters.isNotEmpty() && filters.all { it is Filter.Service }
+    private val nativeServiceFilters = predicates.toNativeServiceFilter()
 
     init {
-        if (!nativeServiceFiltering) {
+        if (nativeServiceFilters == null) {
             logger.warn {
                 @Suppress("ktlint:standard:max-line-length")
                 message = "According to Core Bluetooth documentation: " +
@@ -53,9 +51,9 @@ internal class CentralManagerCoreBluetoothScanner(
             .response
             .onStart {
                 central.awaitPoweredOn()
-                if (nativeServiceFiltering) {
+                if (nativeServiceFilters != null) {
                     logger.info { message = "Starting scan with native service filtering" }
-                    central.scanForPeripheralsWithServices(serviceFilters, options)
+                    central.scanForPeripheralsWithServices(nativeServiceFilters, options)
                 } else {
                     logger.info { message = "Starting scan with non-native filtering" }
                     central.scanForPeripheralsWithServices(null, options)
@@ -67,22 +65,15 @@ internal class CentralManagerCoreBluetoothScanner(
             }
             .filterIsInstance<DidDiscoverPeripheral>()
             .filter { didDiscoverPeripheral ->
-                // Short-circuit (i.e. don't filter) when scan is using native service filtering.
-                if (nativeServiceFiltering) return@filter true
-
                 // Short-circuit (i.e. don't filter) if no filters were provided.
-                if (filters.isEmpty()) return@filter true
+                if (predicates.isEmpty()) return@filter true
 
                 val advertisementData = didDiscoverPeripheral.advertisementData.asAdvertisementData()
-                filters.any { filter ->
-                    when (filter) {
-                        is Filter.Service -> filter.matches(advertisementData.serviceUuids)
-                        is Filter.Name -> filter.matches(advertisementData.localName)
-                        is Filter.NamePrefix -> filter.matches(advertisementData.localName)
-                        is Filter.ManufacturerData -> filter.matches(advertisementData.manufacturerData?.data)
-                        is Filter.Address -> throw UnsupportedOperationException("Filtering by address is not supported on Apple platforms")
-                    }
-                }
+                predicates.matches(
+                    services = advertisementData.serviceUuids,
+                    name = advertisementData.localName,
+                    manufacturerData = advertisementData.manufacturerData,
+                )
             }
             .map { (cbPeripheral, rssi, advertisementData) ->
                 CBPeripheralCoreBluetoothAdvertisement(rssi.intValue, advertisementData, cbPeripheral)
@@ -99,3 +90,21 @@ private suspend fun CentralManager.awaitPoweredOn() {
         }
         .first { it == CBManagerStatePoweredOn }
 }
+
+private fun FilterPredicateSet.flatten(): List<Filter> =
+    predicates.flatMap(FilterPredicate::filters)
+
+// Native filtering of advertisements is performed if each predicate set contains a `Filter.Service`.
+private fun FilterPredicateSet.supportsNativeServiceFiltering(): Boolean =
+    predicates.all { predicate ->
+        predicate.filters.any { it is Filter.Service }
+    }
+
+private fun FilterPredicateSet.toNativeServiceFilter(): List<Uuid>? =
+    if (supportsNativeServiceFiltering()) {
+        predicates.flatMap(FilterPredicate::filters)
+            .filterIsInstance<Filter.Service>()
+            .map(Filter.Service::uuid)
+    } else {
+        null
+    }

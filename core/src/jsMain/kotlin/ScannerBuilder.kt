@@ -5,7 +5,14 @@ import com.juul.kable.logs.LoggingBuilder
 
 public actual class ScannerBuilder {
 
+    @Deprecated(
+        message = "Use predicates",
+        replaceWith = ReplaceWith("predicates"),
+        level = DeprecationLevel.WARNING,
+    )
     public actual var filters: List<Filter>? = null
+
+    public actual var predicates: FilterPredicateSetBuilder.() -> Unit = { }
 
     private var logging: Logging = Logging()
 
@@ -15,7 +22,7 @@ public actual class ScannerBuilder {
 
     internal actual fun build(): PlatformScanner = BluetoothWebBluetoothScanner(
         bluetooth = bluetooth,
-        filters = filters.orEmpty(),
+        predicates = filters?.deprecatedListToGroup() ?: FilterPredicateSetBuilder().apply(predicates).build(),
         logging = logging,
     )
 }
