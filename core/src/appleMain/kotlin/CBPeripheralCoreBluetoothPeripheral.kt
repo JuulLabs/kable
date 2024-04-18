@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -148,6 +149,10 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
 
+        val failureWatcher = centralManager.delegate
+            .connectionState
+            .watchForConnectionFailureIn(scope)
+
         try {
             _connection.value = centralManager.connectPeripheral(
                 scope,
@@ -156,8 +161,6 @@ internal class CBPeripheralCoreBluetoothPeripheral(
                 logging,
             )
 
-            // fixme: Handle centralManager:didFailToConnectPeripheral:error:
-            // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518988-centralmanager
             suspendUntilOrThrow<State.Connecting.Services>()
             discoverServices()
             onServicesDiscovered(ServicesDiscoveredPeripheral(this@CBPeripheralCoreBluetoothPeripheral))
@@ -170,6 +173,8 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             val failure = e.unwrapCancellationCause()
             logger.error(failure) { message = "Failed to connect" }
             throw failure
+        } finally {
+            failureWatcher.cancel()
         }
 
         logger.info { message = "Connected" }
@@ -196,6 +201,23 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             .onEach {
                 logger.info { message = "Disconnected" }
                 throw ConnectionLostException("$this disconnected")
+            }
+            .launchIn(scope)
+
+    private fun Flow<ConnectionEvent>.watchForConnectionFailureIn(scope: CoroutineScope) =
+        filter { identifier -> identifier == cbPeripheral.identifier }
+            .filterNot { event -> event is DidConnect }
+            .onEach { event ->
+                val error = when (event) {
+                    is DidFailToConnect -> event.error
+                    is DidDisconnect -> event.error
+                    else -> null
+                }
+                val failure = error
+                    ?.let { ": ${it.toStatus()} (${it.localizedDescription})" }
+                    .orEmpty()
+                logger.info { message = "Disconnected$failure" }
+                throw ConnectionLostException("$this disconnected$failure")
             }
             .launchIn(scope)
 
