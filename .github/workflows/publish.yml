@@ -16,12 +16,12 @@ jobs:
           java-version: '17'
 
       - name: check
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: check
 
       - name: publish
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: |
             -PVERSION_NAME=${{ github.ref_name }}

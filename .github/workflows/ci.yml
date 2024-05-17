@@ -19,17 +19,17 @@ jobs:
           java-version: '17'
 
       - name: assemble
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: assemble
 
       - name: check
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: check
 
       - name: publishToMavenLocal
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: |
             -PRELEASE_SIGNING_ENABLED=false
