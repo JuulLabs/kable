@@ -12,25 +12,14 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: gradle/wrapper-validation-action@v3
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-
-      - name: assemble
-        uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v3
         with:
-          arguments: assemble
+          validate-wrappers: true
 
-      - name: check
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: check
-
-      - name: publishToMavenLocal
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: |
-            -PRELEASE_SIGNING_ENABLED=false
-            publishToMavenLocal
+      - run: ./gradlew assemble
+      - run: ./gradlew check
+      - run: ./gradlew -PRELEASE_SIGNING_ENABLED=false publishToMavenLocal
