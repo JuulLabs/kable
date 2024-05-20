@@ -19,13 +19,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-
-      - name: assemble
-        uses: gradle/gradle-build-action@v3
+      - uses: gradle/actions/setup-gradle@v3
         with:
-          arguments: assemble
+          validate-wrappers: true
 
-      - name: check
-        uses: gradle/gradle-build-action@v3
-        with:
-          arguments: check
+      - run: ./gradlew assemble
+      - run: ./gradlew check
