@@ -9,24 +9,19 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: gradle/wrapper-validation-action@v3
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+      - uses: gradle/actions/setup-gradle@v3
 
-      - name: check
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: check
-
+      - run: ./gradlew check
       - name: publish
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: |
-            -PVERSION_NAME=${{ github.ref_name }}
-            -PsigningInMemoryKey=${{ secrets.SIGNING_KEY }}
-            -PsigningInMemoryKeyPassword=${{ secrets.SIGNING_PASSWORD }}
-            -PmavenCentralUsername=${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}
-            -PmavenCentralPassword=${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}
-            publish
+        run: >
+          ./gradlew
+          -PVERSION_NAME='${{ github.ref_name }}'
+          -PsigningInMemoryKey='${{ secrets.SIGNING_KEY }}'
+          -PsigningInMemoryKeyPassword='${{ secrets.SIGNING_PASSWORD }}'
+          -PmavenCentralUsername='${{ secrets.OSS_SONATYPE_NEXUS_USERNAME }}'
+          -PmavenCentralPassword='${{ secrets.OSS_SONATYPE_NEXUS_PASSWORD }}'
+          publish
