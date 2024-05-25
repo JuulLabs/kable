@@ -21,7 +21,7 @@ public actual class ScannerBuilder {
 
     /**
      * Allows for the [Scanner] to be configured to use either a blocking or non-blocking send
-     * operation from within the callback flow. This is designed to provide an escape hatch
+     * operation from within the callback flow. This is intended to provide an escape hatch
      * for users that run into threading issues on certain devices.
      */
     @Suppress("MemberVisibilityCanBePrivate")
