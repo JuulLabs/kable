@@ -24,6 +24,7 @@ public actual class ScannerBuilder {
      * operation from within the callback flow. This is designed to provide an escape hatch
      * for users that run into threading issues on certain devices.
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     public var shouldUseBlockingSend: Boolean = true
 
     public actual fun logging(init: LoggingBuilder) {
