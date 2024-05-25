@@ -19,6 +19,13 @@ public actual class ScannerBuilder {
 
     private var logging: Logging = Logging()
 
+    /**
+     * Allows for the [Scanner] to be configured to use either a blocking or non-blocking send
+     * operation from within the callback flow. This is designed to provide an escape hatch
+     * for users that run into threading issues on certain devices.
+     */
+    public var shouldUseBlockingSend: Boolean = true
+
     public actual fun logging(init: LoggingBuilder) {
         logging = Logging().apply(init)
     }
@@ -28,5 +35,6 @@ public actual class ScannerBuilder {
         filters = filters.orEmpty(),
         scanSettings = scanSettings,
         logging = logging,
+        shouldUseBlockingSend = shouldUseBlockingSend
     )
 }
