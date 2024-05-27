@@ -35,7 +35,7 @@ internal class BluetoothLeScannerAndroidScanner(
     override val advertisements: Flow<AndroidAdvertisement> = callbackFlow {
         val scanner = getBluetoothAdapter().bluetoothLeScanner ?: throw BluetoothDisabledException()
 
-        fun send(scanResult: ScanResult) {
+        fun sendResult(scanResult: ScanResult) {
             val advertisement = ScanResultAndroidAdvertisement(scanResult)
             when {
                 preConflate -> trySend(advertisement)
@@ -48,11 +48,11 @@ internal class BluetoothLeScannerAndroidScanner(
         val callback = object : ScanCallback() {
 
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                send(result)
+                sendResult(result)
             }
 
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
-                results.forEach(::send)
+                results.forEach(::sendResult)
             }
 
             override fun onScanFailed(errorCode: Int) {
