@@ -74,22 +74,14 @@ internal class BluetoothLeScannerAndroidScanner(
         }
 
         logger.info {
-            message = if (scanFilters.isEmpty()) {
-                "Starting scan without filters"
-            } else {
-                "Starting scan with ${scanFilters.size} filter(s)"
-            }
+            message = logMessage("Starting", preConflate, scanFilters)
         }
         checkBluetoothAdapterState(STATE_ON)
         scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {
             logger.info {
-                message = if (scanFilters.isEmpty()) {
-                    "Stopping scan without filters"
-                } else {
-                    "Stopping scan with ${scanFilters.size} filter(s)"
-                }
+                message = logMessage("Stopping", preConflate, scanFilters)
             }
             // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException` means BLE has been disabled.
             try {
@@ -104,5 +96,19 @@ internal class BluetoothLeScannerAndroidScanner(
 
         // Perform `Filter.NamePrefix` filtering here, since it isn't supported natively.
         namePrefixFilters.any { filter -> filter.matches(advertisement.name) }
+    }
+}
+
+private fun logMessage(prefix: String, preConflate: Boolean, scanFilters: List<ScanFilter>) = buildString {
+    append(prefix)
+    append(' ')
+    append("scan ")
+    if (preConflate) {
+        append("pre-conflated ")
+    }
+    if (scanFilters.isEmpty()) {
+        append("without filters")
+    } else {
+        append("with ${scanFilters.size} filter(s)")
     }
 }
