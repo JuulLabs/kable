@@ -69,7 +69,6 @@ internal class BluetoothLeScannerAndroidScanner(
                     is Address -> setDeviceAddress(filter.address)
                     is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
                     is Service -> setServiceUuid(ParcelUuid(filter.uuid)).build()
-                    else -> {}
                 }
             }.build()
         }
