@@ -39,7 +39,7 @@ internal class BluetoothLeScannerAndroidScanner(
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 val scanResult = ScanResultAndroidAdvertisement(result)
-                if (shouldUseBlockingSend){
+                if (shouldUseBlockingSend) {
                     trySendBlocking(scanResult)
                 } else {
                     trySend(scanResult)
