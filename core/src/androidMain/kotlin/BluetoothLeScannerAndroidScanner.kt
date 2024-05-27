@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
@@ -25,7 +24,7 @@ import kotlinx.coroutines.flow.filter
 internal class BluetoothLeScannerAndroidScanner(
     private val filters: List<Filter>,
     private val scanSettings: ScanSettings,
-    private val shouldUseBlockingSend: Boolean,
+    private val sendBlocking: Boolean,
     logging: Logging,
 ) : AndroidScanner {
 
@@ -36,32 +35,24 @@ internal class BluetoothLeScannerAndroidScanner(
     override val advertisements: Flow<AndroidAdvertisement> = callbackFlow {
         val scanner = getBluetoothAdapter().bluetoothLeScanner ?: throw BluetoothDisabledException()
 
+        fun send(scanResult: ScanResult) {
+            val advertisement = ScanResultAndroidAdvertisement(scanResult)
+            when {
+                sendBlocking -> trySendBlocking(advertisement)
+                else -> trySend(advertisement)
+            }.onFailure {
+                logger.warn { message = "Unable to deliver scan result due to failure in flow or premature closing." }
+            }
+        }
+
         val callback = object : ScanCallback() {
+
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                val scanResult = ScanResultAndroidAdvertisement(result)
-                if (shouldUseBlockingSend) {
-                    trySendBlocking(scanResult)
-                } else {
-                    trySend(scanResult)
-                }.onFailure {
-                    logger.warn { message = "Unable to deliver scan result due to failure in flow or premature closing." }
-                }
+                send(result)
             }
 
-            @SuppressLint("NewApi") // `forEach` incorrectly showing as minimum API 24 despite the Kotlin stdlib version being used.
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
-                runCatching {
-                    results.forEach {
-                        val scanResult = ScanResultAndroidAdvertisement(it)
-                        if (shouldUseBlockingSend) {
-                            trySendBlocking(scanResult)
-                        } else {
-                            trySend(scanResult)
-                        }.getOrThrow()
-                    }
-                }.onFailure {
-                    logger.warn { message = "Unable to deliver batch scan results due to failure in flow or premature closing." }
-                }
+                results.forEach(::send)
             }
 
             override fun onScanFailed(errorCode: Int) {

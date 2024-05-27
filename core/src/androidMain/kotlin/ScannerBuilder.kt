@@ -3,6 +3,9 @@ package com.juul.kable
 import android.bluetooth.le.ScanSettings
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.runBlocking
 
 public actual class ScannerBuilder {
 
@@ -20,12 +23,17 @@ public actual class ScannerBuilder {
     private var logging: Logging = Logging()
 
     /**
-     * Allows for the [Scanner] to be configured to use either a blocking or non-blocking send
-     * operation from within the callback flow. This is intended to provide an escape hatch
-     * for users that run into threading issues on certain devices.
+     * Configures [Scanner] to pre-conflate the [advertisements][Scanner.advertisements] flow.
+     *
+     * Roughly equivalent to applying the [conflate][Flow.conflate] flow operator on the
+     * [advertisements][Scanner.advertisements] property (but without [runBlocking] overhead).
+     *
+     * May prevent ANRs on some Android phones (observed on specific Samsung models) that have
+     * delicate binder threads.
+     *
+     * See https://github.com/JuulLabs/kable/issues/654 for more details.
      */
-    @Suppress("MemberVisibilityCanBePrivate")
-    public var shouldUseBlockingSend: Boolean = true
+    public var preConflate: Boolean = true
 
     public actual fun logging(init: LoggingBuilder) {
         logging = Logging().apply(init)
@@ -36,6 +44,6 @@ public actual class ScannerBuilder {
         filters = filters.orEmpty(),
         scanSettings = scanSettings,
         logging = logging,
-        shouldUseBlockingSend = shouldUseBlockingSend
+        sendBlocking = preConflate,
     )
 }
