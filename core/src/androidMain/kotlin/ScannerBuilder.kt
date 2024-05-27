@@ -33,7 +33,7 @@ public actual class ScannerBuilder {
      *
      * See https://github.com/JuulLabs/kable/issues/654 for more details.
      */
-    public var preConflate: Boolean = true
+    public var preConflate: Boolean = false
 
     public actual fun logging(init: LoggingBuilder) {
         logging = Logging().apply(init)
