@@ -44,6 +44,6 @@ public actual class ScannerBuilder {
         filters = filters.orEmpty(),
         scanSettings = scanSettings,
         logging = logging,
-        sendBlocking = preConflate,
+        preConflate = preConflate,
     )
 }

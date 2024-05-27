@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.filter
 internal class BluetoothLeScannerAndroidScanner(
     private val filters: List<Filter>,
     private val scanSettings: ScanSettings,
-    private val sendBlocking: Boolean,
+    private val preConflate: Boolean,
     logging: Logging,
 ) : AndroidScanner {
 
@@ -38,8 +38,8 @@ internal class BluetoothLeScannerAndroidScanner(
         fun send(scanResult: ScanResult) {
             val advertisement = ScanResultAndroidAdvertisement(scanResult)
             when {
-                sendBlocking -> trySendBlocking(advertisement)
-                else -> trySend(advertisement)
+                preConflate -> trySend(advertisement)
+                else -> trySendBlocking(advertisement)
             }.onFailure {
                 logger.warn { message = "Unable to deliver scan result due to failure in flow or premature closing." }
             }
