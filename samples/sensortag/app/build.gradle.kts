@@ -30,12 +30,14 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+        }
+
         commonMain.dependencies {
             api(libs.coroutines.core)
             implementation(libs.kable)
-            implementation(libs.tuulbox.coroutines)
-            implementation(libs.tuulbox.encoding)
-            implementation(libs.tuulbox.logging)
+            implementation(libs.khronicle)
         }
 
         androidMain.dependencies {

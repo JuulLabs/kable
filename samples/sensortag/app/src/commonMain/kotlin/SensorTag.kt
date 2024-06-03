@@ -9,10 +9,10 @@ import com.juul.kable.Scanner
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.characteristicOf
 import com.juul.kable.logs.Logging.Level.Events
-import com.juul.tuulbox.encoding.toHexString
-import com.juul.tuulbox.logging.Log
+import com.juul.khronicle.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlin.text.HexFormat.Companion.UpperCase
 
 private const val GYRO_MULTIPLIER = 500f / 65536f
 
@@ -79,7 +79,7 @@ class SensorTag(
     /** Period (in milliseconds) within the range 100-2550 ms. */
     suspend fun readGyroPeriod(): Int {
         val value = peripheral.read(movementPeriodCharacteristic)
-        Log.info { "movement → readPeriod → value = ${value.toHexString()}" }
+        Log.info { "movement → readPeriod → value = ${value.toHexString(UpperCase)}" }
         return value[0].toInt() and 0xFF * 10
     }
 

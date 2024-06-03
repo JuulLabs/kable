@@ -6,10 +6,9 @@ import com.juul.kable.Filter
 import com.juul.kable.Options
 import com.juul.kable.State.Disconnected
 import com.juul.kable.requestPeripheral
-import com.juul.sensortag.services
-import com.juul.tuulbox.logging.ConsoleLogger
-import com.juul.tuulbox.logging.ConstantTagGenerator
-import com.juul.tuulbox.logging.Log
+import com.juul.khronicle.ConsoleLogger
+import com.juul.khronicle.ConstantTagGenerator
+import com.juul.khronicle.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.await

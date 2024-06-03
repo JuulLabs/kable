@@ -3,9 +3,9 @@ package com.juul.sensortag
 import com.juul.kable.State.Disconnected
 import com.juul.kable.logs.Logging.Level.Data
 import com.juul.kable.peripheral
-import com.juul.tuulbox.logging.ConsoleLogger
-import com.juul.tuulbox.logging.ConstantTagGenerator
-import com.juul.tuulbox.logging.Log
+import com.juul.khronicle.ConsoleLogger
+import com.juul.khronicle.ConstantTagGenerator
+import com.juul.khronicle.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn

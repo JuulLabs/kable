@@ -1,8 +1,8 @@
 package com.juul.sensortag
 
 import android.app.Application
-import com.juul.tuulbox.logging.ConsoleLogger
-import com.juul.tuulbox.logging.Log
+import com.juul.khronicle.ConsoleLogger
+import com.juul.khronicle.Log
 
 class App : Application() {
 

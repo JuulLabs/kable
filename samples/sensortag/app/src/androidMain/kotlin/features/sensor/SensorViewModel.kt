@@ -13,13 +13,13 @@ import com.juul.kable.NotReadyException
 import com.juul.kable.Peripheral
 import com.juul.kable.State
 import com.juul.kable.peripheral
+import com.juul.khronicle.Log
 import com.juul.sensortag.Sample
 import com.juul.sensortag.SensorTag
 import com.juul.sensortag.Vector3f
 import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState
 import com.juul.sensortag.features.sensor.ViewState.Connected.GyroState.AxisState
 import com.juul.sensortag.peripheralScope
-import com.juul.tuulbox.logging.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
