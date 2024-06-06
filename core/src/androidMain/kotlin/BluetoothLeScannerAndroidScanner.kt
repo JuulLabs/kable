@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
@@ -25,6 +24,7 @@ import kotlinx.coroutines.flow.filter
 internal class BluetoothLeScannerAndroidScanner(
     private val filters: List<Filter>,
     private val scanSettings: ScanSettings,
+    private val preConflate: Boolean,
     logging: Logging,
 ) : AndroidScanner {
 
@@ -35,23 +35,24 @@ internal class BluetoothLeScannerAndroidScanner(
     override val advertisements: Flow<AndroidAdvertisement> = callbackFlow {
         val scanner = getBluetoothAdapter().bluetoothLeScanner ?: throw BluetoothDisabledException()
 
+        fun sendResult(scanResult: ScanResult) {
+            val advertisement = ScanResultAndroidAdvertisement(scanResult)
+            when {
+                preConflate -> trySend(advertisement)
+                else -> trySendBlocking(advertisement)
+            }.onFailure {
+                logger.warn { message = "Unable to deliver scan result due to failure in flow or premature closing." }
+            }
+        }
+
         val callback = object : ScanCallback() {
+
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                trySendBlocking(ScanResultAndroidAdvertisement(result))
-                    .onFailure {
-                        logger.warn { message = "Unable to deliver scan result due to failure in flow or premature closing." }
-                    }
+                sendResult(result)
             }
 
-            @SuppressLint("NewApi") // `forEach` incorrectly showing as minimum API 24 despite the Kotlin stdlib version being used.
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
-                runCatching {
-                    results.forEach {
-                        trySendBlocking(ScanResultAndroidAdvertisement(it)).getOrThrow()
-                    }
-                }.onFailure {
-                    logger.warn { message = "Unable to deliver batch scan results due to failure in flow or premature closing." }
-                }
+                results.forEach(::sendResult)
             }
 
             override fun onScanFailed(errorCode: Int) {
@@ -73,22 +74,14 @@ internal class BluetoothLeScannerAndroidScanner(
         }
 
         logger.info {
-            message = if (scanFilters.isEmpty()) {
-                "Starting scan without filters"
-            } else {
-                "Starting scan with ${scanFilters.size} filter(s)"
-            }
+            message = logMessage("Starting", preConflate, scanFilters)
         }
         checkBluetoothAdapterState(STATE_ON)
         scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {
             logger.info {
-                message = if (scanFilters.isEmpty()) {
-                    "Stopping scan without filters"
-                } else {
-                    "Stopping scan with ${scanFilters.size} filter(s)"
-                }
+                message = logMessage("Stopping", preConflate, scanFilters)
             }
             // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException` means BLE has been disabled.
             try {
@@ -103,5 +96,19 @@ internal class BluetoothLeScannerAndroidScanner(
 
         // Perform `Filter.NamePrefix` filtering here, since it isn't supported natively.
         namePrefixFilters.any { filter -> filter.matches(advertisement.name) }
+    }
+}
+
+private fun logMessage(prefix: String, preConflate: Boolean, scanFilters: List<ScanFilter>) = buildString {
+    append(prefix)
+    append(' ')
+    append("scan ")
+    if (preConflate) {
+        append("pre-conflated ")
+    }
+    if (scanFilters.isEmpty()) {
+        append("without filters")
+    } else {
+        append("with ${scanFilters.size} filter(s)")
     }
 }
