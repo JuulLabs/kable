@@ -85,12 +85,15 @@ internal expect class PlatformDescriptor
 
 /** Wrapper around platform specific Bluetooth LE service. Holds a strong reference to underlying service. */
 public expect class DiscoveredService : Service {
+    override val serviceUuid: Uuid
     internal val service: PlatformService
     public val characteristics: List<DiscoveredCharacteristic>
 }
 
 /** Wrapper around platform specific Bluetooth LE characteristic. Holds a strong reference to underlying characteristic. */
 public expect class DiscoveredCharacteristic : Characteristic {
+    override val serviceUuid: Uuid
+    override val characteristicUuid: Uuid
     internal val characteristic: PlatformCharacteristic
     public val descriptors: List<DiscoveredDescriptor>
     public val properties: Properties
@@ -98,6 +101,9 @@ public expect class DiscoveredCharacteristic : Characteristic {
 
 /** Wrapper around platform specific Bluetooth LE descriptor. Holds a strong reference to underlying descriptor. */
 public expect class DiscoveredDescriptor : Descriptor {
+    override val serviceUuid: Uuid
+    override val characteristicUuid: Uuid
+    override val descriptorUuid: Uuid
     internal val descriptor: PlatformDescriptor
 }
 

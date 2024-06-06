@@ -21,7 +21,7 @@ internal class CentralManagerCoreBluetoothScanner(
     filters: List<Filter>,
     options: Map<Any?, *>?,
     logging: Logging,
-) : CoreBluetoothScanner {
+) : PlatformScanner {
 
     init {
         require(filters.none { it is Filter.Address }) {
@@ -48,7 +48,7 @@ internal class CentralManagerCoreBluetoothScanner(
         }
     }
 
-    override val advertisements: Flow<CoreBluetoothAdvertisement> =
+    override val advertisements: Flow<PlatformAdvertisement> =
         central.delegate
             .response
             .onStart {

@@ -40,7 +40,7 @@ public actual class ScannerBuilder {
     }
 
     @OptIn(ObsoleteKableApi::class)
-    internal actual fun build(): AndroidScanner = BluetoothLeScannerAndroidScanner(
+    internal actual fun build(): PlatformScanner = BluetoothLeScannerAndroidScanner(
         filters = filters.orEmpty(),
         scanSettings = scanSettings,
         logging = logging,

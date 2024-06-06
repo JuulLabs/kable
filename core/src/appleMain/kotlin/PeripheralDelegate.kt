@@ -10,6 +10,7 @@ import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation.Change
 import com.juul.kable.logs.detail
+import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -94,8 +95,7 @@ internal class PeripheralDelegate(
         _response.sendBlocking(DidDiscoverServices(peripheral.identifier, didDiscoverServices))
     }
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun peripheral(
         peripheral: CBPeripheral,
         didDiscoverIncludedServicesForService: CBService,
@@ -110,8 +110,7 @@ internal class PeripheralDelegate(
 
     /* Discovering Characteristics and their Descriptors */
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun peripheral(
         peripheral: CBPeripheral,
         didDiscoverCharacteristicsForService: CBService,
@@ -130,8 +129,7 @@ internal class PeripheralDelegate(
         )
     }
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun peripheral(
         peripheral: CBPeripheral,
         didDiscoverDescriptorsForCharacteristic: CBCharacteristic,
@@ -146,8 +144,7 @@ internal class PeripheralDelegate(
 
     /* Retrieving Characteristic and Descriptor Values */
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun peripheral(
         peripheral: CBPeripheral,
         didUpdateValueForCharacteristic: CBCharacteristic,
@@ -172,8 +169,7 @@ internal class PeripheralDelegate(
         characteristicChanges.emitBlocking(change)
     }
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun peripheral(
         peripheral: CBPeripheral,
         didUpdateValueForDescriptor: CBDescriptor,
@@ -190,8 +186,7 @@ internal class PeripheralDelegate(
 
     /* Writing Characteristic and Descriptor Values */
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun peripheral(
         peripheral: CBPeripheral,
         didWriteValueForCharacteristic: CBCharacteristic,
@@ -210,8 +205,7 @@ internal class PeripheralDelegate(
         )
     }
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun peripheral(
         peripheral: CBPeripheral,
         didWriteValueForDescriptor: CBDescriptor,
@@ -235,8 +229,7 @@ internal class PeripheralDelegate(
 
     /* Managing Notifications for a Characteristic’s Value */
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun peripheral(
         peripheral: CBPeripheral,
         didUpdateNotificationStateForCharacteristic: CBCharacteristic,

@@ -2,8 +2,8 @@ package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
 
-public interface Scanner {
-    public val advertisements: Flow<Advertisement>
+public interface Scanner<out T : Advertisement> {
+    public val advertisements: Flow<T>
 }
 
 @Suppress("FunctionName") // Builder function.

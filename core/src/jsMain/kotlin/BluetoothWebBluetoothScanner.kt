@@ -24,7 +24,7 @@ internal class BluetoothWebBluetoothScanner(
     bluetooth: Bluetooth,
     filters: List<Filter>,
     logging: Logging,
-) : WebBluetoothScanner {
+) : PlatformScanner {
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
@@ -33,7 +33,7 @@ internal class BluetoothWebBluetoothScanner(
 
     private val options = filters.toBluetoothLEScanOptions()
 
-    override val advertisements: Flow<WebBluetoothAdvertisement> = callbackFlow {
+    override val advertisements: Flow<PlatformAdvertisement> = callbackFlow {
         check(supportsScanning) { "Scanning unavailable" }
 
         logger.info { message = "Starting scan" }

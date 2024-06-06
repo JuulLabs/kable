@@ -25,7 +25,7 @@ public actual data class DiscoveredService internal constructor(
     public actual val characteristics: List<DiscoveredCharacteristic>,
 ) : Service {
 
-    override val serviceUuid: Uuid = service.uuid.toUuid()
+    actual override val serviceUuid: Uuid = service.uuid.toUuid()
 }
 
 public actual data class DiscoveredCharacteristic internal constructor(
@@ -33,8 +33,8 @@ public actual data class DiscoveredCharacteristic internal constructor(
     public actual val descriptors: List<DiscoveredDescriptor>,
 ) : Characteristic {
 
-    override val serviceUuid: Uuid = characteristic.service.uuid.toUuid()
-    override val characteristicUuid: Uuid = characteristic.uuid.toUuid()
+    actual override val serviceUuid: Uuid = characteristic.service.uuid.toUuid()
+    actual override val characteristicUuid: Uuid = characteristic.uuid.toUuid()
 
     public actual val properties: Properties = Properties(characteristic.properties)
 }
@@ -43,9 +43,9 @@ public actual data class DiscoveredDescriptor internal constructor(
     internal actual val descriptor: PlatformDescriptor,
 ) : Descriptor {
 
-    override val serviceUuid: Uuid = descriptor.characteristic.service.uuid.toUuid()
-    override val characteristicUuid: Uuid = descriptor.characteristic.uuid.toUuid()
-    override val descriptorUuid: Uuid = descriptor.uuid.toUuid()
+    actual override val serviceUuid: Uuid = descriptor.characteristic.service.uuid.toUuid()
+    actual override val characteristicUuid: Uuid = descriptor.characteristic.uuid.toUuid()
+    actual override val descriptorUuid: Uuid = descriptor.uuid.toUuid()
 }
 
 internal suspend fun PlatformService.toDiscoveredService(logger: Logger): DiscoveredService {
