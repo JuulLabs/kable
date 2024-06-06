@@ -26,13 +26,13 @@ internal class BluetoothLeScannerAndroidScanner(
     private val scanSettings: ScanSettings,
     private val preConflate: Boolean,
     logging: Logging,
-) : AndroidScanner {
+) : PlatformScanner {
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
     private val namePrefixFilters = filters.filterIsInstance<NamePrefix>()
 
-    override val advertisements: Flow<AndroidAdvertisement> = callbackFlow {
+    override val advertisements: Flow<PlatformAdvertisement> = callbackFlow {
         val scanner = getBluetoothAdapter().bluetoothLeScanner ?: throw BluetoothDisabledException()
 
         fun sendResult(scanResult: ScanResult) {

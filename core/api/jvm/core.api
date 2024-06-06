@@ -219,7 +219,7 @@ public final class com/juul/kable/PeripheralKt {
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 }
 
-public abstract interface class com/juul/kable/PlatformScanner : com/juul/kable/Scanner {
+public abstract interface class com/juul/kable/PlatformAdvertisement : com/juul/kable/Advertisement {
 }
 
 public final class com/juul/kable/ProfileKt {
@@ -253,8 +253,8 @@ public final class com/juul/kable/ScannerBuilder {
 }
 
 public final class com/juul/kable/ScannerKt {
-	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/PlatformScanner;
-	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/PlatformScanner;
+	public static final fun Scanner (Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Scanner;
+	public static synthetic fun Scanner$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Scanner;
 }
 
 public abstract interface class com/juul/kable/Service {

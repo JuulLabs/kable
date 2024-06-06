@@ -12,7 +12,7 @@ public actual class DiscoveredService : Service {
         get() = jvmNotImplementedException()
     public actual val characteristics: List<DiscoveredCharacteristic>
         get() = jvmNotImplementedException()
-    override val serviceUuid: Uuid
+    actual override val serviceUuid: Uuid
         get() = jvmNotImplementedException()
 }
 
@@ -24,9 +24,9 @@ public actual class DiscoveredCharacteristic : Characteristic {
         get() = jvmNotImplementedException()
     public actual val properties: Characteristic.Properties
         get() = jvmNotImplementedException()
-    override val serviceUuid: Uuid
+    actual override val serviceUuid: Uuid
         get() = jvmNotImplementedException()
-    override val characteristicUuid: Uuid
+    actual override val characteristicUuid: Uuid
         get() = jvmNotImplementedException()
 }
 
@@ -34,10 +34,10 @@ public actual class DiscoveredCharacteristic : Characteristic {
 public actual class DiscoveredDescriptor : Descriptor {
     internal actual val descriptor: PlatformDescriptor
         get() = jvmNotImplementedException()
-    override val serviceUuid: Uuid
+    actual override val serviceUuid: Uuid
         get() = jvmNotImplementedException()
-    override val characteristicUuid: Uuid
+    actual override val characteristicUuid: Uuid
         get() = jvmNotImplementedException()
-    override val descriptorUuid: Uuid
+    actual override val descriptorUuid: Uuid
         get() = jvmNotImplementedException()
 }
