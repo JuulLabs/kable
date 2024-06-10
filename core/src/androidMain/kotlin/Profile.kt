@@ -24,7 +24,7 @@ public actual data class DiscoveredService internal constructor(
     public actual val characteristics: List<DiscoveredCharacteristic> =
         service.characteristics.map(::DiscoveredCharacteristic)
 
-    override val serviceUuid: Uuid get() = service.uuid
+    actual override val serviceUuid: Uuid get() = service.uuid
     val instanceId: Int get() = service.instanceId
 }
 
@@ -35,8 +35,8 @@ public actual data class DiscoveredCharacteristic internal constructor(
     public actual val descriptors: List<DiscoveredDescriptor> =
         characteristic.descriptors.map(::DiscoveredDescriptor)
 
-    override val serviceUuid: Uuid get() = characteristic.service.uuid
-    override val characteristicUuid: Uuid get() = characteristic.uuid
+    actual override val serviceUuid: Uuid get() = characteristic.service.uuid
+    actual override val characteristicUuid: Uuid get() = characteristic.uuid
     val instanceId: Int get() = characteristic.instanceId
     public actual val properties: Properties get() = Properties(characteristic.properties)
 }
@@ -45,9 +45,9 @@ public actual data class DiscoveredDescriptor internal constructor(
     internal actual val descriptor: PlatformDescriptor,
 ) : Descriptor {
 
-    override val serviceUuid: Uuid get() = descriptor.characteristic.service.uuid
-    override val characteristicUuid: Uuid get() = descriptor.characteristic.uuid
-    override val descriptorUuid: Uuid get() = descriptor.uuid
+    actual override val serviceUuid: Uuid get() = descriptor.characteristic.service.uuid
+    actual override val characteristicUuid: Uuid get() = descriptor.characteristic.uuid
+    actual override val descriptorUuid: Uuid get() = descriptor.uuid
 }
 
 internal fun PlatformCharacteristic.toLazyCharacteristic() = LazyCharacteristic(
