@@ -17,7 +17,7 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
     override val rssi: Int,
     val data: Map<String, Any>,
     internal val cbPeripheral: CBPeripheral,
-) : CoreBluetoothAdvertisement {
+) : PlatformAdvertisement {
 
     override val identifier: Identifier
         get() = cbPeripheral.identifier.toUuid()
@@ -69,8 +69,8 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is CoreBluetoothAdvertisement) return false
-        if (identifier != other.identifier) return false
+        if (other !is PlatformAdvertisement) return false
+        if (other.identifier != identifier) return false
         return true
     }
 

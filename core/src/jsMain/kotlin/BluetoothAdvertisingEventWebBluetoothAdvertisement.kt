@@ -8,7 +8,7 @@ import org.khronos.webgl.DataView
 
 internal class BluetoothAdvertisingEventWebBluetoothAdvertisement(
     private val advertisement: BluetoothAdvertisingEvent,
-) : WebBluetoothAdvertisement {
+) : PlatformAdvertisement {
 
     internal val bluetoothDevice: BluetoothDevice
         get() = advertisement.device

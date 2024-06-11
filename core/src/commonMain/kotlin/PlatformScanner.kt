@@ -1,3 +1,3 @@
 package com.juul.kable
 
-public expect interface PlatformScanner : Scanner
+public typealias PlatformScanner = Scanner<PlatformAdvertisement>

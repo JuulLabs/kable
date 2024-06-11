@@ -4,6 +4,7 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
+import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,8 +77,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         _connectionState.emitBlocking(DidConnect(didConnectPeripheral.identifier))
     }
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun centralManager(
         central: CBCentralManager,
         didDisconnectPeripheral: CBPeripheral,
@@ -87,8 +87,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         _connectionState.emitBlocking(DidDisconnect(didDisconnectPeripheral.identifier, error))
     }
 
-    // https://kotlinlang.org/docs/reference/native/objc_interop.html#subclassing-swiftobjective-c-classes-and-protocols-from-kotlin
-    @Suppress("CONFLICTING_OVERLOADS")
+    @ObjCSignatureOverride
     override fun centralManager(
         central: CBCentralManager,
         didFailToConnectPeripheral: CBPeripheral,

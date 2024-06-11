@@ -32,7 +32,7 @@ kotlin {
 
         commonTest.dependencies {
             implementation(kotlin("test"))
-            implementation(libs.tuulbox.logging)
+            implementation(libs.khronicle)
             implementation(libs.kotlinx.coroutines.test)
         }
 
