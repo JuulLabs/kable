@@ -8,8 +8,8 @@ import com.juul.kable.logs.LogEngine
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.Format.Compact
 import com.juul.kable.logs.Logging.Level.Data
-import com.juul.tuulbox.logging.ConsoleLogger
-import com.juul.tuulbox.logging.Log
+import com.juul.khronicle.ConsoleLogger
+import com.juul.khronicle.Log
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
