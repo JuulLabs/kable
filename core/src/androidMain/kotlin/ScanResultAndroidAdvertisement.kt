@@ -10,12 +10,13 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.ParcelUuid
 import com.benasher44.uuid.Uuid
+import com.juul.kable.PlatformAdvertisement.BondState
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 internal class ScanResultAndroidAdvertisement(
     private val scanResult: ScanResult,
-) : AndroidAdvertisement {
+) : PlatformAdvertisement {
 
     internal val bluetoothDevice: BluetoothDevice
         get() = scanResult.device

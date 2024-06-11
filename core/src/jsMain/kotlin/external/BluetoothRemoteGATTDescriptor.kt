@@ -9,7 +9,7 @@ import kotlin.js.Promise
  * https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTDescriptor
  * https://webbluetoothcg.github.io/web-bluetooth/#bluetoothremotegattdescriptor
  */
-internal abstract external class BluetoothRemoteGATTDescriptor : EventTarget {
+internal external class BluetoothRemoteGATTDescriptor : EventTarget {
     val uuid: UUID
     val characteristic: BluetoothRemoteGATTCharacteristic
     fun readValue(): Promise<DataView>
