@@ -21,7 +21,7 @@ tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tu
 uuid = { module = "com.benasher44:uuid", version = "0.8.4" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "8.4.1" }
+android-library = { id = "com.android.library", version = "8.5.0" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.14.0" }
 dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
