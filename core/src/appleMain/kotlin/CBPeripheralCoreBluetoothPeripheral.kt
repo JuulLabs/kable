@@ -11,6 +11,7 @@ import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
 import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
+import com.juul.kable.PeripheralDelegate.Response.DidDiscoverDescriptorsForCharacteristic
 import com.juul.kable.State.Disconnected.Status.Cancelled
 import com.juul.kable.State.Disconnected.Status.ConnectionLimitReached
 import com.juul.kable.State.Disconnected.Status.EncryptionTimedOut
@@ -49,6 +50,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
 import platform.CoreBluetooth.CBErrorConnectionFailed
@@ -264,9 +266,14 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             centralManager.discoverServices(cbPeripheral, servicesToDiscover)
         }
 
-        cbPeripheral.services?.forEach { cbService ->
+        cbPeripheral.services?.filterIsInstance<CBService>()?.forEach { cbService ->
             connection.execute<DidDiscoverCharacteristicsForService> {
-                centralManager.discoverCharacteristics(cbPeripheral, cbService as CBService)
+                centralManager.discoverCharacteristics(cbPeripheral, cbService)
+            }
+            cbService.characteristics?.forEach { cbCharacteristic ->
+                connection.execute<DidDiscoverDescriptorsForCharacteristic> {
+                    centralManager.discoverDescriptors(cbPeripheral, cbCharacteristic as CBCharacteristic)
+                }
             }
         }
 
