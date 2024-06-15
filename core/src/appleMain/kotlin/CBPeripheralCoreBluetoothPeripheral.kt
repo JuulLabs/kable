@@ -6,6 +6,7 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForService
+import com.juul.kable.PeripheralDelegate.Response.DidDiscoverDescriptorsForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
@@ -68,8 +69,16 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
+import platform.CoreBluetooth.CBUUIDCharacteristicAggregateFormatString
+import platform.CoreBluetooth.CBUUIDCharacteristicExtendedPropertiesString
+import platform.CoreBluetooth.CBUUIDCharacteristicFormatString
+import platform.CoreBluetooth.CBUUIDCharacteristicUserDescriptionString
+import platform.CoreBluetooth.CBUUIDClientCharacteristicConfigurationString
+import platform.CoreBluetooth.CBUUIDL2CAPPSMCharacteristicString
+import platform.CoreBluetooth.CBUUIDServerCharacteristicConfigurationString
 import platform.Foundation.NSData
 import platform.Foundation.NSError
+import platform.Foundation.NSNumber
 import platform.Foundation.NSUUID
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
@@ -378,9 +387,42 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         }
 
         val platformDescriptor = discoveredServices.obtain(descriptor)
-        return connection.execute<DidUpdateValueForDescriptor> {
+        val updatedDescriptor = connection.execute<DidUpdateValueForDescriptor> {
             centralManager.read(cbPeripheral, platformDescriptor)
-        }.descriptor.value as NSData
+        }.descriptor
+
+        // CBDescriptor "value" property type depends on cbDescriptor.UUID.UUIDString
+        // https://stackoverflow.com/questions/52816049/how-to-convert-cbdescriptor-value-to-string
+        // https://developer.apple.com/documentation/corebluetooth/characteristic-descriptors
+        when (updatedDescriptor.UUID.UUIDString) {
+            CBUUIDCharacteristicFormatString -> {
+                return updatedDescriptor.value as NSData
+            }
+            CBUUIDCharacteristicAggregateFormatString,
+            CBUUIDCharacteristicUserDescriptionString,
+            -> {
+                return (updatedDescriptor.value as String)
+                    .encodeToByteArray()
+                    .toNSData()
+            }
+            CBUUIDCharacteristicExtendedPropertiesString,
+            CBUUIDClientCharacteristicConfigurationString,
+            CBUUIDServerCharacteristicConfigurationString,
+            CBUUIDL2CAPPSMCharacteristicString,
+            -> {
+                // https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Core-54/out/en/host/generic-attribute-profile--gatt-.html
+                // should be two bytes in length
+                val rawValue = (updatedDescriptor.value as NSNumber).intValue
+                return byteArrayOf(
+                    (rawValue.ushr(1) and 0xFF).toByte(),
+                    (rawValue and 0xFF).toByte(),
+                ).toNSData()
+            }
+            else -> {
+                logger.warn { message = "cannot read descriptor for unknown uuid string ${updatedDescriptor.UUID.UUIDString}" }
+                return byteArrayOf().toNSData()
+            }
+        }
     }
 
     override fun observe(
