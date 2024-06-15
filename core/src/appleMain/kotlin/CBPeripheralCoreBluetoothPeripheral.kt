@@ -70,9 +70,18 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
+import platform.CoreBluetooth.CBUUIDCharacteristicAggregateFormatString
+import platform.CoreBluetooth.CBUUIDCharacteristicExtendedPropertiesString
+import platform.CoreBluetooth.CBUUIDCharacteristicFormatString
+import platform.CoreBluetooth.CBUUIDCharacteristicUserDescriptionString
+import platform.CoreBluetooth.CBUUIDClientCharacteristicConfigurationString
+import platform.CoreBluetooth.CBUUIDL2CAPPSMCharacteristicString
+import platform.CoreBluetooth.CBUUIDServerCharacteristicConfigurationString
 import platform.Foundation.NSData
 import platform.Foundation.NSError
+import platform.Foundation.NSNumber
 import platform.Foundation.NSUUID
+import platform.darwin.UInt16
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -393,9 +402,47 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         }
 
         val platformDescriptor = discoveredServices.obtain(descriptor)
-        return connection.execute<DidUpdateValueForDescriptor> {
+        val updatedDescriptor = connection.execute<DidUpdateValueForDescriptor> {
             centralManager.read(cbPeripheral, platformDescriptor)
-        }.descriptor.value as NSData
+        }.descriptor
+
+        // CBDescriptor "value" property type depends on cbDescriptor.UUID.UUIDString
+        // https://developer.apple.com/documentation/corebluetooth/characteristic-descriptors
+        // see type conversion table https://github.com/JuulLabs/kable/pull/706
+        when (updatedDescriptor.UUID.UUIDString) {
+            CBUUIDCharacteristicFormatString -> {
+                return updatedDescriptor.value as NSData
+            }
+            CBUUIDCharacteristicUserDescriptionString,
+            -> {
+                return (updatedDescriptor.value as String)
+                    .encodeToByteArray()
+                    .toNSData()
+            }
+            CBUUIDCharacteristicExtendedPropertiesString,
+            CBUUIDClientCharacteristicConfigurationString,
+            CBUUIDServerCharacteristicConfigurationString,
+            -> {
+                return (updatedDescriptor.value as NSNumber)
+                    .unsignedShortValue
+                    .toNSData()
+            }
+            CBUUIDL2CAPPSMCharacteristicString,
+            -> {
+                return (updatedDescriptor.value as UInt16).toNSData()
+            }
+            CBUUIDCharacteristicAggregateFormatString,
+            -> {
+                logger.warn {
+                    message = "Best effort descriptor value conversion for undocumented $CBUUIDCharacteristicAggregateFormatString uuid"
+                }
+                return (updatedDescriptor.value as? NSData) ?: byteArrayOf().toNSData()
+            }
+            else -> {
+                logger.warn { message = "cannot read descriptor for unknown uuid string ${updatedDescriptor.UUID.UUIDString}" }
+                return byteArrayOf().toNSData()
+            }
+        }
     }
 
     override fun observe(
