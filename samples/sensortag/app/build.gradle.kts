@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     kotlin("multiplatform")
+    kotlin("plugin.compose")
+    id("org.jetbrains.compose")
     id("com.google.devtools.ksp")
 }
 
@@ -35,7 +37,8 @@ kotlin {
         }
 
         commonMain.dependencies {
-            api(libs.coroutines.core)
+            implementation(compose.runtime)
+            implementation(libs.coroutines.core)
             implementation(libs.kable)
             implementation(libs.khronicle)
         }
@@ -44,19 +47,15 @@ kotlin {
             implementation(libs.bundles.accompanist)
             implementation(libs.bundles.compose)
             implementation(libs.bundles.krayon)
+            implementation(libs.compose.material)
             implementation(libs.exercise.annotations)
+            implementation(project.dependencies.platform(libs.compose.bom))
         }
     }
 }
 
 android {
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
     compileSdk = libs.versions.android.compile.get().toInt()
-
     defaultConfig {
         minSdk = libs.versions.android.min.get().toInt()
         targetSdk = libs.versions.android.target.get().toInt()
@@ -66,10 +65,6 @@ android {
 
     buildFeatures {
         compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
 
     lint {
