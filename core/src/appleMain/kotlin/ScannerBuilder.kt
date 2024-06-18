@@ -9,8 +9,8 @@ import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
 public actual class ScannerBuilder {
 
     @Deprecated(
-        message = "Use predicate",
-        replaceWith = ReplaceWith("predicate"),
+        message = "Use predicates",
+        replaceWith = ReplaceWith("predicates"),
         level = DeprecationLevel.WARNING,
     )
     public actual var filters: List<Filter>? = null

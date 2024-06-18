@@ -40,7 +40,7 @@ internal class CentralManagerCoreBluetoothScanner(
                 @Suppress("ktlint:standard:max-line-length")
                 message = "According to Core Bluetooth documentation: " +
                     "\"The recommended practice is to populate the serviceUUIDs parameter rather than leaving it nil.\" " +
-                    "This means providing only (and at least 1) filter(s) of type `Filter.Service` to Scanner. " +
+                    "This means providing a non-empty `services` member on every Scanner predicate. " +
                     "See https://developer.apple.com/documentation/corebluetooth/cbcentralmanager/1518986-scanforperipheralswithservices#discussion for more details."
             }
         }

@@ -21,7 +21,11 @@ The [`Scanner`] may be configured via the following DSL (shown are defaults, whe
 
 ```kotlin
 val scanner = Scanner {
-    filters = null
+    predicates = {
+        match {
+            name = "My device"
+        }
+    }
     logging {
         engine = SystemLogEngine
         level = Warnings
@@ -30,7 +34,8 @@ val scanner = Scanner {
 }
 ```
 
-Scan results can be filtered by providing a list of [`Filter`]s. The following filters are supported:
+Scan results can be filtered by providing a list of [`Filter`]s via the `predicates` DSL.
+The following filters are supported:
 
 | Filter             | Android | Apple | JavaScript |
 |--------------------|:-------:|:-----:|:----------:|
@@ -56,14 +61,18 @@ you had the following peripherals nearby when performing a scan:
 | D2 |             | `f484e2db-2efa-4b58-96be-f89372a3ef82`                                             |
 | D3 | "Example"   | `8d7798c7-15bd-493f-a935-785305946870`,<br/>`67bebb9e-6372-4de6-a7bf-e0384583929e` |
 
-To have peripherals D1 and D3 emitted during a scan, you could use the following `filters`:
+To have peripherals D1 and D3 emitted during a scan, you could use the following `predicates`:
 
 ```kotlin
 val scanner = Scanner {
-    filters = listOf(
-        Filter.Service(uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb")), // SensorTag
-        Filter.NamePrefix("Ex"),
-    )
+    predicates = {
+        match {
+            services = listof(uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb"))
+        }
+        match {
+            name = Prefix("Ex")
+        }
+    }
 }
 ```
 
@@ -73,7 +82,11 @@ found matching the specified filters:
 
 ```kotlin
 val advertisement = Scanner {
-    filters = listOf(Filter.Name("Example"))
+    predicates = {
+        match {
+            name = Exact("Example")
+        }
+    }
 }.advertisements.first()
 ```
 
@@ -281,9 +294,11 @@ user is then returned (as a [`Peripheral`] object).
 
 ```kotlin
 val options = Options(
-    filters = listOf(
-        Filter.NamePrefix("Example"),
-    ),
+    predicates = {
+        match {
+            name = Prefix("Example")
+        }
+    },
     optionalServices = listOf(
         uuidFrom("f000aa80-0451-4000-b000-000000000000"),
         uuidFrom("f000aa81-0451-4000-b000-000000000000"),
