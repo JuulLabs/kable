@@ -2,7 +2,6 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothLEScanFilterInit
-import com.juul.kable.external.BluetoothLEScanOptions
 import com.juul.kable.external.BluetoothManufacturerDataFilterInit
 
 /**
@@ -14,13 +13,15 @@ import com.juul.kable.external.BluetoothManufacturerDataFilterInit
  */
 @Deprecated(
     message = "Replaced with FilterPredicateBuilder",
-    replaceWith = ReplaceWith("""
+    replaceWith = ReplaceWith(
+        """
         FilterPredicateBuilder().apply {
             name = name
             services = services
             manufacturerData = manufacturerData
         }.build()"
-    """),
+        """,
+    ),
     level = DeprecationLevel.WARNING,
 )
 public data class FilterSet(

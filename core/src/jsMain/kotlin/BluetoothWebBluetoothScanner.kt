@@ -2,7 +2,6 @@ package com.juul.kable
 
 import com.juul.kable.external.Bluetooth
 import com.juul.kable.external.BluetoothAdvertisingEvent
-import com.juul.kable.external.BluetoothLEScanOptions
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.await
@@ -59,4 +58,3 @@ internal class BluetoothWebBluetoothScanner(
         }
     }
 }
-
