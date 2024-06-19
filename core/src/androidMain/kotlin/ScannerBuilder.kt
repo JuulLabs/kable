@@ -10,13 +10,17 @@ import kotlinx.coroutines.runBlocking
 public actual class ScannerBuilder {
 
     @Deprecated(
-        message = "Use predicate",
-        replaceWith = ReplaceWith("predicate"),
+        message = "Use filters(FilterPredicateSetBuilder.() -> Unit)",
+        replaceWith = ReplaceWith("filters { }"),
         level = DeprecationLevel.WARNING,
     )
     public actual var filters: List<Filter>? = null
 
-    public actual var predicates: FilterPredicateSetBuilder.() -> Unit = { }
+    private var filterPredicateSet: FilterPredicateSet = FilterPredicateSet()
+
+    public actual fun filters(builderAction: FilterPredicateSetBuilder.() -> Unit) {
+        filterPredicateSet = FilterPredicateSetBuilder().apply(builderAction).build()
+    }
 
     /**
      * Allows for the [Scanner] to be configured via Android's [ScanSettings].
@@ -48,7 +52,7 @@ public actual class ScannerBuilder {
 
     @OptIn(ObsoleteKableApi::class)
     internal actual fun build(): PlatformScanner = BluetoothLeScannerAndroidScanner(
-        predicates = filters?.deprecatedListToGroup() ?: FilterPredicateSetBuilder().apply(predicates).build(),
+        filters = filters?.deprecatedListToGroup() ?: filterPredicateSet,
         scanSettings = scanSettings,
         logging = logging,
         preConflate = preConflate,

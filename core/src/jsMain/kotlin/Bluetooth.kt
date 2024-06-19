@@ -100,10 +100,10 @@ private fun Options.toRequestDeviceOptions(): RequestDeviceOptions = jso {
 }
 
 private fun Options.filters(): List<BluetoothLEScanFilterInit> =
-    when {
-        filterSets?.isNotEmpty() == true -> filterSets.toBluetoothLEScanFilterInit()
-        filters?.isNotEmpty() == true -> filters.toBluetoothLEScanFilterInit()
-        else -> FilterPredicateSetBuilder().apply(predicates).build().toBluetoothLEScanFilterInit()
+    if (filterSets?.isNotEmpty() == true) {
+        filterSets.toBluetoothLEScanFilterInit()
+    } else {
+        FilterPredicateSetBuilder().apply(filters).build().toBluetoothLEScanFilterInit()
     }
 
 // Note: Web Bluetooth requires that UUIDs be provided as lowercase strings.

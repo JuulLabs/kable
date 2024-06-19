@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
+import com.juul.kable.Filter.Service
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.cinterop.UnsafeNumber
@@ -19,20 +20,20 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 
 internal class CentralManagerCoreBluetoothScanner(
     central: CentralManager,
-    predicates: FilterPredicateSet,
+    filters: FilterPredicateSet,
     options: Map<Any?, *>?,
     logging: Logging,
 ) : PlatformScanner {
 
     init {
-        require(predicates.flatten().none { it is Filter.Address }) {
+        require(filters.flatten().none { it is Filter.Address }) {
             "Filtering by address (`Filter.Address`) is not supported on Apple platforms"
         }
     }
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
-    private val nativeServiceFilters = predicates.toNativeServiceFilter()
+    private val nativeServiceFilters = filters.toNativeServiceFilter()
 
     init {
         if (nativeServiceFilters == null) {
@@ -65,11 +66,8 @@ internal class CentralManagerCoreBluetoothScanner(
             }
             .filterIsInstance<DidDiscoverPeripheral>()
             .filter { didDiscoverPeripheral ->
-                // Short-circuit (i.e. don't filter) if no filters were provided.
-                if (predicates.isEmpty()) return@filter true
-
                 val advertisementData = didDiscoverPeripheral.advertisementData.asAdvertisementData()
-                predicates.matches(
+                filters.matches(
                     services = advertisementData.serviceUuids,
                     name = advertisementData.localName,
                     manufacturerData = advertisementData.manufacturerData,
@@ -91,20 +89,23 @@ private suspend fun CentralManager.awaitPoweredOn() {
         .first { it == CBManagerStatePoweredOn }
 }
 
-private fun FilterPredicateSet.flatten(): List<Filter> =
-    predicates.flatMap(FilterPredicate::filters)
-
-// Native filtering of advertisements is performed if each predicate set contains a `Filter.Service`.
+// Native filtering of advertisements can only be performed if each predicate set contains a `Filter.Service`.
 private fun FilterPredicateSet.supportsNativeServiceFiltering(): Boolean =
     predicates.all { predicate ->
-        predicate.filters.any { it is Filter.Service }
+        predicate.filters.any { it is Service }
     }
 
+// Note that we unroll them all into a flat list which then behaves as a "pre-filter" that lets
+// the system filter for advertisements that match _any_ of the services we provide. This is
+// desirable on mobile for efficiency. We still need to apply our matching logic afterwards as
+// the unrolling process necessarily discards any compound clauses that the filters may contain,
+// along with any non-service filters that may be in there.
 private fun FilterPredicateSet.toNativeServiceFilter(): List<Uuid>? =
     if (supportsNativeServiceFiltering()) {
         predicates.flatMap(FilterPredicate::filters)
-            .filterIsInstance<Filter.Service>()
-            .map(Filter.Service::uuid)
+            .filterIsInstance<Service>()
+            .map(Service::uuid)
+            .ifEmpty { null }
     } else {
         null
     }

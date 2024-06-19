@@ -22,16 +22,22 @@ private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
  */
 internal class BluetoothWebBluetoothScanner(
     bluetooth: Bluetooth,
-    predicates: FilterPredicateSet,
+    filters: FilterPredicateSet,
     logging: Logging,
 ) : PlatformScanner {
+
+    init {
+        require(filters.flatten().none { it is Filter.Address }) {
+            "Filtering by address (`Filter.Address`) is not supported on Javascript platforms"
+        }
+    }
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
     // https://webbluetoothcg.github.io/web-bluetooth/scanning.html#scanning
     private val supportsScanning = js("window.navigator.bluetooth.requestLEScan") != null
 
-    private val options = predicates.toBluetoothLEScanOptions()
+    private val options = filters.toBluetoothLEScanOptions()
 
     override val advertisements: Flow<PlatformAdvertisement> = callbackFlow {
         check(supportsScanning) { "Scanning unavailable" }
@@ -54,11 +60,3 @@ internal class BluetoothWebBluetoothScanner(
     }
 }
 
-/** Convert list of public API type to Web Bluetooth (JavaScript) type. */
-private fun FilterPredicateSet.toBluetoothLEScanOptions(): BluetoothLEScanOptions = jso {
-    if (this@toBluetoothLEScanOptions.isEmpty()) {
-        acceptAllAdvertisements = true
-    } else {
-        filters = this@toBluetoothLEScanOptions.toBluetoothLEScanFilterInit().toTypedArray()
-    }
-}

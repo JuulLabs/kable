@@ -1,6 +1,8 @@
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
+import com.juul.kable.Filter.Name.Exact
+import com.juul.kable.Filter.Name.Prefix
 import kotlin.experimental.and
 
 /**
@@ -34,25 +36,29 @@ public sealed class Filter {
         public val uuid: Uuid,
     ) : Filter()
 
-    /**
-     * | Platform   | Supported | Details                                   |
-     * |------------|:---------:|-------------------------------------------|
-     * | Android    | Yes       | Supported natively                        |
-     * | Apple      | Yes       | Support provided by Kable via flow filter |
-     * | JavaScript | Yes       | Supported natively                        |
-     */
-    public data class Name(
-        public val name: String,
-    ) : Filter()
+    public sealed class Name : Filter() {
+        /**
+         * | Platform   | Supported | Details                                   |
+         * |------------|:---------:|-------------------------------------------|
+         * | Android    | Yes       | Supported natively                        |
+         * | Apple      | Yes       | Support provided by Kable via flow filter |
+         * | JavaScript | Yes       | Supported natively                        |
+         */
+        public data class Exact(
+            public val exact: String,
+        ) : Name()
 
-    /**
-     * | Platform   | Supported | Details                                   |
-     * |------------|:---------:|-------------------------------------------|
-     * | Android    | Yes       | Support provided by Kable via flow filter |
-     * | Apple      | Yes       | Support provided by Kable via flow filter |
-     * | JavaScript | Yes       | Supported natively                        |
-     */
-    public data class NamePrefix(val prefix: String) : Filter()
+        /**
+         * | Platform   | Supported | Details                                   |
+         * |------------|:---------:|-------------------------------------------|
+         * | Android    | Yes       | Support provided by Kable via flow filter |
+         * | Apple      | Yes       | Support provided by Kable via flow filter |
+         * | JavaScript | Yes       | Supported natively                        |
+         */
+        public data class Prefix(
+            val prefix: String,
+        ) : Name()
+    }
 
     /**
      * | Platform   | Supported | Details                                |
@@ -128,12 +134,10 @@ internal fun Filter.Address.matches(address: String?): Boolean {
 
 internal fun Filter.Name.matches(name: String?): Boolean {
     if (name == null) return false
-    return this.name == name
-}
-
-internal fun Filter.NamePrefix.matches(name: String?): Boolean {
-    if (name == null) return false
-    return name.startsWith(prefix)
+    return when (this) {
+        is Exact -> name == exact
+        is Prefix -> name.startsWith(prefix)
+    }
 }
 
 internal fun Filter.ManufacturerData.matches(data: ByteArray?): Boolean {

@@ -9,13 +9,17 @@ import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
 public actual class ScannerBuilder {
 
     @Deprecated(
-        message = "Use predicates",
-        replaceWith = ReplaceWith("predicates"),
+        message = "Use filters(FilterPredicateSetBuilder.() -> Unit)",
+        replaceWith = ReplaceWith("filters { }"),
         level = DeprecationLevel.WARNING,
     )
     public actual var filters: List<Filter>? = null
 
-    public actual var predicates: FilterPredicateSetBuilder.() -> Unit = { }
+    private var filterPredicateSet: FilterPredicateSet = FilterPredicateSet()
+
+    public actual fun filters(builderAction: FilterPredicateSetBuilder.() -> Unit) {
+        filterPredicateSet = FilterPredicateSetBuilder().apply(builderAction).build()
+    }
 
     /**
      * Specifies whether the scan should run without duplicate filtering. This corresponds to
@@ -47,7 +51,7 @@ public actual class ScannerBuilder {
 
         return CentralManagerCoreBluetoothScanner(
             central = CentralManager.Default,
-            predicates = filters?.deprecatedListToGroup() ?: FilterPredicateSetBuilder().apply(predicates).build(),
+            filters = filters?.deprecatedListToGroup() ?: filterPredicateSet,
             options = options.toMap(),
             logging = logging,
         )

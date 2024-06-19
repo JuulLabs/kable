@@ -21,7 +21,7 @@ The [`Scanner`] may be configured via the following DSL (shown are defaults, whe
 
 ```kotlin
 val scanner = Scanner {
-    predicates = {
+    filters {
         match {
             name = "My device"
         }
@@ -65,12 +65,12 @@ To have peripherals D1 and D3 emitted during a scan, you could use the following
 
 ```kotlin
 val scanner = Scanner {
-    predicates = {
+    filters {
         match {
             services = listof(uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb"))
         }
         match {
-            name = Prefix("Ex")
+            name = Filter.Name.Prefix("Ex")
         }
     }
 }
@@ -84,7 +84,7 @@ found matching the specified filters:
 val advertisement = Scanner {
     predicates = {
         match {
-            name = Exact("Example")
+            name = Filter.Name.Exact("Example")
         }
     }
 }.advertisements.first()
@@ -294,9 +294,9 @@ user is then returned (as a [`Peripheral`] object).
 
 ```kotlin
 val options = Options(
-    predicates = {
+    filters {
         match {
-            name = Prefix("Example")
+            name = Filter.Name.Prefix("Example")
         }
     },
     optionalServices = listOf(
