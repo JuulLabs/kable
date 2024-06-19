@@ -111,22 +111,25 @@ public final class com/juul/kable/Filter$ManufacturerData : com/juul/kable/Filte
 	public final fun getId ()I
 }
 
-public final class com/juul/kable/Filter$Name : com/juul/kable/Filter {
+public abstract class com/juul/kable/Filter$Name : com/juul/kable/Filter {
+}
+
+public final class com/juul/kable/Filter$Name$Exact : com/juul/kable/Filter$Name {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lcom/juul/kable/Filter$Name;
-	public static synthetic fun copy$default (Lcom/juul/kable/Filter$Name;Ljava/lang/String;ILjava/lang/Object;)Lcom/juul/kable/Filter$Name;
+	public final fun copy (Ljava/lang/String;)Lcom/juul/kable/Filter$Name$Exact;
+	public static synthetic fun copy$default (Lcom/juul/kable/Filter$Name$Exact;Ljava/lang/String;ILjava/lang/Object;)Lcom/juul/kable/Filter$Name$Exact;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getName ()Ljava/lang/String;
+	public final fun getExact ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/juul/kable/Filter$NamePrefix : com/juul/kable/Filter {
+public final class com/juul/kable/Filter$Name$Prefix : com/juul/kable/Filter$Name {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lcom/juul/kable/Filter$NamePrefix;
-	public static synthetic fun copy$default (Lcom/juul/kable/Filter$NamePrefix;Ljava/lang/String;ILjava/lang/Object;)Lcom/juul/kable/Filter$NamePrefix;
+	public final fun copy (Ljava/lang/String;)Lcom/juul/kable/Filter$Name$Prefix;
+	public static synthetic fun copy$default (Lcom/juul/kable/Filter$Name$Prefix;Ljava/lang/String;ILjava/lang/Object;)Lcom/juul/kable/Filter$Name$Prefix;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getPrefix ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -142,6 +145,21 @@ public final class com/juul/kable/Filter$Service : com/juul/kable/Filter {
 	public final fun getUuid ()Ljava/util/UUID;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/juul/kable/FilterPredicateBuilder {
+	public final fun getAddress ()Ljava/lang/String;
+	public final fun getManufacturerData ()Ljava/util/List;
+	public final fun getName ()Lcom/juul/kable/Filter$Name;
+	public final fun getServices ()Ljava/util/List;
+	public final fun setAddress (Ljava/lang/String;)V
+	public final fun setManufacturerData (Ljava/util/List;)V
+	public final fun setName (Lcom/juul/kable/Filter$Name;)V
+	public final fun setServices (Ljava/util/List;)V
+}
+
+public final class com/juul/kable/FilterPredicateSetBuilder {
+	public final fun match (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class com/juul/kable/IdentifierKt {
@@ -247,6 +265,7 @@ public abstract interface class com/juul/kable/Scanner {
 
 public final class com/juul/kable/ScannerBuilder {
 	public fun <init> ()V
+	public final fun filters (Lkotlin/jvm/functions/Function1;)V
 	public final fun getFilters ()Ljava/util/List;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun setFilters (Ljava/util/List;)V
