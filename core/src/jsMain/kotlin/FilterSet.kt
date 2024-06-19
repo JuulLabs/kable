@@ -32,9 +32,6 @@ public data class FilterSet(
 )
 
 internal fun FilterSet.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit {
-    FilterPredicateBuilder().apply {
-        services
-    }
     val filter = jso<BluetoothLEScanFilterInit>()
     if (services.isNotEmpty()) {
         filter.services = services

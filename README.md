@@ -82,7 +82,7 @@ found matching the specified filters:
 
 ```kotlin
 val advertisement = Scanner {
-    predicates = {
+    filters = {
         match {
             name = Filter.Name.Exact("Example")
         }

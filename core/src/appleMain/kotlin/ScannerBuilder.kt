@@ -51,7 +51,7 @@ public actual class ScannerBuilder {
 
         return CentralManagerCoreBluetoothScanner(
             central = CentralManager.Default,
-            filters = filters?.deprecatedListToGroup() ?: filterPredicateSet,
+            filters = filters?.deprecatedListToPredicateSet() ?: filterPredicateSet,
             options = options.toMap(),
             logging = logging,
         )

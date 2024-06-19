@@ -52,7 +52,7 @@ public actual class ScannerBuilder {
 
     @OptIn(ObsoleteKableApi::class)
     internal actual fun build(): PlatformScanner = BluetoothLeScannerAndroidScanner(
-        filters = filters?.deprecatedListToGroup() ?: filterPredicateSet,
+        filters = filters?.deprecatedListToPredicateSet() ?: filterPredicateSet,
         scanSettings = scanSettings,
         logging = logging,
         preConflate = preConflate,

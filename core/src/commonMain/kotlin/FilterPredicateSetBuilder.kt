@@ -11,9 +11,7 @@ public class FilterPredicateSetBuilder internal constructor() {
 
     internal fun build() = FilterPredicateSet(
         filterBuilderActions.mapNotNull { builderAction ->
-            val builder = FilterPredicateBuilder()
-            builder.builderAction()
-            builder.build()
+            FilterPredicateBuilder().apply(builderAction).build()
         },
     )
 }

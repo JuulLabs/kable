@@ -36,7 +36,7 @@ public actual class ScannerBuilder {
 
     internal actual fun build(): PlatformScanner = BluetoothWebBluetoothScanner(
         bluetooth = bluetooth,
-        filters = filters?.deprecatedListToGroup() ?: filterPredicateSet,
+        filters = filters?.deprecatedListToPredicateSet() ?: filterPredicateSet,
         logging = logging,
     )
 }
