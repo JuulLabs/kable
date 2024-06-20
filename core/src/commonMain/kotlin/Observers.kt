@@ -5,6 +5,7 @@ import com.juul.kable.ObservationEvent.Error
 import com.juul.kable.logs.Logging
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 
 internal expect fun Peripheral.observationHandler(): Observation.Handler
@@ -81,7 +83,10 @@ internal class Observers<T>(
             .mapNotNull { event -> (event as? CharacteristicChange)?.data }
             .onCompletion {
                 try {
-                    observation.onCompletion(onSubscription)
+                    // If this suspending function is canceled the peripheral could end up in an indeterminate state.
+                    withContext(NonCancellable) {
+                        observation.onCompletion(onSubscription)
+                    }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
