@@ -16,10 +16,10 @@ public actual class ScannerBuilder {
     )
     public actual var filters: List<Filter>? = null
 
-    private var filterPredicateSet: FilterPredicateSet = FilterPredicateSet()
+    private var _filters: Filters = emptyList()
 
     public actual fun filters(builderAction: FilterPredicateSetBuilder.() -> Unit) {
-        filterPredicateSet = FilterPredicateSetBuilder().apply(builderAction).build()
+        _filters = FilterPredicateSetBuilder().apply(builderAction).build()
     }
 
     /**
@@ -52,7 +52,7 @@ public actual class ScannerBuilder {
 
     @OptIn(ObsoleteKableApi::class)
     internal actual fun build(): PlatformScanner = BluetoothLeScannerAndroidScanner(
-        filters = filters?.deprecatedListToPredicateSet() ?: filterPredicateSet,
+        filters = filters?.deprecatedListToPredicateSet() ?: _filters,
         scanSettings = scanSettings,
         logging = logging,
         preConflate = preConflate,

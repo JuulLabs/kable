@@ -27,5 +27,5 @@ public expect class ScannerBuilder internal constructor() {
 }
 
 // To preserve original behavior make each individual filter a separate predicate:
-internal fun List<Filter>.deprecatedListToPredicateSet(): FilterPredicateSet =
-    FilterPredicateSet(map { filter -> FilterPredicate(listOf(filter)) })
+internal fun List<Filter>.deprecatedListToPredicateSet(): Filters =
+    map { filter -> FilterPredicate(listOf(filter)) }

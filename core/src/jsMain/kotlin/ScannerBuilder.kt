@@ -12,7 +12,7 @@ public actual class ScannerBuilder {
     )
     public actual var filters: List<Filter>? = null
 
-    private var filterPredicateSet: FilterPredicateSet = FilterPredicateSet()
+    private var _filters: Filters = emptyList()
 
     /**
      * Filters [Advertisement]s during a scan. If predicates are non-empty, then only [Advertisement]s
@@ -25,7 +25,7 @@ public actual class ScannerBuilder {
      * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md
      */
     public actual fun filters(builderAction: FilterPredicateSetBuilder.() -> Unit) {
-        filterPredicateSet = FilterPredicateSetBuilder().apply(builderAction).build()
+        _filters = FilterPredicateSetBuilder().apply(builderAction).build()
     }
 
     private var logging: Logging = Logging()
@@ -36,7 +36,7 @@ public actual class ScannerBuilder {
 
     internal actual fun build(): PlatformScanner = BluetoothWebBluetoothScanner(
         bluetooth = bluetooth,
-        filters = filters?.deprecatedListToPredicateSet() ?: filterPredicateSet,
+        filters = filters?.deprecatedListToPredicateSet() ?: _filters,
         logging = logging,
     )
 }

@@ -9,9 +9,8 @@ public class FilterPredicateSetBuilder internal constructor() {
         filterBuilderActions.add(builderAction)
     }
 
-    internal fun build() = FilterPredicateSet(
-        filterBuilderActions.mapNotNull { builderAction ->
+    internal fun build() = filterBuilderActions
+        .mapNotNull { builderAction ->
             FilterPredicateBuilder().apply(builderAction).build()
-        },
-    )
+        }
 }
