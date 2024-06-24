@@ -1,0 +1,76 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>observe</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            kable
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":core:dokkaHtmlPartial/commonMain">common</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="member" id="content" pageids="core::com.juul.kable/Peripheral/observe/#com.juul.kable.Characteristic#kotlin.coroutines.SuspendFunction0[kotlin.Unit]/PointingToDeclaration//-2011752812">
+  <div class="breadcrumbs"><a href="../../index.html">core</a><span class="delimiter">/</span><a href="../index.html">com.juul.kable</a><span class="delimiter">/</span><a href="index.html">Peripheral</a><span class="delimiter">/</span><span class="current">observe</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>observe</span></span></h1>
+  </div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":core:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="observe.html"><span class="token function">observe</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">characteristic<span class="token operator">: </span><a href="../-characteristic/index.html">Characteristic</a><span class="token punctuation">, </span></span><span class="parameter ">onSubscription<span class="token operator">: </span><span data-unresolved-link="com.juul.kable/OnSubscriptionAction///PointingToDeclaration/">OnSubscriptionAction</span><span class="token operator"> = </span>{}</span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html">ByteArray</a><span class="token operator">&gt;</span></div><p class="paragraph">Observes changes to the specified <a href="../-characteristic/index.html">Characteristic</a>.</p><p class="paragraph">If <a href="observe.html">characteristic</a> was created via <a href="../characteristic-of.html">characteristicOf</a> then the first found characteristic with a property of <strong>notify</strong> or <strong>indicate</strong> and matching service UUID and characteristic UUID will be used. If multiple characteristics with the same UUID and either <strong>notify</strong> or <strong>indicate</strong> property exist in the GATT profile, then a <a href="../-discovered-characteristic/index.html">discovered characteristic</a> from <a href="services.html">services</a> should be used instead.</p><p class="paragraph">When using <a href="../characteristic-of.html">characteristicOf</a>, observations can be setup (<a href="observe.html">observe</a> can be called) prior to a <a href="connect.html">connection</a> being established. Once connected, the observation will automatically start emitting changes. If connection is lost, <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span> will remain active, once reconnected characteristic changes will begin emitting again.</p><p class="paragraph">If characteristic has a Client Characteristic Configuration descriptor (CCCD), then based on bits in the <a href="observe.html">characteristic</a> properties, observe will be configured (CCCD will be written to) as <strong>notification</strong> or <strong>indication</strong> (if <a href="observe.html">characteristic</a> supports both notifications and indications, then only <strong>notification</strong> is used).</p><p class="paragraph">While the peripheral is fully connected, failures related to observations are propagated via the returned <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">observe</span>, for example, if the specified <a href="observe.html">characteristic</a> is invalid or cannot be found then returned <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span> terminates with a <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-no-such-element-exception/index.html">NoSuchElementException</a>. An <span data-unresolved-link="com.juul.kable/ObservationExceptionHandler///PointingToDeclaration/">ObservationExceptionHandler</span> may be registered with the <a href="index.html">Peripheral</a> to control which failures are propagated through (and terminate) the observation <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span>. When registered, only exceptions thrown from the <span data-unresolved-link="com.juul.kable/ObservationExceptionHandler///PointingToDeclaration/">ObservationExceptionHandler</span> are propagated (and terminate) the returned observation <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span>. See <a href="../-peripheral-builder/observation-exception-handler.html">PeripheralBuilder.observationExceptionHandler</a> for more details.</p><p class="paragraph">However, failures related to observations that occur during <a href="connect.html">connection</a> are treated differently. Instead of propagating through the <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span> or the <span data-unresolved-link="com.juul.kable/ObservationExceptionHandler///PointingToDeclaration/">ObservationExceptionHandler</span>, the exception is thrown from <a href="connect.html">connect</a> and the connection attempt fails, leaving this peripheral in the disconnected state.</p><p class="paragraph">The optional <a href="observe.html">onSubscription</a> parameter is functionally identical to using the <span data-unresolved-link="kotlinx.coroutines.flow//onSubscription/kotlinx.coroutines.flow.SharedFlow[TypeParam(bounds=[kotlin.Any?])]#kotlin.coroutines.SuspendFunction1[kotlinx.coroutines.flow.FlowCollector[TypeParam(bounds=[kotlin.Any?])],kotlin.Unit]/PointingToDeclaration/">onSubscription</span> operator on the returned <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span> except it has the following special properties:</p><ul><li><p class="paragraph">It will be executed whenever <a href="connect.html">connection</a> is established (while the returned <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span> is active); and</p></li><li><p class="paragraph">It will be executed <i>after</i> the observation is spun up (i.e. after enabling notifications or indications)</p></li></ul><p class="paragraph">The <a href="observe.html">onSubscription</a> action is useful in situations where an initial operation is needed when starting an observation (such as writing a configuration to the peripheral and expecting the response to come back in the form of a characteristic change). The <a href="observe.html">onSubscription</a> is invoked for every new subscriber; if it is desirable to only invoke the <a href="observe.html">onSubscription</a> once per connection (for the specified <a href="observe.html">characteristic</a>) then you can either use the <span data-unresolved-link="kotlinx.coroutines.flow//shareIn/kotlinx.coroutines.flow.Flow[TypeParam(bounds=[kotlin.Any?])]#kotlinx.coroutines.CoroutineScope#kotlinx.coroutines.flow.SharingStarted#kotlin.Int/PointingToDeclaration/">shareIn</span> <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span> operator on the returned <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span>, or call <a href="observe.html">observe</a> again with the same <a href="observe.html">characteristic</a> and without specifying an <a href="observe.html">onSubscription</a> action.</p><p class="paragraph">If multiple <a href="observe.html">observations</a> are created for the same <a href="observe.html">characteristic</a> but with different <a href="observe.html">onSubscription</a> actions, then the <a href="observe.html">onSubscription</a> actions will be executed in the order in which the returned <span data-unresolved-link="kotlinx.coroutines.flow/Flow///PointingToDeclaration/">Flow</span>s are subscribed to.</p></div></div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

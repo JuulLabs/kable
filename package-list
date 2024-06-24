@@ -1,0 +1,12 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:com.juul.kable/Reason/entries/#/PointingToDeclaration/core/com.juul.kable/-reason/[jvm]entries.html
+$dokka.location:com.juul.kable/Reason/valueOf/#kotlin.String/PointingToDeclaration/core/com.juul.kable/-reason/[jvm]value-of.html
+$dokka.location:com.juul.kable/Reason/values/#/PointingToDeclaration/core/com.juul.kable/-reason/[jvm]values.html
+module:core
+com.juul.kable
+com.juul.kable.logs
+module:exceptions
+com.juul.kable
+module:log-engine-khronicle
+com.juul.kable.logs.khronicle
