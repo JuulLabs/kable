@@ -83,7 +83,9 @@ internal class Observers<T>(
             .mapNotNull { event -> (event as? CharacteristicChange)?.data }
             .onCompletion {
                 try {
-                    // If this suspending function is canceled the peripheral could end up in an indeterminate state.
+                    // `NonCancellable` used to prevent interruption of resetting the observation
+                    // state, which can prevent subsequent re-observation.
+                    // See https://github.com/JuulLabs/kable/issues/677 for more details.
                     withContext(NonCancellable) {
                         observation.onCompletion(onSubscription)
                     }
