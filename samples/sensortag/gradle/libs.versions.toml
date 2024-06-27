@@ -7,7 +7,6 @@ android-target = "31"
 androidx-lifecycle = "2.8.2"
 compose = "1.6.11"
 exercise = "0.12.0"
-kable = "0.32.0"
 kotlin = "2.0.0"
 krayon = "0.18.0"
 ksp = "2.0.0-1.0.22"
@@ -23,7 +22,7 @@ compose-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose",
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.8.1" }
 exercise-annotations = { module = "com.juul.exercise:annotations", version.ref = "exercise" }
 exercise-compile = { module = "com.juul.exercise:compile", version.ref = "exercise" }
-kable = { module = "com.juul.kable:core", version.ref = "kable" }
+kable = { module = "com.juul.kable:kable-core", version = "0.33.0" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.3.0" }
 krayon-axis = { module = "com.juul.krayon:axis", version.ref = "krayon" }
 krayon-scale = { module = "com.juul.krayon:scale", version.ref = "krayon" }
