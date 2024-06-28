@@ -25,5 +25,5 @@ android-library = { id = "com.android.library", version = "8.5.0" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.14.0" }
 dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinter = { id = "org.jmailen.kotlinter", version = "4.3.0" }
+kotlinter = { id = "org.jmailen.kotlinter", version = "4.4.0" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.29.0" }
