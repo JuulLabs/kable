@@ -67,7 +67,7 @@ To have peripherals D1 and D3 emitted during a scan, you could use the following
 val scanner = Scanner {
     filters {
         match {
-            services = listof(uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb"))
+            services = listOf(uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb"))
         }
         match {
             name = Filter.Name.Prefix("Ex")
@@ -82,7 +82,7 @@ found matching the specified filters:
 
 ```kotlin
 val advertisement = Scanner {
-    filters = {
+    filters {
         match {
             name = Filter.Name.Exact("Example")
         }
