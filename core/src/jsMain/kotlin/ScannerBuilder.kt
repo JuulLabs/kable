@@ -6,13 +6,13 @@ import com.juul.kable.logs.LoggingBuilder
 public actual class ScannerBuilder {
 
     @Deprecated(
-        message = "Use filters(FilterPredicateSetBuilder.() -> Unit)",
+        message = "Use filters(FiltersBuilder.() -> Unit)",
         replaceWith = ReplaceWith("filters { }"),
         level = DeprecationLevel.WARNING,
     )
     public actual var filters: List<Filter>? = null
 
-    private var filterPredicateSet: FilterPredicateSet = FilterPredicateSet()
+    private var filterPredicates: List<FilterPredicate> = emptyList()
 
     /**
      * Filters [Advertisement]s during a scan. If predicates are non-empty, then only [Advertisement]s
@@ -24,8 +24,8 @@ public actual class ScannerBuilder {
      * Filtering on Manufacturer Data is supported and a good explanation can be found here:
      * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md
      */
-    public actual fun filters(builderAction: FilterPredicateSetBuilder.() -> Unit) {
-        filterPredicateSet = FilterPredicateSetBuilder().apply(builderAction).build()
+    public actual fun filters(builderAction: FiltersBuilder.() -> Unit) {
+        filterPredicates = FiltersBuilder().apply(builderAction).build()
     }
 
     private var logging: Logging = Logging()
@@ -36,7 +36,7 @@ public actual class ScannerBuilder {
 
     internal actual fun build(): PlatformScanner = BluetoothWebBluetoothScanner(
         bluetooth = bluetooth,
-        filters = filters?.deprecatedListToPredicateSet() ?: filterPredicateSet,
+        filters = filters?.convertDeprecatedFilters() ?: filterPredicates,
         logging = logging,
     )
 }

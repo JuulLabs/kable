@@ -29,5 +29,5 @@ public data class Options(
      * Filtering on Manufacturer Data is supported and a good explanation can be found here:
      * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md
      */
-    val filters: FilterPredicateSetBuilder.() -> Unit = { },
+    val filters: FiltersBuilder.() -> Unit = { },
 )

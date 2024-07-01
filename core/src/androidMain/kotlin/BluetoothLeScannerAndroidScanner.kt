@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 
 internal class BluetoothLeScannerAndroidScanner(
-    private val filters: FilterPredicateSet,
+    private val filters: List<FilterPredicate>,
     private val scanSettings: ScanSettings,
     private val preConflate: Boolean,
     logging: Logging,
@@ -105,9 +105,9 @@ private fun logMessage(prefix: String, preConflate: Boolean, scanFilters: List<S
     }
 }
 
-private fun FilterPredicateSet.toNativeScanFilters(): List<ScanFilter> =
-    if (predicates.all(FilterPredicate::supportsNativeScanFiltering)) {
-        predicates.map(FilterPredicate::toNativeScanFilter)
+private fun List<FilterPredicate>.toNativeScanFilters(): List<ScanFilter> =
+    if (all(FilterPredicate::supportsNativeScanFiltering)) {
+        map(FilterPredicate::toNativeScanFilter)
     } else {
         emptyList()
     }

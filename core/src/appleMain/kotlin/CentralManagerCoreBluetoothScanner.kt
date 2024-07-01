@@ -20,7 +20,7 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 
 internal class CentralManagerCoreBluetoothScanner(
     central: CentralManager,
-    filters: FilterPredicateSet,
+    filters: List<FilterPredicate>,
     options: Map<Any?, *>?,
     logging: Logging,
 ) : PlatformScanner {
@@ -90,8 +90,8 @@ private suspend fun CentralManager.awaitPoweredOn() {
 }
 
 // Native filtering of advertisements can only be performed if each predicate set contains a `Filter.Service`.
-private fun FilterPredicateSet.supportsNativeServiceFiltering(): Boolean =
-    predicates.all { predicate ->
+private fun List<FilterPredicate>.supportsNativeServiceFiltering(): Boolean =
+    all { predicate ->
         predicate.filters.any { it is Service }
     }
 
@@ -100,9 +100,9 @@ private fun FilterPredicateSet.supportsNativeServiceFiltering(): Boolean =
 // desirable on mobile for efficiency. We still need to apply our matching logic afterwards as
 // the unrolling process necessarily discards any compound clauses that the filters may contain,
 // along with any non-service filters that may be in there.
-private fun FilterPredicateSet.toNativeServiceFilter(): List<Uuid>? =
+private fun List<FilterPredicate>.toNativeServiceFilter(): List<Uuid>? =
     if (supportsNativeServiceFiltering()) {
-        predicates.flatMap(FilterPredicate::filters)
+        flatMap(FilterPredicate::filters)
             .filterIsInstance<Service>()
             .map(Service::uuid)
             .ifEmpty { null }

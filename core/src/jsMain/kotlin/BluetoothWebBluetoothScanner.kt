@@ -21,7 +21,7 @@ private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
  */
 internal class BluetoothWebBluetoothScanner(
     bluetooth: Bluetooth,
-    filters: FilterPredicateSet,
+    filters: List<FilterPredicate>,
     logging: Logging,
 ) : PlatformScanner {
 

@@ -6,7 +6,7 @@ import com.juul.kable.external.BluetoothLEScanOptions
 import com.juul.kable.external.BluetoothManufacturerDataFilterInit
 
 /** Convert list of public API type to Web Bluetooth (JavaScript) type. */
-internal fun FilterPredicateSet.toBluetoothLEScanOptions(): BluetoothLEScanOptions = jso {
+internal fun List<FilterPredicate>.toBluetoothLEScanOptions(): BluetoothLEScanOptions = jso {
     if (isEmpty()) {
         acceptAllAdvertisements = true
     } else {
@@ -14,8 +14,8 @@ internal fun FilterPredicateSet.toBluetoothLEScanOptions(): BluetoothLEScanOptio
     }
 }
 
-internal fun FilterPredicateSet.toBluetoothLEScanFilterInit(): List<BluetoothLEScanFilterInit> =
-    predicates.map(FilterPredicate::toBluetoothLEScanFilterInit)
+internal fun List<FilterPredicate>.toBluetoothLEScanFilterInit(): List<BluetoothLEScanFilterInit> =
+    map(FilterPredicate::toBluetoothLEScanFilterInit)
 
 private fun FilterPredicate.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit = jso {
     filters

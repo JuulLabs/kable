@@ -103,7 +103,7 @@ private fun Options.filters(): List<BluetoothLEScanFilterInit> =
     if (filterSets?.isNotEmpty() == true) {
         filterSets.toBluetoothLEScanFilterInit()
     } else {
-        FilterPredicateSetBuilder().apply(filters).build().toBluetoothLEScanFilterInit()
+        FiltersBuilder().apply(filters).build().toBluetoothLEScanFilterInit()
     }
 
 // Note: Web Bluetooth requires that UUIDs be provided as lowercase strings.

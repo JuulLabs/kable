@@ -5,13 +5,13 @@ import com.juul.kable.logs.LoggingBuilder
 public actual class ScannerBuilder {
 
     @Deprecated(
-        message = "Use filters(FilterPredicateSetBuilder.() -> Unit)",
+        message = "Use filters(FiltersBuilder.() -> Unit)",
         replaceWith = ReplaceWith("filters { }"),
         level = DeprecationLevel.WARNING,
     )
     public actual var filters: List<Filter>? = null
 
-    public actual fun filters(builderAction: FilterPredicateSetBuilder.() -> Unit) {
+    public actual fun filters(builderAction: FiltersBuilder.() -> Unit) {
         jvmNotImplementedException()
     }
 

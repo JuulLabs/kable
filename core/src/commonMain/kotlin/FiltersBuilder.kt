@@ -2,16 +2,14 @@ package com.juul.kable
 
 private typealias FilterBuilderAction = FilterPredicateBuilder.() -> Unit
 
-public class FilterPredicateSetBuilder internal constructor() {
+public class FiltersBuilder internal constructor() {
     private val filterBuilderActions: MutableList<FilterBuilderAction> = mutableListOf()
 
     public fun match(builderAction: FilterBuilderAction) {
         filterBuilderActions.add(builderAction)
     }
 
-    internal fun build() = FilterPredicateSet(
-        filterBuilderActions.mapNotNull { builderAction ->
-            FilterPredicateBuilder().apply(builderAction).build()
-        },
-    )
+    internal fun build() = filterBuilderActions.mapNotNull { builderAction ->
+        FilterPredicateBuilder().apply(builderAction).build()
+    }
 }
