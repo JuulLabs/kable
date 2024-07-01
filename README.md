@@ -623,17 +623,13 @@ kotlin {
     iosArm64()
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
-                implementation("com.juul.kable:core:${kableVersion}")
-            }
+        commonMain.dependencies {
+            api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
+            implementation("com.juul.kable:kable-core:${kableVersion}")
         }
 
-        val androidMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}")
-            }
+        androidMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}")
         }
     }
 }

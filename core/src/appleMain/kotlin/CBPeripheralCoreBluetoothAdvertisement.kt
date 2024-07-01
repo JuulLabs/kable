@@ -41,7 +41,7 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
 
     /** https://developer.apple.com/documentation/corebluetooth/cbadvertisementdataisconnectable */
     override val isConnectable: Boolean?
-        get() = data[CBAdvertisementDataIsConnectable] as? Boolean
+        get() = (data[CBAdvertisementDataIsConnectable] as? NSNumber)?.boolValue
 
     override val txPower: Int?
         get() = (data[CBAdvertisementDataTxPowerLevelKey] as? NSNumber)?.intValue
