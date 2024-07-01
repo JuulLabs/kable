@@ -8,7 +8,18 @@ import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
 
 public actual class ScannerBuilder {
 
+    @Deprecated(
+        message = "Use filters(FiltersBuilder.() -> Unit)",
+        replaceWith = ReplaceWith("filters { }"),
+        level = DeprecationLevel.WARNING,
+    )
     public actual var filters: List<Filter>? = null
+
+    private var filterPredicates: List<FilterPredicate> = emptyList()
+
+    public actual fun filters(builderAction: FiltersBuilder.() -> Unit) {
+        filterPredicates = FiltersBuilder().apply(builderAction).build()
+    }
 
     /**
      * Specifies whether the scan should run without duplicate filtering. This corresponds to
@@ -40,7 +51,7 @@ public actual class ScannerBuilder {
 
         return CentralManagerCoreBluetoothScanner(
             central = CentralManager.Default,
-            filters = filters.orEmpty(),
+            filters = filters?.convertDeprecatedFilters() ?: filterPredicates,
             options = options.toMap(),
             logging = logging,
         )

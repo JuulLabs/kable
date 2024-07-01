@@ -1,6 +1,8 @@
 package com.juul.kable
 
+import com.benasher44.uuid.Uuid
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
+import com.juul.kable.Filter.Service
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.cinterop.UnsafeNumber
@@ -18,31 +20,28 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 
 internal class CentralManagerCoreBluetoothScanner(
     central: CentralManager,
-    filters: List<Filter>,
+    filters: List<FilterPredicate>,
     options: Map<Any?, *>?,
     logging: Logging,
 ) : PlatformScanner {
 
     init {
-        require(filters.none { it is Filter.Address }) {
+        require(filters.flatten().none { it is Filter.Address }) {
             "Filtering by address (`Filter.Address`) is not supported on Apple platforms"
         }
     }
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
-    private val serviceFilters = filters.filterIsInstance<Filter.Service>().map(Filter.Service::uuid)
-
-    // Native filtering of advertisements is performed if: `filters` contains only (and at least one) `Filter.Service`.
-    private val nativeServiceFiltering = filters.isNotEmpty() && filters.all { it is Filter.Service }
+    private val nativeServiceFilters = filters.toNativeServiceFilter()
 
     init {
-        if (!nativeServiceFiltering) {
+        if (nativeServiceFilters == null) {
             logger.warn {
                 @Suppress("ktlint:standard:max-line-length")
                 message = "According to Core Bluetooth documentation: " +
                     "\"The recommended practice is to populate the serviceUUIDs parameter rather than leaving it nil.\" " +
-                    "This means providing only (and at least 1) filter(s) of type `Filter.Service` to Scanner. " +
+                    "This means providing a non-empty `services` member on every Scanner predicate. " +
                     "See https://developer.apple.com/documentation/corebluetooth/cbcentralmanager/1518986-scanforperipheralswithservices#discussion for more details."
             }
         }
@@ -53,9 +52,9 @@ internal class CentralManagerCoreBluetoothScanner(
             .response
             .onStart {
                 central.awaitPoweredOn()
-                if (nativeServiceFiltering) {
+                if (nativeServiceFilters != null) {
                     logger.info { message = "Starting scan with native service filtering" }
-                    central.scanForPeripheralsWithServices(serviceFilters, options)
+                    central.scanForPeripheralsWithServices(nativeServiceFilters, options)
                 } else {
                     logger.info { message = "Starting scan with non-native filtering" }
                     central.scanForPeripheralsWithServices(null, options)
@@ -67,22 +66,12 @@ internal class CentralManagerCoreBluetoothScanner(
             }
             .filterIsInstance<DidDiscoverPeripheral>()
             .filter { didDiscoverPeripheral ->
-                // Short-circuit (i.e. don't filter) when scan is using native service filtering.
-                if (nativeServiceFiltering) return@filter true
-
-                // Short-circuit (i.e. don't filter) if no filters were provided.
-                if (filters.isEmpty()) return@filter true
-
                 val advertisementData = didDiscoverPeripheral.advertisementData.asAdvertisementData()
-                filters.any { filter ->
-                    when (filter) {
-                        is Filter.Service -> filter.matches(advertisementData.serviceUuids)
-                        is Filter.Name -> filter.matches(advertisementData.localName)
-                        is Filter.NamePrefix -> filter.matches(advertisementData.localName)
-                        is Filter.ManufacturerData -> filter.matches(advertisementData.manufacturerData?.data)
-                        is Filter.Address -> throw UnsupportedOperationException("Filtering by address is not supported on Apple platforms")
-                    }
-                }
+                filters.matches(
+                    services = advertisementData.serviceUuids,
+                    name = advertisementData.localName,
+                    manufacturerData = advertisementData.manufacturerData,
+                )
             }
             .map { (cbPeripheral, rssi, advertisementData) ->
                 CBPeripheralCoreBluetoothAdvertisement(rssi.intValue, advertisementData, cbPeripheral)
@@ -99,3 +88,24 @@ private suspend fun CentralManager.awaitPoweredOn() {
         }
         .first { it == CBManagerStatePoweredOn }
 }
+
+// Native filtering of advertisements can only be performed if each predicate set contains a `Filter.Service`.
+private fun List<FilterPredicate>.supportsNativeServiceFiltering(): Boolean =
+    all { predicate ->
+        predicate.filters.any { it is Service }
+    }
+
+// Note that we unroll them all into a flat list which then behaves as a "pre-filter" that lets
+// the system filter for advertisements that match _any_ of the services we provide. This is
+// desirable on mobile for efficiency. We still need to apply our matching logic afterwards as
+// the unrolling process necessarily discards any compound clauses that the filters may contain,
+// along with any non-service filters that may be in there.
+private fun List<FilterPredicate>.toNativeServiceFilter(): List<Uuid>? =
+    if (supportsNativeServiceFiltering()) {
+        flatMap(FilterPredicate::filters)
+            .filterIsInstance<Service>()
+            .map(Service::uuid)
+            .ifEmpty { null }
+    } else {
+        null
+    }
