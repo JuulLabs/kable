@@ -4,8 +4,10 @@ import com.benasher44.uuid.Uuid
 import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.Name
 import com.juul.kable.Filter.Service
+import kotlin.jvm.JvmInline
 
-internal data class FilterPredicate(
+@JvmInline
+internal value class FilterPredicate(
     /** A non-empty list of filters, all of which must match to satisfy this predicate. */
     val filters: List<Filter>,
 ) {
