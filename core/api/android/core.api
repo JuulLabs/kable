@@ -217,7 +217,7 @@ public final class com/juul/kable/FilterPredicateBuilder {
 	public final fun setServices (Ljava/util/List;)V
 }
 
-public final class com/juul/kable/FilterPredicateSetBuilder {
+public final class com/juul/kable/FiltersBuilder {
 	public final fun match (Lkotlin/jvm/functions/Function1;)V
 }
 
