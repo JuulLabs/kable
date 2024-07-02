@@ -52,6 +52,12 @@ internal class PeripheralDelegate(
             override val error: NSError?,
         ) : Response()
 
+        data class DidDiscoverDescriptorsForCharacteristic(
+            override val peripheralIdentifier: NSUUID,
+            val characteristic: CBCharacteristic,
+            override val error: NSError?,
+        ) : Response()
+
         data class DidWriteValueForCharacteristic(
             override val peripheralIdentifier: NSUUID,
             val characteristic: CBCharacteristic,
@@ -139,7 +145,13 @@ internal class PeripheralDelegate(
             message = "didDiscoverDescriptorsForCharacteristic"
             detail(didDiscoverDescriptorsForCharacteristic)
         }
-        // todo
+        _response.sendBlocking(
+            Response.DidDiscoverDescriptorsForCharacteristic(
+                peripheral.identifier,
+                didDiscoverDescriptorsForCharacteristic,
+                null,
+            ),
+        )
     }
 
     /* Retrieving Characteristic and Descriptor Values */
