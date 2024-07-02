@@ -266,13 +266,21 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             centralManager.discoverServices(cbPeripheral, servicesToDiscover)
         }
 
-        cbPeripheral.services?.filterIsInstance<CBService>()?.forEach { cbService ->
+        // Cast should be safe since `CBPeripheral.services` type is `[CBService]?`, according to:
+        // https://developer.apple.com/documentation/corebluetooth/cbperipheral/services
+        @Suppress("UNCHECKED_CAST")
+        val discoveredServices = cbPeripheral.services as List<CBService>?
+        discoveredServices?.forEach { cbService ->
             connection.execute<DidDiscoverCharacteristicsForService> {
                 centralManager.discoverCharacteristics(cbPeripheral, cbService)
             }
-            cbService.characteristics?.forEach { cbCharacteristic ->
+            // Cast should be safe since `CBService.characteristics` type is `[CBCharacteristic]?`,
+            // according to: https://developer.apple.com/documentation/corebluetooth/cbservice/characteristics
+            @Suppress("UNCHECKED_CAST")
+            val discoveredCharacteristics = cbService.characteristics as List<CBCharacteristic>?
+            discoveredCharacteristics?.forEach { cbCharacteristic ->
                 connection.execute<DidDiscoverDescriptorsForCharacteristic> {
-                    centralManager.discoverDescriptors(cbPeripheral, cbCharacteristic as CBCharacteristic)
+                    centralManager.discoverDescriptors(cbPeripheral, cbCharacteristic)
                 }
             }
         }
