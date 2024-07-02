@@ -124,6 +124,15 @@ public class CentralManager internal constructor(
         }
     }
 
+    internal suspend fun discoverDescriptors(
+        cbPeripheral: CBPeripheral,
+        cbCharacteristic: CBCharacteristic,
+    ) {
+        withContext(dispatcher) {
+            cbPeripheral.discoverDescriptorsForCharacteristic(cbCharacteristic)
+        }
+    }
+
     internal suspend fun write(
         cbPeripheral: CBPeripheral,
         data: NSData,
