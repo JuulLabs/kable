@@ -6,12 +6,12 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForService
+import com.juul.kable.PeripheralDelegate.Response.DidDiscoverDescriptorsForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
 import com.juul.kable.PeripheralDelegate.Response.DidWriteValueForCharacteristic
-import com.juul.kable.PeripheralDelegate.Response.DidDiscoverDescriptorsForCharacteristic
 import com.juul.kable.State.Disconnected.Status.Cancelled
 import com.juul.kable.State.Disconnected.Status.ConnectionLimitReached
 import com.juul.kable.State.Disconnected.Status.EncryptionTimedOut
