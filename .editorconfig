@@ -4,6 +4,8 @@ ij_kotlin_allow_trailing_comma_on_call_site = true
 
 ktlint_standard_backing-property-naming = disabled
 ktlint_standard_blank-line-before-declaration = disabled
+ktlint_standard_chain-method-continuation = disabled
+ktlint_standard_class-signature = disabled
 ktlint_standard_filename = disabled
 ktlint_standard_function-naming = disabled
 ktlint_standard_function-signature = disabled
