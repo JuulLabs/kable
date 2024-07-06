@@ -1,3 +1,5 @@
+rootProject.name = "kable"
+
 pluginManagement {
     repositories {
         google()
@@ -7,7 +9,7 @@ pluginManagement {
 }
 
 include(
-    "exceptions",
-    "core",
-    "log-engine-khronicle",
+    "kable-core",
+    "kable-exceptions",
+    "kable-log-engine-khronicle",
 )
