@@ -28,3 +28,14 @@ internal fun ByteArray.toNSData(): NSData = memScoped {
         length = size.convert(),
     )
 }
+
+internal fun UShort.toNSData(littleEndian: Boolean = true): NSData {
+    val result = ByteArray(UShort.SIZE_BYTES)
+    val rawValue = toInt()
+    for (offset in 0 until UShort.SIZE_BYTES) {
+        val bitCountOffset = offset * Byte.SIZE_BITS
+        val index = if (littleEndian) offset else UShort.SIZE_BYTES - offset - 1
+        result[index] = (rawValue.ushr(bitCountOffset) and 0xFF).toByte()
+    }
+    return result.toNSData()
+}
