@@ -22,12 +22,10 @@ private val consumerId: String
             }
     }
 
-internal fun CentralManager.Configuration.toOptions(): Map<Any?, *>? {
-    return if (stateRestoration) {
-        mapOf(CBCentralManagerOptionRestoreIdentifierKey to "$CBCENTRALMANAGER_RESTORATION_ID-$consumerId")
-    } else {
-        null
-    }
+internal fun CentralManager.Configuration.toOptions(): Map<Any?, *>? = if (stateRestoration) {
+    mapOf(CBCentralManagerOptionRestoreIdentifierKey to "$CBCENTRALMANAGER_RESTORATION_ID-$consumerId")
+} else {
+    null
 }
 
 internal fun CentralManager.Configuration.Builder.build(): CentralManager.Configuration =

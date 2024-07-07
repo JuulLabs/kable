@@ -11,9 +11,7 @@ import com.juul.kable.Filter as KFilter
 public fun Options(
     optionalServices: Array<String> = emptyArray(),
     filters: Array<Options.Filter>? = null,
-): Options {
-    throw UnsupportedOperationException()
-}
+): Options = throw UnsupportedOperationException()
 
 /** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice */
 public data class Options(
