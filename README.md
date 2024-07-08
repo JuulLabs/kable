@@ -34,7 +34,7 @@ val scanner = Scanner {
 }
 ```
 
-Scan results can be filtered by providing a list of [`Filter`]s via the `predicates` DSL.
+Scan results can be filtered by providing a list of [`Filter`]s via the `filters` DSL.
 The following filters are supported:
 
 | Filter             | Android | Apple | JavaScript |
@@ -61,7 +61,7 @@ you had the following peripherals nearby when performing a scan:
 | D2 |             | `f484e2db-2efa-4b58-96be-f89372a3ef82`                                             |
 | D3 | "Example"   | `8d7798c7-15bd-493f-a935-785305946870`,<br/>`67bebb9e-6372-4de6-a7bf-e0384583929e` |
 
-To have peripherals D1 and D3 emitted during a scan, you could use the following `predicates`:
+To have peripherals D1 and D3 emitted during a scan, you could use the following `filters`:
 
 ```kotlin
 val scanner = Scanner {
