@@ -6,6 +6,7 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForService
+import com.juul.kable.PeripheralDelegate.Response.DidDiscoverDescriptorsForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
@@ -49,6 +50,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
 import platform.CoreBluetooth.CBErrorConnectionFailed
@@ -264,9 +266,22 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             centralManager.discoverServices(cbPeripheral, servicesToDiscover)
         }
 
-        cbPeripheral.services?.forEach { cbService ->
+        // Cast should be safe since `CBPeripheral.services` type is `[CBService]?`, according to:
+        // https://developer.apple.com/documentation/corebluetooth/cbperipheral/services
+        @Suppress("UNCHECKED_CAST")
+        val discoveredServices = cbPeripheral.services as List<CBService>?
+        discoveredServices?.forEach { cbService ->
             connection.execute<DidDiscoverCharacteristicsForService> {
-                centralManager.discoverCharacteristics(cbPeripheral, cbService as CBService)
+                centralManager.discoverCharacteristics(cbPeripheral, cbService)
+            }
+            // Cast should be safe since `CBService.characteristics` type is `[CBCharacteristic]?`,
+            // according to: https://developer.apple.com/documentation/corebluetooth/cbservice/characteristics
+            @Suppress("UNCHECKED_CAST")
+            val discoveredCharacteristics = cbService.characteristics as List<CBCharacteristic>?
+            discoveredCharacteristics?.forEach { cbCharacteristic ->
+                connection.execute<DidDiscoverDescriptorsForCharacteristic> {
+                    centralManager.discoverDescriptors(cbPeripheral, cbCharacteristic)
+                }
             }
         }
 
