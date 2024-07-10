@@ -3,9 +3,6 @@ buildscript {
         google()
         mavenCentral()
     }
-    dependencies {
-        classpath(libs.atomicfu.gradle)
-    }
 }
 
 plugins {
@@ -13,6 +10,7 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlinter) apply false
     alias(libs.plugins.maven.publish) apply false
+    alias(libs.plugins.atomicfu) apply false
     alias(libs.plugins.dokka)
     alias(libs.plugins.api)
 }
