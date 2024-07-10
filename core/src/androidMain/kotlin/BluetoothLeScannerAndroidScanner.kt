@@ -9,7 +9,6 @@ import android.os.ParcelUuid
 import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.ManufacturerData
 import com.juul.kable.Filter.Name
-import com.juul.kable.Filter.NamePrefix
 import com.juul.kable.Filter.Service
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
@@ -22,7 +21,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 
 internal class BluetoothLeScannerAndroidScanner(
-    private val filters: List<Filter>,
+    private val filters: List<FilterPredicate>,
     private val scanSettings: ScanSettings,
     private val preConflate: Boolean,
     logging: Logging,
@@ -30,7 +29,7 @@ internal class BluetoothLeScannerAndroidScanner(
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
-    private val namePrefixFilters = filters.filterIsInstance<NamePrefix>()
+    private val scanFilters = filters.toNativeScanFilters()
 
     override val advertisements: Flow<PlatformAdvertisement> = callbackFlow {
         val scanner = getBluetoothAdapter().bluetoothLeScanner ?: throw BluetoothDisabledException()
@@ -61,18 +60,6 @@ internal class BluetoothLeScannerAndroidScanner(
             }
         }
 
-        val scanFilters = filters.map { filter ->
-            ScanFilter.Builder().apply {
-                when (filter) {
-                    is Name -> setDeviceName(filter.name)
-                    is NamePrefix -> {} // No-op: Filtering performed via flow.
-                    is Address -> setDeviceAddress(filter.address)
-                    is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
-                    is Service -> setServiceUuid(ParcelUuid(filter.uuid)).build()
-                }
-            }.build()
-        }
-
         logger.info {
             message = logMessage("Starting", preConflate, scanFilters)
         }
@@ -91,11 +78,16 @@ internal class BluetoothLeScannerAndroidScanner(
             }
         }
     }.filter { advertisement ->
-        // Short-circuit (i.e. don't filter) if no `Filter.NamePrefix` filters were provided.
-        if (namePrefixFilters.isEmpty()) return@filter true
+        // Short-circuit (i.e. don't filter) if native scan filters were applied.
+        if (scanFilters.isNotEmpty()) return@filter true
 
-        // Perform `Filter.NamePrefix` filtering here, since it isn't supported natively.
-        namePrefixFilters.any { filter -> filter.matches(advertisement.name) }
+        // Perform filtering here, since we were not able to use native scan filters.
+        filters.matches(
+            services = advertisement.uuids,
+            name = advertisement.name,
+            address = advertisement.address,
+            manufacturerData = advertisement.manufacturerData,
+        )
     }
 }
 
@@ -112,3 +104,37 @@ private fun logMessage(prefix: String, preConflate: Boolean, scanFilters: List<S
         append("with ${scanFilters.size} filter(s)")
     }
 }
+
+private fun List<FilterPredicate>.toNativeScanFilters(): List<ScanFilter> =
+    if (all(FilterPredicate::supportsNativeScanFiltering)) {
+        map(FilterPredicate::toNativeScanFilter)
+    } else {
+        emptyList()
+    }
+
+private fun FilterPredicate.toNativeScanFilter(): ScanFilter =
+    ScanFilter.Builder().apply {
+        filters.map { filter ->
+            when (filter) {
+                is Name.Exact -> setDeviceName(filter.exact)
+                is Address -> setDeviceAddress(filter.address)
+                is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
+                is Service -> setServiceUuid(ParcelUuid(filter.uuid))
+                else -> throw AssertionError("Unsupported filter element")
+            }
+        }
+    }.build()
+
+// Scan filter does not support name prefix filtering, and only allows at most one service uuid
+// and one manufacturer data.
+private fun FilterPredicate.supportsNativeScanFiltering(): Boolean =
+    !containsNamePrefix() && serviceCount() <= 1 && manufacturerDataCount() <= 1
+
+private fun FilterPredicate.containsNamePrefix(): Boolean =
+    filters.any { it is Name.Prefix }
+
+private fun FilterPredicate.serviceCount(): Int =
+    filters.count { it is Service }
+
+private fun FilterPredicate.manufacturerDataCount(): Int =
+    filters.count { it is ManufacturerData }

@@ -21,7 +21,11 @@ The [`Scanner`] may be configured via the following DSL (shown are defaults, whe
 
 ```kotlin
 val scanner = Scanner {
-    filters = null
+    filters {
+        match {
+            name = "My device"
+        }
+    }
     logging {
         engine = SystemLogEngine
         level = Warnings
@@ -30,7 +34,8 @@ val scanner = Scanner {
 }
 ```
 
-Scan results can be filtered by providing a list of [`Filter`]s. The following filters are supported:
+Scan results can be filtered by providing a list of [`Filter`]s via the `filters` DSL.
+The following filters are supported:
 
 | Filter             | Android | Apple | JavaScript |
 |--------------------|:-------:|:-----:|:----------:|
@@ -60,10 +65,14 @@ To have peripherals D1 and D3 emitted during a scan, you could use the following
 
 ```kotlin
 val scanner = Scanner {
-    filters = listOf(
-        Filter.Service(uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb")), // SensorTag
-        Filter.NamePrefix("Ex"),
-    )
+    filters {
+        match {
+            services = listOf(uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb")) // SensorTag
+        }
+        match {
+            name = Filter.Name.Prefix("Ex")
+        }
+    }
 }
 ```
 
@@ -73,7 +82,11 @@ found matching the specified filters:
 
 ```kotlin
 val advertisement = Scanner {
-    filters = listOf(Filter.Name("Example"))
+    filters {
+        match {
+            name = Filter.Name.Exact("Example")
+        }
+    }
 }.advertisements.first()
 ```
 
@@ -281,9 +294,11 @@ user is then returned (as a [`Peripheral`] object).
 
 ```kotlin
 val options = Options(
-    filters = listOf(
-        Filter.NamePrefix("Example"),
-    ),
+    filters {
+        match {
+            name = Filter.Name.Prefix("Example")
+        }
+    },
     optionalServices = listOf(
         uuidFrom("f000aa80-0451-4000-b000-000000000000"),
         uuidFrom("f000aa81-0451-4000-b000-000000000000"),

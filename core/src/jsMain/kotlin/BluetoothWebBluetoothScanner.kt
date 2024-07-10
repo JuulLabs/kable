@@ -2,7 +2,6 @@ package com.juul.kable
 
 import com.juul.kable.external.Bluetooth
 import com.juul.kable.external.BluetoothAdvertisingEvent
-import com.juul.kable.external.BluetoothLEScanOptions
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.await
@@ -22,9 +21,15 @@ private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
  */
 internal class BluetoothWebBluetoothScanner(
     bluetooth: Bluetooth,
-    filters: List<Filter>,
+    filters: List<FilterPredicate>,
     logging: Logging,
 ) : PlatformScanner {
+
+    init {
+        require(filters.flatten().none { it is Filter.Address }) {
+            "Filtering by address (`Filter.Address`) is not supported on Javascript platforms"
+        }
+    }
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
@@ -51,14 +56,5 @@ internal class BluetoothWebBluetoothScanner(
             scan.stop()
             bluetooth.removeEventListener(ADVERTISEMENT_RECEIVED_EVENT, listener)
         }
-    }
-}
-
-/** Convert list of public API type to Web Bluetooth (JavaScript) type. */
-private fun List<Filter>.toBluetoothLEScanOptions(): BluetoothLEScanOptions = jso {
-    if (this@toBluetoothLEScanOptions.isEmpty()) {
-        acceptAllAdvertisements = true
-    } else {
-        filters = this@toBluetoothLEScanOptions.toBluetoothLEScanFilterInit()
     }
 }

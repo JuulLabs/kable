@@ -9,8 +9,23 @@ public expect class ScannerBuilder internal constructor() {
      * [Advertisement]s are emitted during a scan). If filters are provided (i.e. [filters] is a list of at least one
      * [Filter]), then only [Advertisement]s that match at least one [Filter] are emitted during a scan.
      */
+    @Deprecated(
+        message = "Use filters(FiltersBuilder.() -> Unit)",
+        replaceWith = ReplaceWith("filters { }"),
+        level = DeprecationLevel.WARNING,
+    )
     public var filters: List<Filter>?
+
+    /**
+     * Filters [Advertisement]s during a scan. If predicates are non-empty, then only [Advertisement]s
+     * that match at least one of the predicates are emitted during a scan.
+     */
+    public fun filters(builderAction: FiltersBuilder.() -> Unit)
 
     public fun logging(init: LoggingBuilder)
     internal fun build(): PlatformScanner
 }
+
+// To preserve original behavior make each individual filter a separate predicate:
+internal fun List<Filter>.convertDeprecatedFilters(): List<FilterPredicate> =
+    map(::listOf).map(::FilterPredicate)

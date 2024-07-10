@@ -11,10 +11,23 @@ import com.juul.kable.external.BluetoothManufacturerDataFilterInit
  * Filtering on Manufacturer Data is supported and a good explanation can be found here:
  * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md
  */
+@Deprecated(
+    message = "Replaced with FilterPredicateBuilder",
+    replaceWith = ReplaceWith(
+        """
+        FilterPredicateBuilder().apply {
+            name = name
+            services = services
+            manufacturerData = manufacturerData
+        }.build()"
+        """,
+    ),
+    level = DeprecationLevel.WARNING,
+)
 public data class FilterSet(
     public val services: List<Filter.Service> = emptyList(),
-    public val name: Filter.Name? = null,
-    public val namePrefix: Filter.NamePrefix? = null,
+    public val name: Filter.Name.Exact? = null,
+    public val namePrefix: Filter.Name.Prefix? = null,
     public val manufacturerData: List<Filter.ManufacturerData> = emptyList(),
 )
 
@@ -27,7 +40,7 @@ internal fun FilterSet.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit 
             .toTypedArray()
     }
     if (name != null) {
-        filter.name = name.name
+        filter.name = name.exact
     }
     if (namePrefix != null) {
         filter.namePrefix = namePrefix.prefix
@@ -48,5 +61,5 @@ internal fun FilterSet.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit 
     return filter
 }
 
-internal fun List<FilterSet>.toBluetoothLEScanFilterInit(): Array<BluetoothLEScanFilterInit> =
-    map(FilterSet::toBluetoothLEScanFilterInit).toTypedArray()
+internal fun List<FilterSet>.toBluetoothLEScanFilterInit(): List<BluetoothLEScanFilterInit> =
+    map(FilterSet::toBluetoothLEScanFilterInit)
