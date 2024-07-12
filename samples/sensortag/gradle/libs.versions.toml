@@ -1,6 +1,6 @@
 [versions]
 accompanist = "0.34.0"
-agp = "8.5.0"
+agp = "8.5.1"
 android-compile = "34"
 android-min = "21"
 android-target = "31"
