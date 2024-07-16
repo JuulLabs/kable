@@ -32,4 +32,20 @@ class NSDataTest {
         val actual = rawValue.toNSData(littleEndian = false)
         assertEquals(expected, actual)
     }
+
+    @Test
+    fun uLongToNSData_littleEndian() {
+        val rawValue: ULong = 4660u
+        val expected = byteArrayOf(0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00).toNSData()
+        val actual = rawValue.toNSData(littleEndian = true)
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun uLongToNSData_bigEndian() {
+        val rawValue: ULong = 4660u
+        val expected = byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34).toNSData()
+        val actual = rawValue.toNSData(littleEndian = false)
+        assertEquals(expected, actual)
+    }
 }
