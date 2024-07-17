@@ -72,6 +72,7 @@ import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import platform.CoreBluetooth.CBUUIDCharacteristicExtendedPropertiesString
 import platform.CoreBluetooth.CBUUIDClientCharacteristicConfigurationString
+import platform.CoreBluetooth.CBUUIDL2CAPPSMCharacteristicString
 import platform.CoreBluetooth.CBUUIDServerCharacteristicConfigurationString
 import platform.Foundation.NSData
 import platform.Foundation.NSError
@@ -422,6 +423,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
                     CBUUIDCharacteristicExtendedPropertiesString,
                     CBUUIDClientCharacteristicConfigurationString,
                     CBUUIDServerCharacteristicConfigurationString,
+                    CBUUIDL2CAPPSMCharacteristicString,
                     -> value.unsignedShortValue.toNSData()
                     else -> value.unsignedLongValue.toNSData()
                 }
