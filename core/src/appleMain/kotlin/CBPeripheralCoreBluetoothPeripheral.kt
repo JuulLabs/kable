@@ -5,6 +5,7 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
+import com.juul.kable.Endianness.LittleEndian
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForService
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverDescriptorsForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
@@ -53,6 +54,7 @@ import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
+import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBErrorConnectionFailed
 import platform.CoreBluetooth.CBErrorConnectionLimitReached
 import platform.CoreBluetooth.CBErrorConnectionTimeout
@@ -70,9 +72,18 @@ import platform.CoreBluetooth.CBManagerStateUnsupported
 import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
+import platform.CoreBluetooth.CBUUIDCharacteristicExtendedPropertiesString
+import platform.CoreBluetooth.CBUUIDClientCharacteristicConfigurationString
+import platform.CoreBluetooth.CBUUIDL2CAPPSMCharacteristicString
+import platform.CoreBluetooth.CBUUIDServerCharacteristicConfigurationString
 import platform.Foundation.NSData
 import platform.Foundation.NSError
+import platform.Foundation.NSNumber
+import platform.Foundation.NSString
+import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSUUID
+import platform.Foundation.dataUsingEncoding
+import platform.darwin.UInt16
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -393,9 +404,40 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         }
 
         val platformDescriptor = discoveredServices.obtain(descriptor)
-        return connection.execute<DidUpdateValueForDescriptor> {
+        val updatedDescriptor = connection.execute<DidUpdateValueForDescriptor> {
             centralManager.read(cbPeripheral, platformDescriptor)
-        }.descriptor.value as NSData
+        }.descriptor
+
+        return when (val value = updatedDescriptor.value) {
+            is NSData -> value
+
+            is NSString -> value.dataUsingEncoding(NSUTF8StringEncoding)
+                ?: byteArrayOf().toNSData().also {
+                    logger.warn {
+                        message = "Failed to decode descriptor"
+                        detail(descriptor)
+                        detail("type", "NSString")
+                    }
+                }
+
+            is NSNumber -> when (updatedDescriptor.isUnsignedShortValue) {
+                true -> value.unsignedShortValue.toByteArray(LittleEndian)
+                false -> value.unsignedLongValue.toByteArray(LittleEndian)
+            }.toNSData()
+
+            // This case handles if CBUUIDL2CAPPSMCharacteristicString is `UInt16`, as it is unclear
+            // in the Core Bluetooth documentation. See https://github.com/JuulLabs/kable/pull/706#discussion_r1680615969
+            // for related discussion.
+            is UInt16 -> value.toByteArray(LittleEndian).toNSData()
+
+            else -> byteArrayOf().toNSData().also {
+                logger.warn {
+                    message = "Unknown descriptor type"
+                    detail(descriptor)
+                    value.type?.let { detail("type", it) }
+                }
+            }
+        }
     }
 
     override fun observe(
@@ -469,3 +511,14 @@ private fun CentralManager.checkBluetoothState(expected: CBManagerState) {
         throw BluetoothDisabledException("Bluetooth state is $actualName ($actual), but $expectedName ($expected) was required.")
     }
 }
+
+private val CBDescriptor.isUnsignedShortValue: Boolean
+    get() = UUID.UUIDString.let {
+        it == CBUUIDCharacteristicExtendedPropertiesString ||
+            it == CBUUIDClientCharacteristicConfigurationString ||
+            it == CBUUIDServerCharacteristicConfigurationString ||
+            it == CBUUIDL2CAPPSMCharacteristicString
+    }
+
+private val Any?.type: String?
+    get() = this?.let { it::class.simpleName }
