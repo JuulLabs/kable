@@ -5,6 +5,7 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
+import com.juul.kable.Endianness.LittleEndian
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForService
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverDescriptorsForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
@@ -53,6 +54,7 @@ import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
+import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBErrorConnectionFailed
 import platform.CoreBluetooth.CBErrorConnectionLimitReached
 import platform.CoreBluetooth.CBErrorConnectionTimeout
@@ -406,36 +408,27 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             centralManager.read(cbPeripheral, platformDescriptor)
         }.descriptor
 
-        // CBDescriptor "value" property type depends on cbDescriptor.UUID.UUIDString
-        // https://developer.apple.com/documentation/corebluetooth/characteristic-descriptors
-        // see type conversion table https://github.com/JuulLabs/kable/pull/706
         return when (val value = updatedDescriptor.value) {
             is NSData -> value
-            is NSString -> value.dataUsingEncoding(NSUTF8StringEncoding) ?: byteArrayOf().toNSData().also {
+            is NSString -> value.dataUsingEncoding(NSUTF8StringEncoding)
+                ?: byteArrayOf().toNSData().also {
+                    logger.warn {
+                        message = "Failed to decode descriptor"
+                        detail(descriptor)
+                        detail("type", "NSString")
+                    }
+                }
+            is NSNumber -> when (updatedDescriptor.isUnsignedShortValue) {
+                true -> value.unsignedShortValue.toByteArray(LittleEndian)
+                false -> value.unsignedLongValue.toByteArray(LittleEndian)
+            }.toNSData()
+            is UInt16 -> value.toByteArray(LittleEndian).toNSData()
+            else -> byteArrayOf().toNSData().also {
                 logger.warn {
-                    message = "Failed to decode descriptor"
-                    detail("type", "NSString")
+                    message = "Unknown descriptor type"
                     detail(descriptor)
+                    value.type?.let { detail("type", it) }
                 }
-            }
-            is NSNumber -> {
-                when (updatedDescriptor.UUID.UUIDString) {
-                    CBUUIDCharacteristicExtendedPropertiesString,
-                    CBUUIDClientCharacteristicConfigurationString,
-                    CBUUIDServerCharacteristicConfigurationString,
-                    CBUUIDL2CAPPSMCharacteristicString,
-                    -> value.unsignedShortValue.toNSData()
-                    else -> value.unsignedLongValue.toNSData()
-                }
-            }
-            is UInt16 -> value.toNSData()
-            else -> {
-                logger.warn {
-                    message = "cannot read descriptor for undocumented type"
-                    detail("type", "${value?.let { it::class.simpleName }}")
-                    detail("uuid", updatedDescriptor.UUID.UUIDString)
-                }
-                return byteArrayOf().toNSData()
             }
         }
     }
@@ -511,3 +504,14 @@ private fun CentralManager.checkBluetoothState(expected: CBManagerState) {
         throw BluetoothDisabledException("Bluetooth state is $actualName ($actual), but $expectedName ($expected) was required.")
     }
 }
+
+private val CBDescriptor.isUnsignedShortValue: Boolean
+    get() = UUID.UUIDString.let {
+        it == CBUUIDCharacteristicExtendedPropertiesString ||
+            it == CBUUIDClientCharacteristicConfigurationString ||
+            it == CBUUIDServerCharacteristicConfigurationString ||
+            it == CBUUIDL2CAPPSMCharacteristicString
+    }
+
+private val Any?.type: String?
+    get() = this?.let { it::class.simpleName }
