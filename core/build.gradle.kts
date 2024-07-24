@@ -3,7 +3,7 @@ plugins {
     id("com.android.library")
     kotlin("multiplatform")
     id("kotlin-parcelize")
-    id("kotlinx-atomicfu")
+    alias(libs.plugins.atomicfu)
     id("org.jmailen.kotlinter")
     id("org.jetbrains.dokka")
     id("com.vanniktech.maven.publish")
