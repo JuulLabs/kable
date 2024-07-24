@@ -20,6 +20,8 @@ tasks.dokkaHtmlMultiModule.configure {
 }
 
 allprojects {
+    group = "com.juul.kable"
+
     repositories {
         google()
         mavenCentral()

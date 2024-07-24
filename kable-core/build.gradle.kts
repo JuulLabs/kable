@@ -26,7 +26,7 @@ kotlin {
         commonMain.dependencies {
             api(libs.kotlinx.coroutines.core)
             api(libs.uuid)
-            api(project(":exceptions"))
+            api(project(":kable-exceptions"))
             implementation(libs.tuulbox.collections)
         }
 
