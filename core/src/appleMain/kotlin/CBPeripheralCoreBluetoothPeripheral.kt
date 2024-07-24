@@ -410,6 +410,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
         return when (val value = updatedDescriptor.value) {
             is NSData -> value
+
             is NSString -> value.dataUsingEncoding(NSUTF8StringEncoding)
                 ?: byteArrayOf().toNSData().also {
                     logger.warn {
@@ -418,11 +419,17 @@ internal class CBPeripheralCoreBluetoothPeripheral(
                         detail("type", "NSString")
                     }
                 }
+
             is NSNumber -> when (updatedDescriptor.isUnsignedShortValue) {
                 true -> value.unsignedShortValue.toByteArray(LittleEndian)
                 false -> value.unsignedLongValue.toByteArray(LittleEndian)
             }.toNSData()
+
+            // This case handles if CBUUIDL2CAPPSMCharacteristicString is `UInt16`, as it is unclear
+            // in the Core Bluetooth documentation. See https://github.com/JuulLabs/kable/pull/706#discussion_r1680615969
+            // for related discussion.
             is UInt16 -> value.toByteArray(LittleEndian).toNSData()
+
             else -> byteArrayOf().toNSData().also {
                 logger.warn {
                     message = "Unknown descriptor type"
