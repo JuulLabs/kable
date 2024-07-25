@@ -8,17 +8,17 @@ public actual class ServicesDiscoveredPeripheral internal constructor(
     private val peripheral: ApplePeripheral,
 ) {
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public actual suspend fun read(
         characteristic: Characteristic,
     ): ByteArray = peripheral.read(characteristic)
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public actual suspend fun read(
         descriptor: Descriptor,
     ): ByteArray = peripheral.read(descriptor)
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public actual suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
@@ -27,7 +27,7 @@ public actual class ServicesDiscoveredPeripheral internal constructor(
         peripheral.write(characteristic, data, writeType)
     }
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public actual suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,

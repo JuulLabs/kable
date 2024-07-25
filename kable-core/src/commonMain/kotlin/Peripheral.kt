@@ -129,8 +129,8 @@ public interface Peripheral {
      */
     public val services: List<DiscoveredService>?
 
-    /** @throws NotReadyException if invoked without an established [connection][connect]. */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    /** @throws IOException if invoked without an established [connection][connect] or RSSI retrieval fails. */
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun rssi(): Int
 
     /**
@@ -141,9 +141,9 @@ public interface Peripheral {
      * with the same UUID and [Read] characteristic property exist in the GATT profile, then a
      * [discovered characteristic][DiscoveredCharacteristic] from [services] should be used instead.
      *
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws IOException if invoked without an established [connection][connect] or read fails.
      */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun read(
         characteristic: Characteristic,
     ): ByteArray
@@ -156,9 +156,9 @@ public interface Peripheral {
      * be used. If multiple characteristics with the same UUID and property exist in the GATT profile, then a
      * [discovered characteristic][DiscoveredCharacteristic] from [services] should be used instead.
      *
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws IOException if invoked without an established [connection][connect] or write fails.
      */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
@@ -173,9 +173,9 @@ public interface Peripheral {
      * UUID exist in the GATT profile, then a [discovered descriptor][DiscoveredDescriptor] from [services] should be
      * used instead.
      *
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws IOException if invoked without an established [connection][connect] or read fails.
      */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun read(
         descriptor: Descriptor,
     ): ByteArray
@@ -188,9 +188,9 @@ public interface Peripheral {
      * UUID exist in the GATT profile, then a [discovered descriptor][DiscoveredDescriptor] from [services] should be
      * used instead.
      *
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws IOException if invoked without an established [connection][connect] or write fails.
      */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
@@ -279,6 +279,6 @@ internal suspend inline fun <reified T : State> Peripheral.suspendUntilOrThrow()
         "Peripheral.suspendUntilOrThrow() throws on State.Disconnected, not intended for use with that State."
     }
     state
-        .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
+        .onEach { if (it is State.Disconnected) throw InvalidStateException() }
         .first { it is T }
 }

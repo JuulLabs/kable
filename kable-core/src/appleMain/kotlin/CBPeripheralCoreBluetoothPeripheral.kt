@@ -144,7 +144,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
     private val _connection = atomic<Connection?>(null)
     private val connection: Connection
-        inline get() = _connection.value ?: throw NotReadyException(toString())
+        inline get() = _connection.value ?: throw NotConnectedException(toString())
 
     override val name: String? get() = cbPeripheral.name
 
@@ -259,7 +259,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         _state.update { previous -> previous as? State.Disconnected ?: State.Disconnected() }
     }
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     override suspend fun rssi(): Int = connection.execute<DidReadRssi> {
         centralManager.readRssi(cbPeripheral)
     }.rssi.intValue
@@ -302,14 +302,14 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             .map(::DiscoveredService)
     }
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     override suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
     ): Unit = write(characteristic, data.toNSData(), writeType)
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     override suspend fun write(
         characteristic: Characteristic,
         data: NSData,
@@ -321,6 +321,8 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             detail(writeType)
             detail(data, Write)
         }
+
+        check(state.value != State.Connecting.Bluetooth)
 
         val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
         when (writeType) {
@@ -336,12 +338,12 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         }
     }
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     override suspend fun read(
         characteristic: Characteristic,
     ): ByteArray = readAsNSData(characteristic).toByteArray()
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     override suspend fun readAsNSData(
         characteristic: Characteristic,
     ): NSData {
@@ -366,7 +368,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         }
     }
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     override suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
@@ -389,12 +391,12 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         }
     }
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     override suspend fun read(
         descriptor: Descriptor,
     ): ByteArray = readAsNSData(descriptor).toByteArray()
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     override suspend fun readAsNSData(
         descriptor: Descriptor,
     ): NSData {

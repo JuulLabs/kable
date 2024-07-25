@@ -25,7 +25,13 @@ public expect open class IOException(
     public constructor(cause: Throwable?)
 }
 
-public open class NotConnectedException(
+@Deprecated(
+    message = "Renamed to InvalidStateException.",
+    replaceWith = ReplaceWith("InvalidStateException"),
+)
+public typealias NotConnectedException = InvalidStateException
+
+public open class InvalidStateException(
     message: String? = null,
     cause: Throwable? = null,
 ) : IOException(message, cause)
@@ -33,19 +39,21 @@ public open class NotConnectedException(
 public class ConnectionRejectedException(
     message: String? = null,
     cause: Throwable? = null,
-) : IOException(message, cause)
+) : InvalidStateException(message, cause)
 
-public class NotReadyException(
-    message: String? = null,
-    cause: Throwable? = null,
-) : NotConnectedException(message, cause)
+@Deprecated(
+    message = "Collapsed into InvalidStateException.",
+    replaceWith = ReplaceWith("InvalidStateException"),
+)
+public typealias NotReadyException = InvalidStateException
+
+@Deprecated(
+    message = "Collapsed into InvalidStateException.",
+    replaceWith = ReplaceWith("InvalidStateException"),
+)
+public typealias ConnectionLostException = InvalidStateException
 
 public class GattStatusException(
     message: String? = null,
     cause: Throwable? = null,
 ) : IOException(message, cause)
-
-public class ConnectionLostException(
-    message: String? = null,
-    cause: Throwable? = null,
-) : NotConnectedException(message, cause)

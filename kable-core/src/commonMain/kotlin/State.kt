@@ -4,9 +4,9 @@ public sealed class State {
 
     public sealed class Connecting : State() {
         /**
-         * [Peripheral] has initiated the process of connecting, via Bluetooth.
+         * [Peripheral] has initiated the process of [connecting][Peripheral.connect], via Bluetooth.
          *
-         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [NotReadyException]
+         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [InvalidStateException]
          * while in this state.
          */
         public object Bluetooth : Connecting()
@@ -14,7 +14,7 @@ public sealed class State {
         /**
          * [Peripheral] has connected, but has not yet discovered services.
          *
-         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [IllegalStateOperation]
+         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [InvalidStateException]
          * while in this state.
          */
         public object Services : Connecting()
@@ -29,13 +29,22 @@ public sealed class State {
 
     /**
      * [Peripheral] is ready (i.e. has connected, discovered services and wired up [observers][Peripheral.observe]).
+     *
+     * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) are permitted while in this state.
      */
     public object Connected : State()
 
+    /**
+     * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [InvalidStateException]
+     * while in this state.
+     */
     public object Disconnecting : State()
 
     /**
      * Triggered either after an established connection has dropped or after a connection attempt has failed.
+     *
+     * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [InvalidStateException]
+     * while in this state.
      *
      * @param status represents status (cause) of [Disconnected] [State]. Always `null` for Javascript target.
      */

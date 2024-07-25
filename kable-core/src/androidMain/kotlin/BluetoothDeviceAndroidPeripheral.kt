@@ -95,7 +95,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     @Volatile
     private var _connection: Connection? = null
     private val connection: Connection
-        inline get() = _connection ?: throw NotReadyException(toString())
+        inline get() = _connection ?: throw NotConnectedException(toString())
 
     override val name: String? get() = bluetoothDevice.name
 
@@ -174,7 +174,7 @@ internal class BluetoothDeviceAndroidPeripheral(
                     message = "Disconnect detected"
                     detail("state", state.toString())
                 }
-                throw ConnectionLostException("$this $state")
+                throw NotConnectedException("$this $state")
             }
             .launchIn(scope)
 

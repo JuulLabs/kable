@@ -21,7 +21,7 @@ public class ScanFailedException internal constructor(
  */
 public open class GattRequestRejectedException internal constructor(
     message: String? = null,
-) : BluetoothException(message)
+) : IOException(message)
 
 /**
  * Thrown when underlying [BluetoothGatt] write operation call fails.
