@@ -23,7 +23,7 @@ The [`Scanner`] may be configured via the following DSL (shown are defaults, whe
 val scanner = Scanner {
     filters {
         match {
-            name = "My device"
+            name = Filter.Name.Exact("My device")
         }
     }
     logging {
@@ -293,16 +293,16 @@ specified options, the browser shows the user a list of peripherals matching the
 user is then returned (as a [`Peripheral`] object).
 
 ```kotlin
-val options = Options(
+val options = Options {
     filters {
         match {
             name = Filter.Name.Prefix("Example")
         }
-    },
+    }
     optionalServices = listOf(
         uuidFrom("f000aa80-0451-4000-b000-000000000000"),
         uuidFrom("f000aa81-0451-4000-b000-000000000000"),
-    ),
+    )
 )
 val peripheral = scope.requestPeripheral(options).await()
 ```

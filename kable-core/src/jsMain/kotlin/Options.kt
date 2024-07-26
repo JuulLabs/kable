@@ -3,10 +3,48 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 
 /** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice */
-public data class Options(
+public fun Options(builder: OptionsBuilder.() -> Unit): Options =
+    OptionsBuilder().apply(builder).build()
+
+@Deprecated(
+    message = "Use Options builder instead. See https://github.com/JuulLabs/kable/issues/723 for details.",
+    replaceWith = ReplaceWith("Options { }"),
+)
+public fun Options(
+    filters: List<Filter>? = null,
+    filterSets: List<FilterSet>? = null,
+    optionalServices: List<Uuid>? = null,
+): Options = Options {
+    filters {
+        if (filters != null) {
+            filters.forEach { filter ->
+                match {
+                    when (filter) {
+                        is Filter.Name -> name = filter
+                        is Filter.Service -> services = listOf(filter.uuid)
+                        is Filter.ManufacturerData -> manufacturerData = listOf(filter)
+                        is Filter.Address -> { /* no-op */ }
+                    }
+                }
+            }
+        } else if (filterSets != null) {
+            filterSets.forEach { filterSet ->
+                match {
+                    name = filterSet.name
+                    services = filterSet.services.map { it.uuid }
+                    manufacturerData = filterSet.manufacturerData
+                }
+            }
+        }
+    }
+    this.optionalServices = optionalServices
+}
+
+public data class Options internal constructor(
+
     @Deprecated(
-        message = "Replaced with filters builder DSL",
-        replaceWith = ReplaceWith("filters = { }"),
+        message = "Replaced with filters builder DSL. See https://github.com/JuulLabs/kable/issues/723 for details.",
+        replaceWith = ReplaceWith("Options { filters { } }"),
         level = DeprecationLevel.WARNING,
     )
     val filterSets: List<FilterSet>? = null,
@@ -17,17 +55,11 @@ public data class Options(
      *
      * https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
      */
+    @Deprecated(
+        message = "Use Options builder instead. See https://github.com/JuulLabs/kable/issues/723 for details.",
+        replaceWith = ReplaceWith("Options { optionalServices = listOf() }"),
+    )
     val optionalServices: List<Uuid>? = null,
 
-    /**
-     * Filters to apply when requesting devices. If predicates are non-empty, then only devices
-     * that match at least one of the predicates will appear in the `requestDevice` picker.
-     *
-     * Filtering on Service Data is not supported because it is not implemented:
-     * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md
-     *
-     * Filtering on Manufacturer Data is supported and a good explanation can be found here:
-     * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md
-     */
-    val filters: FiltersBuilder.() -> Unit = { },
+    internal val filterPredicates: List<FilterPredicate>,
 )
