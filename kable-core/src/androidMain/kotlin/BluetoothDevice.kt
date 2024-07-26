@@ -101,7 +101,7 @@ private fun BluetoothDevice.connectGattCompat(
     autoConnect: Boolean,
     callback: BluetoothGattCallback,
     transport: Int,
-): BluetoothGatt = when {
+): BluetoothGatt? = when {
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> connectGatt(context, autoConnect, callback, transport)
     else -> connectGatt(context, autoConnect, callback)
 }
