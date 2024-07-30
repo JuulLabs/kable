@@ -303,7 +303,7 @@ val options = Options {
         uuidFrom("f000aa80-0451-4000-b000-000000000000"),
         uuidFrom("f000aa81-0451-4000-b000-000000000000"),
     )
-)
+}
 val peripheral = scope.requestPeripheral(options).await()
 ```
 
