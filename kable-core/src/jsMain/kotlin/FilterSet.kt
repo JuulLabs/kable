@@ -3,6 +3,7 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothLEScanFilterInit
 import com.juul.kable.external.BluetoothManufacturerDataFilterInit
+import js.objects.jso
 
 /**
  * Filtering on Service Data is not supported because it is not implemented:

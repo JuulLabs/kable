@@ -47,6 +47,11 @@ kotlin {
 
             implementation(libs.tuulbox.coroutines)
         }
+
+        jsMain.dependencies {
+            api(libs.wrappers.web)
+            api(project.dependencies.platform(libs.wrappers.bom))
+        }
     }
 }
 
