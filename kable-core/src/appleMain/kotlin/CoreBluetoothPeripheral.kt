@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.io.IOException
 import platform.Foundation.NSData
 import kotlin.coroutines.cancellation.CancellationException
 
