@@ -9,6 +9,8 @@ import com.juul.kable.requestPeripheral
 import com.juul.khronicle.ConsoleLogger
 import com.juul.khronicle.ConstantTagGenerator
 import com.juul.khronicle.Log
+import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
@@ -17,6 +19,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.w3c.dom.ErrorEvent
+import org.w3c.dom.ErrorEventInit
+
+private val scope = CoroutineScope(
+    Job() + CoroutineExceptionHandler { _, cause ->
+        // Deliver unhandled errors to `window` so that Chrome shows error overlay.
+        // https://github.com/Kotlin/kotlinx.coroutines/issues/2407#issuecomment-1472409187
+        window.dispatchEvent(ErrorEvent("error", ErrorEventInit(error = cause)))
+    }
+)
 
 @JsExport
 class Script {
@@ -26,7 +38,6 @@ class Script {
         Log.dispatcher.install(ConsoleLogger)
     }
 
-    private val scope = CoroutineScope(Job())
     private var connection: Job? = null
 
     val availability = BluetoothAvailability(Bluetooth.availability).apply { launchIn(scope) }
