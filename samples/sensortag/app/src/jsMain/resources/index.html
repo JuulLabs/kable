@@ -4,6 +4,8 @@
         <meta charset="UTF-8">
         <title>SensorTag</title>
         <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
         <script type="text/javascript" src="app.js"></script>
         <script type="text/javascript">
             var script = new app.com.juul.sensortag.Script();
@@ -17,8 +19,6 @@
                 document.getElementById('movement').innerHTML = "x: " + x + "<br/>y: " + y + "<br/>z: " + z;
             });
         </script>
-    </head>
-    <body>
         <h1>SensorTag</h1>
         <button onclick="script.connect();">Connect</button>
         <button onclick="script.disconnect();">Disconnect</button>
