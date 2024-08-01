@@ -1,8 +1,6 @@
 package com.juul.sensortag
 
-import com.benasher44.uuid.uuidFrom
 import com.juul.kable.Bluetooth
-import com.juul.kable.Filter
 import com.juul.kable.Options
 import com.juul.kable.State.Disconnected
 import com.juul.kable.requestPeripheral
@@ -44,10 +42,14 @@ class Script {
     val status = Status()
     val movement = Movement()
 
-    private val options = Options(
-        filters = listOf(Filter.Service(uuidFrom(sensorTagUuid))),
-        optionalServices = services,
-    )
+    private val options = Options {
+        filters {
+            match {
+                services = listOf(sensorTagUuid)
+            }
+        }
+        optionalServices = services
+    }
 
     fun connect(): Unit {
         disconnect() // Clean up previous connection, if any.

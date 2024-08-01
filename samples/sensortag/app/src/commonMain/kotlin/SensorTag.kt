@@ -3,7 +3,6 @@ package com.juul.sensortag
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.Bluetooth
-import com.juul.kable.Filter
 import com.juul.kable.Peripheral
 import com.juul.kable.Scanner
 import com.juul.kable.WriteType.WithResponse
@@ -16,7 +15,7 @@ import kotlin.text.HexFormat.Companion.UpperCase
 
 private const val GYRO_MULTIPLIER = 500f / 65536f
 
-const val sensorTagUuid = "0000aa80-0000-1000-8000-00805f9b34fb"
+val sensorTagUuid = uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb")
 private val movementSensorServiceUuid = sensorTagUuid("aa80")
 private val movementSensorDataUuid = sensorTagUuid("aa81")
 private val movementNotificationUuid = sensorTagUuid("2902")
@@ -43,7 +42,11 @@ val scanner = Scanner {
     logging {
         level = Events
     }
-    filters = listOf(Filter.Service(uuidFrom(sensorTagUuid)))
+    filters {
+        match {
+            services = listOf(sensorTagUuid)
+        }
+    }
 }
 
 val services = listOf(
