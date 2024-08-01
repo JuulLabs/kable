@@ -24,7 +24,7 @@ private val GattSuccess = GattStatus(GATT_SUCCESS)
 internal class Connection(
     private val scope: CoroutineScope,
     internal val bluetoothGatt: BluetoothGatt,
-    internal val dispatcher: CoroutineDispatcher,
+    internal val threading: Threading,
     private val callback: Callback,
     logging: Logging,
 ) {
@@ -33,6 +33,8 @@ internal class Connection(
 
     private val lock = Mutex()
     private var deferredResponse: Deferred<Response>? = null
+
+    internal val dispatcher = threading.dispatcher
 
     /**
      * Executes specified [BluetoothGatt] [action].

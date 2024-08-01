@@ -112,4 +112,6 @@ public actual class PeripheralBuilder internal actual constructor() {
 
     /** Preferred PHY for connections to remote LE device. */
     public var phy: Phy = Phy.Le1M
+
+    public var threadingStrategy: ThreadingStrategy = OnDemandThreadingStrategy
 }

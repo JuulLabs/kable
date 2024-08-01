@@ -64,6 +64,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val autoConnectPredicate: () -> Boolean,
     private val transport: Transport,
     private val phy: Phy,
+    private val threadingStrategy: ThreadingStrategy,
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
@@ -75,9 +76,6 @@ internal class BluetoothDeviceAndroidPeripheral(
     override val state: StateFlow<State> = _state.asStateFlow()
 
     override val identifier: String = bluetoothDevice.address
-
-    // todo: Spin up/down w/ connection, rather than matching lifecycle of peripheral.
-    private val threading = bluetoothDevice.threading()
 
     private val _mtu = MutableStateFlow<Int?>(null)
     override val mtu: StateFlow<Int?> = _mtu.asStateFlow()
@@ -131,7 +129,7 @@ internal class BluetoothDeviceAndroidPeripheral(
                 _mtu,
                 observers.characteristicChanges,
                 logging,
-                threading,
+                threadingStrategy,
             ) ?: throw ConnectionRejectedException()
 
             suspendUntilOrThrow<State.Connecting.Services>()
@@ -197,17 +195,24 @@ internal class BluetoothDeviceAndroidPeripheral(
             connectAction.cancelAndJoin(CancellationException(NotConnectedException()))
         }
         suspendUntil<Disconnected>()
+        releaseThread()
         logger.info { message = "Disconnected" }
+    }
+
+    private fun releaseThread() {
+        _connection?.threading?.let {
+            threadingStrategy.release(it)
+        }
     }
 
     private fun dispose(cause: Throwable?) {
         closeConnection()
-        threading.close()
         logger.info(cause) { message = "Disposed" }
     }
 
     private fun closeConnection() {
         _connection?.bluetoothGatt?.close()
+        releaseThread()
         setDisconnected()
     }
 

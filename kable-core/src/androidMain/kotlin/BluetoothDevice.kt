@@ -12,55 +12,11 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.content.Context
 import android.os.Build
-import android.os.Handler
-import android.os.HandlerThread
 import com.juul.kable.gatt.Callback
 import com.juul.kable.logs.Logging
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
-import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.newSingleThreadContext
-
-internal sealed class Threading {
-
-    abstract val dispatcher: CoroutineDispatcher
-
-    /** Available on Android O (API 26) and above. */
-    data class Handler(
-        val thread: HandlerThread,
-        val handler: android.os.Handler,
-        override val dispatcher: CoroutineDispatcher,
-    ) : Threading()
-
-    /** Used on Android versions **lower** than Android O (API 26). */
-    data class SingleThreadContext(
-        override val dispatcher: ExecutorCoroutineDispatcher,
-    ) : Threading()
-}
-
-internal fun Threading.close() {
-    when (this) {
-        is Threading.Handler -> thread.quit()
-        is Threading.SingleThreadContext -> dispatcher.close()
-    }
-}
-
-/**
- * Creates the [Threading] that will be used for Bluetooth communication. The returned [Threading] is returned in a
- * started state and must be shutdown when no longer needed.
- */
-internal fun BluetoothDevice.threading(): Threading =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val thread = HandlerThread(threadName).apply { start() }
-        val handler = Handler(thread.looper)
-        val dispatcher = handler.asCoroutineDispatcher()
-        Threading.Handler(thread, handler, dispatcher)
-    } else {
-        Threading.SingleThreadContext(newSingleThreadContext(threadName))
-    }
 
 /**
  * @param transport is only used on API level >= 23.
@@ -76,9 +32,10 @@ internal fun BluetoothDevice.connect(
     mtu: MutableStateFlow<Int?>,
     onCharacteristicChanged: MutableSharedFlow<ObservationEvent<ByteArray>>,
     logging: Logging,
-    threading: Threading,
+    threadingStrategy: ThreadingStrategy,
 ): Connection? {
     val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
+    val threading = threadingStrategy.acquire()
 
     val bluetoothGatt = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
@@ -91,9 +48,14 @@ internal fun BluetoothDevice.connect(
                 ?: connectGattCompat(context, true, callback, transport.intValue)
 
         else -> connectGattCompat(context, autoConnect, callback, transport.intValue)
-    } ?: return null
+    }
 
-    return Connection(scope, bluetoothGatt, threading.dispatcher, callback, logging)
+    if (bluetoothGatt == null) {
+        threadingStrategy.release(threading)
+        return null
+    }
+
+    return Connection(scope, bluetoothGatt, threading, callback, logging)
 }
 
 private fun BluetoothDevice.connectGattCompat(
@@ -121,6 +83,3 @@ private val Phy.intValue: Int
         Phy.Le2M -> PHY_LE_2M_MASK
         Phy.LeCoded -> PHY_LE_CODED_MASK
     }
-
-private val BluetoothDevice.threadName: String
-    get() = "Gatt@$this"
