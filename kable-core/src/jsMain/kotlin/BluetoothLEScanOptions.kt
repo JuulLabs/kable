@@ -4,6 +4,7 @@ import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothLEScanFilterInit
 import com.juul.kable.external.BluetoothLEScanOptions
 import com.juul.kable.external.BluetoothManufacturerDataFilterInit
+import js.objects.jso
 
 /** Convert list of public API type to Web Bluetooth (JavaScript) type. */
 internal fun List<FilterPredicate>.toBluetoothLEScanOptions(): BluetoothLEScanOptions = jso {

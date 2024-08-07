@@ -8,6 +8,7 @@ import com.juul.kable.external.BluetoothAvailabilityChanged
 import com.juul.kable.external.BluetoothLEScanFilterInit
 import com.juul.kable.external.BluetoothServiceUUID
 import com.juul.kable.external.RequestDeviceOptions
+import js.objects.jso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.awaitClose
