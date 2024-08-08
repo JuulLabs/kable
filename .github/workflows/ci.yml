@@ -20,6 +20,6 @@ jobs:
         with:
           validate-wrappers: true
 
-      - run: ./gradlew assemble
+      - run: ./gradlew assemble -PsuppressWarnings=true
       - run: ./gradlew check
       - run: ./gradlew -PRELEASE_SIGNING_ENABLED=false publishToMavenLocal
