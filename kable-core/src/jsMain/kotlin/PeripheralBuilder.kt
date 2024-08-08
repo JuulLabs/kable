@@ -1,7 +1,9 @@
 package com.juul.kable
 
+import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
+import kotlinx.coroutines.CoroutineScope
 
 public actual class ServicesDiscoveredPeripheral internal constructor(
     private val peripheral: WebBluetoothPeripheral,
@@ -49,4 +51,13 @@ public actual class PeripheralBuilder internal actual constructor() {
     public actual fun observationExceptionHandler(handler: ObservationExceptionHandler) {
         observationExceptionHandler = handler
     }
+
+    internal fun build(bluetoothDevice: BluetoothDevice, scope: CoroutineScope) =
+        BluetoothDeviceWebBluetoothPeripheral(
+            scope.coroutineContext,
+            bluetoothDevice,
+            observationExceptionHandler,
+            onServicesDiscovered,
+            logging,
+        )
 }

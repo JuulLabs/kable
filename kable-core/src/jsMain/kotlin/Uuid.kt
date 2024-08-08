@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuidFrom
+import com.juul.kable.external.BluetoothServiceUUID
 import com.juul.kable.external.BluetoothUUID
 
 // Number of characters in a 16-bit UUID alias in string hex representation
@@ -24,3 +25,11 @@ internal fun UUID.toUuid(): Uuid =
             else -> this
         },
     )
+
+internal fun List<Uuid>.toBluetoothServiceUUID(): Array<BluetoothServiceUUID> =
+    map(Uuid::toBluetoothServiceUUID)
+        .toTypedArray()
+
+// Note: Web Bluetooth requires that UUIDs be provided as lowercase strings.
+internal fun Uuid.toBluetoothServiceUUID(): BluetoothServiceUUID =
+    toString().lowercase()

@@ -1,9 +1,18 @@
+@file:JvmName("BluetoothCommon")
+
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
+import kotlin.jvm.JvmName
 
-public expect enum class Reason
+@Deprecated(
+    message = "Renamed to AvailabilityReason.",
+    replaceWith = ReplaceWith("AvailabilityReason"),
+)
+public typealias Reason = AvailabilityReason
+
+public expect enum class AvailabilityReason
 
 public object Bluetooth {
 
@@ -27,12 +36,8 @@ public object Bluetooth {
     }
 
     public sealed class Availability {
-
-        public object Available : Availability() {
-            override fun toString(): String = "Available"
-        }
-
-        public data class Unavailable(val reason: Reason?) : Availability()
+        public data object Available : Availability()
+        public data class Unavailable(val reason: AvailabilityReason?) : Availability()
     }
 
     public val availability: Flow<Availability> = bluetoothAvailability

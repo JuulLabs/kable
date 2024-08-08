@@ -3,6 +3,13 @@ package com.juul.kable
 import com.juul.kable.external.BluetoothDevice
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * This function will soon be deprecated in favor of suspend version of function (with
+ * [CoroutineScope] as parameter).
+ *
+ * See https://github.com/JuulLabs/kable/issues/286 for more details.
+ */
+@ObsoleteKableApi
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
@@ -14,14 +21,9 @@ public actual fun CoroutineScope.peripheral(
 internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
     builderAction: PeripheralBuilderAction = {},
-): WebBluetoothPeripheral {
-    val builder = PeripheralBuilder()
-    builder.builderAction()
-    return BluetoothDeviceWebBluetoothPeripheral(
-        coroutineContext,
-        bluetoothDevice,
-        builder.observationExceptionHandler,
-        builder.onServicesDiscovered,
-        builder.logging,
-    )
-}
+): WebBluetoothPeripheral = peripheral(bluetoothDevice, PeripheralBuilder().apply(builderAction))
+
+internal fun CoroutineScope.peripheral(
+    bluetoothDevice: BluetoothDevice,
+    builder: PeripheralBuilder,
+): WebBluetoothPeripheral = builder.build(bluetoothDevice, this)

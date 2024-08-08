@@ -287,10 +287,10 @@ while (peripheral.state.value != Connected) {
 ### JavaScript
 
 On JavaScript, rather than processing a stream of advertisements, a specific peripheral can be requested using the
-[`CoroutineScope.requestPeripheral`] extension function. Criteria ([`Options`]) such as expected service UUIDs on the
-peripheral and/or the peripheral's name may be specified. When [`CoroutineScope.requestPeripheral`] is called with the
-specified options, the browser shows the user a list of peripherals matching the criteria. The peripheral chosen by the
-user is then returned (as a [`Peripheral`] object).
+[`requestPeripheral`] function. Criteria ([`Options`]) such as expected service UUIDs on the peripheral and/or the
+peripheral's name may be specified. When [`requestPeripheral`] is called with the specified options, the browser shows
+the user a list of peripherals matching the criteria. The peripheral chosen by the user is then returned (as a
+[`Peripheral`] object). If user cancels the dialog, then [`requestPeripheral`] returns `null`.
 
 ```kotlin
 val options = Options {
@@ -304,7 +304,7 @@ val options = Options {
         uuidFrom("f000aa81-0451-4000-b000-000000000000"),
     )
 }
-val peripheral = scope.requestPeripheral(options).await()
+val peripheral = requestPeripheral(options, scope)
 ```
 
 > After the user selects a device to pair with this origin, the origin is allowed to access any service whose UUID was

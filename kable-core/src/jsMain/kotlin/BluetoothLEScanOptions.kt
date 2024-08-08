@@ -11,12 +11,13 @@ internal fun List<FilterPredicate>.toBluetoothLEScanOptions(): BluetoothLEScanOp
     if (isEmpty()) {
         acceptAllAdvertisements = true
     } else {
-        filters = toBluetoothLEScanFilterInit().toTypedArray()
+        filters = toBluetoothLEScanFilterInit()
     }
 }
 
-internal fun List<FilterPredicate>.toBluetoothLEScanFilterInit(): List<BluetoothLEScanFilterInit> =
+internal fun List<FilterPredicate>.toBluetoothLEScanFilterInit(): Array<BluetoothLEScanFilterInit> =
     map(FilterPredicate::toBluetoothLEScanFilterInit)
+        .toTypedArray()
 
 private fun FilterPredicate.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit = jso {
     filters
