@@ -16,6 +16,8 @@ import com.juul.krayon.kanvas.Paint
 import com.juul.krayon.kanvas.Transform
 import com.juul.krayon.scale.domain
 import com.juul.krayon.scale.extent
+import com.juul.krayon.scale.max
+import com.juul.krayon.scale.min
 import com.juul.krayon.scale.range
 import com.juul.krayon.scale.scale
 import com.juul.krayon.selection.append
