@@ -5,10 +5,6 @@ import android.bluetooth.BluetoothGatt
 import android.os.RemoteException
 import com.juul.kable.AndroidPeripheral.WriteResult
 
-public class ScanFailedException internal constructor(
-    public val errorCode: Int,
-) : IllegalStateException("Bluetooth scan failed with error code $errorCode")
-
 /**
  * Thrown when underlying [BluetoothGatt] method call returns `false`. This can occur under the
  * following conditions:

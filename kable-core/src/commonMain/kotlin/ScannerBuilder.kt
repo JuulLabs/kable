@@ -23,6 +23,8 @@ public expect class ScannerBuilder internal constructor() {
     public fun filters(builderAction: FiltersBuilder.() -> Unit)
 
     public fun logging(init: LoggingBuilder)
+
+    /** @throws IllegalStateException If bluetooth is unavailable. */
     internal fun build(): PlatformScanner
 }
 
