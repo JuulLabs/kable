@@ -18,6 +18,10 @@ kotlin {
     macosX64()
 
     sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.io)
+        }
+
         commonTest.dependencies {
             implementation(kotlin("test"))
         }

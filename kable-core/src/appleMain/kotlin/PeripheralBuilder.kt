@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
+import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
 public actual class ServicesDiscoveredPeripheral internal constructor(

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
+import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
 
