@@ -12,7 +12,7 @@ public actual class ScannerBuilder {
     @Deprecated(
         message = "Use filters(FiltersBuilder.() -> Unit)",
         replaceWith = ReplaceWith("filters { }"),
-        level = DeprecationLevel.WARNING,
+        level = DeprecationLevel.ERROR,
     )
     public actual var filters: List<Filter>? = null
 
@@ -52,7 +52,7 @@ public actual class ScannerBuilder {
 
     @OptIn(ObsoleteKableApi::class)
     internal actual fun build(): PlatformScanner = BluetoothLeScannerAndroidScanner(
-        filters = filters?.convertDeprecatedFilters() ?: filterPredicates,
+        filters = filterPredicates,
         scanSettings = scanSettings,
         logging = logging,
         preConflate = preConflate,

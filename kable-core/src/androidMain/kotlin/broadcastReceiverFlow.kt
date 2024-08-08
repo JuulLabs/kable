@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
         "broadcastReceiverFlow(intentFilter)",
         "com.juul.tuulbox.coroutines.flow.broadcastReceiverFlow",
     ),
-    level = DeprecationLevel.ERROR,
+    level = DeprecationLevel.HIDDEN,
 )
 public fun broadcastReceiverFlow(
     intentFilter: IntentFilter,

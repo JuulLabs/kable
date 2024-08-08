@@ -11,7 +11,7 @@ public actual class ScannerBuilder {
     @Deprecated(
         message = "Use filters(FiltersBuilder.() -> Unit)",
         replaceWith = ReplaceWith("filters { }"),
-        level = DeprecationLevel.WARNING,
+        level = DeprecationLevel.ERROR,
     )
     public actual var filters: List<Filter>? = null
 
@@ -51,7 +51,7 @@ public actual class ScannerBuilder {
 
         return CentralManagerCoreBluetoothScanner(
             central = CentralManager.Default,
-            filters = filters?.convertDeprecatedFilters() ?: filterPredicates,
+            filters = filterPredicates,
             options = options.toMap(),
             logging = logging,
         )
