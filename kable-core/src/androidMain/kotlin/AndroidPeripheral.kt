@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 @Deprecated(
     message = "Moved as nested class of `AndroidPeripheral`.",
     replaceWith = ReplaceWith("AndroidPeripheral.Priority"),
+    level = DeprecationLevel.ERROR,
 )
 public typealias Priority = AndroidPeripheral.Priority
 

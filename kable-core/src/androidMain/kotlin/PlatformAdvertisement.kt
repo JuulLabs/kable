@@ -5,7 +5,7 @@ import android.os.Parcelable
 @Deprecated(
     message = "Moved as nested class of `PlatformAdvertisement`.",
     replaceWith = ReplaceWith("PlatformAdvertisement.BondState"),
-    level = DeprecationLevel.ERROR,
+    level = DeprecationLevel.HIDDEN,
 )
 public typealias BondState = PlatformAdvertisement.BondState
 
