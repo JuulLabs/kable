@@ -1,8 +1,6 @@
 package com.juul.kable
 
-import android.bluetooth.BluetoothAdapter.STATE_OFF
 import android.bluetooth.BluetoothAdapter.STATE_ON
-import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC
 import android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL
@@ -115,7 +113,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     private suspend fun establishConnection(scope: CoroutineScope) {
         checkBluetoothAdapterState(expected = STATE_ON)
-        bluetoothState.watchForDisablingIn(scope)
+        Bluetooth.state.watchForDisablingIn(scope)
 
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
@@ -154,13 +152,13 @@ internal class BluetoothDeviceAndroidPeripheral(
         state.watchForConnectionLossIn(scope)
     }
 
-    private fun Flow<Int>.watchForDisablingIn(scope: CoroutineScope): Job =
+    private fun Flow<Bluetooth.State>.watchForDisablingIn(scope: CoroutineScope): Job =
         scope.launch(start = UNDISPATCHED) {
-            filter { state -> state == STATE_TURNING_OFF || state == STATE_OFF }
+            filter { state -> state == Bluetooth.State.TurningOff || state == Bluetooth.State.Off }
                 .collect { state ->
                     logger.debug {
                         message = "Bluetooth disabled"
-                        detail("state", state)
+                        detail("state", state.toString())
                     }
                     closeConnection()
                     throw BluetoothDisabledException()

@@ -85,7 +85,7 @@ private suspend fun CentralManager.awaitPoweredOn() {
         .onEach { state ->
             when (state) {
                 CBManagerStateUnsupported -> error("This device doesn't support the Bluetooth low energy central or client role")
-                CBManagerStateUnauthorized -> error("Application isn't authorized to use the Bluetooth low energy role.")
+                CBManagerStateUnauthorized -> error("Application isn't authorized to use the Bluetooth low energy role")
                 CBManagerStatePoweredOff -> throw UnmetRequirementException(BluetoothDisabled, "Bluetooth disabled")
             }
         }

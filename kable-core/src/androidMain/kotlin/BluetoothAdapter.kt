@@ -10,7 +10,7 @@ private fun getBluetoothManagerOrNull(): BluetoothManager? =
 
 /** @throws IllegalStateException If bluetooth is unavailable. */
 private fun getBluetoothManager(): BluetoothManager =
-    getBluetoothManagerOrNull() ?: error("BluetoothManager is not a supported system service.")
+    getBluetoothManagerOrNull() ?: error("BluetoothManager is not a supported system service")
 
 /**
  * Per documentation, `BluetoothAdapter.getDefaultAdapter()` returns `null` when "Bluetooth is not
