@@ -4,7 +4,7 @@ android-min = "21"
 atomicfu = "0.25.0"
 coroutines = "1.8.1"
 jvm-toolchain = "11"
-kotlin = "2.0.0"
+kotlin = "2.0.10"
 tuulbox = "8.0.0"
 
 [libraries]
@@ -18,7 +18,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
 tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
 uuid = { module = "com.benasher44:uuid", version = "0.8.4" }
-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "1.0.0-pre.781" }
+wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "1.0.0-pre.788" }
 wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 
 [plugins]
