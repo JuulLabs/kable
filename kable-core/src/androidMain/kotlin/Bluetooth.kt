@@ -16,13 +16,13 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.R
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
-import com.juul.kable.AvailabilityReason.AdapterNotAvailable
-import com.juul.kable.AvailabilityReason.LocationServicesDisabled
-import com.juul.kable.AvailabilityReason.Off
-import com.juul.kable.AvailabilityReason.TurningOff
-import com.juul.kable.AvailabilityReason.TurningOn
 import com.juul.kable.Bluetooth.Availability.Available
 import com.juul.kable.Bluetooth.Availability.Unavailable
+import com.juul.kable.Reason.AdapterNotAvailable
+import com.juul.kable.Reason.LocationServicesDisabled
+import com.juul.kable.Reason.Off
+import com.juul.kable.Reason.TurningOff
+import com.juul.kable.Reason.TurningOn
 import com.juul.tuulbox.coroutines.flow.broadcastReceiverFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import android.bluetooth.BluetoothAdapter.ACTION_STATE_CHANGED as BLUETOOTH_STATE_CHANGED
 
-public actual enum class AvailabilityReason {
+public actual enum class Reason {
     Off, // BluetoothAdapter.STATE_OFF
     TurningOff, // BluetoothAdapter.STATE_TURNING_OFF or BluetoothAdapter.STATE_BLE_TURNING_OFF
     TurningOn, // BluetoothAdapter.STATE_TURNING_ON or BluetoothAdapter.STATE_BLE_TURNING_ON

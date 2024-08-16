@@ -1,12 +1,12 @@
 package com.juul.kable
 
-import com.juul.kable.AvailabilityReason.Off
-import com.juul.kable.AvailabilityReason.Resetting
-import com.juul.kable.AvailabilityReason.Unauthorized
-import com.juul.kable.AvailabilityReason.Unknown
-import com.juul.kable.AvailabilityReason.Unsupported
 import com.juul.kable.Bluetooth.Availability.Available
 import com.juul.kable.Bluetooth.Availability.Unavailable
+import com.juul.kable.Reason.Off
+import com.juul.kable.Reason.Resetting
+import com.juul.kable.Reason.Unauthorized
+import com.juul.kable.Reason.Unknown
+import com.juul.kable.Reason.Unsupported
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -18,7 +18,7 @@ import platform.CoreBluetooth.CBCentralManagerStateUnauthorized
 import platform.CoreBluetooth.CBCentralManagerStateUnsupported
 
 /** https://developer.apple.com/documentation/corebluetooth/cbmanagerstate */
-public actual enum class AvailabilityReason {
+public actual enum class Reason {
     Off, // CBManagerState.poweredOff
     Resetting, // CBManagerState.resetting
     Unauthorized, // CBManagerState.unauthorized

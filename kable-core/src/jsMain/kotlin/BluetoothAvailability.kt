@@ -1,8 +1,8 @@
 package com.juul.kable
 
-import com.juul.kable.AvailabilityReason.BluetoothUndefined
 import com.juul.kable.Bluetooth.Availability.Available
 import com.juul.kable.Bluetooth.Availability.Unavailable
+import com.juul.kable.Reason.BluetoothUndefined
 import com.juul.kable.external.BluetoothAvailabilityChanged
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.awaitClose
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
 import org.w3c.dom.events.Event
 
-public actual enum class AvailabilityReason {
+public actual enum class Reason {
     /** `window.navigator.bluetooth` is undefined. */
     BluetoothUndefined,
 }

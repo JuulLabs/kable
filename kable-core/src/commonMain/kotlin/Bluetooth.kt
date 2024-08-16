@@ -6,13 +6,7 @@ import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlin.jvm.JvmName
 
-@Deprecated(
-    message = "Renamed to AvailabilityReason.",
-    replaceWith = ReplaceWith("AvailabilityReason"),
-)
-public typealias Reason = AvailabilityReason
-
-public expect enum class AvailabilityReason
+public expect enum class Reason
 
 public object Bluetooth {
 
@@ -37,7 +31,7 @@ public object Bluetooth {
 
     public sealed class Availability {
         public data object Available : Availability()
-        public data class Unavailable(val reason: AvailabilityReason?) : Availability()
+        public data class Unavailable(val reason: Reason?) : Availability()
     }
 
     public val availability: Flow<Availability> = bluetoothAvailability
