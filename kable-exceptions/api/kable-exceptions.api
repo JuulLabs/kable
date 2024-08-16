@@ -59,6 +59,7 @@ public class com/juul/kable/UnmetRequirementException : java/io/IOException {
 
 public final class com/juul/kable/UnmetRequirementReason : java/lang/Enum {
 	public static final field BluetoothDisabled Lcom/juul/kable/UnmetRequirementReason;
+	public static final field LocationServicesDisabled Lcom/juul/kable/UnmetRequirementReason;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/UnmetRequirementReason;
 	public static fun values ()[Lcom/juul/kable/UnmetRequirementReason;

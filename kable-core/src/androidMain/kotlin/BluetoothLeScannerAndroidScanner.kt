@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -10,11 +9,14 @@ import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.ManufacturerData
 import com.juul.kable.Filter.Name
 import com.juul.kable.Filter.Service
-import com.juul.kable.UnmetRequirementReason.BluetoothDisabled
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.scan.ScanError
 import com.juul.kable.scan.message
+import com.juul.kable.scan.requirements.checkBluetoothIsOn
+import com.juul.kable.scan.requirements.checkLocationServicesEnabled
+import com.juul.kable.scan.requirements.checkScanPermissions
+import com.juul.kable.scan.requirements.requireBluetoothLeScanner
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
@@ -34,10 +36,13 @@ internal class BluetoothLeScannerAndroidScanner(
     private val scanFilters = filters.toNativeScanFilters()
 
     override val advertisements: Flow<PlatformAdvertisement> = callbackFlow {
-        logger.verbose { message = "Initializing scan" }
-        val bluetoothAdapter = getBluetoothAdapter()
-        val scanner = bluetoothAdapter.bluetoothLeScanner
-            ?: throw UnmetRequirementException(BluetoothDisabled, "Bluetooth disabled")
+        logger.debug { message = "Initializing scan" }
+        val scanner = requireBluetoothLeScanner()
+
+        // Permissions are checked early (fail-fast), as they cannot be unexpectedly revoked prior
+        // to scanning (revoking permissions on Android restarts the app).
+        logger.verbose { message = "Checking permissions for scanning" }
+        checkScanPermissions()
 
         fun sendResult(scanResult: ScanResult) {
             val advertisement = ScanResultAndroidAdvertisement(scanResult)
@@ -68,17 +73,23 @@ internal class BluetoothLeScannerAndroidScanner(
             }
         }
 
+        // These conditions could change prior to scanning, so we check them as close to
+        // initiating the scan as feasible.
+        logger.verbose { message = "Checking scanning requirements" }
+        checkLocationServicesEnabled()
+        checkBluetoothIsOn()
+
         logger.info {
             message = logMessage("Starting", preConflate, scanFilters)
         }
-        checkBluetoothAdapterState(STATE_ON)
         scanner.startScan(scanFilters, scanSettings, callback)
 
         awaitClose {
             logger.info {
                 message = logMessage("Stopping", preConflate, scanFilters)
             }
-            // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException` means BLE has been disabled.
+            // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException`
+            // means BLE has been disabled.
             try {
                 scanner.stopScan(callback)
             } catch (e: IllegalStateException) {

@@ -8,7 +8,7 @@ public interface Scanner<out T : Advertisement> {
     /**
      * [Bluetooth.availability] flow should emit [Available] before collecting from [advertisements] flow.
      *
-     * @throws IllegalStateException If scanning could not be initiated (e.g. bluetooth or scan feature unavailable).
+     * @throws IllegalStateException If scanning could not be initiated (e.g. feature unavailable or permission denied).
      * @throws UnmetRequirementException If a transient state was not satisfied (e.g. bluetooth disabled).
      */
     public val advertisements: Flow<T>
