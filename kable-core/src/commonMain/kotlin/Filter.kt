@@ -120,15 +120,8 @@ public sealed class Filter {
             if (dataMask != null) requireDataAndMaskHaveSameLength(data, dataMask)
         }
 
-        override fun toString(): String = buildString {
-            append("ManufacturerData(id=")
-            append(id)
-            append(", data=")
-            append(data.toHexString())
-            append(", dataMask=")
-            append(dataMask?.toHexString())
-            append(')')
-        }
+        override fun toString(): String =
+            "ManufacturerData(id=$id, data=${data.toHexString()}, dataMask=${dataMask?.toHexString()})"
     }
 }
 
