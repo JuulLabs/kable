@@ -3,7 +3,6 @@ package com.juul.kable
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import androidx.core.content.ContextCompat
-import com.juul.kable.UnmetRequirementReason.BluetoothDisabled
 
 private fun getBluetoothManagerOrNull(): BluetoothManager? =
     ContextCompat.getSystemService(applicationContext, BluetoothManager::class.java)
@@ -29,26 +28,21 @@ internal fun getBluetoothAdapter(): BluetoothAdapter =
  * Explicitly check the adapter state before connecting in order to respect system settings.
  * Android doesn't actually turn bluetooth off when the setting is disabled, so without this
  * check we're able to reconnect the device illegally.
- *
- * @throws IllegalStateException If bluetooth is not supported.
- * @throws UnmetRequirementException In bluetooth adapter is in an unexpected state.
  */
-internal fun checkBluetoothAdapterState(expected: Int) {
+internal fun checkBluetoothAdapterState(
+    expected: Int,
+) {
+    fun nameFor(value: Int) = when (value) {
+        BluetoothAdapter.STATE_OFF -> "Off"
+        BluetoothAdapter.STATE_ON -> "On"
+        BluetoothAdapter.STATE_TURNING_OFF -> "TurningOff"
+        BluetoothAdapter.STATE_TURNING_ON -> "TurningOn"
+        else -> "Unknown"
+    }
     val actual = getBluetoothAdapter().state
     if (expected != actual) {
         val actualName = nameFor(actual)
         val expectedName = nameFor(expected)
-        throw UnmetRequirementException(
-            reason = BluetoothDisabled,
-            message = "Bluetooth adapter state is $actualName ($actual), but $expectedName ($expected) was required.",
-        )
+        throw BluetoothDisabledException("Bluetooth adapter state is $actualName ($actual), but $expectedName ($expected) was required.")
     }
-}
-
-private fun nameFor(state: Int) = when (state) {
-    BluetoothAdapter.STATE_OFF -> "Off"
-    BluetoothAdapter.STATE_ON -> "On"
-    BluetoothAdapter.STATE_TURNING_OFF -> "TurningOff"
-    BluetoothAdapter.STATE_TURNING_ON -> "TurningOn"
-    else -> "Unknown"
 }
