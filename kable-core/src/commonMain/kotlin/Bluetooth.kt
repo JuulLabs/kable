@@ -38,7 +38,7 @@ public object Bluetooth {
     /**
      * Checks if Bluetooth Low Energy is supported on the system. Being supported (a return of
      * `true`) does not necessarily mean that bluetooth operations will work. The radio could be off
-     * of permissions may be denied.
+     * or permissions may be denied.
      *
      * This function is idempotent.
      */
