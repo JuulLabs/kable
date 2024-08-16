@@ -5,6 +5,7 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlin.jvm.JvmName
+import com.juul.kable.bluetooth.isSupported as isBluetoothSupported
 
 public expect enum class Reason
 
@@ -33,6 +34,15 @@ public object Bluetooth {
         public data object Available : Availability()
         public data class Unavailable(val reason: Reason?) : Availability()
     }
+
+    /**
+     * Checks if Bluetooth Low Energy is supported on the system. Being supported (a return of
+     * `true`) does not necessarily mean that bluetooth operations will work. The radio could be off
+     * of permissions may be denied.
+     *
+     * This function is idempotent.
+     */
+    public suspend fun isSupported(): Boolean = isBluetoothSupported()
 
     public val availability: Flow<Availability> = bluetoothAvailability
 }
