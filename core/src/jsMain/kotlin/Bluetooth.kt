@@ -58,12 +58,30 @@ internal val bluetooth: JsBluetooth
 private val safeWebBluetooth: dynamic =
     js("typeof(window) !== 'undefined' && window.navigator.bluetooth")
 
+public class RequestPeripheralException(message: String?, cause: Throwable?) : Exception(message, cause)
+
 public fun CoroutineScope.requestPeripheral(
     options: Options,
     builderAction: PeripheralBuilderAction = {},
-): Promise<Peripheral> = bluetooth
-    .requestDevice(options.toRequestDeviceOptions())
-    .then { device -> peripheral(device, builderAction) }
+): Promise<Peripheral> {
+    val jsOptions = try {
+        options.toRequestDeviceOptions()
+    } catch (t: Throwable) {
+        throw RequestPeripheralException("toRequestDeviceOptions", t)
+    }
+    return bluetooth
+        .requestDevice(jsOptions)
+        .then { device ->
+            try {
+                peripheral(device, builderAction)
+            } catch (t: Throwable) {
+                throw RequestPeripheralException("peripheral", t)
+            }
+        }
+        .catch { cause ->
+            throw RequestPeripheralException("catch", cause)
+        }
+}
 
 /**
  * Convert public API type to external Web Bluetooth (JavaScript) type.

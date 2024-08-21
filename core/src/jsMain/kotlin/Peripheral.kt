@@ -15,8 +15,11 @@ internal fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
     builderAction: PeripheralBuilderAction = {},
 ): WebBluetoothPeripheral {
-    val builder = PeripheralBuilder()
-    builder.builderAction()
+    val builder = try {
+        PeripheralBuilder().apply(builderAction)
+    } catch (t: Throwable) {
+        throw RequestPeripheralException("PeripheralBuilder", t)
+    }
     return BluetoothDeviceWebBluetoothPeripheral(
         coroutineContext,
         bluetoothDevice,
