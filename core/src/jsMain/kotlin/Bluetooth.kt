@@ -79,7 +79,7 @@ public fun CoroutineScope.requestPeripheral(
             }
         }
         .catch { cause ->
-            throw RequestPeripheralException("catch", cause)
+            throw RequestPeripheralException("requestDevice.catch: ${JSON.stringify(jsOptions)}", cause)
         }
 }
 
