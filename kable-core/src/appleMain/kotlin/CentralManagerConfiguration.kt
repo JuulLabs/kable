@@ -3,6 +3,7 @@ package com.juul.kable
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import platform.CoreBluetooth.CBCentralManagerOptionRestoreIdentifierKey
+import platform.CoreBluetooth.CBCentralManagerOptionShowPowerAlertKey
 import platform.Foundation.NSUUID
 import platform.Foundation.NSUserDefaults
 
@@ -22,10 +23,15 @@ private val consumerId: String
             }
     }
 
-internal fun CentralManager.Configuration.toOptions(): Map<Any?, *>? = if (stateRestoration) {
-    mapOf(CBCentralManagerOptionRestoreIdentifierKey to "$CBCENTRALMANAGER_RESTORATION_ID-$consumerId")
+internal fun CentralManager.Configuration.toOptions(): Map<Any?, *> = if (stateRestoration) {
+    mapOf(
+        CBCentralManagerOptionRestoreIdentifierKey to "$CBCENTRALMANAGER_RESTORATION_ID-$consumerId",
+        CBCentralManagerOptionShowPowerAlertKey to false,
+    )
 } else {
-    null
+    mapOf(
+        CBCentralManagerOptionShowPowerAlertKey to false,
+    )
 }
 
 internal fun CentralManager.Configuration.Builder.build(): CentralManager.Configuration =
