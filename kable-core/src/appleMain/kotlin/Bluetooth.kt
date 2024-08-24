@@ -7,7 +7,6 @@ import com.juul.kable.Reason.Resetting
 import com.juul.kable.Reason.Unauthorized
 import com.juul.kable.Reason.Unknown
 import com.juul.kable.Reason.Unsupported
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -27,7 +26,6 @@ public actual enum class Reason {
     Unknown, // CBManagerState.unknown
 }
 
-@OptIn(UnsafeNumber::class)
 internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> = flow {
     // flow + emitAll dance so that lazy `CentralManager.Default` is not initialized until this flow is active.
     emitAll(CentralManager.Default.delegate.state)

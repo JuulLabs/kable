@@ -21,6 +21,8 @@ public abstract class com/juul/kable/Bluetooth$Availability {
 
 public final class com/juul/kable/Bluetooth$Availability$Available : com/juul/kable/Bluetooth$Availability {
 	public static final field INSTANCE Lcom/juul/kable/Bluetooth$Availability$Available;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -109,6 +111,7 @@ public final class com/juul/kable/Filter$ManufacturerData : com/juul/kable/Filte
 	public final fun getData ()[B
 	public final fun getDataMask ()[B
 	public final fun getId ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class com/juul/kable/Filter$Name : com/juul/kable/Filter {

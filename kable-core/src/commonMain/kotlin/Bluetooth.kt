@@ -1,7 +1,10 @@
+@file:JvmName("BluetoothCommon")
+
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
+import kotlin.jvm.JvmName
 
 public expect enum class Reason
 
@@ -27,11 +30,7 @@ public object Bluetooth {
     }
 
     public sealed class Availability {
-
-        public object Available : Availability() {
-            override fun toString(): String = "Available"
-        }
-
+        public data object Available : Availability()
         public data class Unavailable(val reason: Reason?) : Availability()
     }
 

@@ -7,8 +7,9 @@ import androidx.core.content.ContextCompat
 private fun getBluetoothManagerOrNull(): BluetoothManager? =
     ContextCompat.getSystemService(applicationContext, BluetoothManager::class.java)
 
+/** @throws IllegalStateException If bluetooth is unavailable. */
 private fun getBluetoothManager(): BluetoothManager =
-    getBluetoothManagerOrNull() ?: error("BluetoothManager is not a supported system service.")
+    getBluetoothManagerOrNull() ?: error("BluetoothManager is not a supported system service")
 
 /**
  * Per documentation, `BluetoothAdapter.getDefaultAdapter()` returns `null` when "Bluetooth is not
@@ -17,10 +18,11 @@ private fun getBluetoothManager(): BluetoothManager =
  * https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#getDefaultAdapter()
  */
 internal fun getBluetoothAdapterOrNull(): BluetoothAdapter? =
-    getBluetoothManager().adapter
+    getBluetoothManagerOrNull()?.adapter
 
+/** @throws IllegalStateException If bluetooth is not supported. */
 internal fun getBluetoothAdapter(): BluetoothAdapter =
-    getBluetoothAdapterOrNull() ?: error("Bluetooth not supported")
+    getBluetoothManager().adapter ?: error("Bluetooth not supported")
 
 /**
  * Explicitly check the adapter state before connecting in order to respect system settings.

@@ -26,7 +26,7 @@ public class OptionsBuilder internal constructor() {
      *
      * https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
      */
-    public var optionalServices: List<Uuid>? = null
+    public var optionalServices: List<Uuid> = emptyList()
 
     internal fun build() = Options(filters, optionalServices)
 }

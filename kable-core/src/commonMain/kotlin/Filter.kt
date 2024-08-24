@@ -119,6 +119,9 @@ public sealed class Filter {
             require(id <= 65535) { "Company identifier cannot be more than 16-bits (65535), was $id" }
             if (dataMask != null) requireDataAndMaskHaveSameLength(data, dataMask)
         }
+
+        override fun toString(): String =
+            "ManufacturerData(id=$id, data=${data.toHexString()}, dataMask=${dataMask?.toHexString()})"
     }
 }
 

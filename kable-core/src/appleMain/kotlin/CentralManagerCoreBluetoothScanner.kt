@@ -3,9 +3,9 @@ package com.juul.kable
 import com.benasher44.uuid.Uuid
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
 import com.juul.kable.Filter.Service
+import com.juul.kable.UnmetRequirementReason.BluetoothDisabled
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import platform.CoreBluetooth.CBManagerStatePoweredOff
 import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.CoreBluetooth.CBManagerStateUnauthorized
 import platform.CoreBluetooth.CBManagerStateUnsupported
@@ -51,6 +52,7 @@ internal class CentralManagerCoreBluetoothScanner(
         central.delegate
             .response
             .onStart {
+                logger.verbose { message = "Initializing scan" }
                 central.awaitPoweredOn()
                 if (nativeServiceFilters != null) {
                     logger.info { message = "Starting scan with native service filtering" }
@@ -78,12 +80,13 @@ internal class CentralManagerCoreBluetoothScanner(
             }
 }
 
-@OptIn(UnsafeNumber::class)
 private suspend fun CentralManager.awaitPoweredOn() {
     delegate.state
-        .onEach {
-            if (it == CBManagerStateUnsupported || it == CBManagerStateUnauthorized) {
-                error("Invalid bluetooth state: $it")
+        .onEach { state ->
+            when (state) {
+                CBManagerStateUnsupported -> error("This device doesn't support the Bluetooth low energy central or client role")
+                CBManagerStateUnauthorized -> error("Application isn't authorized to use the Bluetooth low energy role")
+                CBManagerStatePoweredOff -> throw UnmetRequirementException(BluetoothDisabled, "Bluetooth disabled")
             }
         }
         .first { it == CBManagerStatePoweredOn }
