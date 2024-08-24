@@ -5,7 +5,6 @@ import com.juul.kable.Bluetooth.Availability.Available
 import com.juul.kable.Bluetooth.Availability.Unavailable
 import com.juul.kable.Reason.BluetoothUndefined
 import com.juul.kable.external.BluetoothAvailabilityChanged
-import com.juul.kable.external.BluetoothLEScanFilterInit
 import com.juul.kable.external.BluetoothServiceUUID
 import com.juul.kable.external.RequestDeviceOptions
 import js.objects.jso
@@ -87,7 +86,7 @@ public fun CoroutineScope.requestPeripheral(
  * ```
  */
 private fun Options.toRequestDeviceOptions(): RequestDeviceOptions = jso {
-    val jsFilters = this@toRequestDeviceOptions.filters()
+    val jsFilters = this@toRequestDeviceOptions.filters.toBluetoothLEScanFilterInit()
     if (jsFilters.isNotEmpty()) {
         filters = jsFilters.toTypedArray()
     } else {
@@ -99,13 +98,6 @@ private fun Options.toRequestDeviceOptions(): RequestDeviceOptions = jso {
             .toTypedArray()
     }
 }
-
-private fun Options.filters(): List<BluetoothLEScanFilterInit> =
-    if (filterSets?.isNotEmpty() == true) {
-        filterSets.toBluetoothLEScanFilterInit()
-    } else {
-        filterPredicates.toBluetoothLEScanFilterInit()
-    }
 
 // Note: Web Bluetooth requires that UUIDs be provided as lowercase strings.
 internal fun Uuid.toBluetoothServiceUUID(): BluetoothServiceUUID = toString().lowercase()

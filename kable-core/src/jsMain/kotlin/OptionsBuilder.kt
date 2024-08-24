@@ -4,7 +4,7 @@ import com.benasher44.uuid.Uuid
 
 public class OptionsBuilder internal constructor() {
 
-    private var filterPredicates: List<FilterPredicate> = emptyList()
+    private var filters: List<FilterPredicate> = emptyList()
 
     /**
      * Filters to apply when requesting devices. If predicates are non-empty, then only devices
@@ -17,7 +17,7 @@ public class OptionsBuilder internal constructor() {
      * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md
      */
     public fun filters(builder: FiltersBuilder.() -> Unit) {
-        filterPredicates = FiltersBuilder().apply(builder).build()
+        filters = FiltersBuilder().apply(builder).build()
     }
 
     /**
@@ -28,5 +28,5 @@ public class OptionsBuilder internal constructor() {
      */
     public var optionalServices: List<Uuid>? = null
 
-    internal fun build() = Options(null, optionalServices, filterPredicates)
+    internal fun build() = Options(filters, optionalServices)
 }

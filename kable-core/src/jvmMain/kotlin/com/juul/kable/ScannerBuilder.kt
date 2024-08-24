@@ -7,7 +7,7 @@ public actual class ScannerBuilder {
     @Deprecated(
         message = "Use filters(FiltersBuilder.() -> Unit)",
         replaceWith = ReplaceWith("filters { }"),
-        level = DeprecationLevel.WARNING,
+        level = DeprecationLevel.ERROR,
     )
     public actual var filters: List<Filter>? = null
 

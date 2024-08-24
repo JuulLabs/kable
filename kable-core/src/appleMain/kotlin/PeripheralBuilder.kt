@@ -6,7 +6,7 @@ import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
 public actual class ServicesDiscoveredPeripheral internal constructor(
-    private val peripheral: ApplePeripheral,
+    private val peripheral: CoreBluetoothPeripheral,
 ) {
 
     @Throws(CancellationException::class, IOException::class, NotReadyException::class)
