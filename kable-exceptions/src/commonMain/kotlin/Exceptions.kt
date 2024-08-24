@@ -1,5 +1,7 @@
 package com.juul.kable
 
+import kotlinx.io.IOException
+
 /** Failure occurred with the underlying Bluetooth system. */
 public open class BluetoothException(
     message: String? = null,
@@ -16,14 +18,14 @@ public class BluetoothDisabledException(
     cause: Throwable? = null,
 ) : BluetoothException(message, cause)
 
-public expect open class IOException(
-    message: String?,
-    cause: Throwable?,
-) : Exception {
-    public constructor()
-    public constructor(message: String?)
-    public constructor(cause: Throwable?)
-}
+@Deprecated(
+    message = "Kable now uses kotlinx-io's IOException.",
+    replaceWith = ReplaceWith(
+        "IOException",
+        imports = ["kotlinx.io.IOException"],
+    ),
+)
+public typealias IOException = kotlinx.io.IOException
 
 public open class NotConnectedException(
     message: String? = null,
