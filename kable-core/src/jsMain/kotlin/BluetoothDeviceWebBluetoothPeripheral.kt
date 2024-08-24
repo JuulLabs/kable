@@ -28,6 +28,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.io.IOException
 import org.khronos.webgl.DataView
 import kotlin.coroutines.CoroutineContext
 import org.w3c.dom.events.Event as JsEvent

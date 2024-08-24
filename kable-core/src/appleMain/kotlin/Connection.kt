@@ -8,6 +8,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.io.IOException
 
 internal class Connection(
     private val scope: CoroutineScope,
