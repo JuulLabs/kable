@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.withContext
+import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
 internal expect fun Peripheral.observationHandler(): Observation.Handler

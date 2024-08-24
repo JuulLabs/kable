@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.io.IOException
 
 /**
  * Unwraps the [cause][Throwable.cause] of a [CancellationException].
