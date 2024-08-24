@@ -27,6 +27,17 @@ allprojects {
         mavenCentral()
     }
 
+    listOf(
+        org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile::class,
+        org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon::class,
+        org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile::class,
+        org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile::class,
+    ).forEach { kClass ->
+        tasks.withType(kClass).configureEach {
+            compilerOptions.suppressWarnings = (findProperty("suppressWarnings") as? String).toBoolean()
+        }
+    }
+
     tasks.withType<Test>().configureEach {
         testLogging {
             events("started", "passed", "skipped", "failed", "standardOut", "standardError")
