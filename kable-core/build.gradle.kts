@@ -27,6 +27,7 @@ kotlin {
             api(libs.kotlinx.coroutines.core)
             api(libs.uuid)
             api(project(":kable-exceptions"))
+            implementation(libs.datetime)
             implementation(libs.tuulbox.collections)
         }
 

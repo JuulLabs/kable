@@ -284,6 +284,12 @@ public final class com/juul/kable/ObservationExceptionPeripheral {
 public abstract interface annotation class com/juul/kable/ObsoleteKableApi : java/lang/annotation/Annotation {
 }
 
+public final class com/juul/kable/OnDemandThreadingStrategy : com/juul/kable/ThreadingStrategy {
+	public static final field INSTANCE Lcom/juul/kable/OnDemandThreadingStrategy;
+	public fun acquire ()Lcom/juul/kable/Threading;
+	public fun release (Lcom/juul/kable/Threading;)V
+}
+
 public final class com/juul/kable/OutOfOrderGattCallbackException : java/lang/IllegalStateException {
 }
 
@@ -310,11 +316,13 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 public final class com/juul/kable/PeripheralBuilder {
 	public final fun autoConnectIf (Lkotlin/jvm/functions/Function0;)V
 	public final fun getPhy ()Lcom/juul/kable/Phy;
+	public final fun getThreadingStrategy ()Lcom/juul/kable/ThreadingStrategy;
 	public final fun getTransport ()Lcom/juul/kable/Transport;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun observationExceptionHandler (Lkotlin/jvm/functions/Function3;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
 	public final fun setPhy (Lcom/juul/kable/Phy;)V
+	public final fun setThreadingStrategy (Lcom/juul/kable/ThreadingStrategy;)V
 	public final fun setTransport (Lcom/juul/kable/Transport;)V
 }
 
@@ -350,6 +358,14 @@ public final class com/juul/kable/PlatformAdvertisement$BondState : java/lang/En
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/PlatformAdvertisement$BondState;
 	public static fun values ()[Lcom/juul/kable/PlatformAdvertisement$BondState;
+}
+
+public final class com/juul/kable/PooledThreadingStrategy : com/juul/kable/ThreadingStrategy {
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineScope;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineScope;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun acquire ()Lcom/juul/kable/Threading;
+	public final fun cancel ()V
+	public fun release (Lcom/juul/kable/Threading;)V
 }
 
 public final class com/juul/kable/ProfileKt {
@@ -511,6 +527,20 @@ public final class com/juul/kable/State$Disconnected$Status$UnknownDevice : com/
 
 public final class com/juul/kable/State$Disconnecting : com/juul/kable/State {
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnecting;
+}
+
+public abstract class com/juul/kable/Threading {
+}
+
+public final class com/juul/kable/ThreadingKt {
+	public static final fun Threading (Lcom/juul/kable/ThreadingStrategy;Ljava/lang/String;)Lcom/juul/kable/Threading;
+	public static final fun getName (Lcom/juul/kable/Threading;)Ljava/lang/String;
+	public static final fun shutdown (Lcom/juul/kable/Threading;)V
+}
+
+public abstract interface class com/juul/kable/ThreadingStrategy {
+	public abstract fun acquire ()Lcom/juul/kable/Threading;
+	public abstract fun release (Lcom/juul/kable/Threading;)V
 }
 
 public final class com/juul/kable/Transport : java/lang/Enum {
