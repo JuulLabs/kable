@@ -533,7 +533,7 @@ public abstract class com/juul/kable/Threading {
 }
 
 public final class com/juul/kable/ThreadingKt {
-	public static final fun Threading (Ljava/lang/String;)Lcom/juul/kable/Threading;
+	public static final fun Threading (Lcom/juul/kable/ThreadingStrategy;Ljava/lang/String;)Lcom/juul/kable/Threading;
 	public static final fun getName (Lcom/juul/kable/Threading;)Ljava/lang/String;
 	public static final fun shutdown (Lcom/juul/kable/Threading;)V
 }

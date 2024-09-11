@@ -37,21 +37,26 @@ internal fun BluetoothDevice.connect(
     val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
     val threading = threadingStrategy.acquire()
 
-    val bluetoothGatt = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
-            val handler = (threading as Threading.Handler).handler
-            connectGatt(context, autoConnect, callback, transport.intValue, phy.intValue, handler)
+    val bluetoothGatt = try {
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                val handler = (threading as Threading.Handler).handler
+                connectGatt(context, autoConnect, callback, transport.intValue, phy.intValue, handler)
+            }
+
+            Build.VERSION.SDK_INT <= Build.VERSION_CODES.M && autoConnect ->
+                connectGattWithReflection(context, true, callback, transport.intValue)
+                    ?: connectGattCompat(context, true, callback, transport.intValue)
+
+            else -> connectGattCompat(context, autoConnect, callback, transport.intValue)
         }
-
-        Build.VERSION.SDK_INT <= Build.VERSION_CODES.M && autoConnect ->
-            connectGattWithReflection(context, true, callback, transport.intValue)
-                ?: connectGattCompat(context, true, callback, transport.intValue)
-
-        else -> connectGattCompat(context, autoConnect, callback, transport.intValue)
+    } catch (t: Throwable) {
+        threading.release()
+        throw t
     }
 
     if (bluetoothGatt == null) {
-        threadingStrategy.release(threading)
+        threading.release()
         return null
     }
 

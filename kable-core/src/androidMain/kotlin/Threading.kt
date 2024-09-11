@@ -13,19 +13,26 @@ import kotlinx.coroutines.newSingleThreadContext
 public sealed class Threading {
 
     internal abstract val dispatcher: CoroutineDispatcher
+    internal abstract val strategy: ThreadingStrategy
 
     /** Used on Android O (API 26) and above. */
     internal data class Handler(
         val thread: HandlerThread,
         val handler: android.os.Handler,
         override val dispatcher: CoroutineDispatcher,
+        override val strategy: ThreadingStrategy,
     ) : Threading()
 
     /** Used on Android versions **lower** than Android O (API 26). */
     internal data class SingleThreadContext(
         val name: String,
         override val dispatcher: ExecutorCoroutineDispatcher,
+        override val strategy: ThreadingStrategy,
     ) : Threading()
+}
+
+internal fun Threading.release() {
+    strategy.release(this)
 }
 
 public val Threading.name: String
@@ -45,13 +52,13 @@ public fun Threading.shutdown() {
  * Creates [Threading] that can be used for Bluetooth communication. The returned [Threading] is
  * returned in a started state and must be [shutdown] when no longer needed.
  */
-public fun Threading(name: String): Threading =
+public fun ThreadingStrategy.Threading(name: String): Threading =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val thread = HandlerThread(name).apply { start() }
         val handler = Handler(thread.looper)
         val dispatcher = handler.asCoroutineDispatcher()
-        Threading.Handler(thread, handler, dispatcher)
+        Threading.Handler(thread, handler, dispatcher, this)
     } else { // Build.VERSION.SDK_INT < Build.VERSION_CODES.O
         @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-        Threading.SingleThreadContext(name, newSingleThreadContext(name))
+        Threading.SingleThreadContext(name, newSingleThreadContext(name), this)
     }
