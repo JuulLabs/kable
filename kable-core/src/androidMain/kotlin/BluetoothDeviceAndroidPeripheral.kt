@@ -200,9 +200,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     }
 
     private fun releaseThread() {
-        _connection?.threading?.let {
-            threadingStrategy.release(it)
-        }
+        _connection?.threading?.release()
     }
 
     private fun dispose(cause: Throwable?) {
