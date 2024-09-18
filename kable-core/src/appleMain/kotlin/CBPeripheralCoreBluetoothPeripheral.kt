@@ -47,16 +47,16 @@ import platform.CoreBluetooth.CBCharacteristicWriteWithResponse as CBWithRespons
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse as CBWithoutResponse
 
 internal class CBPeripheralCoreBluetoothPeripheral(
-    internal val peripheral: CBPeripheral,
+    private val cbPeripheral: CBPeripheral,
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
     private val disconnectTimeout: Duration,
-) : BasePeripheral(peripheral.identifier.toUuid()), CoreBluetoothPeripheral {
+) : BasePeripheral(cbPeripheral.identifier.toUuid()), CoreBluetoothPeripheral {
 
     private val central = CentralManager.Default
 
-    override val identifier: Identifier = peripheral.identifier.toUuid()
+    override val identifier: Identifier = cbPeripheral.identifier.toUuid()
     private val logger = Logger(logging, identifier = identifier.toString())
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
@@ -83,7 +83,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val connectAction = sharedRepeatableAction(::establishConnection)
 
     private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
-    private val canSendWriteWithoutResponse = MutableStateFlow(peripheral.canSendWriteWithoutResponse)
+    private val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
 
     private val _services = MutableStateFlow<List<DiscoveredService>?>(null)
     override val services = _services.asStateFlow()
@@ -96,7 +96,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
     @ExperimentalApi
     override val name: String?
-        get() = peripheral.name
+        get() = cbPeripheral.name
 
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
         central.checkBluetoothIsOn()
@@ -107,7 +107,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         try {
             connection.value = central.connectPeripheral(
                 scope.coroutineContext,
-                peripheral,
+                cbPeripheral,
                 createPeripheralDelegate(),
                 _state,
                 _services,
@@ -147,7 +147,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.
     @Throws(CancellationException::class, IOException::class)
     override suspend fun rssi(): Int = connectionOrThrow().execute<DidReadRssi> {
-        peripheral.readRSSI()
+        cbPeripheral.readRSSI()
     }.rssi.intValue
 
     private suspend fun discoverServices() {
@@ -180,13 +180,13 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         val platformCharacteristic = servicesOrThrow().obtain(characteristic, writeType.properties)
         when (writeType) {
             WithResponse -> connectionOrThrow().execute<DidWriteValueForCharacteristic> {
-                peripheral.writeValue(data, platformCharacteristic, CBWithResponse)
+                cbPeripheral.writeValue(data, platformCharacteristic, CBWithResponse)
             }
             WithoutResponse -> connectionOrThrow().guard.withLock {
-                if (!canSendWriteWithoutResponse.updateAndGet { peripheral.canSendWriteWithoutResponse }) {
+                if (!canSendWriteWithoutResponse.updateAndGet { cbPeripheral.canSendWriteWithoutResponse }) {
                     canSendWriteWithoutResponse.first { it }
                 }
-                central.writeValue(peripheral, data, platformCharacteristic, CBWithoutResponse)
+                central.writeValue(cbPeripheral, data, platformCharacteristic, CBWithoutResponse)
             }
         }
     }
@@ -210,7 +210,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         val event = connectionOrThrow().guard.withLock {
             observers
                 .characteristicChanges
-                .onSubscription { central.readValue(peripheral, platformCharacteristic) }
+                .onSubscription { central.readValue(cbPeripheral, platformCharacteristic) }
                 .first { event -> event.isAssociatedWith(characteristic) }
         }
 
@@ -332,7 +332,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private fun onStateChanged(action: (State) -> Unit) {
         central.delegate
             .connectionEvents
-            .filter { event -> event.identifier == peripheral.identifier }
+            .filter { event -> event.identifier == cbPeripheral.identifier }
             .map(ConnectionEvent::toState)
             .onEach(action)
             .launchIn(this)
@@ -349,10 +349,10 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         canSendWriteWithoutResponse,
         observers.characteristicChanges,
         logging,
-        peripheral.identifier.UUIDString,
+        cbPeripheral.identifier.UUIDString,
     )
 
-    override fun toString(): String = "Peripheral(delegate=$peripheral)"
+    override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"
 }
 
 private val CBDescriptor.isUnsignedShortValue: Boolean

@@ -275,7 +275,7 @@ internal class Callback(
 
     override fun onServiceChanged(gatt: BluetoothGatt) {
         logger.debug { message = "onServiceChanged" }
-        // todo
+        // todo: https://github.com/JuulLabs/kable/issues/662
     }
 
     private fun <E> SendChannel<E>.trySendOrLog(element: E) {

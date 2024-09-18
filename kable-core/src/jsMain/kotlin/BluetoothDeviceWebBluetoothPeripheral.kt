@@ -278,5 +278,5 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         connectionOrThrow().stopObservation(characteristic)
     }
 
-    override fun toString(): String = "Peripheral(delegate=${bluetoothDevice.string()})"
+    override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"
 }

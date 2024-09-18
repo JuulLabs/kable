@@ -339,7 +339,7 @@ internal class BluetoothDeviceAndroidPeripheral(
             .launchIn(this)
     }
 
-    override fun toString(): String = "Peripheral(delegate=$bluetoothDevice)"
+    override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
 }
 
 private val WriteType.intValue: Int

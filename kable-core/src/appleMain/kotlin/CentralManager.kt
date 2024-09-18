@@ -47,14 +47,14 @@ public class CentralManager internal constructor(
 
     internal val dispatcher = QueueDispatcher(DISPATCH_QUEUE_LABEL)
     internal val delegate = CentralManagerDelegate()
-    private val centralManager = CBCentralManager(delegate, dispatcher.dispatchQueue, options)
+    private val cbCentralManager = CBCentralManager(delegate, dispatcher.dispatchQueue, options)
 
     internal suspend fun scanForPeripheralsWithServices(
         services: List<Uuid>?,
         options: Map<Any?, *>?,
     ) {
         withContext(dispatcher) {
-            centralManager.scanForPeripheralsWithServices(
+            cbCentralManager.scanForPeripheralsWithServices(
                 serviceUUIDs = services?.map { it.toCBUUID() },
                 options = options,
             )
@@ -64,11 +64,11 @@ public class CentralManager internal constructor(
     internal fun stopScan() {
         // Check scanning state to prevent API misuse warning.
         // https://github.com/JuulLabs/kable/issues/81
-        if (centralManager.isScanning) centralManager.stopScan()
+        if (cbCentralManager.isScanning) cbCentralManager.stopScan()
     }
 
     internal fun retrievePeripheral(withIdentifier: Uuid): CBPeripheral? =
-        centralManager
+        cbCentralManager
             .retrievePeripheralsWithIdentifiers(listOf(withIdentifier.toNSUUID()))
             .firstOrNull() as? CBPeripheral
 
@@ -84,7 +84,7 @@ public class CentralManager internal constructor(
     ): Connection {
         withContext(dispatcher) {
             peripheral.delegate = delegate
-            centralManager.connectPeripheral(peripheral, options)
+            cbCentralManager.connectPeripheral(peripheral, options)
         }
         return Connection(
             coroutineContext,
@@ -103,7 +103,7 @@ public class CentralManager internal constructor(
         cbPeripheral: CBPeripheral,
     ) {
         withContext(dispatcher) {
-            centralManager.cancelPeripheralConnection(cbPeripheral)
+            cbCentralManager.cancelPeripheralConnection(cbPeripheral)
             cbPeripheral.delegate = null
         }
     }
