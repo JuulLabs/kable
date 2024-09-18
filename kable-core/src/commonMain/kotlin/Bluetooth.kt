@@ -40,8 +40,12 @@ public object Bluetooth {
      * `true`) does not necessarily mean that bluetooth operations will work. The radio could be off
      * or permissions may be denied.
      *
+     * WARNING: On Apple, calling this function will show a Bluetooth permission dialog (if
+     * authorization has not yet been granted).
+     *
      * This function is idempotent.
      */
+    @ExperimentalApi // Due to the inability to query Bluetooth support w/o showing a dialog on Apple, this function may be removed.
     public suspend fun isSupported(): Boolean = isBluetoothSupported()
 
     public val availability: Flow<Availability> = bluetoothAvailability
