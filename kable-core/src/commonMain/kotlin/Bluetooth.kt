@@ -35,16 +35,20 @@ public object Bluetooth {
         public data class Unavailable(val reason: Reason?) : Availability()
     }
 
+    public val availability: Flow<Availability> = bluetoothAvailability
+
     /**
      * Checks if Bluetooth Low Energy is supported on the system. Being supported (a return of
      * `true`) does not necessarily mean that bluetooth operations will work. The radio could be off
      * or permissions may be denied.
      *
+     * Due to Core Bluetooth limitations (unavoidable dialog upon checking if supported), this
+     * function **always** returns `true` on Apple (even if Bluetooth is not supported).
+     *
      * This function is idempotent.
      */
+    @ExperimentalApi // Due to the inability to query Bluetooth support w/o showing a dialog on Apple, this function may be removed.
     public suspend fun isSupported(): Boolean = isBluetoothSupported()
-
-    public val availability: Flow<Availability> = bluetoothAvailability
 }
 
 internal expect val bluetoothAvailability: Flow<Bluetooth.Availability>
