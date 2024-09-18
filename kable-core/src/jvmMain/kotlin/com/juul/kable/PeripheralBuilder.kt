@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.juul.kable.logs.LoggingBuilder
+import kotlin.time.Duration
 
 public actual class ServicesDiscoveredPeripheral internal constructor() {
 
@@ -41,4 +42,10 @@ public actual class PeripheralBuilder internal actual constructor() {
     public actual fun observationExceptionHandler(handler: ObservationExceptionHandler) {
         jvmNotImplementedException()
     }
+
+    public actual var disconnectTimeout: Duration
+        get() = jvmNotImplementedException()
+        set(value) {
+            jvmNotImplementedException()
+        }
 }

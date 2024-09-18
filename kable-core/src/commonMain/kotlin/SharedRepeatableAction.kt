@@ -1,36 +1,64 @@
 package com.juul.kable
 
-import kotlinx.atomicfu.locks.reentrantLock
-import kotlinx.atomicfu.locks.withLock
+import com.juul.kable.SharedRepeatableAction.State
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.job
-import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+internal fun <T> CoroutineScope.sharedRepeatableAction(
+    action: suspend (scope: CoroutineScope) -> T,
+) = SharedRepeatableAction(this, action)
 
 /**
- * A mechanism for launching and awaiting a shared action ([Deferred]) repeatedly.
+ * A mechanism for launching and awaiting a shared [action][State.action] ([Deferred]) repeatedly.
  *
- * The [action] is started by calling [await]. Subsequent calls to [await] will return the same
- * (i.e. shared) [action] until failure occurs.
+ * The [action][State.action] is created as a child of [root][State.root] [Job] and encapsulated via
+ * a [State]:
  *
- * The [action] is passed a [scope][CoroutineScope] that can be used to spawn coroutines that can
- * outlive the [action]. [await] will continue to return the same action until a failures occurs in
- * either the [action] or any coroutines spawned from the [scope][CoroutineScope] provided to
- * [action].
+ * ```
+ *           .-------.
+ *           | scope |
+ *           '-------'
+ *               |
+ *             child
+ *               |
+ *  .------------|------------.
+ *  | State      v            |
+ *  |     .------------.      |     .----------------.
+ *  |     | root (Job) | •••••••••• | CoroutineScope |
+ *  |     '------------'      |     '________________'
+ *  |            |            |              :
+ *  |          child          |          passed as
+ *  |            |            |         argument to
+ *  |            v            |              :
+ *  |  .-------------------.  |              v
+ *  |  | action (Deferred) | ••••• `action(scope)`
+ *  |  '-------------------'  |
+ *  '-------------------------'
+ * ```
+ *
+ * The [action] is started by calling [await]. Subsequent calls to [await] will return
+ * the same (i.e. shared) [action] until failure occurs.
+ *
+ * The [action] is passed a [scope][CoroutineScope] (of the [root][State.root]) that can be used to
+ * spawn coroutines that can outlive the successful completion of [action]. [await] will continue to
+ * return the same action until a failure occurs in either the [action] or any coroutines spawned
+ * from the [scope][CoroutineScope] provided to [action].
  *
  * An exception thrown from [action] will cancel any coroutines spawned from the
  * [scope][CoroutineScope] that was provided to the [action].
  *
- * Calling [cancel] or [cancelAndJoin] will cancel the [action] and any coroutines created from the
- * [scope][CoroutineScope] provided to the [action]. A subsequent call to [await] will then start
- * the [action] again.
+ * Calling [cancelAndJoin] will cancel the [root][State.root], the [action] and any coroutines
+ * created from the [scope][CoroutineScope] provided to the [action]. A subsequent call to [await]
+ * will then start the [action] again.
  */
 internal class SharedRepeatableAction<T>(
-    private val coroutineContext: CoroutineContext,
+    private val scope: CoroutineScope,
     private val action: suspend (scope: CoroutineScope) -> T,
 ) {
 
@@ -40,55 +68,35 @@ internal class SharedRepeatableAction<T>(
     )
 
     private var state: State<T>? = null
-    private val guard = reentrantLock()
+    private val guard = Mutex()
 
-    suspend fun await() = getOrAsync().await()
-
-    @Suppress("ktlint:standard:indent")
-    private fun getOrAsync(): Deferred<T> = guard.withLock {
-        (
-            state?.takeIf { it.root.isActive } ?: run {
-                val rootJob = Job(coroutineContext.job)
-                // No-op exception handler prevents any child failures being considered unhandled
-                // (which on Android crashes the app) while propagating cancellation to parent and
-                // honoring parent cancellation.
-                val rootScope = CoroutineScope(coroutineContext + rootJob + noopExceptionHandler)
-                val actionDeferred = rootScope.async {
-                    action(rootScope)
-                }
-                State(rootJob, actionDeferred)
-            }.also { state = it }
-        ).action
+    private suspend fun getOrCreate(): State<T> = guard.withLock {
+        state
+            ?.takeUnless { it.root.isCompleted }
+            ?: create().also { state = it }
     }
 
-    fun cancel(cause: CancellationException? = null) {
-        guard.withLock { state }
-            ?.root
-            ?.cancel(cause)
+    private fun create(): State<T> {
+        check(scope.coroutineContext.job.isActive) { "Scope is not active" }
+        val root = Job(scope.coroutineContext.job)
+        val scope = CoroutineScope(scope.coroutineContext + root)
+        val action = scope.async { action(scope) }
+        return State(root, action)
     }
 
-    suspend fun cancelAndJoin(cause: CancellationException? = null) {
-        guard.withLock { state }
-            ?.root
-            ?.cancelAndJoin(cause)
-    }
+    private suspend fun stateOrNull(): State<T>? = guard.withLock { state }
 
-    suspend fun join() {
-        guard.withLock { state }
-            ?.root
-            ?.join()
+    suspend fun await() = getOrCreate().action.await()
+
+    /**
+     * [Cancels][Job.cancelAndJoin] the [root][State.root] (and [action][State.action]) if available.
+     */
+    suspend fun cancelAndJoin(cause: CancellationException?) {
+        stateOrNull()?.root?.cancelAndJoin(cause)
     }
 }
 
-internal fun <T> CoroutineScope.sharedRepeatableAction(
-    action: suspend (scope: CoroutineScope) -> T,
-) = SharedRepeatableAction(coroutineContext, action)
-
-private suspend fun Job.cancelAndJoin(cause: CancellationException? = null) {
+private suspend fun Job.cancelAndJoin(cause: CancellationException?) {
     cancel(cause)
     join()
-}
-
-private val noopExceptionHandler = CoroutineExceptionHandler { _, _ ->
-    // No-op
 }

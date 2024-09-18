@@ -15,9 +15,10 @@ import platform.CoreBluetooth.CBManagerStateUnknown
 import platform.CoreBluetooth.CBManagerStateUnsupported
 import platform.darwin.NSObject
 
-// Prevent triggering permissions dialog.
+// Prevent triggering bluetooth dialog (note that permission dialog will still appear).
 // https://chrismaddern.com/determine-whether-bluetooth-is-enabled-on-ios-passively/
-private val options = mapOf(CBCentralManagerOptionShowPowerAlertKey to false) as Map<Any?, *>?
+// https://stackoverflow.com/a/58600900
+private val options = mapOf<Any?, Any>(CBCentralManagerOptionShowPowerAlertKey to false)
 
 private var cachedState: CBManagerState? = null
 private val mutex = Mutex()
@@ -37,8 +38,11 @@ private suspend fun awaitState() = callbackFlow {
                 // Silently ignore.
             }
         }
-    }.also { delegateRef = it }
-    CBCentralManager(delegate, null, options).also { managerRef = it }
+    }
+
+    delegateRef = delegate
+    managerRef = CBCentralManager(delegate, null, options)
+
     awaitClose {
         managerRef = null
         delegateRef = null

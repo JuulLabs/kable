@@ -34,7 +34,7 @@ internal class PeripheralDelegate(
     private val canSendWriteWithoutResponse: MutableStateFlow<Boolean>,
     private val characteristicChanges: MutableSharedFlow<ObservationEvent<NSData>>,
     logging: Logging,
-    identifier: String,
+    internal val identifier: String,
 ) : NSObject(), CBPeripheralDelegateProtocol {
 
     sealed class Response {
@@ -307,8 +307,8 @@ internal class PeripheralDelegate(
         // todo
     }
 
-    fun close() {
-        _response.close(ConnectionLostException())
+    fun close(cause: Throwable?) {
+        _response.close(NotConnectedException(cause = cause))
         characteristicChanges.emitBlocking(ObservationEvent.Disconnected)
     }
 }

@@ -2,125 +2,271 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
+import android.os.Handler
+import com.juul.kable.State.Disconnected
+import com.juul.kable.coroutines.childSupervisor
 import com.juul.kable.gatt.Callback
 import com.juul.kable.gatt.GattStatus
 import com.juul.kable.gatt.Response
+import com.juul.kable.gatt.Response.OnServicesDiscovered
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.CoroutineStart.ATOMIC
+import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.coroutines.coroutineContext
+import kotlin.reflect.KClass
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.ZERO
 
-public class OutOfOrderGattCallbackException internal constructor(
-    message: String,
-) : IllegalStateException(message)
+// Number of service discovery attempts to make if no services are discovered.
+// https://github.com/JuulLabs/kable/issues/295
+private const val DISCOVER_SERVICES_RETRIES = 5
 
 private val GattSuccess = GattStatus(GATT_SUCCESS)
 
+/**
+ * Represents a Bluetooth Low Energy connection. [Connection] should be initialized with the
+ * provided [BluetoothGatt] in a connecting or connected state. When a disconnect occurs (either by
+ * invoking [disconnect], or peripheral initiated disconnect), this [Connection] will be
+ * [disposed][close] (and cannot be re-used).
+ *
+ * To disconnect: simply call [disconnect] ([Connection] will be implicitly [closed][close] at the
+ * end of the [disconnect] sequence).
+ *
+ * If [scope], or parent [CoroutineContext] is cancelled prior to [disconnecting][disconnect], then
+ * [Connection] will be abruptly [closed][close] (upon completion of [job]) without a prior
+ * [disconnect] sequence.
+ */
 internal class Connection(
-    private val scope: CoroutineScope,
-    internal val bluetoothGatt: BluetoothGatt,
-    internal val threading: Threading,
+    parentContext: CoroutineContext,
+    internal val gatt: BluetoothGatt,
+    private val threading: Threading,
     private val callback: Callback,
+    private val services: MutableStateFlow<List<DiscoveredService>?>,
+    private val disconnectTimeout: Duration,
     logging: Logging,
 ) {
 
-    private val logger = Logger(logging, tag = "Kable/Connection", identifier = bluetoothGatt.device.address)
+    private val name = "Kable/Connection/${gatt.device}"
 
-    private val lock = Mutex()
-    private var deferredResponse: Deferred<Response>? = null
+    private val connectionJob = (parentContext.job as CompletableJob).apply {
+        invokeOnCompletion(::close)
+    }
+    private val connectionScope = CoroutineScope(
+        parentContext + connectionJob + CoroutineName(name),
+    )
 
-    internal val dispatcher = threading.dispatcher
+    val taskScope = connectionScope.childSupervisor("$name/Tasks")
+
+    private val logger =
+        Logger(logging, tag = "Kable/Connection", identifier = gatt.device.toString())
+
+    init {
+        // todo: Move this `require` to the PeripheralBuilder.
+        require(disconnectTimeout > ZERO) { "Disconnect timeout must be >0, was $disconnectTimeout" }
+
+        onDispose(::disconnect)
+
+        on<Disconnected> {
+            val state = it.toString()
+            logger.debug {
+                message = "Disconnect detected"
+                detail("state", state)
+            }
+            dispose(NotConnectedException("Disconnect detected"))
+        }
+
+        // todo: Monitor onServicesChanged event to re-`discoverServices`.
+        // https://github.com/JuulLabs/kable/issues/662
+    }
+
+    private val dispatcher = connectionScope.coroutineContext + threading.dispatcher
+    private val guard = Mutex()
+
+    suspend fun discoverServices() {
+        logger.verbose { message = "Discovering services" }
+
+        repeat(DISCOVER_SERVICES_RETRIES) { attempt ->
+            val discoveredServices = execute<OnServicesDiscovered> {
+                discoverServicesOrThrow()
+            }.services.map(::DiscoveredService)
+
+            if (discoveredServices.isEmpty()) {
+                logger.warn {
+                    message = "Empty services"
+                    detail("attempt", "${attempt + 1} of $DISCOVER_SERVICES_RETRIES")
+                }
+            } else {
+                logger.verbose { message = "Discovered ${discoveredServices.count()} services" }
+                services.value = discoveredServices
+                return
+            }
+        }
+        services.value = emptyList()
+    }
 
     /**
      * Executes specified [BluetoothGatt] [action].
      *
-     * Android Bluetooth Low Energy has strict requirements: all I/O must be executed sequentially. In other words, the
-     * response for an [action] must be received before another [action] can be performed. Additionally, the Android BLE
-     * stack can become unstable if I/O isn't performed on a dedicated thread.
+     * Android Bluetooth Low Energy has strict requirements: all I/O must be executed sequentially.
+     * In other words, the response for an [action] must be received before another [action] can be
+     * performed. Additionally, the Android BLE stack can become unstable if I/O isn't performed on
+     * a dedicated thread.
      *
-     * These requirements are fulfilled by ensuring that all [action]s are performed behind a [Mutex]. On Android pre-O
-     * a single threaded [CoroutineDispatcher] is used, Android O and newer a [CoroutineDispatcher] backed by an Android
-     * `Handler` is used (and is also used in the Android BLE [Callback]).
+     * These requirements are fulfilled by ensuring that all [action]s are performed behind a
+     * [Mutex]. On Android pre-O a single threaded [CoroutineDispatcher] is used, Android O and
+     * newer a [CoroutineDispatcher] backed by an Android [Handler] is used (and is also used in the
+     * Android BLE [Callback]).
      *
-     * @throws GattStatusException if response has a non-`GATT_SUCCESS` status.
+     * @throws GattStatusException If response has a non-`GATT_SUCCESS` status.
+     * @throws NotConnectedException If connection has been closed.
      */
-    suspend inline fun <reified T> execute(
-        crossinline action: BluetoothGatt.() -> Unit,
-    ): T = lock.withLock {
-        deferredResponse?.let {
-            if (it.isActive) {
-                // Discard response as we've performed another `execute` without the previous finishing. This happens if
-                // a previous `execute` was cancelled after invoking GATT action, but before receiving response from
-                // callback channel. See the following issues for more details:
-                // https://github.com/JuulLabs/kable/issues/326
-                // https://github.com/JuulLabs/kable/issues/450
-                val response = it.await()
-                logger.warn {
-                    message = "Discarded response"
-                    detail("response", response.toString())
+    suspend inline fun <reified T : Response> execute(
+        noinline action: BluetoothGatt.() -> Unit,
+    ): T = execute(T::class, action)
+
+    suspend fun <T : Response> execute(
+        type: KClass<T>,
+        action: BluetoothGatt.() -> Unit,
+    ): T {
+        val response = guard.withLock {
+            var executed = false
+            try {
+                withContext(dispatcher) {
+                    gatt.action()
+                    executed = true
                 }
+            } catch (e: CancellationException) {
+                if (executed) {
+                    // Ensure response buffer is received even when calling context is cancelled.
+                    // UNDISPATCHED to ensure we're within the `lock` for the `receive`.
+                    connectionScope.launch(start = UNDISPATCHED) {
+                        val response = callback.onResponse.receive()
+                        logger.debug {
+                            message = "Discarded response to cancelled request"
+                            detail("response", response.toString())
+                        }
+                    }
+                }
+                coroutineContext.ensureActive()
+                throw e.unwrapCancellationException()
             }
-        }
 
-        withContext(dispatcher) {
-            bluetoothGatt.action()
-        }
-        val deferred = scope.async { callback.onResponse.receive() }
-        deferredResponse = deferred
-
-        val response = try {
-            deferred.await()
-        } catch (e: Exception) {
-            // The `async` above is a sibling coroutine to that of the coroutines launched from the
-            // connect process. When (for example) BLE is disabled, it fails the connection scope;
-            // being that `async` is a sibling scope, the `async` above will **cancel** when BLE is
-            // disabled (rather than fail). We actually want to fail this `execute`, so we unwrap
-            // `CancellationException` for the underlying exception that failed the connection scope.
-            // todo: Figure out how to handle cancellation (discard GATT callback response) while running in the calling coroutine context (rather than using passed in scope).
-            when (val unwrapped = e.unwrapCancellationCause()) {
-                is ConnectionLostException -> throw ConnectionLostException(cause = unwrapped)
-                else -> throw unwrapped
+            try {
+                connectionScope.async {
+                    callback.onResponse.receive()
+                }.await()
+            } catch (e: CancellationException) {
+                coroutineContext.ensureActive()
+                throw e.unwrapCancellationException()
             }
-        }
-        deferredResponse = null
+        }.also(::checkResponse)
 
-        if (response.status != GattSuccess) throw GattStatusException(response.toString())
-
-        // `lock` should always enforce a 1:1 matching of request to response, but if an Android `BluetoothGattCallback`
-        // method gets called out of order then we'll cast to the wrong response type.
-        response as? T
-            ?: throw OutOfOrderGattCallbackException(
-                "Unexpected response type ${response.javaClass.simpleName} received",
+        // `guard` should always enforce a 1:1 matching of request-to-response, but if an Android
+        // `BluetoothGattCallback` method is called out-of-order then we'll cast to the wrong type.
+        return response as? T
+            ?: throw InternalException(
+                "Expected response type ${type.simpleName} but received ${response::class.simpleName}",
             )
     }
 
     /**
-     * Mimics [execute] in order to uphold the same sequential execution behavior, while having a dedicated channel for
-     * receiving MTU change events (so that peripheral initiated MTU changes don't result in
-     * [OutOfOrderGattCallbackException]).
+     * Mimics [execute] in order to uphold the same sequential execution behavior, while having a
+     * dedicated channel for receiving MTU change events.
      *
      * See https://github.com/JuulLabs/kable/issues/86 for more details.
      *
      * @throws GattRequestRejectedException if underlying `BluetoothGatt` method call returns `false`.
      * @throws GattStatusException if response has a non-`GATT_SUCCESS` status.
      */
-    suspend fun requestMtu(mtu: Int): Int = lock.withLock {
-        withContext(dispatcher) {
-            if (!bluetoothGatt.requestMtu(mtu)) throw GattRequestRejectedException()
+    suspend fun requestMtu(mtu: Int): Int = guard.withLock {
+        try {
+            withContext(dispatcher) {
+                if (!gatt.requestMtu(mtu)) throw GattRequestRejectedException()
+            }
+            connectionScope.async { callback.onMtuChanged.receive() }.await()
+        } catch (e: CancellationException) {
+            coroutineContext.ensureActive()
+            throw e.unwrapCancellationException()
         }
+    }.also(::checkResponse).mtu
 
-        val response = try {
-            callback.onMtuChanged.receive()
-        } catch (e: ConnectionLostException) {
-            throw ConnectionLostException(cause = e)
+    private suspend fun disconnect() {
+        if (callback.state.value is Disconnected) return
+
+        withContext(NonCancellable) {
+            try {
+                withTimeout(disconnectTimeout) {
+                    logger.verbose { message = "Waiting for connection tasks to complete" }
+                    taskScope.coroutineContext.job.join()
+
+                    logger.debug { message = "Disconnecting" }
+                    gatt.disconnect()
+
+                    callback.state.filterIsInstance<Disconnected>().first()
+                }
+                logger.info { message = "Disconnected" }
+            } catch (e: TimeoutCancellationException) {
+                logger.warn { message = "Timed out after $disconnectTimeout waiting for disconnect" }
+            }
         }
-
-        if (response.status != GattSuccess) throw GattStatusException(response.toString())
-        response.mtu
     }
+
+    private fun close(cause: Throwable?) {
+        logger.debug(cause) { message = "Closing" }
+        gatt.close()
+        setDisconnected()
+        threading.release()
+        logger.info { message = "Closed" }
+    }
+
+    private fun setDisconnected() {
+        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if
+        // not already `Disconnected`.
+        callback.state.update { previous -> previous as? Disconnected ?: Disconnected() }
+    }
+
+    private inline fun <reified T : State> on(crossinline action: suspend (T) -> Unit) {
+        taskScope.launch {
+            action(callback.state.filterIsInstance<T>().first())
+        }
+    }
+
+    private fun onDispose(action: suspend () -> Unit) {
+        @Suppress("OPT_IN_USAGE")
+        connectionScope.launch(start = ATOMIC) {
+            try {
+                awaitCancellation()
+            } finally {
+                action()
+            }
+        }
+    }
+
+    private fun dispose(cause: Throwable) = connectionJob.completeExceptionally(cause)
+}
+
+private fun checkResponse(response: Response) {
+    if (response.status != GattSuccess) throw GattStatusException(response.toString())
 }

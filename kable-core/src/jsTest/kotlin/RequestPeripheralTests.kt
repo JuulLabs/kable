@@ -11,7 +11,7 @@ class RequestPeripheralTests {
         // In browser unit tests, bluetooth is not allowed per security restrictions.
         // In Node.js unit tests, bluetooth is unavailable.
         assertFailsWith<IllegalStateException> {
-            requestPeripheral(Options {}, this)
+            requestPeripheral(Options {})
         }
     }
 }

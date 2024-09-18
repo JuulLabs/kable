@@ -11,7 +11,7 @@ import android.bluetooth.BluetoothProfile.STATE_CONNECTED
 import android.bluetooth.BluetoothProfile.STATE_CONNECTING
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
-import com.juul.kable.ConnectionLostException
+import com.juul.kable.NotConnectedException
 import com.juul.kable.ObservationEvent
 import com.juul.kable.ObservationEvent.CharacteristicChange
 import com.juul.kable.State
@@ -50,7 +50,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 internal class Callback(
-    private val state: MutableStateFlow<State>,
+    val state: MutableStateFlow<State>,
     private val mtu: MutableStateFlow<Int?>,
     private val onCharacteristicChanged: MutableSharedFlow<ObservationEvent<ByteArray>>,
     logging: Logging,
@@ -103,8 +103,6 @@ internal class Callback(
             detail("newState", newState.connectionStateString)
         }
 
-        if (newState == STATE_DISCONNECTED) gatt.close()
-
         when (newState) {
             STATE_CONNECTING -> state.value = State.Connecting.Bluetooth
             STATE_CONNECTED -> state.value = State.Connecting.Services
@@ -113,12 +111,12 @@ internal class Callback(
         }
 
         if (newState == STATE_DISCONNECTING || newState == STATE_DISCONNECTED) {
-            onResponse.close(ConnectionLostException())
+            onResponse.close(NotConnectedException())
         }
     }
 
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-        val event = OnServicesDiscovered(GattStatus(status))
+        val event = OnServicesDiscovered(GattStatus(status), gatt.services)
         logger.debug {
             message = "onServicesDiscovered"
             detail(event.status)
@@ -273,6 +271,11 @@ internal class Callback(
         }
         onMtuChanged.trySendOrLog(event)
         if (status == GATT_SUCCESS) this.mtu.value = mtu
+    }
+
+    override fun onServiceChanged(gatt: BluetoothGatt) {
+        logger.debug { message = "onServiceChanged" }
+        // todo
     }
 
     private fun <E> SendChannel<E>.trySendOrLog(element: E) {
