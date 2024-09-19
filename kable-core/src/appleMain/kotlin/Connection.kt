@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.PeripheralDelegate.Response
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverCharacteristicsForService
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverDescriptorsForCharacteristic
@@ -22,6 +21,9 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -66,6 +68,9 @@ internal class Connection(
 
     init {
         onDispose(::disconnect)
+        onServiceChanged { invalidatedServices ->
+            discoverServices(invalidatedServices.map { cbService -> cbService.UUID })
+        }
 
         on<Disconnected> {
             val state = it.toString()
@@ -80,15 +85,11 @@ internal class Connection(
     private val dispatcher = connectionScope.coroutineContext + central.dispatcher
     internal val guard = Mutex()
 
-    suspend fun discoverServices(): Unit = discoverServices(serviceUuids = null)
-
     /** @param serviceUuids to discover (list of service UUIDs), or `null` for all. */
-    suspend fun discoverServices(serviceUuids: List<Uuid>?) {
+    suspend fun discoverServices(serviceUuids: List<CBUUID>? = null) {
         logger.verbose { message = "discoverServices" }
-        val cbUuids = serviceUuids?.map { uuid -> CBUUID.UUIDWithNSUUID(uuid.toNSUUID()) }
-
         execute<DidDiscoverServices> {
-            peripheral.discoverServices(cbUuids)
+            peripheral.discoverServices(serviceUuids)
         }
 
         // Cast should be safe since `CBPeripheral.services` type is `[CBService]?`, according to:
@@ -209,6 +210,13 @@ internal class Connection(
         taskScope.launch {
             action(state.filterIsInstance<T>().first())
         }
+    }
+
+    private fun onServiceChanged(action: suspend (List<CBService>) -> Unit) {
+        delegate.onServiceChanged
+            .receiveAsFlow()
+            .onEach { (invalidatedServices) -> action(invalidatedServices) }
+            .launchIn(taskScope)
     }
 
     private fun onDispose(action: suspend () -> Unit) {

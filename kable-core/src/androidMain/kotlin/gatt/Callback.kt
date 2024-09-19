@@ -61,6 +61,7 @@ internal class Callback(
 
     val onResponse = Channel<Response>(CONFLATED)
     val onMtuChanged = Channel<OnMtuChanged>(CONFLATED)
+    val onServiceChanged = Channel<OnServiceChanged>(CONFLATED)
 
     override fun onPhyUpdate(
         gatt: BluetoothGatt,
@@ -275,7 +276,7 @@ internal class Callback(
 
     override fun onServiceChanged(gatt: BluetoothGatt) {
         logger.debug { message = "onServiceChanged" }
-        // todo: https://github.com/JuulLabs/kable/issues/662
+        onServiceChanged.trySendOrLog(OnServiceChanged)
     }
 
     private fun <E> SendChannel<E>.trySendOrLog(element: E) {

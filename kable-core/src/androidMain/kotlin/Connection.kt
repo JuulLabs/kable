@@ -25,6 +25,9 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -38,10 +41,6 @@ import kotlin.coroutines.coroutineContext
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
-
-// Number of service discovery attempts to make if no services are discovered.
-// https://github.com/JuulLabs/kable/issues/295
-private const val DISCOVER_SERVICES_RETRIES = 5
 
 private val GattSuccess = GattStatus(GATT_SUCCESS)
 
@@ -87,6 +86,7 @@ internal class Connection(
         require(disconnectTimeout > ZERO) { "Disconnect timeout must be >0, was $disconnectTimeout" }
 
         onDispose(::disconnect)
+        onServiceChanged(::discoverServices)
 
         on<Disconnected> {
             val state = it.toString()
@@ -96,18 +96,15 @@ internal class Connection(
             }
             dispose(NotConnectedException("Disconnect detected"))
         }
-
-        // todo: Monitor onServicesChanged event to re-`discoverServices`.
-        // https://github.com/JuulLabs/kable/issues/662
     }
 
     private val dispatcher = connectionScope.coroutineContext + threading.dispatcher
     private val guard = Mutex()
 
-    suspend fun discoverServices() {
+    suspend fun discoverServices(retries: Int = 1) {
         logger.verbose { message = "Discovering services" }
 
-        repeat(DISCOVER_SERVICES_RETRIES) { attempt ->
+        repeat(retries) { attempt ->
             val discoveredServices = execute<OnServicesDiscovered> {
                 discoverServicesOrThrow()
             }.services.map(::DiscoveredService)
@@ -115,7 +112,7 @@ internal class Connection(
             if (discoveredServices.isEmpty()) {
                 logger.warn {
                     message = "Empty services"
-                    detail("attempt", "${attempt + 1} of $DISCOVER_SERVICES_RETRIES")
+                    detail("attempt", "${attempt + 1} of $retries")
                 }
             } else {
                 logger.verbose { message = "Discovered ${discoveredServices.count()} services" }
@@ -251,6 +248,13 @@ internal class Connection(
         taskScope.launch {
             action(callback.state.filterIsInstance<T>().first())
         }
+    }
+
+    private fun onServiceChanged(action: suspend () -> Unit) {
+        callback.onServiceChanged
+            .receiveAsFlow()
+            .onEach { action() }
+            .launchIn(taskScope)
     }
 
     private fun onDispose(action: suspend () -> Unit) {

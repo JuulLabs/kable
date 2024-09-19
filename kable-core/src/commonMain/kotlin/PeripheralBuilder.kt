@@ -38,6 +38,12 @@ internal val defaultDisconnectTimeout = 5.seconds
 
 public expect class PeripheralBuilder internal constructor() {
     public fun logging(init: LoggingBuilder)
+
+    /**
+     * Registers a [ServicesDiscoveredAction] for the [Peripheral] that is invoked after initial
+     * service discover (upon establishing a connection). Is **not** invoked upon subsequent service
+     * re-discoveries (due to peripheral service database changing while connected).
+     */
     public fun onServicesDiscovered(action: ServicesDiscoveredAction)
 
     /**
