@@ -1,4 +1,3 @@
 # https://help.github.com/articles/about-codeowners/
 
-*                @JuulLabs/conx-kotlin-reviewers @twyatt
-appleMain/       @JuulLabs/conx-kotlin-reviewers @davidtaylor-juul @twyatt
+* @JuulLabs/conx-kotlin-reviewers @twyatt
