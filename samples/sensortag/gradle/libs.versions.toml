@@ -8,7 +8,7 @@ androidx-lifecycle = "2.8.6"
 compose = "1.6.11"
 exercise = "0.12.0"
 kotlin = "2.0.20"
-krayon = "0.18.0"
+krayon = "0.19.0"
 ksp = "2.0.20-1.0.25"
 
 [libraries]
