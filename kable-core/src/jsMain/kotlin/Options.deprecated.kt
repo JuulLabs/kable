@@ -1,7 +1,9 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Deprecated(
     message = "Use Options builder instead. See https://github.com/JuulLabs/kable/issues/723 for details.",
     replaceWith = ReplaceWith("Options { }"),

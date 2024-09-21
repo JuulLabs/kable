@@ -1,9 +1,11 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
-import com.benasher44.uuid.uuidFrom
 import com.juul.kable.external.BluetoothServiceUUID
 import com.juul.kable.external.BluetoothUUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 // Number of characters in a 16-bit UUID alias in string hex representation
 private const val UUID_ALIAS_STRING_LENGTH = 4
@@ -19,7 +21,7 @@ private const val UUID_ALIAS_STRING_LENGTH = 4
 internal typealias UUID = String
 
 internal fun UUID.toUuid(): Uuid =
-    uuidFrom(
+    Uuid.parse(
         when (length) {
             UUID_ALIAS_STRING_LENGTH -> BluetoothUUID.canonicalUUID(toInt(16))
             else -> this

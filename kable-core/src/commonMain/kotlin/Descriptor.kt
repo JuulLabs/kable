@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 internal fun <T : Descriptor> List<T>.first(
     descriptorUuid: Uuid,

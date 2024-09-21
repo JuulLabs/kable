@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.external.RequestDeviceOptions
 import js.objects.jso
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice */
 public fun Options(builder: OptionsBuilder.() -> Unit): Options =

@@ -2,6 +2,7 @@ package com.juul.kable
 
 import kotlinx.coroutines.CoroutineScope
 import platform.CoreBluetooth.CBPeripheral
+import kotlin.uuid.ExperimentalUuidApi
 
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -11,6 +12,7 @@ public actual fun CoroutineScope.peripheral(
     return peripheral(advertisement.cbPeripheral, builderAction)
 }
 
+@OptIn(ExperimentalUuidApi::class)
 public fun CoroutineScope.peripheral(
     identifier: Identifier,
     builderAction: PeripheralBuilderAction = {},

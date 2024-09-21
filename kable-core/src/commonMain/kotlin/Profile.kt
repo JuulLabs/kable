@@ -1,13 +1,14 @@
 @file:Suppress("ktlint:standard:no-multi-spaces")
+@file:OptIn(ExperimentalUuidApi::class)
 
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
-import com.benasher44.uuid.uuidFrom
 import com.juul.kable.Characteristic.Properties
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import kotlin.jvm.JvmInline
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 public interface Service {
     public val serviceUuid: Uuid
@@ -122,8 +123,8 @@ public fun characteristicOf(
     service: String,
     characteristic: String,
 ): Characteristic = LazyCharacteristic(
-    serviceUuid = uuidFrom(service),
-    characteristicUuid = uuidFrom(characteristic),
+    serviceUuid = Uuid.parse(service),
+    characteristicUuid = Uuid.parse(characteristic),
 )
 
 public fun descriptorOf(
@@ -131,9 +132,9 @@ public fun descriptorOf(
     characteristic: String,
     descriptor: String,
 ): Descriptor = LazyDescriptor(
-    serviceUuid = uuidFrom(service),
-    characteristicUuid = uuidFrom(characteristic),
-    descriptorUuid = uuidFrom(descriptor),
+    serviceUuid = Uuid.parse(service),
+    characteristicUuid = Uuid.parse(characteristic),
+    descriptorUuid = Uuid.parse(descriptor),
 )
 
 internal fun List<DiscoveredService>.obtain(
