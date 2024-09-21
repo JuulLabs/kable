@@ -19,7 +19,7 @@ compose-material = { module = "androidx.compose.material:material" }
 compose-tooling = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.8.1" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.9.0" }
 exercise-annotations = { module = "com.juul.exercise:annotations", version.ref = "exercise" }
 exercise-compile = { module = "com.juul.exercise:compile", version.ref = "exercise" }
 kable = { module = "com.juul.kable:kable-core", version = "0.34.0" }
