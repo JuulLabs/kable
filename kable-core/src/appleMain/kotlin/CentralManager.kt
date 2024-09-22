@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
@@ -14,9 +13,12 @@ import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSData
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 private const val DISPATCH_QUEUE_LABEL = "central"
 
+@OptIn(ExperimentalUuidApi::class)
 public class CentralManager internal constructor(
     options: Map<Any?, *>?,
 ) {

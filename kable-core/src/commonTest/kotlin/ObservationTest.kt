@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.benasher44.uuid.uuid4
 import com.juul.kable.State.Connected
 import com.juul.kable.State.Connecting
 import com.juul.kable.State.Disconnected
@@ -19,10 +18,13 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 private fun generateCharacteristic() = characteristicOf(
-    service = uuid4().toString(),
-    characteristic = uuid4().toString(),
+    service = Uuid.random().toString(),
+    characteristic = Uuid.random().toString(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)

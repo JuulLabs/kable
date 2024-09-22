@@ -1,6 +1,7 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.Characteristic.Properties
 import com.juul.kable.external.BluetoothCharacteristicProperties
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
@@ -9,6 +10,8 @@ import com.juul.kable.external.BluetoothRemoteGATTService
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.await
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformService = BluetoothRemoteGATTService

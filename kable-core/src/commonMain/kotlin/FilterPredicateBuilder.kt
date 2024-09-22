@@ -1,7 +1,9 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 public class FilterPredicateBuilder internal constructor() {
     public var name: Filter.Name? = null
     public var address: String? = null

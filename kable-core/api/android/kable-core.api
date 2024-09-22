@@ -8,7 +8,7 @@ public abstract interface class com/juul/kable/Advertisement {
 	public abstract fun getUuids ()Ljava/util/List;
 	public abstract fun isConnectable ()Ljava/lang/Boolean;
 	public abstract fun manufacturerData (I)[B
-	public abstract fun serviceData (Ljava/util/UUID;)[B
+	public abstract fun serviceData (Lkotlin/uuid/Uuid;)[B
 }
 
 public abstract interface class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral {
@@ -81,8 +81,8 @@ public final class com/juul/kable/Bluetooth$Availability$Unavailable : com/juul/
 
 public final class com/juul/kable/Bluetooth$BaseUuid {
 	public static final field INSTANCE Lcom/juul/kable/Bluetooth$BaseUuid;
-	public final fun plus (I)Ljava/util/UUID;
-	public final fun plus (J)Ljava/util/UUID;
+	public final fun plus (I)Lkotlin/uuid/Uuid;
+	public final fun plus (J)Lkotlin/uuid/Uuid;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -91,8 +91,8 @@ public final class com/juul/kable/BroadcastReceiverFlowKt {
 }
 
 public abstract interface class com/juul/kable/Characteristic {
-	public abstract fun getCharacteristicUuid ()Ljava/util/UUID;
-	public abstract fun getServiceUuid ()Ljava/util/UUID;
+	public abstract fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
+	public abstract fun getServiceUuid ()Lkotlin/uuid/Uuid;
 }
 
 public final class com/juul/kable/Characteristic$Properties {
@@ -109,20 +109,20 @@ public final class com/juul/kable/Characteristic$Properties {
 }
 
 public abstract interface class com/juul/kable/Descriptor {
-	public abstract fun getCharacteristicUuid ()Ljava/util/UUID;
-	public abstract fun getDescriptorUuid ()Ljava/util/UUID;
-	public abstract fun getServiceUuid ()Ljava/util/UUID;
+	public abstract fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
+	public abstract fun getDescriptorUuid ()Lkotlin/uuid/Uuid;
+	public abstract fun getServiceUuid ()Lkotlin/uuid/Uuid;
 }
 
 public final class com/juul/kable/DiscoveredCharacteristic : com/juul/kable/Characteristic {
 	public final fun copy (Landroid/bluetooth/BluetoothGattCharacteristic;)Lcom/juul/kable/DiscoveredCharacteristic;
 	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredCharacteristic;Landroid/bluetooth/BluetoothGattCharacteristic;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredCharacteristic;
 	public fun equals (Ljava/lang/Object;)Z
-	public fun getCharacteristicUuid ()Ljava/util/UUID;
+	public fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
 	public final fun getDescriptors ()Ljava/util/List;
 	public final fun getInstanceId ()I
 	public final fun getProperties-bty6q6U ()I
-	public fun getServiceUuid ()Ljava/util/UUID;
+	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -131,9 +131,9 @@ public final class com/juul/kable/DiscoveredDescriptor : com/juul/kable/Descript
 	public final fun copy (Landroid/bluetooth/BluetoothGattDescriptor;)Lcom/juul/kable/DiscoveredDescriptor;
 	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredDescriptor;Landroid/bluetooth/BluetoothGattDescriptor;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredDescriptor;
 	public fun equals (Ljava/lang/Object;)Z
-	public fun getCharacteristicUuid ()Ljava/util/UUID;
-	public fun getDescriptorUuid ()Ljava/util/UUID;
-	public fun getServiceUuid ()Ljava/util/UUID;
+	public fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
+	public fun getDescriptorUuid ()Lkotlin/uuid/Uuid;
+	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -144,7 +144,7 @@ public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCharacteristics ()Ljava/util/List;
 	public final fun getInstanceId ()I
-	public fun getServiceUuid ()Ljava/util/UUID;
+	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -200,12 +200,12 @@ public final class com/juul/kable/Filter$Name$Prefix : com/juul/kable/Filter$Nam
 }
 
 public final class com/juul/kable/Filter$Service : com/juul/kable/Filter {
-	public fun <init> (Ljava/util/UUID;)V
-	public final fun component1 ()Ljava/util/UUID;
-	public final fun copy (Ljava/util/UUID;)Lcom/juul/kable/Filter$Service;
-	public static synthetic fun copy$default (Lcom/juul/kable/Filter$Service;Ljava/util/UUID;ILjava/lang/Object;)Lcom/juul/kable/Filter$Service;
+	public fun <init> (Lkotlin/uuid/Uuid;)V
+	public final fun component1 ()Lkotlin/uuid/Uuid;
+	public final fun copy (Lkotlin/uuid/Uuid;)Lcom/juul/kable/Filter$Service;
+	public static synthetic fun copy$default (Lcom/juul/kable/Filter$Service;Lkotlin/uuid/Uuid;ILjava/lang/Object;)Lcom/juul/kable/Filter$Service;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getUuid ()Ljava/util/UUID;
+	public final fun getUuid ()Lkotlin/uuid/Uuid;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -245,28 +245,28 @@ public final class com/juul/kable/KableInitializer : androidx/startup/Initialize
 }
 
 public final class com/juul/kable/LazyCharacteristic : com/juul/kable/Characteristic {
-	public final fun component1 ()Ljava/util/UUID;
-	public final fun component2 ()Ljava/util/UUID;
-	public final fun copy (Ljava/util/UUID;Ljava/util/UUID;)Lcom/juul/kable/LazyCharacteristic;
-	public static synthetic fun copy$default (Lcom/juul/kable/LazyCharacteristic;Ljava/util/UUID;Ljava/util/UUID;ILjava/lang/Object;)Lcom/juul/kable/LazyCharacteristic;
+	public final fun component1 ()Lkotlin/uuid/Uuid;
+	public final fun component2 ()Lkotlin/uuid/Uuid;
+	public final fun copy (Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;)Lcom/juul/kable/LazyCharacteristic;
+	public static synthetic fun copy$default (Lcom/juul/kable/LazyCharacteristic;Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;ILjava/lang/Object;)Lcom/juul/kable/LazyCharacteristic;
 	public fun equals (Ljava/lang/Object;)Z
-	public fun getCharacteristicUuid ()Ljava/util/UUID;
-	public fun getServiceUuid ()Ljava/util/UUID;
+	public fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
+	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/juul/kable/LazyDescriptor : com/juul/kable/Descriptor {
-	public fun <init> (Ljava/util/UUID;Ljava/util/UUID;Ljava/util/UUID;)V
-	public final fun component1 ()Ljava/util/UUID;
-	public final fun component2 ()Ljava/util/UUID;
-	public final fun component3 ()Ljava/util/UUID;
-	public final fun copy (Ljava/util/UUID;Ljava/util/UUID;Ljava/util/UUID;)Lcom/juul/kable/LazyDescriptor;
-	public static synthetic fun copy$default (Lcom/juul/kable/LazyDescriptor;Ljava/util/UUID;Ljava/util/UUID;Ljava/util/UUID;ILjava/lang/Object;)Lcom/juul/kable/LazyDescriptor;
+	public fun <init> (Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;)V
+	public final fun component1 ()Lkotlin/uuid/Uuid;
+	public final fun component2 ()Lkotlin/uuid/Uuid;
+	public final fun component3 ()Lkotlin/uuid/Uuid;
+	public final fun copy (Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;)Lcom/juul/kable/LazyDescriptor;
+	public static synthetic fun copy$default (Lcom/juul/kable/LazyDescriptor;Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;ILjava/lang/Object;)Lcom/juul/kable/LazyDescriptor;
 	public fun equals (Ljava/lang/Object;)Z
-	public fun getCharacteristicUuid ()Ljava/util/UUID;
-	public fun getDescriptorUuid ()Ljava/util/UUID;
-	public fun getServiceUuid ()Ljava/util/UUID;
+	public fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
+	public fun getDescriptorUuid ()Lkotlin/uuid/Uuid;
+	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -422,7 +422,7 @@ public final class com/juul/kable/ScannerKt {
 }
 
 public abstract interface class com/juul/kable/Service {
-	public abstract fun getServiceUuid ()Ljava/util/UUID;
+	public abstract fun getServiceUuid ()Lkotlin/uuid/Uuid;
 }
 
 public final class com/juul/kable/ServicesDiscoveredPeripheral {
@@ -597,7 +597,7 @@ public final class com/juul/kable/logs/Logging {
 }
 
 public abstract interface class com/juul/kable/logs/Logging$DataProcessor {
-	public abstract fun process ([BLcom/juul/kable/logs/Logging$DataProcessor$Operation;Ljava/util/UUID;Ljava/util/UUID;Ljava/util/UUID;)Ljava/lang/String;
+	public abstract fun process ([BLcom/juul/kable/logs/Logging$DataProcessor$Operation;Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;)Ljava/lang/String;
 }
 
 public final class com/juul/kable/logs/Logging$DataProcessor$Operation : java/lang/Enum {

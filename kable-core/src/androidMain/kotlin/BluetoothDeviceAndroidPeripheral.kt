@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package com.juul.kable
 
 import android.bluetooth.BluetoothAdapter.STATE_OFF
@@ -16,7 +18,6 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-import com.benasher44.uuid.uuidFrom
 import com.juul.kable.AndroidPeripheral.Priority
 import com.juul.kable.AndroidPeripheral.Type
 import com.juul.kable.State.Disconnected
@@ -51,8 +52,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+import kotlin.uuid.toKotlinUuid
 
-private val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
+private val clientCharacteristicConfigUuid = Uuid.parse(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
 // Number of service discovery attempts to make if no services are discovered.
 // https://github.com/JuulLabs/kable/issues/295
@@ -424,7 +428,7 @@ private val Priority.intValue: Int
     }
 
 private val PlatformCharacteristic.configDescriptor: PlatformDescriptor?
-    get() = descriptors.firstOrNull { clientCharacteristicConfigUuid == it.uuid }
+    get() = descriptors.firstOrNull { clientCharacteristicConfigUuid == it.uuid.toKotlinUuid() }
 
 private val PlatformCharacteristic.supportsNotify: Boolean
     get() = properties and PROPERTY_NOTIFY != 0

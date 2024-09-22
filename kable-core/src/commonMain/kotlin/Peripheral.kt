@@ -3,7 +3,6 @@
 
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow

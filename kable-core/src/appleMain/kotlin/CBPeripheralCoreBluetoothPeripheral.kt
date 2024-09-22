@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
@@ -87,7 +86,10 @@ import platform.Foundation.dataUsingEncoding
 import platform.darwin.UInt16
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 internal class CBPeripheralCoreBluetoothPeripheral(
     parentCoroutineContext: CoroutineContext,
     internal val cbPeripheral: CBPeripheral,
