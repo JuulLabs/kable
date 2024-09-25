@@ -38,7 +38,7 @@ internal class Observation(
         subscribers += action
         val shouldStartObservation = !didStartObservation && subscribers.isNotEmpty() && isConnected
         if (shouldStartObservation) {
-            suppressConnectionExceptions {
+            suppressNotConnectedException {
                 startObservation()
                 action()
             }
@@ -54,7 +54,7 @@ internal class Observation(
     suspend fun onConnected() = mutex.withLock {
         if (isConnected) {
             if (subscribers.isNotEmpty()) {
-                suppressConnectionExceptions {
+                suppressNotConnectedException {
                     startObservation()
                     subscribers.forEach { it() }
                 }
@@ -70,26 +70,24 @@ internal class Observation(
     }
 
     private suspend fun stopObservation() {
-        suppressConnectionExceptions {
+        suppressNotConnectedException {
             handler.stopObservation(characteristic)
         }
         didStartObservation = false
     }
 
     /**
-     * While spinning up or down an observation the connection may drop, resulting in an unnecessary connection related
-     * exception being thrown.
+     * While spinning up or down an observation the connection may drop, resulting in an unnecessary
+     * [NotConnectedException] being thrown.
      *
-     * Since it is assumed that observations are automatically cleared on disconnect, these exceptions can be ignored,
-     * as the corresponding [action] will be rendered unnecessary (clearing an observation is not needed if connection
-     * has been lost, or [action] will be re-attempted on [reconnect][onConnected]).
+     * Since observations are automatically cleared (by the underlying platform) on disconnect,
+     * these exceptions can be ignored, as the corresponding [action] will be rendered unnecessary
+     * (clearing an observation is not needed if connection has been lost).
      */
-    private inline fun suppressConnectionExceptions(action: () -> Unit) {
+    private inline fun suppressNotConnectedException(action: () -> Unit) {
         try {
             action.invoke()
         } catch (e: NotConnectedException) {
-            logger.verbose { message = "Suppressed failure: $e" }
-        } catch (e: BluetoothException) {
             logger.verbose { message = "Suppressed failure: $e" }
         }
     }

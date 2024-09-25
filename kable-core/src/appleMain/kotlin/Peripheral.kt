@@ -1,36 +1,36 @@
 package com.juul.kable
 
-import kotlinx.coroutines.CoroutineScope
 import platform.CoreBluetooth.CBPeripheral
 
-public actual fun CoroutineScope.peripheral(
+public actual fun Peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
 ): Peripheral {
     advertisement as CBPeripheralCoreBluetoothAdvertisement
-    return peripheral(advertisement.cbPeripheral, builderAction)
+    return Peripheral(advertisement.cbPeripheral, builderAction)
 }
 
-public fun CoroutineScope.peripheral(
+@Suppress("FunctionName") // Builder function.
+public fun Peripheral(
     identifier: Identifier,
     builderAction: PeripheralBuilderAction = {},
-): Peripheral {
+): CoreBluetoothPeripheral {
     val cbPeripheral = CentralManager.Default.retrievePeripheral(identifier)
         ?: throw NoSuchElementException("Peripheral with UUID $identifier not found")
-    return peripheral(cbPeripheral, builderAction)
+    return Peripheral(cbPeripheral, builderAction)
 }
 
-public fun CoroutineScope.peripheral(
+@Suppress("FunctionName") // Builder function.
+public fun Peripheral(
     cbPeripheral: CBPeripheral,
     builderAction: PeripheralBuilderAction,
 ): CoreBluetoothPeripheral {
-    val builder = PeripheralBuilder()
-    builder.builderAction()
+    val builder = PeripheralBuilder().apply(builderAction)
     return CBPeripheralCoreBluetoothPeripheral(
-        coroutineContext,
         cbPeripheral,
         builder.observationExceptionHandler,
         builder.onServicesDiscovered,
         builder.logging,
+        builder.disconnectTimeout,
     )
 }

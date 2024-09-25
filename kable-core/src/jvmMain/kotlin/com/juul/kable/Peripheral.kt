@@ -1,8 +1,6 @@
 package com.juul.kable
 
-import kotlinx.coroutines.CoroutineScope
-
-public actual fun CoroutineScope.peripheral(
+public actual fun Peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
 ): Peripheral {

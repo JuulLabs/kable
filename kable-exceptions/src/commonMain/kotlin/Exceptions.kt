@@ -13,20 +13,6 @@ public class LocationManagerUnavailableException(
     cause: Throwable? = null,
 ) : BluetoothException(message, cause)
 
-public class BluetoothDisabledException(
-    message: String? = null,
-    cause: Throwable? = null,
-) : BluetoothException(message, cause)
-
-@Deprecated(
-    message = "Kable now uses kotlinx-io's IOException.",
-    replaceWith = ReplaceWith(
-        "IOException",
-        imports = ["kotlinx.io.IOException"],
-    ),
-)
-public typealias IOException = kotlinx.io.IOException
-
 public open class NotConnectedException(
     message: String? = null,
     cause: Throwable? = null,
@@ -37,17 +23,7 @@ public class ConnectionRejectedException(
     cause: Throwable? = null,
 ) : IOException(message, cause)
 
-public class NotReadyException(
-    message: String? = null,
-    cause: Throwable? = null,
-) : NotConnectedException(message, cause)
-
 public class GattStatusException(
     message: String? = null,
     cause: Throwable? = null,
 ) : IOException(message, cause)
-
-public class ConnectionLostException(
-    message: String? = null,
-    cause: Throwable? = null,
-) : NotConnectedException(message, cause)

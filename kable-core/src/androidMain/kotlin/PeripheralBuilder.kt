@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
+import kotlin.time.Duration
 
 /** Preferred transport for GATT connections to remote dual-mode devices. */
 public enum class Transport {
@@ -114,4 +115,6 @@ public actual class PeripheralBuilder internal actual constructor() {
     public var phy: Phy = Phy.Le1M
 
     public var threadingStrategy: ThreadingStrategy = OnDemandThreadingStrategy
+
+    public actual var disconnectTimeout: Duration = defaultDisconnectTimeout
 }

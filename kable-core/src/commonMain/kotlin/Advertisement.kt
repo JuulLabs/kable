@@ -27,15 +27,15 @@ public interface Advertisement {
      * to "restore" a previously known peripheral for reconnection.
      *
      * On Android, this is a MAC address represented as a [String]. A [Peripheral] can be created
-     * from this MAC address using the `CoroutineScope.peripheral(String, PeripheralBuilderAction)`
+     * from this MAC address using the `Peripheral(String, PeripheralBuilderAction)` builder
      * function unless the peripheral makes "use of a Bluetooth Smart feature known as 'LE Privacy'"
      * (whereas the peripheral may provide a random MAC address, see
      * [Bluetooth Technology Protecting Your Privacy](https://www.bluetooth.com/blog/bluetooth-technology-protecting-your-privacy/)
      * for more details)).
      *
      * On Apple, this is a unique identifier represented as a [Uuid]. A [Peripheral] can be created
-     * from this identifier using the `CoroutineScope.peripheral(Uuid, PeripheralBuilderAction)`
-     * function. According to
+     * from this identifier using the `Peripheral(Uuid, PeripheralBuilderAction)` builder function
+     * According to
      * [The Ultimate Guide to Apple’s Core Bluetooth](https://punchthrough.com/core-bluetooth-basics/):
      *
      * > This UUID isn't guaranteed to stay the same across scanning sessions and should not be 100%
@@ -43,9 +43,8 @@ public interface Advertisement {
      * > relatively stable and reliable over the long term assuming a major device settings reset
      * > has not occurred.
      *
-     * If `CoroutineScope.peripheral(Uuid, PeripheralBuilderAction)` throws a
-     * [NoSuchElementException] then a scan will be necessary to obtain an [Advertisement] for
-     * [Peripheral] creation.
+     * If `Peripheral(Uuid, PeripheralBuilderAction)` throws a [NoSuchElementException] then a scan
+     * will be necessary to obtain an [Advertisement] for [Peripheral] creation.
      *
      * On JavaScript, this is a unique identifier represented as a [String]. "Restoring" a
      * peripheral from this identifier is not yet supported in Kable (as JavaScript requires user to

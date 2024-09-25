@@ -4,22 +4,23 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration
 
 public actual class ServicesDiscoveredPeripheral internal constructor(
     private val peripheral: CoreBluetoothPeripheral,
 ) {
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class, NotConnectedException::class)
     public actual suspend fun read(
         characteristic: Characteristic,
     ): ByteArray = peripheral.read(characteristic)
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class, NotConnectedException::class)
     public actual suspend fun read(
         descriptor: Descriptor,
     ): ByteArray = peripheral.read(descriptor)
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class, NotConnectedException::class)
     public actual suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
@@ -28,7 +29,7 @@ public actual class ServicesDiscoveredPeripheral internal constructor(
         peripheral.write(characteristic, data, writeType)
     }
 
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class, NotConnectedException::class)
     public actual suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
@@ -55,4 +56,6 @@ public actual class PeripheralBuilder internal actual constructor() {
     public actual fun observationExceptionHandler(handler: ObservationExceptionHandler) {
         observationExceptionHandler = handler
     }
+
+    public actual var disconnectTimeout: Duration = defaultDisconnectTimeout
 }

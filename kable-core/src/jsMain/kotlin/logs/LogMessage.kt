@@ -12,5 +12,6 @@ internal fun LogMessage.detail(data: DataView?, operation: Operation) {
 }
 
 internal fun LogMessage.detail(characteristic: BluetoothRemoteGATTCharacteristic) {
-    detail(characteristic.service.uuid, characteristic.uuid)
+    detail("service", characteristic.service.uuid)
+    detail("characteristic", characteristic.uuid)
 }
