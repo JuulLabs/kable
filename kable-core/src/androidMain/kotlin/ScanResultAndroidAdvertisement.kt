@@ -81,6 +81,14 @@ internal class ScanResultAndroidAdvertisement(
             )
         }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ScanResultAndroidAdvertisement) return false
+        return scanResult == other.scanResult
+    }
+
+    override fun hashCode(): Int = scanResult.hashCode()
+
     override fun toString(): String =
         "Advertisement(address=$address, name=$name, rssi=$rssi, txPower=$txPower)"
 }
