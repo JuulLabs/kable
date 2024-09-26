@@ -97,6 +97,8 @@ internal data class OnMtuChanged(
     override val status: GattStatus,
 ) : Response()
 
+internal object OnServiceChanged
+
 /**
  * Represents the possible GATT statuses as defined in [BluetoothGatt]:
  *

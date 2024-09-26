@@ -41,6 +41,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 
+// Number of service discovery attempts to make if no services are discovered.
+// https://github.com/JuulLabs/kable/issues/295
+private const val DISCOVER_SERVICES_RETRIES = 5
+
 internal class BluetoothDeviceAndroidPeripheral(
     private val bluetoothDevice: BluetoothDevice,
     private val autoConnectPredicate: () -> Boolean,
@@ -163,7 +167,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         }.rssi
 
     private suspend fun discoverServices() {
-        connectionOrThrow().discoverServices()
+        connectionOrThrow().discoverServices(retries = DISCOVER_SERVICES_RETRIES)
         unwrapCancellationExceptions {
             onServicesDiscovered(ServicesDiscoveredPeripheral(this))
         }
