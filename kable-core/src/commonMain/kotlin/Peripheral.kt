@@ -4,8 +4,10 @@
 package com.juul.kable
 
 import com.benasher44.uuid.Uuid
+import com.juul.kable.State.Disconnecting
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -14,25 +16,20 @@ import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
 
-internal typealias PeripheralBuilderAction = PeripheralBuilder.() -> Unit
 internal typealias OnSubscriptionAction = suspend () -> Unit
-
-public expect fun CoroutineScope.peripheral(
-    advertisement: Advertisement,
-    builderAction: PeripheralBuilderAction = {},
-): Peripheral
 
 public enum class WriteType {
     WithResponse,
     WithoutResponse,
 }
 
-public interface Peripheral {
+public interface Peripheral : CoroutineScope {
 
     /**
      * Provides a conflated [Flow] of the [Peripheral]'s [State].
      *
-     * After [connect] is called, the [state] will typically transition through the following [states][State]:
+     * After [connect] is called, the [state] will typically transition through the following
+     * [states][State]:
      *
      * ```
      *           connect()
@@ -56,10 +53,13 @@ public interface Peripheral {
      *                                connection drop
      *                                       :
      *                                       v
-     *                               .---------------.       .--------------.
-     *                               | Disconnecting | ----> | Disconnected |
-     *                               '---------------'       '--------------'
+     *                               .---------------.      .--------------.
+     *                               | Disconnecting | ---> | Disconnected |
+     *                               '---------------'      '--------------'
      * ```
+     *
+     * Note that [Disconnecting] state is skipped on Apple and JavaScript when connection closure is
+     * initiated by peripheral (or peripheral goes out-of-range).
      */
     public val state: StateFlow<State>
 
@@ -67,16 +67,20 @@ public interface Peripheral {
      * Platform specific identifier for the remote peripheral. On some platforms, this can be used
      * to "restore" a previously known peripheral for reconnection.
      *
+     * ## Android
+     *
      * On Android, this is a MAC address represented as a [String]. A [Peripheral] can be created
-     * from this MAC address using the `CoroutineScope.peripheral(String, PeripheralBuilderAction)`
+     * from this MAC address using the `Peripheral(String, PeripheralBuilderAction)` builder
      * function unless the peripheral makes "use of a Bluetooth Smart feature known as 'LE Privacy'"
      * (whereas the peripheral may provide a random MAC address, see
      * [Bluetooth Technology Protecting Your Privacy](https://www.bluetooth.com/blog/bluetooth-technology-protecting-your-privacy/)
      * for more details)).
      *
+     * ## Apple
+     *
      * On Apple, this is a unique identifier represented as a [Uuid]. A [Peripheral] can be created
-     * from this identifier using the `CoroutineScope.peripheral(Uuid, PeripheralBuilderAction)`
-     * function. According to
+     * from this identifier using the `Peripheral(Uuid, PeripheralBuilderAction)` builder function.
+     * According to
      * [The Ultimate Guide to Apple’s Core Bluetooth](https://punchthrough.com/core-bluetooth-basics/):
      *
      * > This UUID isn't guaranteed to stay the same across scanning sessions and should not be 100%
@@ -84,9 +88,10 @@ public interface Peripheral {
      * > relatively stable and reliable over the long term assuming a major device settings reset
      * > has not occurred.
      *
-     * If `CoroutineScope.peripheral(Uuid, PeripheralBuilderAction)` throws a
-     * [NoSuchElementException] then a scan will be necessary to obtain an [Advertisement] for
-     * [Peripheral] creation.
+     * If `Peripheral(Uuid, PeripheralBuilderAction)` throws a [NoSuchElementException] then a scan
+     * will be necessary to obtain an [Advertisement] for [Peripheral] creation.
+     *
+     * ## JavaScript
      *
      * On JavaScript, this is a unique identifier represented as a [String]. "Restoring" a
      * peripheral from this identifier is not yet supported in Kable (as JavaScript requires user to
@@ -95,43 +100,71 @@ public interface Peripheral {
     public val identifier: Identifier
 
     /**
-     * The peripheral name, as provided by the underlying bluetooth system. This value is system dependent
-     * and is not necessarily the Generic Access Profile (GAP) device name.
+     * The peripheral name, as provided by the underlying bluetooth system. This value is system
+     * dependent and is not necessarily the Generic Access Profile (GAP) device name.
+     *
+     * This API is experimental as it may be changed to a [StateFlow] in the future (to notify of
+     * name changes on Apple platform).
      */
+    @ExperimentalApi
     public val name: String?
 
     /**
-     * Initiates a connection, suspending until connected, or failure occurs. Multiple concurrent invocations will all
-     * suspend until connected (or failure occurs). If already connected, then returns immediately.
+     * Initiates a connection, suspending until connected, or failure occurs. Multiple concurrent
+     * invocations will all suspend until connected (or failure occurs). If already connected, then
+     * returns immediately.
+     *
+     * The returned [CoroutineScope] can be used to launch coroutines, and is cancelled upon
+     * disconnect or [Peripheral] [cancellation][Peripheral.cancel]. The [CoroutineScope] is a
+     * supervisor scope, meaning any failures in launched coroutines will not fail other launched
+     * coroutines nor cause a disconnect.
      *
      * @throws ConnectionRejectedException when a connection request is rejected by the system (e.g. bluetooth hardware unavailable).
-     * @throws CancellationException if [Peripheral]'s Coroutine scope has been cancelled.
+     * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [cancelled][Peripheral.cancel].
      */
-    public suspend fun connect(): Unit
+    public suspend fun connect(): CoroutineScope
 
     /**
-     * Disconnects the active connection, or cancels an in-flight [connection][connect] attempt, suspending until
-     * [Peripheral] has settled on a [disconnected][State.Disconnected] state.
+     * Disconnects the active connection, or cancels an in-flight [connection][connect] attempt,
+     * suspending until [Peripheral] has settled on a [disconnected][State.Disconnected] state.
      *
      * Multiple concurrent invocations will all suspend until disconnected (or failure occurs).
+     *
+     * Any coroutines launched from [connect] will be spun down prior to closing underlying
+     * peripheral connection.
+     *
+     * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [cancelled][Peripheral.cancel].
      */
     public suspend fun disconnect(): Unit
 
     /**
      * The list of services (GATT profile) which have been discovered on the remote peripheral.
      *
-     * The list contains a tree of [DiscoveredService]s, [DiscoveredCharacteristic]s and [DiscoveredDescriptor]s. These
-     * types all hold strong references to the underlying platform type, so no guarantees are provided on the validity
-     * of the objects beyond a connection. If a reconnect occurs, it is recommended to retrieve the desired object from
-     * [services] again. Any references to objects obtained from this tree should be cleared upon disconnect or disposal
-     * (when parent [CoroutineScope] is cancelled) of this [Peripheral].
+     * The list contains a tree of [DiscoveredService]s, [DiscoveredCharacteristic]s and
+     * [DiscoveredDescriptor]s. These types all hold strong references to the underlying platform
+     * type, so no guarantees are provided on the validity of the objects beyond a connection. If a
+     * reconnect occurs, it is recommended to retrieve the desired object from [services] again. Any
+     * references to objects obtained from this tree should be cleared upon [disconnect] or disposal
+     * (when [Peripheral] is [cancelled][Peripheral.cancel]).
      *
-     * @return [discovered services][DiscoveredService], or `null` until a [connection][connect] has been established.
+     * @return [discovered services][DiscoveredService], or `null` until services have been discovered.
      */
-    public val services: List<DiscoveredService>?
+    public val services: StateFlow<List<DiscoveredService>?>
 
-    /** @throws NotReadyException if invoked without an established [connection][connect]. */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    /**
+     * On JavaScript, requires Chrome 79+ with the
+     * `chrome://flags/#enable-experimental-web-platform-features` flag enabled.
+     *
+     * Note that even with the above flag enabled (as of Chrome 128), RSSI is not supported and this
+     * function will throw [UnsupportedOperationException].
+     *
+     * This API is experimental until Web Bluetooth advertisement APIs are stable.
+     *
+     * @throws NotConnectedException if invoked without an established [connection][connect].
+     * @throws UnsupportedOperationException on JavaScript.
+     */
+    @ExperimentalApi
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun rssi(): Int
 
     /**
@@ -142,9 +175,9 @@ public interface Peripheral {
      * with the same UUID and [Read] characteristic property exist in the GATT profile, then a
      * [discovered characteristic][DiscoveredCharacteristic] from [services] should be used instead.
      *
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws NotConnectedException if invoked without an established [connection][connect].
      */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun read(
         characteristic: Characteristic,
     ): ByteArray
@@ -154,12 +187,12 @@ public interface Peripheral {
      *
      * If [characteristic] was created via [characteristicOf] then the first found characteristic with a property
      * matching the specified [writeType] and matching the service UUID and characteristic UUID in the GATT profile will
-     * be used. If multiple characteristics with the same UUID and property exist in the GATT profile, then a
+     * be used. If multiple characteristics with the same UUID and properties exist in the GATT profile, then a
      * [discovered characteristic][DiscoveredCharacteristic] from [services] should be used instead.
      *
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws NotConnectedException if invoked without an established [connection][connect].
      */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
@@ -174,9 +207,9 @@ public interface Peripheral {
      * UUID exist in the GATT profile, then a [discovered descriptor][DiscoveredDescriptor] from [services] should be
      * used instead.
      *
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws NotConnectedException if invoked without an established [connection][connect].
      */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun read(
         descriptor: Descriptor,
     ): ByteArray
@@ -189,9 +222,9 @@ public interface Peripheral {
      * UUID exist in the GATT profile, then a [discovered descriptor][DiscoveredDescriptor] from [services] should be
      * used instead.
      *
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws NotConnectedException if invoked without an established [connection][connect].
      */
-    @Throws(CancellationException::class, IOException::class, NotReadyException::class)
+    @Throws(CancellationException::class, IOException::class)
     public suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
@@ -250,6 +283,13 @@ public interface Peripheral {
     ): Flow<ByteArray>
 }
 
+internal typealias PeripheralBuilderAction = PeripheralBuilder.() -> Unit
+
+public expect fun Peripheral(
+    advertisement: Advertisement,
+    builderAction: PeripheralBuilderAction,
+): Peripheral
+
 /**
  * Suspends until [Peripheral] receiver arrives at the [State] specified.
  *
@@ -257,16 +297,6 @@ public interface Peripheral {
  */
 internal suspend inline fun <reified T : State> Peripheral.suspendUntil() {
     state.first { it is T }
-}
-
-/**
- * Suspends until [Peripheral] receiver arrives at the [State] specified or any [State] above it.
- *
- * @see [State] for a description of the potential states.
- * @see [State.isAtLeast] for state ordering.
- */
-internal suspend inline fun <reified T : State> Peripheral.suspendUntilAtLeast() {
-    state.first { it.isAtLeast<T>() }
 }
 
 /**
@@ -280,6 +310,6 @@ internal suspend inline fun <reified T : State> Peripheral.suspendUntilOrThrow()
         "Peripheral.suspendUntilOrThrow() throws on State.Disconnected, not intended for use with that State."
     }
     state
-        .onEach { if (it is State.Disconnected) throw ConnectionLostException() }
+        .onEach { if (it is State.Disconnected) throw NotConnectedException() }
         .first { it is T }
 }

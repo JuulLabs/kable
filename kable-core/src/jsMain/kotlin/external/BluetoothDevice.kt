@@ -10,6 +10,17 @@ import kotlin.js.Promise
 internal abstract external class BluetoothDevice : EventTarget {
     val id: String
     val name: String?
+
+    /**
+     * Non-`null` when:
+     *
+     * > [..] "bluetooth"'s extra permission data for `this`'s relevant settings object has an
+     * > `AllowedBluetoothDevice` _allowedDevice_ in its `allowedDevices` list with
+     * > `allowedDevice.device` the same device as `this.representedDevice` and
+     * > `allowedDevice.mayUseGATT` equal to `true` [..]
+     *
+     * https://webbluetoothcg.github.io/web-bluetooth/#bluetoothdevice-interface
+     */
     val gatt: BluetoothRemoteGATTServer?
 
     // Experimental advertisement features

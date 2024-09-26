@@ -13,6 +13,7 @@ import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.bluetooth.BluetoothGatt.GATT_WRITE_NOT_PERMITTED
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothGattService
 import com.juul.kable.external.GATT_AUTH_FAIL
 import com.juul.kable.external.GATT_BUSY
 import com.juul.kable.external.GATT_CCC_CFG_ERR
@@ -53,6 +54,7 @@ internal sealed class Response {
 
     data class OnServicesDiscovered(
         override val status: GattStatus,
+        val services: List<BluetoothGattService>,
     ) : Response()
 
     data class OnCharacteristicRead(

@@ -130,7 +130,7 @@ public interface AndroidPeripheral : Peripheral {
      * negotiated MTU value is returned, which may not be [mtu] value requested if the remote peripheral negotiated an
      * alternate MTU.
      *
-     * @throws NotReadyException if invoked without an established [connection][Peripheral.connect].
+     * @throws NotConnectedException if invoked without an established [connection][Peripheral.connect].
      * @throws GattRequestRejectedException if Android was unable to fulfill the MTU change request.
      * @throws GattStatusException if MTU change request failed.
      */
@@ -138,7 +138,7 @@ public interface AndroidPeripheral : Peripheral {
 
     /**
      * @see Peripheral.write
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws NotConnectedException if invoked without an established [connection][connect].
      * @throws GattWriteException if underlying [BluetoothGatt] write operation call fails.
      */
     override suspend fun write(
@@ -149,7 +149,7 @@ public interface AndroidPeripheral : Peripheral {
 
     /**
      * @see Peripheral.write
-     * @throws NotReadyException if invoked without an established [connection][connect].
+     * @throws NotConnectedException if invoked without an established [connection][connect].
      * @throws GattWriteException if underlying [BluetoothGatt] write operation call fails.
      */
     override suspend fun write(descriptor: Descriptor, data: ByteArray)

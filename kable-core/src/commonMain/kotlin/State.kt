@@ -6,7 +6,7 @@ public sealed class State {
         /**
          * [Peripheral] has initiated the process of connecting, via Bluetooth.
          *
-         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [NotReadyException]
+         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [NotConnectedException]
          * while in this state.
          */
         public object Bluetooth : Connecting()
@@ -14,7 +14,7 @@ public sealed class State {
         /**
          * [Peripheral] has connected, but has not yet discovered services.
          *
-         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [IllegalStateOperation]
+         * I/O operations (e.g. [write][Peripheral.write] and [read][Peripheral.read]) will throw [IllegalStateException]
          * while in this state.
          */
         public object Services : Connecting()
@@ -122,8 +122,11 @@ public sealed class State {
             }
         }
 
-        override fun toString(): String =
-            "Disconnected(${if (status is Status.Unknown) status.status else status.toString()})"
+        override fun toString(): String = when (status) {
+            null -> "Disconnected"
+            is Status.Unknown -> "Disconnected(${status.status})"
+            else -> "Disconnected($status)"
+        }
     }
 
     override fun toString(): String = when (this) {

@@ -17,7 +17,7 @@ import com.juul.kable.AndroidPeripheral.WriteResult
  */
 public open class GattRequestRejectedException internal constructor(
     message: String? = null,
-) : BluetoothException(message)
+) : IllegalStateException(message)
 
 /**
  * Thrown when underlying [BluetoothGatt] write operation call fails.
