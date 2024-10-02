@@ -1,4 +1,4 @@
-package com.juul.kable.scan.requirements
+package com.juul.kable.bluetooth
 
 import android.bluetooth.BluetoothAdapter.STATE_OFF
 import android.bluetooth.BluetoothAdapter.STATE_ON

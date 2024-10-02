@@ -14,25 +14,28 @@ import android.content.Context
 import android.os.Build
 import com.juul.kable.gatt.Callback
 import com.juul.kable.logs.Logging
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
 
 /**
  * @param transport is only used on API level >= 23.
  * @param phy is only used on API level >= 26.
  */
 internal fun BluetoothDevice.connect(
-    scope: CoroutineScope,
+    coroutineContext: CoroutineContext,
     context: Context,
     autoConnect: Boolean,
     transport: Transport,
     phy: Phy,
     state: MutableStateFlow<State>,
+    services: MutableStateFlow<List<DiscoveredService>?>,
     mtu: MutableStateFlow<Int?>,
     onCharacteristicChanged: MutableSharedFlow<ObservationEvent<ByteArray>>,
     logging: Logging,
     threadingStrategy: ThreadingStrategy,
+    disconnectTimeout: Duration,
 ): Connection? {
     val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
     val threading = threadingStrategy.acquire()
@@ -60,7 +63,7 @@ internal fun BluetoothDevice.connect(
         return null
     }
 
-    return Connection(scope, bluetoothGatt, threading, callback, logging)
+    return Connection(coroutineContext, bluetoothGatt, threading, callback, services, disconnectTimeout, logging)
 }
 
 private fun BluetoothDevice.connectGattCompat(

@@ -2,6 +2,8 @@ package com.juul.kable
 
 import com.juul.kable.logs.LoggingBuilder
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 public expect class ServicesDiscoveredPeripheral {
 
@@ -32,8 +34,18 @@ public class ObservationExceptionPeripheral internal constructor(peripheral: Per
 internal typealias ServicesDiscoveredAction = suspend ServicesDiscoveredPeripheral.() -> Unit
 internal typealias ObservationExceptionHandler = suspend ObservationExceptionPeripheral.(cause: Exception) -> Unit
 
+internal val defaultDisconnectTimeout = 5.seconds
+
 public expect class PeripheralBuilder internal constructor() {
     public fun logging(init: LoggingBuilder)
+
+    /**
+     * Registers a [ServicesDiscoveredAction] for the [Peripheral] that is invoked after initial
+     * service discovery (upon establishing a connection).
+     *
+     * Is **not** invoked upon subsequent service re-discoveries (due to peripheral service database
+     * changing while connected).
+     */
     public fun onServicesDiscovered(action: ServicesDiscoveredAction)
 
     /**
@@ -46,7 +58,7 @@ public expect class PeripheralBuilder internal constructor() {
      * [ObservationExceptionHandler] can be useful for ignoring failures that precursor a connection drop:
      *
      * ```
-     * scope.peripheral(advertisement) {
+     * Peripheral(advertisement) {
      *     observationExceptionHandler { cause ->
      *         // Only propagate failure if we don't see a disconnect within a second.
      *         withTimeoutOrNull(1_000L) {
@@ -58,4 +70,12 @@ public expect class PeripheralBuilder internal constructor() {
      * ```
      */
     public fun observationExceptionHandler(handler: ObservationExceptionHandler)
+
+    /**
+     * Amount of time to allow system to gracefully disconnect before forcefully closing the
+     * peripheral.
+     *
+     * Only applicable on Android.
+     */
+    public var disconnectTimeout: Duration
 }

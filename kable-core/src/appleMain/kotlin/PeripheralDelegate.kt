@@ -13,6 +13,7 @@ import com.juul.kable.logs.detail
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
+import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +35,7 @@ internal class PeripheralDelegate(
     private val canSendWriteWithoutResponse: MutableStateFlow<Boolean>,
     private val characteristicChanges: MutableSharedFlow<ObservationEvent<NSData>>,
     logging: Logging,
-    identifier: String,
+    internal val identifier: String,
 ) : NSObject(), CBPeripheralDelegateProtocol {
 
     sealed class Response {
@@ -84,8 +85,14 @@ internal class PeripheralDelegate(
         ) : Response()
     }
 
+    data class OnServiceChanged(
+        val cbServices: List<CBService>,
+    )
+
     private val _response = Channel<Response>(BUFFERED)
     val response: ReceiveChannel<Response> = _response
+
+    val onServiceChanged = Channel<OnServiceChanged>(CONFLATED)
 
     private val logger = Logger(logging, tag = "Kable/Delegate", identifier = identifier)
 
@@ -288,10 +295,16 @@ internal class PeripheralDelegate(
         peripheral: CBPeripheral,
         didModifyServices: List<*>,
     ) {
+        // Cast should be safe since `didModifyServices` type is `[CBService]`, according to:
+        // https://developer.apple.com/documentation/corebluetooth/cbperipheraldelegate/peripheral(_:didmodifyservices:)
+        @Suppress("UNCHECKED_CAST")
+        val invalidatedServices = didModifyServices as List<CBService>
+
         logger.debug {
             message = "didModifyServices"
+            detail("invalidatedServices", invalidatedServices.toString())
         }
-        // todo
+        onServiceChanged.sendBlocking(OnServiceChanged(invalidatedServices))
     }
 
     /* Monitoring L2CAP Channels */
@@ -307,8 +320,8 @@ internal class PeripheralDelegate(
         // todo
     }
 
-    fun close() {
-        _response.close(ConnectionLostException())
+    fun close(cause: Throwable?) {
+        _response.close(NotConnectedException(cause = cause))
         characteristicChanges.emitBlocking(ObservationEvent.Disconnected)
     }
 }

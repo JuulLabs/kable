@@ -90,6 +90,9 @@ public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
 	public fun getServiceUuid ()Ljava/util/UUID;
 }
 
+public abstract interface annotation class com/juul/kable/ExperimentalApi : java/lang/annotation/Annotation {
+}
+
 public abstract class com/juul/kable/Filter {
 }
 
@@ -210,12 +213,12 @@ public final class com/juul/kable/ObservationExceptionPeripheral {
 public abstract interface annotation class com/juul/kable/ObsoleteKableApi : java/lang/annotation/Annotation {
 }
 
-public abstract interface class com/juul/kable/Peripheral {
+public abstract interface class com/juul/kable/Peripheral : kotlinx/coroutines/CoroutineScope {
 	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getIdentifier ()Ljava/lang/String;
 	public abstract fun getName ()Ljava/lang/String;
-	public abstract fun getServices ()Ljava/util/List;
+	public abstract fun getServices ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -231,12 +234,18 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 }
 
 public final class com/juul/kable/PeripheralBuilder {
+	public final fun getDisconnectTimeout-UwyO8pc ()J
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun observationExceptionHandler (Lkotlin/jvm/functions/Function3;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
+	public final fun setDisconnectTimeout-LRDsOJo (J)V
 }
 
 public final class com/juul/kable/PeripheralKt {
+	public static final fun Peripheral (Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
+}
+
+public final class com/juul/kable/Peripheral_deprecatedKt {
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 }

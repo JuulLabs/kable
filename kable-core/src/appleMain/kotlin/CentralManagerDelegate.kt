@@ -24,9 +24,6 @@ import platform.darwin.NSObject
 // https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate
 internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProtocol {
 
-    private val _onDisconnected = MutableSharedFlow<NSUUID>()
-    internal val onDisconnected = _onDisconnected.asSharedFlow()
-
     private val _state = MutableStateFlow(CBManagerStateUnknown)
     val state: StateFlow<CBManagerState> = _state.asStateFlow()
 
@@ -61,12 +58,10 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         ) : ConnectionEvent()
     }
 
-    // `SharedFlow` (instead of `StateFlow`) as downstream needs non-distinct items, as it feeds individual `Peripheral`
-    // states. If, for example, this flow emits `Disconnected` then downstream `Peripheral` connects and updates its own
-    // state to `Connected`, this flow may still hold `Disconnected` but we'll need to emit another `Disconnected` to
-    // update the `Peripheral` state with.
-    private val _connectionState = MutableSharedFlow<ConnectionEvent>()
-    val connectionState: Flow<ConnectionEvent> = _connectionState.asSharedFlow()
+    // `SharedFlow` (instead of `StateFlow`) for non-conflated behavior, as this flow feeds
+    // individual downstream `Peripheral`s.
+    private val _connectionEvents = MutableSharedFlow<ConnectionEvent>()
+    val connectionEvents: Flow<ConnectionEvent> = _connectionEvents.asSharedFlow()
 
     /* Monitoring Connections with Peripherals */
 
@@ -74,7 +69,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         central: CBCentralManager,
         didConnectPeripheral: CBPeripheral,
     ) {
-        _connectionState.emitBlocking(DidConnect(didConnectPeripheral.identifier))
+        _connectionEvents.emitBlocking(DidConnect(didConnectPeripheral.identifier))
     }
 
     @ObjCSignatureOverride
@@ -83,8 +78,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didDisconnectPeripheral: CBPeripheral,
         error: NSError?,
     ) {
-        _onDisconnected.emitBlocking(didDisconnectPeripheral.identifier) // Used to notify `Peripheral` of disconnect.
-        _connectionState.emitBlocking(DidDisconnect(didDisconnectPeripheral.identifier, error))
+        _connectionEvents.emitBlocking(DidDisconnect(didDisconnectPeripheral.identifier, error))
     }
 
     @ObjCSignatureOverride
@@ -93,7 +87,7 @@ internal class CentralManagerDelegate : NSObject(), CBCentralManagerDelegateProt
         didFailToConnectPeripheral: CBPeripheral,
         error: NSError?,
     ) {
-        _connectionState.emitBlocking(DidFailToConnect(didFailToConnectPeripheral.identifier, error))
+        _connectionEvents.emitBlocking(DidFailToConnect(didFailToConnectPeripheral.identifier, error))
     }
 
     // todo: func centralManager(CBCentralManager, connectionEventDidOccur: CBConnectionEvent, for: CBPeripheral)

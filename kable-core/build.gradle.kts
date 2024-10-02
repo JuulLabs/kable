@@ -32,6 +32,7 @@ kotlin {
         }
 
         commonTest.dependencies {
+            implementation(kotlin("reflect")) // For `assertIs`.
             implementation(kotlin("test"))
             implementation(libs.khronicle)
             implementation(libs.kotlinx.coroutines.test)
