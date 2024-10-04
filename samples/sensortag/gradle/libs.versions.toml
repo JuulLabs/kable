@@ -14,7 +14,7 @@ ksp = "2.0.20-1.0.25"
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.9.2" }
-compose-bom = { module = "androidx.compose:compose-bom", version = "2024.09.02" }
+compose-bom = { module = "androidx.compose:compose-bom", version = "2024.09.03" }
 compose-icons = { module = "androidx.compose.material:material-icons-core" }
 compose-material = { module = "androidx.compose.material:material" }
 compose-tooling = { module = "androidx.compose.ui:ui-tooling-preview" }
