@@ -105,7 +105,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         observers.onConnected()
     }
 
-    override suspend fun connect(): CoroutineScope =
+    override suspend fun connect(waitBonding:Boolean): CoroutineScope =
         connectAction.await()
 
     override suspend fun disconnect() {

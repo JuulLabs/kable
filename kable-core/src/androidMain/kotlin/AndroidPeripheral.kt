@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothStatusCodes
 import android.os.Build
 import androidx.annotation.RequiresPermission
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 @Deprecated(
@@ -160,4 +161,11 @@ public interface AndroidPeripheral : Peripheral {
      * is negotiated.
      */
     public val mtu: StateFlow<Int?>
+
+
+
+    /**
+     * [Flow] of the most recent [BondState] of the [AndroidPeripheral].
+     */
+    public val bondState: Flow<PlatformAdvertisement.BondState>
 }
