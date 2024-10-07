@@ -36,7 +36,7 @@ internal fun BluetoothDevice.connect(
     logging: Logging,
     threadingStrategy: ThreadingStrategy,
     disconnectTimeout: Duration,
-): Connection? {
+): Connection {
     val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
     val threading = threadingStrategy.acquire()
 
@@ -53,14 +53,12 @@ internal fun BluetoothDevice.connect(
 
             else -> connectGattCompat(context, autoConnect, callback, transport.intValue)
         }
+            ?: error(
+                "Connection rejected by Android system due to either: bluetooth hardware unavailable, invalid MAC address, or Binder remote-invocation error",
+            )
     } catch (t: Throwable) {
         threading.release()
         throw t
-    }
-
-    if (bluetoothGatt == null) {
-        threading.release()
-        return null
     }
 
     return Connection(coroutineContext, bluetoothGatt, threading, callback, services, disconnectTimeout, logging)

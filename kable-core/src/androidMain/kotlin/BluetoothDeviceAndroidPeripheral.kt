@@ -118,7 +118,7 @@ internal class BluetoothDeviceAndroidPeripheral(
                 logging,
                 threadingStrategy,
                 disconnectTimeout,
-            ) ?: throw ConnectionRejectedException()
+            )
 
             suspendUntil<State.Connecting.Services>()
             discoverServices()
