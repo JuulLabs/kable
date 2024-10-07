@@ -7,6 +7,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlin.jvm.JvmName
 import com.juul.kable.bluetooth.isSupported as isBluetoothSupported
 
+@Deprecated(
+    message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+        "Will be removed in a future release. " +
+        "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+)
 public expect enum class Reason
 
 public object Bluetooth {
@@ -30,11 +35,32 @@ public object Bluetooth {
         override fun toString(): String = "00000000-0000-1000-8000-00805F9B34FB"
     }
 
+    @Deprecated(
+        message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+            "Will be removed in a future release. " +
+            "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    )
     public sealed class Availability {
+        @Deprecated(
+            message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+                "Will be removed in a future release. " +
+                "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+        )
         public data object Available : Availability()
+
+        @Deprecated(
+            message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+                "Will be removed in a future release. " +
+                "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+        )
         public data class Unavailable(val reason: Reason?) : Availability()
     }
 
+    @Deprecated(
+        message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+            "Will be removed in a future release. " +
+            "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    )
     public val availability: Flow<Availability> = bluetoothAvailability
 
     /**
