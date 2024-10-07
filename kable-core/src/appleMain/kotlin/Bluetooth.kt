@@ -18,11 +18,45 @@ import platform.CoreBluetooth.CBCentralManagerStateUnauthorized
 import platform.CoreBluetooth.CBCentralManagerStateUnsupported
 
 /** https://developer.apple.com/documentation/corebluetooth/cbmanagerstate */
+@Deprecated(
+    message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+        "Will be removed in a future release. " +
+        "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+)
 public actual enum class Reason {
+    @Deprecated(
+        message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+            "Will be removed in a future release. " +
+            "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    )
     Off, // CBManagerState.poweredOff
+
+    @Deprecated(
+        message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+            "Will be removed in a future release. " +
+            "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    )
     Resetting, // CBManagerState.resetting
+
+    @Deprecated(
+        message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+            "Will be removed in a future release. " +
+            "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    )
     Unauthorized, // CBManagerState.unauthorized
+
+    @Deprecated(
+        message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+            "Will be removed in a future release. " +
+            "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    )
     Unsupported, // CBManagerState.unsupported
+
+    @Deprecated(
+        message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+            "Will be removed in a future release. " +
+            "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    )
     Unknown, // CBManagerState.unknown
 }
 
