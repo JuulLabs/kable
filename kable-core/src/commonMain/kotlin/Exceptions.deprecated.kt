@@ -1,6 +1,18 @@
 package com.juul.kable
 
 @Deprecated(
+    message = "BluetoothException was removed. Closest replacement is UnmetRequirementException.",
+    replaceWith = ReplaceWith("UnmetRequirementException"),
+)
+public typealias BluetoothException = UnmetRequirementException
+
+@Deprecated(
+    message = "LocationManagerUnavailableException replaced by UnmetRequirementException w/ a `reason` of `LocationServicesDisabled`.",
+    replaceWith = ReplaceWith("UnmetRequirementException"),
+)
+public typealias LocationManagerUnavailableException = UnmetRequirementException
+
+@Deprecated(
     message = "BluetoothDisabledException replaced by UnmetRequirementException w/ a `reason` of `BluetoothDisabled`.",
     replaceWith = ReplaceWith("UnmetRequirementException"),
 )

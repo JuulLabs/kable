@@ -14,7 +14,7 @@ public enum class UnmetRequirementReason {
     LocationServicesDisabled,
 }
 
-public open class UnmetRequirementException(
+public class UnmetRequirementException internal constructor(
     public val reason: UnmetRequirementReason,
     message: String,
     cause: Throwable? = null,
