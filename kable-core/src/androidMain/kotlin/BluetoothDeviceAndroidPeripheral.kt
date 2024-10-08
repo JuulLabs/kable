@@ -21,7 +21,9 @@ import com.juul.kable.State.Disconnected
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.bluetooth.checkBluetoothIsOn
+import com.juul.kable.bluetooth.checkBluetoothIsSupported
 import com.juul.kable.bluetooth.clientCharacteristicConfigUuid
+import com.juul.kable.bluetooth.requireNonZeroAddress
 import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
@@ -92,13 +94,14 @@ internal class BluetoothDeviceAndroidPeripheral(
     override val type: Type
         get() = typeFrom(bluetoothDevice.type)
 
-    override val address: String = bluetoothDevice.address
+    override val address: String = requireNonZeroAddress(bluetoothDevice.address)
 
     @ExperimentalApi
     override val name: String?
         get() = bluetoothDevice.name
 
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
+        checkBluetoothIsSupported()
         checkBluetoothIsOn()
 
         logger.info { message = "Connecting" }
