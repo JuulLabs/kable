@@ -63,12 +63,6 @@ public final class com/juul/kable/Characteristic$Properties {
 	public final synthetic fun unbox-impl ()I
 }
 
-public final class com/juul/kable/ConnectionRejectedException : java/io/IOException {
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
 public abstract interface class com/juul/kable/Descriptor {
 	public abstract fun getCharacteristicUuid ()Ljava/util/UUID;
 	public abstract fun getDescriptorUuid ()Ljava/util/UUID;

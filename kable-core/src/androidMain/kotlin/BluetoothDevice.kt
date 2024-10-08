@@ -16,6 +16,7 @@ import com.juul.kable.gatt.Callback
 import com.juul.kable.logs.Logging
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.io.IOException
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 
@@ -36,7 +37,7 @@ internal fun BluetoothDevice.connect(
     logging: Logging,
     threadingStrategy: ThreadingStrategy,
     disconnectTimeout: Duration,
-): Connection? {
+): Connection {
     val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
     val threading = threadingStrategy.acquire()
 
@@ -52,15 +53,10 @@ internal fun BluetoothDevice.connect(
                     ?: connectGattCompat(context, true, callback, transport.intValue)
 
             else -> connectGattCompat(context, autoConnect, callback, transport.intValue)
-        }
+        } ?: throw IOException("Binder remote-invocation error")
     } catch (t: Throwable) {
         threading.release()
         throw t
-    }
-
-    if (bluetoothGatt == null) {
-        threading.release()
-        return null
     }
 
     return Connection(coroutineContext, bluetoothGatt, threading, callback, services, disconnectTimeout, logging)
