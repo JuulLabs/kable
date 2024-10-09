@@ -12,4 +12,5 @@ include(
     "kable-core",
     "kable-exceptions",
     "kable-log-engine-khronicle",
+    "sample:android-sample"
 )
