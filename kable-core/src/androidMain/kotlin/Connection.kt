@@ -1,7 +1,10 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION
+import android.bluetooth.BluetoothGatt.GATT_INSUFFICIENT_ENCRYPTION
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
+import com.juul.kable.external.GATT_AUTH_FAIL
 import android.os.Handler
 import com.juul.kable.State.Disconnected
 import com.juul.kable.coroutines.childSupervisor
@@ -43,6 +46,13 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 
 private val GattSuccess = GattStatus(GATT_SUCCESS)
+private val BondingStatuses = listOf(
+    GattStatus(GATT_AUTH_FAIL),
+    GattStatus(GATT_INSUFFICIENT_AUTHENTICATION),
+    GattStatus(GATT_INSUFFICIENT_ENCRYPTION),
+)
+
+internal class BondRequiredException : IllegalStateException()
 
 /**
  * Represents a Bluetooth Low Energy connection. [Connection] should be initialized with the
@@ -178,8 +188,10 @@ internal class Connection(
                 coroutineContext.ensureActive()
                 throw e.unwrapCancellationException()
             }
-        }.also(::checkResponse)
-
+        }
+            .also {
+                checkResponse(it.status)
+            }
         // `guard` should always enforce a 1:1 matching of request-to-response, but if an Android
         // `BluetoothGattCallback` method is called out-of-order then we'll cast to the wrong type.
         return response as? T
@@ -207,7 +219,10 @@ internal class Connection(
             coroutineContext.ensureActive()
             throw e.unwrapCancellationException()
         }
-    }.also(::checkResponse).mtu
+    }
+        .also {
+            checkResponse(it.status)
+        }.mtu
 
     private suspend fun disconnect() {
         if (callback.state.value is Disconnected) return
@@ -225,7 +240,9 @@ internal class Connection(
                 }
                 logger.info { message = "Disconnected" }
             } catch (e: TimeoutCancellationException) {
-                logger.warn { message = "Timed out after $disconnectTimeout waiting for disconnect" }
+                logger.warn {
+                    message = "Timed out after $disconnectTimeout waiting for disconnect"
+                }
             }
         }
     }
@@ -271,6 +288,10 @@ internal class Connection(
     private fun dispose(cause: Throwable) = connectionJob.completeExceptionally(cause)
 }
 
-private fun checkResponse(response: Response) {
-    if (response.status != GattSuccess) throw GattStatusException(response.toString())
+internal fun checkResponse(response: GattStatus) {
+    when (response) {
+        GattSuccess -> return
+        in BondingStatuses -> throw BondRequiredException()
+        else -> throw GattStatusException(response.toString())
+    }
 }

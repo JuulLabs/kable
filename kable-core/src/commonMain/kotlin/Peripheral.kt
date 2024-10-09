@@ -122,7 +122,7 @@ public interface Peripheral : CoroutineScope {
      * @throws ConnectionRejectedException when a connection request is rejected by the system (e.g. bluetooth hardware unavailable).
      * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [cancelled][Peripheral.cancel].
      */
-    public suspend fun connect(): CoroutineScope
+    public suspend fun connect(waitBonding: Boolean = false): CoroutineScope
 
     /**
      * Disconnects the active connection, or cancels an in-flight [connection][connect] attempt,
