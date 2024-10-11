@@ -11,4 +11,5 @@ pluginManagement {
 include(
     "kable-core",
     "kable-log-engine-khronicle",
+    "sample:android-sample"
 )

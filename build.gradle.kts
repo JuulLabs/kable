@@ -13,6 +13,9 @@ plugins {
     alias(libs.plugins.atomicfu) apply false
     alias(libs.plugins.dokka)
     alias(libs.plugins.api)
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.compose.compiler) apply false
 }
 
 tasks.dokkaHtmlMultiModule.configure {
