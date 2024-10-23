@@ -2,6 +2,8 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
 
 @Deprecated(
     message = "Replaced with `Peripheral` builder function (not a CoroutineScope extension function).",
@@ -24,7 +26,7 @@ public fun CoroutineScope.peripheral(
     builderAction: PeripheralBuilderAction = {},
 ): Peripheral {
     val builder = PeripheralBuilder().apply(builderAction)
-    return BluetoothDeviceAndroidPeripheral(
+    val peripheral = BluetoothDeviceAndroidPeripheral(
         bluetoothDevice,
         builder.autoConnectPredicate,
         builder.transport,
@@ -35,6 +37,10 @@ public fun CoroutineScope.peripheral(
         builder.logging,
         builder.disconnectTimeout,
     )
+    coroutineContext.job.invokeOnCompletion {
+        peripheral.cancel()
+    }
+    return peripheral
 }
 
 @Deprecated(
