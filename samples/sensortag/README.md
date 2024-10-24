@@ -36,7 +36,8 @@ In Xcode, configure signing, then run.
 
 ![JavaScript browser app screen recording](artwork/javascript.gif)
 
-To build and launch the demo within a browser window, run:
+A live demo can be viewed [here](https://juullabs.github.io/sensortag), or to build and launch the
+demo within a browser window on your local machine, run:
 
 ```shell
 ./gradlew jsBrowserRun
