@@ -49,6 +49,7 @@ class SensorScreenModel(
                     when (state) {
                         is State.Connecting -> flowOf(ViewState.Connecting)
                         is State.Connected -> combine(
+                            sensorTag.battery,
                             sensorTag.rssi,
                             sensorTag.periodMillis,
                             ViewState::Connected,

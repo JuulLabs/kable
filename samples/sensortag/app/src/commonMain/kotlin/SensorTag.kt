@@ -23,6 +23,7 @@ import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.onStart
 
 private const val GYRO_MULTIPLIER = 500f / 65536f
 
@@ -48,6 +49,11 @@ private val movementPeriodCharacteristic = characteristicOf(
     characteristic = movementPeriodUuid,
 )
 
+private val batteryCharacteristic = characteristicOf(
+    service = Bluetooth.BaseUuid + 0x180F,
+    characteristic = Bluetooth.BaseUuid + 0x2A19,
+)
+
 private val rssiInterval = 5.seconds
 
 class SensorTag(private val peripheral: Peripheral) {
@@ -63,6 +69,7 @@ class SensorTag(private val peripheral: Peripheral) {
             movementConfigurationUuid,
             movementPeriodUuid,
             clientCharacteristicConfigUuid,
+            batteryCharacteristic.serviceUuid,
         )
 
         val scanner by lazy {
@@ -80,6 +87,13 @@ class SensorTag(private val peripheral: Peripheral) {
     }
 
     val state = peripheral.state
+
+    /** Battery percent level (0-100). */
+    val battery: Flow<Int?> = peripheral
+        .observe(batteryCharacteristic)
+        .onStart { emit(byteArrayOf()) }
+        .map(ByteArray::firstOrNull)
+        .map { it?.toInt() }
 
     private val _rssi = MutableStateFlow<Int?>(null)
     val rssi = _rssi.asStateFlow()
