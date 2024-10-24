@@ -1,18 +1,18 @@
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
     repositories {
         google()
         gradlePluginPortal()
     }
-
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.namespace == "com.android")
-                useModule("com.android.tools.build:gradle:${requested.version}")
-        }
-    }
 }
 
-include("app")
+include(
+    "app",
+    "bluetooth",
+    "ios",
+    "permissions",
+)
 
 // Configure sibling composite projects (`../<project>`) by adding `composite.<project>=true` to `local.properties`.
 java.util.Properties()

@@ -1,0 +1,31 @@
+name: iOS
+on:
+  pull_request:
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+defaults:
+  run:
+    working-directory: ios
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: brew install xcodegen
+      - run: ./gradlew generateXcodeProject
+      - run: >
+          xcodebuild
+          -project SensorTag.xcodeproj
+          -scheme Sample
+          -sdk iphoneos
+          -destination 'generic/platform=iOS'
+          build
+          CODE_SIGNING_ALLOWED='NO'

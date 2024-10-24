@@ -1,31 +1,12 @@
-<!doctype html>
-<html lang="en" xmlns="http://www.w3.org/1999/html">
-    <head>
-        <meta charset="UTF-8">
-        <title>SensorTag</title>
-        <link rel="stylesheet" href="styles.css">
-    </head>
-    <body>
-        <script type="text/javascript" src="app.js"></script>
-        <script type="text/javascript">
-            var script = new app.com.juul.sensortag.Script();
-            script.availability.addListener(function(availability) {
-                console.log("Availability changed: " + availability)
-            });
-            script.status.addListener(function(message) {
-                document.getElementById('status').innerHTML = message;
-            });
-            script.movement.addListener(function(x, y, z) {
-                document.getElementById('movement').innerHTML = "x: " + x + "<br/>y: " + y + "<br/>z: " + z;
-            });
-        </script>
-        <h1>SensorTag</h1>
-        <button onclick="script.connect();">Connect</button>
-        <button onclick="script.disconnect();">Disconnect</button>
-        <br/>
-        <br/>
-        Status: <div id="status">Unknown</div>
-        <br/>
-        Movement: <div id="movement">Unknown</div>
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SensorTag</title>
+    <script src="skiko.js"> </script>
+</head>
+<body>
+<canvas id="ComposeTarget"></canvas>
+<script src="sample.js"> </script>
+</body>
 </html>

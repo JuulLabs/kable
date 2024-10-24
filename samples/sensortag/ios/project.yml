@@ -1,0 +1,33 @@
+name: SensorTag
+options:
+  bundleIdPrefix: com.juul.sensortag.ios
+  usesTabs: false
+  indentWidth: 4
+  defaultConfig: Debug
+targets:
+  Sample:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    settings:
+      MARKETING_VERSION: 1
+      CURRENT_PROJECT_VERSION: 1
+      GENERATE_INFOPLIST_FILE: YES
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: "SensorTag"
+        UILaunchScreen:
+          UIColorName: black
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        CADisableMinimumFrameDurationOnPhone: true
+        LSRequiresIPhoneOS: true
+        NSBluetoothAlwaysUsageDescription: This application uses bluetooth to connect to SensorTag devices.
+    sources:
+      - path: Sources
+        buildPhase: sources
+      - path: Resources
+        buildPhase: resources
+    dependencies:
+      - framework: ../app/build/bin/iosArm64/debugFramework/ComposeApp.framework

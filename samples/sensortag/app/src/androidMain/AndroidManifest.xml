@@ -4,13 +4,12 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
 
     <application
-        android:name=".App"
         android:label="SensorTag Example"
         android:theme="@android:style/Theme.Material.NoActionBar"
         >
 
         <activity
-            android:name=".features.scan.ScanActivity"
+            android:name=".MainActivity"
             android:exported="true"
             >
 
@@ -20,11 +19,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".features.sensor.SensorActivity"
-            android:exported="false"
-            />
 
     </application>
 

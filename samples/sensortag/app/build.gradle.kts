@@ -1,82 +1,118 @@
 plugins {
-    id("com.android.application")
-    kotlin("multiplatform")
-    kotlin("plugin.compose")
-    id("org.jetbrains.compose")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.serialization)
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(libs.versions.jvm.get().toInt())
 
     androidTarget()
+    iosArm64 {
+        binaries.framework {
+            baseName = "ComposeApp"
+            binaryOption("bundleId", "com.juul.sensortag.ios")
+            binaryOption("bundleShortVersionString", "0.0.1")
+            binaryOption("bundleVersion", "1")
+            export(libs.coroutines.core)
+        }
+    }
     js {
-        browser()
+        moduleName = "sample"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "sample.js"
+            }
+        }
         binaries.executable()
     }
-    macosX64 {
-        binaries {
-            executable {
-                baseName = "sensortag"
-                entryPoint = "com.juul.sensortag.main"
-            }
+    listOf(
+        macosX64(),
+        macosArm64(),
+    ).forEach { target ->
+        target.binaries.executable {
+            baseName = "sensortag"
+            entryPoint = "com.juul.sensortag.main"
         }
     }
-    macosArm64 {
-        binaries {
-            executable {
-                baseName = "sensortag"
-                entryPoint = "com.juul.sensortag.main"
-            }
-        }
-    }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+        val composeMain by creating {
+            dependsOn(commonMain.get())
         }
+        androidMain.get().dependsOn(composeMain)
+        iosMain.get().dependsOn(composeMain)
+        jsMain.get().dependsOn(composeMain)
+
+        val notJsMain by creating {
+            dependsOn(commonMain.get())
+        }
+        androidMain.get().dependsOn(notJsMain)
+        appleMain.get().dependsOn(notJsMain)
 
         commonMain.dependencies {
+            api(libs.coroutines.core)
+            implementation(compose.foundation)
+            implementation(compose.material)
             implementation(compose.runtime)
-            implementation(libs.coroutines.core)
+            implementation(compose.ui)
+            implementation(libs.bundles.krayon)
+            implementation(libs.bundles.voyager)
+            implementation(libs.datetime)
             implementation(libs.kable)
             implementation(libs.khronicle)
+            implementation(libs.serialization)
+            implementation(projects.bluetooth)
+            implementation(projects.permissions)
         }
 
         androidMain.dependencies {
-            implementation(libs.bundles.accompanist)
-            implementation(libs.bundles.compose)
-            implementation(libs.bundles.krayon)
-            implementation(libs.compose.icons)
-            implementation(libs.compose.material)
-            implementation(libs.exercise.annotations)
-            implementation(project.dependencies.platform(libs.compose.bom))
+            implementation(libs.compose.activity)
+        }
+
+        composeMain.dependencies {
+            implementation(libs.krayon.compose)
+        }
+
+        notJsMain.dependencies {
+            implementation(libs.androidx.lifecycle)
         }
     }
 }
 
 android {
+    namespace = "com.juul.sensortag"
     compileSdk = libs.versions.android.compile.get().toInt()
+
+    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    sourceSets["main"].res.srcDirs("src/androidMain/res")
+    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
+
     defaultConfig {
+        applicationId = "com.juul.sensortag.android"
         minSdk = libs.versions.android.min.get().toInt()
         targetSdk = libs.versions.android.target.get().toInt()
+        versionCode = 1
+        versionName = "1.0"
     }
-
-    namespace = "com.juul.sensortag"
-
-    buildFeatures {
-        compose = true
-    }
-
-    lint {
-        abortOnError = false
-    }
-
     packaging {
-        resources.excludes.add("/META-INF/versions/*/previous-compilation-data.bin")
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
+    buildFeatures.compose = true
+
+    // Provides `java.time` for kotlinx.datetime on API < 26.
+    // https://github.com/Kotlin/kotlinx-datetime?tab=readme-ov-file#using-in-your-projects
+    compileOptions.isCoreLibraryDesugaringEnabled = true
 }
 
 dependencies {
-    add("kspAndroid", libs.exercise.compile)
+    // Provides `java.time` for kotlinx.datetime on Android API < 26.
+    // https://github.com/Kotlin/kotlinx-datetime?tab=readme-ov-file#using-in-your-projects
+    coreLibraryDesugaring(libs.desugar)
 }
