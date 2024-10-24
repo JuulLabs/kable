@@ -23,6 +23,7 @@ import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 
 private const val GYRO_MULTIPLIER = 500f / 65536f
@@ -88,12 +89,14 @@ class SensorTag(private val peripheral: Peripheral) {
 
     val state = peripheral.state
 
+    private val _battery = MutableStateFlow<ByteArray?>(null)
+
     /** Battery percent level (0-100). */
-    val battery: Flow<Int?> = peripheral
-        .observe(batteryCharacteristic)
-        .onStart { emit(byteArrayOf()) }
-        .map(ByteArray::firstOrNull)
-        .map { it?.toInt() }
+    val battery = merge(
+        _battery.filterNotNull(),
+        peripheral.observe(batteryCharacteristic),
+    ).map(ByteArray::first)
+        .map(Byte::toInt)
 
     private val _rssi = MutableStateFlow<Int?>(null)
     val rssi = _rssi.asStateFlow()
@@ -115,6 +118,7 @@ class SensorTag(private val peripheral: Peripheral) {
         Log.info { "Connecting" }
         try {
             peripheral.connect().launch { monitorRssi() }
+            _battery.value = readBatteryLevel()
             _periodMillis.value = readGyroPeriod()
             enableGyro()
             Log.info { "Connected" }
@@ -171,6 +175,8 @@ class SensorTag(private val peripheral: Peripheral) {
     private suspend fun disableGyro() {
         peripheral.write(movementConfigCharacteristic, byteArrayOf(0x0, 0x0), WithResponse)
     }
+
+    private suspend fun readBatteryLevel(): ByteArray = peripheral.read(batteryCharacteristic)
 }
 
 private fun sensorTagUuid(short16BitUuid: String): Uuid =

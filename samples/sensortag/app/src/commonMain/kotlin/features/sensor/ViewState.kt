@@ -6,7 +6,7 @@ sealed class ViewState {
     data object BluetoothOff : ViewState()
     data object Connecting : ViewState()
     data class Connected(
-        val battery: Int?,
+        val battery: Int,
         val rssi: Int?,
         val period: Duration,
     ) : ViewState()
