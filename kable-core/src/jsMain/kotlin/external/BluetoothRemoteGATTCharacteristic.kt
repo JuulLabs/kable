@@ -25,9 +25,10 @@ internal external class BluetoothRemoteGATTCharacteristic : EventTarget {
     fun writeValueWithoutResponse(value: BufferSource): Promise<Unit>
 
     /**
-     * > All notifications become inactive when a device is disconnected. A site that wants to keep getting
-     * > notifications after reconnecting needs to call [startNotifications] again, and there is an unavoidable risk
-     * > that some notifications will be missed in the gap before [startNotifications] takes effect.
+     * > All notifications become inactive when a device is disconnected. A site that wants to keep
+     * > getting notifications after reconnecting needs to call [startNotifications] again, and
+     * > there is an unavoidable risk that some notifications will be missed in the gap before
+     * > [startNotifications] takes effect.
      *
      * https://webbluetoothcg.github.io/web-bluetooth/#active-notification-context-set
      */

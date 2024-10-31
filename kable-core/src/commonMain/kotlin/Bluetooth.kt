@@ -8,6 +8,11 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import com.juul.kable.bluetooth.isSupported as isBluetoothSupported
 
+@Deprecated(
+    message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+        "Will be removed in a future release. " +
+        "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+)
 public expect enum class Reason
 
 public object Bluetooth {
@@ -32,21 +37,46 @@ public object Bluetooth {
         override fun toString(): String = "00000000-0000-1000-8000-00805F9B34FB"
     }
 
+    @Deprecated(
+        message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+            "Will be removed in a future release. " +
+            "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    )
     public sealed class Availability {
+        @Deprecated(
+            message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+                "Will be removed in a future release. " +
+                "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+        )
         public data object Available : Availability()
+
+        @Deprecated(
+            message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+                "Will be removed in a future release. " +
+                "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+        )
         public data class Unavailable(val reason: Reason?) : Availability()
     }
+
+    @Deprecated(
+        message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+            "Will be removed in a future release. " +
+            "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    )
+    public val availability: Flow<Availability> = bluetoothAvailability
 
     /**
      * Checks if Bluetooth Low Energy is supported on the system. Being supported (a return of
      * `true`) does not necessarily mean that bluetooth operations will work. The radio could be off
      * or permissions may be denied.
      *
+     * Due to Core Bluetooth limitations (unavoidable dialog upon checking if supported), this
+     * function **always** returns `true` on Apple (even if Bluetooth is not supported).
+     *
      * This function is idempotent.
      */
+    @ExperimentalApi // Due to the inability to query Bluetooth support w/o showing a dialog on Apple, this function may be removed.
     public suspend fun isSupported(): Boolean = isBluetoothSupported()
-
-    public val availability: Flow<Availability> = bluetoothAvailability
 }
 
 internal expect val bluetoothAvailability: Flow<Bluetooth.Availability>

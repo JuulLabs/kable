@@ -11,11 +11,11 @@ import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.ManufacturerData
 import com.juul.kable.Filter.Name
 import com.juul.kable.Filter.Service
+import com.juul.kable.bluetooth.checkBluetoothIsOn
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.scan.ScanError
 import com.juul.kable.scan.message
-import com.juul.kable.scan.requirements.checkBluetoothIsOn
 import com.juul.kable.scan.requirements.checkLocationServicesEnabled
 import com.juul.kable.scan.requirements.checkScanPermissions
 import com.juul.kable.scan.requirements.requireBluetoothLeScanner

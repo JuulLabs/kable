@@ -3,7 +3,6 @@ package com.juul.kable
 import com.juul.kable.logs.Logger
 import js.errors.JsError
 import js.errors.TypeError
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
@@ -27,7 +26,6 @@ import kotlin.coroutines.coroutineContext
  */
 public suspend fun requestPeripheral(
     options: Options,
-    scope: CoroutineScope,
     builderAction: PeripheralBuilderAction = {},
 ): Peripheral? {
     val bluetooth = bluetoothOrThrow()
@@ -77,7 +75,5 @@ public suspend fun requestPeripheral(
 
             else -> throw InternalException("Failed to request device", e)
         }
-    }?.let { device ->
-        builder.build(device, scope)
-    }
+    }?.let(builder::build)
 }

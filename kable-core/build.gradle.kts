@@ -25,12 +25,13 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.coroutines.core)
-            api(project(":kable-exceptions"))
+            api(libs.kotlinx.io)
             implementation(libs.datetime)
             implementation(libs.tuulbox.collections)
         }
 
         commonTest.dependencies {
+            implementation(kotlin("reflect")) // For `assertIs`.
             implementation(kotlin("test"))
             implementation(libs.khronicle)
             implementation(libs.kotlinx.coroutines.test)

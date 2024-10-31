@@ -3,7 +3,6 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothAdapter.STATE_OFF
-import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC
@@ -23,35 +22,28 @@ import com.juul.kable.AndroidPeripheral.Type
 import com.juul.kable.State.Disconnected
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
-import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
+import com.juul.kable.bluetooth.checkBluetoothIsOn
+import com.juul.kable.bluetooth.checkBluetoothIsSupported
+import com.juul.kable.bluetooth.clientCharacteristicConfigUuid
+import com.juul.kable.bluetooth.requireNonZeroAddress
 import com.juul.kable.gatt.Response.OnCharacteristicRead
 import com.juul.kable.gatt.Response.OnCharacteristicWrite
 import com.juul.kable.gatt.Response.OnDescriptorRead
 import com.juul.kable.gatt.Response.OnDescriptorWrite
 import com.juul.kable.gatt.Response.OnReadRemoteRssi
-import com.juul.kable.gatt.Response.OnServicesDiscovered
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.detail
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlin.uuid.toKotlinUuid
@@ -63,7 +55,6 @@ private val clientCharacteristicConfigUuid = Uuid.parse(CLIENT_CHARACTERISTIC_CO
 private const val DISCOVER_SERVICES_RETRIES = 5
 
 internal class BluetoothDeviceAndroidPeripheral(
-    parentCoroutineContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
     private val autoConnectPredicate: () -> Boolean,
     private val transport: Transport,
@@ -72,155 +63,101 @@ internal class BluetoothDeviceAndroidPeripheral(
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
-) : AndroidPeripheral {
+    private val disconnectTimeout: Duration,
+) : BasePeripheral(bluetoothDevice.toString()), AndroidPeripheral {
 
-    private val logger = Logger(logging, tag = "Kable/Peripheral", identifier = bluetoothDevice.address)
+    init {
+        onBluetoothDisabled { state ->
+            logger.debug {
+                message = "Bluetooth disabled"
+                detail("state", state)
+            }
+            disconnect()
+        }
+    }
 
-    private val _state = MutableStateFlow<State>(Disconnected())
-    override val state: StateFlow<State> = _state.asStateFlow()
+    private val connectAction = sharedRepeatableAction(::establishConnection)
 
     override val identifier: String = bluetoothDevice.address
+    private val logger = Logger(logging, "Kable/Peripheral", bluetoothDevice.toString())
+
+    private val _state = MutableStateFlow<State>(Disconnected())
+    override val state = _state.asStateFlow()
+
+    private val _services = MutableStateFlow<List<DiscoveredService>?>(null)
+    override val services = _services.asStateFlow()
+    private fun servicesOrThrow() = services.value ?: error("Services have not been discovered")
 
     private val _mtu = MutableStateFlow<Int?>(null)
-    override val mtu: StateFlow<Int?> = _mtu.asStateFlow()
+    override val mtu = _mtu.asStateFlow()
 
-    private val observers = Observers<ByteArray>(this, logging, exceptionHandler = observationExceptionHandler)
+    private val observers = Observers<ByteArray>(this, logging, observationExceptionHandler)
 
-    @Volatile
-    private var _discoveredServices: List<DiscoveredService>? = null
-    private val discoveredServices: List<DiscoveredService>
-        get() = _discoveredServices
-            ?: throw IllegalStateException("Services have not been discovered for $this")
+    private val connection = MutableStateFlow<Connection?>(null)
+    private fun connectionOrThrow() =
+        connection.value
+            ?: throw NotConnectedException("Connection not established, current state: ${state.value}")
 
-    override val services: List<DiscoveredService>?
-        get() = _discoveredServices?.toList()
+    override val type: Type
+        get() = typeFrom(bluetoothDevice.type)
 
-    @Volatile
-    private var _connection: Connection? = null
-    private val connection: Connection
-        inline get() = _connection ?: throw NotReadyException(toString())
+    override val address: String = requireNonZeroAddress(bluetoothDevice.address)
 
-    override val name: String? get() = bluetoothDevice.name
+    @ExperimentalApi
+    override val name: String?
+        get() = bluetoothDevice.name
 
-    /**
-     * It's important that we instantiate this scope as late as possible, since [dispose] will be
-     * called immediately if the parent job is already complete. Doing so late in <init> is fine,
-     * but early in <init> it could reference non-nullable variables that are not yet set and crash.
-     */
-    private val scope = CoroutineScope(
-        parentCoroutineContext +
-            SupervisorJob(parentCoroutineContext.job).apply { invokeOnCompletion(::dispose) } +
-            CoroutineName("Kable/Peripheral/${bluetoothDevice.address}"),
-    )
-
-    private val connectAction = scope.sharedRepeatableAction(::establishConnection)
-
-    private suspend fun establishConnection(scope: CoroutineScope) {
-        checkBluetoothAdapterState(expected = STATE_ON)
-        bluetoothState.watchForDisablingIn(scope)
+    private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
+        checkBluetoothIsSupported()
+        checkBluetoothIsOn()
 
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
 
         try {
-            _connection = bluetoothDevice.connect(
-                scope,
+            connection.value = bluetoothDevice.connect(
+                scope.coroutineContext,
                 applicationContext,
                 autoConnectPredicate(),
                 transport,
                 phy,
                 _state,
+                _services,
                 _mtu,
                 observers.characteristicChanges,
                 logging,
                 threadingStrategy,
-            ) ?: throw ConnectionRejectedException()
+                disconnectTimeout,
+            )
 
-            suspendUntilOrThrow<State.Connecting.Services>()
+            suspendUntil<State.Connecting.Services>()
             discoverServices()
-            onServicesDiscovered(ServicesDiscoveredPeripheral(this@BluetoothDeviceAndroidPeripheral))
-
-            _state.value = State.Connecting.Observes
-            logger.verbose { message = "Configuring characteristic observations" }
-            observers.onConnected()
+            configureCharacteristicObservations()
         } catch (e: Exception) {
-            closeConnection()
-            val failure = e.unwrapCancellationCause()
-            logger.error(failure) { message = "Failed to connect" }
+            val failure = e.unwrapCancellationException()
+            logger.error(failure) { message = "Failed to establish connection" }
             throw failure
         }
 
         logger.info { message = "Connected" }
         _state.value = State.Connected
 
-        state.watchForConnectionLossIn(scope)
+        return connectionOrThrow().taskScope
     }
 
-    private fun Flow<Int>.watchForDisablingIn(scope: CoroutineScope): Job =
-        scope.launch(start = UNDISPATCHED) {
-            filter { state -> state == STATE_TURNING_OFF || state == STATE_OFF }
-                .collect { state ->
-                    logger.debug {
-                        message = "Bluetooth disabled"
-                        detail("state", state)
-                    }
-                    closeConnection()
-                    throw BluetoothDisabledException()
-                }
-        }
+    private suspend fun configureCharacteristicObservations() {
+        logger.verbose { message = "Configuring characteristic observations" }
+        _state.value = State.Connecting.Observes
+        observers.onConnected()
+    }
 
-    private fun Flow<State>.watchForConnectionLossIn(scope: CoroutineScope) =
-        state
-            .filter { it == State.Disconnecting || it is Disconnected }
-            .onEach { state ->
-                logger.debug {
-                    message = "Disconnect detected"
-                    detail("state", state.toString())
-                }
-                throw ConnectionLostException("$this $state")
-            }
-            .launchIn(scope)
-
-    override val type: Type
-        get() = typeFrom(bluetoothDevice.type)
-
-    override val address: String = bluetoothDevice.address
-
-    override suspend fun connect() {
+    override suspend fun connect(): CoroutineScope =
         connectAction.await()
-    }
 
     override suspend fun disconnect() {
-        if (state.value is State.Connected) {
-            // Disconnect from active connection.
-            _connection?.bluetoothGatt?.disconnect()
-        } else {
-            // Cancel in-flight connection attempt.
-            connectAction.cancelAndJoin(CancellationException(NotConnectedException()))
-        }
-        suspendUntil<Disconnected>()
-        releaseThread()
-        logger.info { message = "Disconnected" }
-    }
-
-    private fun releaseThread() {
-        _connection?.threading?.release()
-    }
-
-    private fun dispose(cause: Throwable?) {
-        closeConnection()
-        logger.info(cause) { message = "Disposed" }
-    }
-
-    private fun closeConnection() {
-        _connection?.bluetoothGatt?.close()
-        releaseThread()
-        setDisconnected()
-    }
-
-    private fun setDisconnected() {
-        // Avoid trampling existing `Disconnected` state (and its properties) by only updating if not already `Disconnected`.
-        _state.update { previous -> previous as? Disconnected ?: Disconnected() }
+        connectAction.cancelAndJoin(
+            CancellationException(NotConnectedException("Disconnect requested")),
+        )
     }
 
     override fun requestConnectionPriority(priority: Priority): Boolean {
@@ -228,34 +165,22 @@ internal class BluetoothDeviceAndroidPeripheral(
             message = "requestConnectionPriority"
             detail("priority", priority.name)
         }
-        return connection.bluetoothGatt
+        return connectionOrThrow()
+            .gatt
             .requestConnectionPriority(priority.intValue)
     }
 
-    override suspend fun rssi(): Int = connection.execute<OnReadRemoteRssi> {
-        readRemoteRssiOrThrow()
-    }.rssi
+    @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.
+    override suspend fun rssi(): Int =
+        connectionOrThrow().execute<OnReadRemoteRssi> {
+            readRemoteRssiOrThrow()
+        }.rssi
 
     private suspend fun discoverServices() {
-        logger.verbose { message = "discoverServices" }
-
-        repeat(DISCOVER_SERVICES_RETRIES) { attempt ->
-            connection.execute<OnServicesDiscovered> {
-                discoverServicesOrThrow()
-            }
-            val services = withContext(connection.dispatcher) {
-                connection.bluetoothGatt.services.map(::DiscoveredService)
-            }
-
-            if (services.isEmpty()) {
-                logger.warn { message = "Empty services (attempt ${attempt + 1} of $DISCOVER_SERVICES_RETRIES)" }
-            } else {
-                logger.verbose { message = "Discovered ${services.count()} services" }
-                _discoveredServices = services
-                return
-            }
+        connectionOrThrow().discoverServices(retries = DISCOVER_SERVICES_RETRIES)
+        unwrapCancellationExceptions {
+            onServicesDiscovered(ServicesDiscoveredPeripheral(this))
         }
-        _discoveredServices = emptyList()
     }
 
     override suspend fun requestMtu(mtu: Int): Int {
@@ -263,7 +188,7 @@ internal class BluetoothDeviceAndroidPeripheral(
             message = "requestMtu"
             detail("mtu", mtu)
         }
-        return connection.requestMtu(mtu)
+        return connectionOrThrow().requestMtu(mtu)
     }
 
     override suspend fun write(
@@ -278,8 +203,8 @@ internal class BluetoothDeviceAndroidPeripheral(
             detail(data, Operation.Write)
         }
 
-        val platformCharacteristic = discoveredServices.obtain(characteristic, writeType.properties)
-        connection.execute<OnCharacteristicWrite> {
+        val platformCharacteristic = servicesOrThrow().obtain(characteristic, writeType.properties)
+        connectionOrThrow().execute<OnCharacteristicWrite> {
             writeCharacteristicOrThrow(platformCharacteristic, data, writeType.intValue)
         }
     }
@@ -292,8 +217,8 @@ internal class BluetoothDeviceAndroidPeripheral(
             detail(characteristic)
         }
 
-        val platformCharacteristic = discoveredServices.obtain(characteristic, Read)
-        return connection.execute<OnCharacteristicRead> {
+        val platformCharacteristic = servicesOrThrow().obtain(characteristic, Read)
+        return connectionOrThrow().execute<OnCharacteristicRead> {
             readCharacteristicOrThrow(platformCharacteristic)
         }.value!!
     }
@@ -302,7 +227,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         descriptor: Descriptor,
         data: ByteArray,
     ) {
-        write(discoveredServices.obtain(descriptor), data)
+        write(servicesOrThrow().obtain(descriptor), data)
     }
 
     private suspend fun write(
@@ -315,7 +240,7 @@ internal class BluetoothDeviceAndroidPeripheral(
             detail(data, Operation.Write)
         }
 
-        connection.execute<OnDescriptorWrite> {
+        connectionOrThrow().execute<OnDescriptorWrite> {
             writeDescriptorOrThrow(platformDescriptor, data)
         }
     }
@@ -328,8 +253,8 @@ internal class BluetoothDeviceAndroidPeripheral(
             detail(descriptor)
         }
 
-        val platformDescriptor = discoveredServices.obtain(descriptor)
-        return connection.execute<OnDescriptorRead> {
+        val platformDescriptor = servicesOrThrow().obtain(descriptor)
+        return connectionOrThrow().execute<OnDescriptorRead> {
             readDescriptorOrThrow(platformDescriptor)
         }.value!!
     }
@@ -341,29 +266,39 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     internal suspend fun startObservation(characteristic: Characteristic) {
         logger.debug {
+            message = "Starting observation"
+            detail(characteristic)
+        }
+
+        val platformCharacteristic = servicesOrThrow().obtain(characteristic, Notify or Indicate)
+
+        logger.verbose {
             message = "setCharacteristicNotification"
             detail(characteristic)
             detail("value", "true")
         }
-
-        val platformCharacteristic = discoveredServices.obtain(characteristic, Notify or Indicate)
-        connection
-            .bluetoothGatt
+        connectionOrThrow()
+            .gatt
             .setCharacteristicNotificationOrThrow(platformCharacteristic, true)
         setConfigDescriptor(platformCharacteristic, enable = true)
     }
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
-        val platformCharacteristic = discoveredServices.obtain(characteristic, Notify or Indicate)
+        logger.debug {
+            message = "Stopping observation"
+            detail(characteristic)
+        }
+
+        val platformCharacteristic = servicesOrThrow().obtain(characteristic, Notify or Indicate)
         setConfigDescriptor(platformCharacteristic, enable = false)
 
-        logger.debug {
+        logger.verbose {
             message = "setCharacteristicNotification"
             detail(characteristic)
             detail("value", "false")
         }
-        connection
-            .bluetoothGatt
+        connectionOrThrow()
+            .gatt
             .setCharacteristicNotificationOrThrow(platformCharacteristic, false)
     }
 
@@ -409,6 +344,13 @@ internal class BluetoothDeviceAndroidPeripheral(
                 detail(characteristic)
             }
         }
+    }
+
+    private fun onBluetoothDisabled(action: suspend (bluetoothState: Int) -> Unit) {
+        bluetoothState
+            .filter { state -> state == STATE_TURNING_OFF || state == STATE_OFF }
+            .onEach(action)
+            .launchIn(this)
     }
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"

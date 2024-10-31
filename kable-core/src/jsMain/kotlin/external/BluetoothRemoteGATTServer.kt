@@ -12,7 +12,6 @@ internal external interface BluetoothRemoteGATTServer {
     val connected: Boolean
 
     fun connect(): Promise<BluetoothRemoteGATTServer>
-
     fun disconnect(): Unit
 
     fun getPrimaryServices(): Promise<Array<BluetoothRemoteGATTService>>

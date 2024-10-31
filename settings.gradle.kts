@@ -10,6 +10,5 @@ pluginManagement {
 
 include(
     "kable-core",
-    "kable-exceptions",
     "kable-log-engine-khronicle",
 )

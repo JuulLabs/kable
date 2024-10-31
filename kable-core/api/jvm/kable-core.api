@@ -90,6 +90,9 @@ public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
 	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
 }
 
+public abstract interface annotation class com/juul/kable/ExperimentalApi : java/lang/annotation/Annotation {
+}
+
 public abstract class com/juul/kable/Filter {
 }
 
@@ -166,8 +169,17 @@ public final class com/juul/kable/FiltersBuilder {
 	public final fun match (Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class com/juul/kable/GattStatusException : java/io/IOException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class com/juul/kable/IdentifierKt {
 	public static final fun toIdentifier (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class com/juul/kable/InternalException : java/lang/IllegalStateException {
 }
 
 public final class com/juul/kable/LazyCharacteristic : com/juul/kable/Characteristic {
@@ -203,6 +215,12 @@ public final class com/juul/kable/ManufacturerData {
 	public final fun getData ()[B
 }
 
+public class com/juul/kable/NotConnectedException : java/io/IOException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class com/juul/kable/ObservationExceptionPeripheral {
 	public final fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 }
@@ -210,12 +228,12 @@ public final class com/juul/kable/ObservationExceptionPeripheral {
 public abstract interface annotation class com/juul/kable/ObsoleteKableApi : java/lang/annotation/Annotation {
 }
 
-public abstract interface class com/juul/kable/Peripheral {
+public abstract interface class com/juul/kable/Peripheral : kotlinx/coroutines/CoroutineScope {
 	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getIdentifier ()Ljava/lang/String;
 	public abstract fun getName ()Ljava/lang/String;
-	public abstract fun getServices ()Ljava/util/List;
+	public abstract fun getServices ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -231,12 +249,18 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 }
 
 public final class com/juul/kable/PeripheralBuilder {
+	public final fun getDisconnectTimeout-UwyO8pc ()J
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun observationExceptionHandler (Lkotlin/jvm/functions/Function3;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
+	public final fun setDisconnectTimeout-LRDsOJo (J)V
 }
 
 public final class com/juul/kable/PeripheralKt {
+	public static final fun Peripheral (Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
+}
+
+public final class com/juul/kable/Peripheral_deprecatedKt {
 	public static final fun peripheral (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun peripheral$default (Lkotlinx/coroutines/CoroutineScope;Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 }
@@ -385,6 +409,18 @@ public final class com/juul/kable/State$Disconnected$Status$UnknownDevice : com/
 
 public final class com/juul/kable/State$Disconnecting : com/juul/kable/State {
 	public static final field INSTANCE Lcom/juul/kable/State$Disconnecting;
+}
+
+public final class com/juul/kable/UnmetRequirementException : java/io/IOException {
+	public final fun getReason ()Lcom/juul/kable/UnmetRequirementReason;
+}
+
+public final class com/juul/kable/UnmetRequirementReason : java/lang/Enum {
+	public static final field BluetoothDisabled Lcom/juul/kable/UnmetRequirementReason;
+	public static final field LocationServicesDisabled Lcom/juul/kable/UnmetRequirementReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/UnmetRequirementReason;
+	public static fun values ()[Lcom/juul/kable/UnmetRequirementReason;
 }
 
 public final class com/juul/kable/WriteType : java/lang/Enum {

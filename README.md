@@ -49,8 +49,9 @@ The following filters are supported:
 ✓ = Support provided by Kable via flow filter  
 ✓✓* = Supported natively if the only filter type used, otherwise falls back to flow filter  
 
-_When a filter is supported natively, the system will often be able to perform scan optimizations. If feasible, it is
-recommended to provide only `Filter.Service` filters (and at least one) — as it is natively supported on all platforms._
+> [!TIP]
+> _When a filter is supported natively, the system will often be able to perform scan optimizations. If feasible, it is
+> recommended to provide only `Filter.Service` filters (and at least one) — as it is natively supported on all platforms._
 
 When filters are specified, only [`Advertisement`]s that match at least one [`Filter`] will be emitted. For example, if
 you had the following peripherals nearby when performing a scan:
@@ -103,8 +104,9 @@ val scanner = Scanner {
 }
 ```
 
-_The `scanSettings` property is only available on Android and is considered a Kable obsolete API, meaning it will be
-removed when a DSL specific API becomes available._
+> [!NOTE]
+> _The `scanSettings` property is only available on Android and is considered a Kable obsolete API, meaning it will be
+> removed when a DSL specific API becomes available._
 
 ### JavaScript
 
@@ -113,27 +115,38 @@ features" enabled via:_ `chrome://flags/#enable-experimental-web-platform-featur
 
 ## Peripheral
 
-Once an [`Advertisement`] is obtained, it can be converted to a [`Peripheral`] via the [`CoroutineScope.peripheral`]
-extension function. [`Peripheral`] objects represent actions that can be performed against a remote peripheral, such as
-connection handling and I/O operations.
+Once an [`Advertisement`] is obtained, it can be converted to a [`Peripheral`] via the `Peripheral` builder function:
 
 ```kotlin
-val peripheral = scope.peripheral(advertisement)
-```
-
-Note that if the scope is closed, the peripheral is automatically disconnected. Ensure that the lifetime of the used
-scope matches the required lifetime of the peripheral connection. See more details about this in the [Structured
-Concurrency](#structured-concurrency) section below.
-
-### Configuration
-
-To configure a `peripheral`, options may be set in the builder lambda:
-
-```kotlin
-val peripheral = scope.peripheral(advertisement) {
-    // Set peripheral configuration.
+val peripheral = Peripheral(advertisement) {
+    // Configure peripheral.
 }
 ```
+
+[`Peripheral`] objects represent actions that can be performed against a remote peripheral, such as connection
+handling and I/O operations. [`Peripheral`] objects are themselves [`CoroutineScope`]s, and coroutines can be
+`launch`ed from them:
+
+```kotlin
+peripheral.launch {
+    // Long running task that will be cancelled when peripheral
+    // is disposed (i.e. `Peripheral.cancel()` is called).
+}
+```
+
+> [!IMPORTANT]
+> When a [`Peripheral`] is no longer needed, it should be disposed via `cancel`:
+>
+> ```kotlin
+> peripheral.cancel()
+> ```
+
+> [!TIP]
+> `launch`ed coroutines from a `Peripheral` object are permitted to run until `Peripheral.cancel()` is called
+> (i.e. can span across reconnects); for tasks that should only run for the duration of a single connection
+> (i.e. shutdown on disconnect), `launch` via the `CoroutineScope` returned from `Peripheral.connect` instead.
+
+### Configuration
 
 #### Logging
 
@@ -141,7 +154,7 @@ By default, Kable only logs a small number of warnings when unexpected failures 
 logging may be enabled and configured via the `logging` DSL, for example:
 
 ```kotlin
-val peripheral = scope.peripheral(advertisement) {
+val peripheral = Peripheral(advertisement) {
     logging {
         level = Events // or Data
     }
@@ -157,7 +170,7 @@ The available log levels are:
 Available logging settings are as follows (all settings are optional; shown are defaults, when not specified):
 
 ```kotlin
-val peripheral = scope.peripheral(advertisement) {
+val peripheral = Peripheral(advertisement) {
     logging {
         engine = SystemLogEngine
         level = Warnings
@@ -178,7 +191,7 @@ Display format of I/O data may be customized, either by configuring the `Hex` re
 `DataProcessor`, for example:
 
 ```kotlin
-val peripheral = scope.peripheral(advertisement) {
+val peripheral = Peripheral(advertisement) {
     logging {
         data = Hex {
             separator = " "
@@ -201,7 +214,7 @@ When logging, the identity of the peripheral is prefixed on log messages to diff
 peripherals are logging. The identifier (for the purposes of logging) can be set via the `identifier` property:
 
 ```kotlin
-val peripheral = scope.peripheral(advertisement) {
+val peripheral = Peripheral(advertisement) {
     logging {
         identifier = "Example"
     }
@@ -220,7 +233,7 @@ All platforms support an `onServicesDiscovered` action (that is executed after s
 are wired up):
 
 ```kotlin
-val peripheral = scope.peripheral(advertisement) {
+val peripheral = Peripheral(advertisement) {
     onServicesDiscovered {
         // Perform any desired I/O operations.
     }
@@ -234,7 +247,7 @@ _Exceptions thrown in `onServicesDiscovered` are propagated to the `Peripheral`'
 On Android targets, additional configuration options are available (all configuration directives are optional):
 
 ```kotlin
-val peripheral = scope.peripheral(advertisement) {
+val peripheral = Peripheral(advertisement) {
     autoConnectIf { false } // default
     onServicesDiscovered {
         requestMtu(...)
@@ -269,7 +282,7 @@ One possible strategy for a fast initial connection attempt that falls back to l
 ```kotlin
 val autoConnect = MutableStateFlow(false)
 
-val peripheral = scope.peripheral {
+val peripheral = Peripheral {
     autoConnectIf { autoConnect.value }
 }
 
@@ -304,7 +317,7 @@ val options = Options {
         uuidFrom("f000aa81-0451-4000-b000-000000000000"),
     )
 }
-val peripheral = requestPeripheral(options, scope)
+val peripheral = requestPeripheral(options)
 ```
 
 > After the user selects a device to pair with this origin, the origin is allowed to access any service whose UUID was
@@ -321,11 +334,16 @@ method suspends until a connection is established and ready (or a failure occurs
 connected, services have been discovered, and observations (if any) have been re-wired. _Service discovery occurs
 automatically upon connection._
 
-_Multiple concurrent calls to [`connect`] will all suspend until connection is ready._
+> [!TIP]
+> _Multiple concurrent calls to [`connect`] will all suspend until connection is ready._
 
 ```kotlin
 peripheral.connect()
 ```
+
+The [`connect`] function returns a [`CoroutineScope`] that can be used to `launch` tasks that should run until peripheral
+disconnects. When [`disconnect`] is called, any coroutines [`launch`]ed from the [`CoroutineScope`] returned by [`connect`]
+will be cancelled prior to performing the underlying disconnect process.
 
 To disconnect, the [`disconnect`] function will disconnect an active connection, or cancel an in-flight connection
 attempt. The [`disconnect`] function suspends until the peripheral has settled on a disconnected state.
@@ -348,8 +366,9 @@ The [`state`] will typically transition through the following [`State`][connecti
 
 ![Connection states](artwork/connection-states.png)
 
-_[`Disconnecting`] state only occurs on Android platform. JavaScript and Apple-based platforms transition directly from
-[`Connected`] to [`Disconnected`] (upon calling [`disconnect`] function, or when a connection is dropped)._
+> [!NOTE]
+> [`Disconnecting`] state is skipped on Apple and JavaScript when connection closure is initiated by peripheral (or
+> peripheral goes out-of-range).
 
 ### I/O
 
@@ -393,7 +412,7 @@ objects retrieved from [`Peripheral.services`] when no longer needed.
 To access "Descriptor D3" using a discovered descriptor:
 
 ```kotlin
-val services = peripheral.services ?: error("Services have not been discovered")
+val services = peripheral.services.value ?: error("Services have not been discovered")
 val descriptor = services
     .first { it.serviceUuid == uuidFrom("00001815-0000-1000-8000-00805f9b34fb") }
     .characteristics
@@ -402,21 +421,23 @@ val descriptor = services
     .first { it.descriptorUuid == uuidFrom("00002902-0000-1000-8000-00805f9b34fb") }
 ```
 
-_This example uses a similar search algorithm as `descriptorOf`, but other search methods may be utilized. For example,
-properties of the characteristic could be queried to find a specific characteristic that is expected to be the parent of
-the sought after descriptor. When searching for a specific characteristic, descriptors can be read that may identity the
-sought after characteristic._
+> [!TIP]
+> _This example uses a similar search algorithm as `descriptorOf`, but other search methods may be utilized. For example,
+> properties of the characteristic could be queried to find a specific characteristic that is expected to be the parent of
+> the sought after descriptor. When searching for a specific characteristic, descriptors can be read that may identity the
+> sought after characteristic._
 
 When connected, data can be read from, or written to, characteristics and/or descriptors via [`read`] and [`write`]
 functions.
-
-_The [`read`] and [`write`] functions throw [`NotReadyException`] until a connection is established._
 
 ```kotlin
 val data = peripheral.read(characteristic)
 
 peripheral.write(descriptor, byteArrayOf(1, 2, 3))
 ```
+
+> [!NOTE]
+> _The [`read`] and [`write`] functions throw [`NotConnectedException`] until a connection is established._
 
 ### Observation
 
@@ -449,7 +470,7 @@ associated characteristic is invalid or cannot be found, then a `NoSuchElementEx
 failures are propagated through (and terminate) the [`observe`] [`Flow`], for example:
 
 ```kotlin
-scope.peripheral(advertisement) {
+Peripheral(advertisement) {
     observationExceptionHandler { cause ->
         // Log failure instead of propagating associated `observe` flow.
         println("Observation failure suppressed: $cause")
@@ -478,28 +499,6 @@ In the above example, `"ping"` will be written to the `descriptor` when:
 The `onSubscription` action is useful in situations where an initial operation is needed when starting an observation
 (such as writing a configuration to the peripheral and expecting the response to come back in the form of a
 characteristic change).
-
-## Structured Concurrency
-
-Peripheral objects/connections are scoped to a [Coroutine scope]. When creating a [`Peripheral`], the
-[`CoroutineScope.peripheral`] extension function is used, which scopes the returned [`Peripheral`] to the
-[`CoroutineScope`] receiver. If the [`CoroutineScope`] receiver is cancelled then the [`Peripheral`] will disconnect and
-be disposed.
-
-```kotlin
-Scanner()
-    .advertisements
-    .filter { advertisement -> advertisement.name?.startsWith("Example") }
-    .map { advertisement -> scope.peripheral(advertisement) }
-    .onEach { peripheral -> peripheral.connect() }
-    .launchIn(scope)
-
-delay(60_000L)
-scope.cancel() // All `peripherals` will implicitly disconnect and be disposed.
-```
-
-_[`Peripheral.disconnect`] is the preferred method of disconnecting peripherals, but disposal via Coroutine scope
-cancellation is provided to prevent connection leaks._
 
 ## Background Support
 
@@ -661,38 +660,38 @@ limitations under the License.
 [Coroutine scope]: https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
 [SensorTag sample app]: https://github.com/JuulLabs/sensortag
-[`Advertisement`]: https://juullabs.github.io/kable/core/com.juul.kable/-advertisement/index.html
-[`Characteristic`]: https://juullabs.github.io/kable/core/com.juul.kable/-characteristic/index.html
-[`Connected`]: https://juullabs.github.io/kable/core/com.juul.kable/-state/-connected/index.html
-[`CoroutineScope.peripheral`]: https://juullabs.github.io/kable/core/com.juul.kable/peripheral.html
-[`CoroutineScope.requestPeripheral`]: https://juullabs.github.io/kable/core/com.juul.kable/request-peripheral.html
+[`Advertisement`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-advertisement/index.html
+[`Characteristic`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-characteristic/index.html
+[`Connected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-connected/index.html
+[`CoroutineScope.peripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/peripheral.html
+[`requestPeripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/request-peripheral.html
 [`CoroutineScope`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-scope/
-[`Disconnected`]: https://juullabs.github.io/kable/core/com.juul.kable/-state/-disconnected/index.html
-[`Disconnecting`]: https://juullabs.github.io/kable/core/com.juul.kable/-state/-disconnecting/index.html
-[`Filter`]: https://juullabs.github.io/kable/core/com.juul.kable/-filter/index.html
+[`Disconnected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-disconnected/index.html
+[`Disconnecting`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-disconnecting/index.html
+[`Filter`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-filter/index.html
 [`Flow`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/
-[`NotReadyException`]: https://juullabs.github.io/kable/core/com.juul.kable/-not-ready-exception/index.html
-[`Options`]: https://juullabs.github.io/kable/core/com.juul.kable/-options/index.html
-[`Peripheral.disconnect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/disconnect.html
-[`Peripheral.services`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/services.html
-[`Peripheral`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/index.html
+[`NotConnectedException`]: https://juullabs.github.io/kable/kable-exceptions/com.juul.kable/-not-connected-exception/index.html
+[`Options`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-options/index.html
+[`Peripheral.disconnect`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/disconnect.html
+[`Peripheral.services`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/services.html
+[`Peripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/index.html
 [`ScanSettings`]: https://developer.android.com/reference/kotlin/android/bluetooth/le/ScanSettings
-[`Scanner`]: https://juullabs.github.io/kable/core/com.juul.kable/-scanner.html
-[`WithoutResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/-write-type/-without-response/index.html
-[`WriteType`]: https://juullabs.github.io/kable/core/com.juul.kable/-write-type/index.html
-[`advertisements`]: https://juullabs.github.io/kable/core/com.juul.kable/-scanner/advertisements.html
-[`characteristicOf`]: https://juullabs.github.io/kable/core/com.juul.kable/characteristic-of.html
-[`connect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/connect.html
+[`Scanner`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-scanner.html
+[`WithoutResponse`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-write-type/-without-response/index.html
+[`WriteType`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-write-type/index.html
+[`advertisements`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-scanner/advertisements.html
+[`characteristicOf`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/characteristic-of.html
 [`connectGatt`]: https://developer.android.com/reference/android/bluetooth/BluetoothDevice#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback)
-[`descriptorOf`]: https://juullabs.github.io/kable/core/com.juul.kable/descriptor-of.html
-[`disconnect`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/disconnect.html
+[`connect`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/connect.html
+[`descriptorOf`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/descriptor-of.html
+[`disconnect`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/disconnect.html
 [`first`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/first.html
-[`observe`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/observe.html
-[`read`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/read.html
-[`state`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/state.html
-[`writeWithoutResponse`]: https://juullabs.github.io/kable/core/com.juul.kable/write-without-response.html
-[`write`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral/write.html
-[`observationExceptionHandler`]: https://juullabs.github.io/kable/core/com.juul.kable/-peripheral-builder/observation-exception-handler.html
+[`observationExceptionHandler`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral-builder/observation-exception-handler.html
+[`observe`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/observe.html
+[`read`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/read.html
+[`state`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/state.html
+[`writeWithoutResponse`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/write-without-response.html
+[`write`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/write.html
 [background support]: https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html
 [badge-android]: http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat
 [badge-ios]: http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat
@@ -704,4 +703,4 @@ limitations under the License.
 [badge-wasm]: https://img.shields.io/badge/platform-wasm-624FE8.svg?style=flat
 [badge-watchos]: http://img.shields.io/badge/platform-watchos-C0C0C0.svg?style=flat
 [badge-windows]: http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat
-[connection-state]: https://juullabs.github.io/kable/core/com.juul.kable/-state/index.html
+[connection-state]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/index.html
