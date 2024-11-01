@@ -10,7 +10,7 @@ krayon = "0.19.1"
 voyager = "1.1.0-beta03"
 
 [libraries]
-androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version = "2.8.6" }
+androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version = "2.8.7" }
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.9.3" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.9.0" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.1" }
