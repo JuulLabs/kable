@@ -45,10 +45,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 import kotlin.uuid.toKotlinUuid
-
-private val clientCharacteristicConfigUuid = Uuid.parse(CLIENT_CHARACTERISTIC_CONFIG_UUID)
 
 // Number of service discovery attempts to make if no services are discovered.
 // https://github.com/JuulLabs/kable/issues/295

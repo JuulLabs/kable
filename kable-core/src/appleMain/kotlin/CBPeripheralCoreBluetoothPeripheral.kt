@@ -44,7 +44,6 @@ import platform.darwin.UInt16
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse as CBWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse as CBWithoutResponse
 
