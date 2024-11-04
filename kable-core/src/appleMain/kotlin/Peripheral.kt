@@ -1,7 +1,6 @@
 package com.juul.kable
 
 import platform.CoreBluetooth.CBPeripheral
-import kotlin.uuid.ExperimentalUuidApi
 
 public actual fun Peripheral(
     advertisement: Advertisement,
@@ -11,7 +10,6 @@ public actual fun Peripheral(
     return Peripheral(advertisement.cbPeripheral, builderAction)
 }
 
-@OptIn(ExperimentalUuidApi::class)
 @Suppress("FunctionName") // Builder function.
 public fun Peripheral(
     identifier: Identifier,

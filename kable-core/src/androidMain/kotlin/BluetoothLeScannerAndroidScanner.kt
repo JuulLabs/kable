@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.juul.kable
 
 import android.bluetooth.le.ScanCallback
@@ -25,7 +23,6 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.toJavaUuid
 
 internal class BluetoothLeScannerAndroidScanner(

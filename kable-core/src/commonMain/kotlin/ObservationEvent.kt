@@ -1,7 +1,5 @@
 package com.juul.kable
 
-import kotlin.uuid.ExperimentalUuidApi
-
 internal sealed class ObservationEvent<out T> {
 
     open val characteristic: Characteristic? get() = null
@@ -20,7 +18,6 @@ internal sealed class ObservationEvent<out T> {
     object Disconnected : ObservationEvent<Nothing>()
 }
 
-@OptIn(ExperimentalUuidApi::class)
 internal fun <T> ObservationEvent<T>.isAssociatedWith(characteristic: Characteristic): Boolean =
     when (val eventCharacteristic = this.characteristic) {
         null -> true // `characteristic` is null for Disconnected, which applies to all characteristics.

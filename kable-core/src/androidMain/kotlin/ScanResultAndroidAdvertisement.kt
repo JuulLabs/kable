@@ -11,12 +11,10 @@ import android.os.Build.VERSION_CODES
 import android.os.ParcelUuid
 import com.juul.kable.PlatformAdvertisement.BondState
 import kotlinx.parcelize.Parcelize
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
-@OptIn(ExperimentalUuidApi::class)
 @Parcelize
 internal class ScanResultAndroidAdvertisement(
     private val scanResult: ScanResult,

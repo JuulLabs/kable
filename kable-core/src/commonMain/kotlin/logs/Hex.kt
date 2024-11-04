@@ -1,7 +1,6 @@
 package com.juul.kable.logs
 
 import com.juul.kable.toHexString
-import kotlin.uuid.ExperimentalUuidApi
 
 public val Hex: Logging.DataProcessor = Hex()
 
@@ -14,7 +13,6 @@ public class HexBuilder internal constructor() {
     public var lowerCase: Boolean = false
 }
 
-@OptIn(ExperimentalUuidApi::class)
 public fun Hex(init: HexBuilder.() -> Unit = {}): Logging.DataProcessor {
     val config = HexBuilder().apply(init)
     return Logging.DataProcessor { data, _, _, _, _ ->

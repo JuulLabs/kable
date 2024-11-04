@@ -4,10 +4,8 @@ import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.iterable
 import org.khronos.webgl.DataView
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 internal class BluetoothAdvertisingEventWebBluetoothAdvertisement(
     private val advertisement: BluetoothAdvertisingEvent,
 ) : PlatformAdvertisement {

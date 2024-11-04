@@ -18,10 +18,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 private fun generateCharacteristic() = characteristicOf(
     service = Uuid.random().toString(),
     characteristic = Uuid.random().toString(),

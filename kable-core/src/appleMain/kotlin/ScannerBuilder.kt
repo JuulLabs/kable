@@ -4,10 +4,8 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 import platform.CoreBluetooth.CBCentralManagerScanOptionAllowDuplicatesKey
 import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 public actual class ScannerBuilder {
 
     @Deprecated(

@@ -6,12 +6,10 @@ import com.juul.kable.WriteType
 import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.Logging.Format.Compact
 import com.juul.kable.logs.Logging.Format.Multiline
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 internal expect val LOG_INDENT: String?
 
-@OptIn(ExperimentalUuidApi::class)
 internal class LogMessage(
     private val logging: Logging,
     platformIdentifier: String?,

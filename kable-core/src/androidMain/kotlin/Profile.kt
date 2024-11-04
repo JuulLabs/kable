@@ -1,5 +1,4 @@
 @file:JvmName("ProfileAndroid")
-@file:OptIn(ExperimentalUuidApi::class)
 
 package com.juul.kable
 
@@ -7,7 +6,6 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import com.juul.kable.Characteristic.Properties
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlin.uuid.toKotlinUuid
 

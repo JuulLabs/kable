@@ -1,10 +1,7 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.juul.kable
 
 import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSUUID
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 internal fun Uuid.toNSUUID(): NSUUID = NSUUID(toString())

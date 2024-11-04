@@ -1,12 +1,9 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.juul.kable
 
 import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.Name
 import com.juul.kable.Filter.Service
 import kotlin.jvm.JvmInline
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @JvmInline

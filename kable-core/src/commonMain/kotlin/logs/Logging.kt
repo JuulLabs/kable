@@ -1,7 +1,6 @@
 package com.juul.kable.logs
 
 import com.juul.kable.ObsoleteKableApi
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 public typealias LoggingBuilder = Logging.() -> Unit
@@ -49,7 +48,6 @@ public class Logging {
 
         public enum class Operation { Read, Write, Change }
 
-        @OptIn(ExperimentalUuidApi::class)
         public fun process(
             data: ByteArray,
             operation: Operation?,

@@ -43,11 +43,9 @@ import platform.Foundation.dataUsingEncoding
 import platform.darwin.UInt16
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
-import kotlin.uuid.ExperimentalUuidApi
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse as CBWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse as CBWithoutResponse
 
-@OptIn(ExperimentalUuidApi::class)
 internal class CBPeripheralCoreBluetoothPeripheral(
     private val cbPeripheral: CBPeripheral,
     observationExceptionHandler: ObservationExceptionHandler,

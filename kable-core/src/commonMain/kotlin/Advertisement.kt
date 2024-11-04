@@ -1,9 +1,7 @@
 package com.juul.kable
 
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 public interface Advertisement {
 
     /**

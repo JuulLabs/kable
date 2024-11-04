@@ -3,9 +3,7 @@ package com.juul.kable
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.uuid.ExperimentalUuidApi
 
-@OptIn(ExperimentalUuidApi::class)
 class BluetoothTests {
 
     @Test

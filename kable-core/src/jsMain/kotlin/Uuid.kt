@@ -1,10 +1,7 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.juul.kable
 
 import com.juul.kable.external.BluetoothServiceUUID
 import com.juul.kable.external.BluetoothUUID
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 // Number of characters in a 16-bit UUID alias in string hex representation

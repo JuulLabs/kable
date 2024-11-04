@@ -23,6 +23,12 @@ kotlin {
     jvm()
 
     sourceSets {
+        all {
+            languageSettings {
+                optIn("kotlin.uuid.ExperimentalUuidApi")
+            }
+        }
+
         commonMain.dependencies {
             api(libs.kotlinx.coroutines.core)
             api(libs.kotlinx.io)

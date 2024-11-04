@@ -4,7 +4,6 @@ import com.juul.kable.external.BluetoothLEScanFilterInit
 import com.juul.kable.external.BluetoothLEScanOptions
 import com.juul.kable.external.BluetoothManufacturerDataFilterInit
 import js.objects.jso
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /** Convert list of public API type to Web Bluetooth (JavaScript) type. */
@@ -20,7 +19,6 @@ internal fun List<FilterPredicate>.toBluetoothLEScanFilterInit(): Array<Bluetoot
     map(FilterPredicate::toBluetoothLEScanFilterInit)
         .toTypedArray()
 
-@OptIn(ExperimentalUuidApi::class)
 private fun FilterPredicate.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit = jso {
     filters
         .filterIsInstance<Filter.Service>()

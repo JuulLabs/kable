@@ -1,12 +1,9 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.juul.kable
 
 import com.juul.kable.Characteristic.Properties
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBService
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316

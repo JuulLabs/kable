@@ -1,8 +1,5 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.juul.kable
 
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 internal actual class PlatformService

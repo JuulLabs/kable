@@ -11,12 +11,10 @@ import platform.CoreBluetooth.CBPeripheral
 import platform.Foundation.NSData
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 private const val DISPATCH_QUEUE_LABEL = "central"
 
-@OptIn(ExperimentalUuidApi::class)
 public class CentralManager internal constructor(
     options: Map<Any?, *>?,
 ) {

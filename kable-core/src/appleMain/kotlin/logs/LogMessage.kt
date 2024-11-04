@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.juul.kable.logs
 
 import com.juul.kable.logs.Logging.DataProcessor.Operation
@@ -10,7 +8,6 @@ import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBService
 import platform.Foundation.NSData
 import platform.Foundation.NSError
-import kotlin.uuid.ExperimentalUuidApi
 
 internal actual val LOG_INDENT: String? = "  "
 

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.juul.kable
 
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
@@ -19,7 +17,6 @@ import platform.CoreBluetooth.CBManagerStatePoweredOff
 import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.CoreBluetooth.CBManagerStateUnauthorized
 import platform.CoreBluetooth.CBManagerStateUnsupported
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 internal class CentralManagerCoreBluetoothScanner(

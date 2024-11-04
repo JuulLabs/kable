@@ -5,10 +5,8 @@ import platform.CoreBluetooth.CBAdvertisementDataManufacturerDataKey
 import platform.CoreBluetooth.CBAdvertisementDataServiceUUIDsKey
 import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSData
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 internal value class AdvertisementData(private val source: Map<String, Any>) {
 
     val serviceUuids: List<Uuid>?

@@ -5,10 +5,8 @@ import com.juul.kable.Filter.Name.Prefix
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 class FiltersTests {
 
     private val TEST_UUID_1 = Uuid.parse("deadbeef-0000-0000-0000-000000000000")

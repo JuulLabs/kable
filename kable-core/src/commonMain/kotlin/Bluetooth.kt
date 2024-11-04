@@ -4,7 +4,6 @@ package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
 import kotlin.jvm.JvmName
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import com.juul.kable.bluetooth.isSupported as isBluetoothSupported
 
@@ -22,7 +21,6 @@ public object Bluetooth {
      *
      * [Bluetooth Core Specification, Vol 3, Part B: 2.5.1 UUID](https://www.bluetooth.com/specifications/specs/?types=adopted&keyword=Core+Specification)
      */
-    @OptIn(ExperimentalUuidApi::class)
     public object BaseUuid {
 
         private const val mostSignificantBits = 4096L // 00000000-0000-1000

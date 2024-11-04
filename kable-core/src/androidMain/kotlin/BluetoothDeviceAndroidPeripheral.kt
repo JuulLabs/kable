@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.juul.kable
 
 import android.bluetooth.BluetoothAdapter.STATE_OFF
@@ -44,7 +42,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.toKotlinUuid
 
 // Number of service discovery attempts to make if no services are discovered.

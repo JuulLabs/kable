@@ -1,5 +1,4 @@
 @file:Suppress("ktlint:standard:no-multi-spaces")
-@file:OptIn(ExperimentalUuidApi::class)
 
 package com.juul.kable
 
@@ -7,7 +6,6 @@ import com.juul.kable.Characteristic.Properties
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import kotlin.jvm.JvmInline
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 public interface Service {
