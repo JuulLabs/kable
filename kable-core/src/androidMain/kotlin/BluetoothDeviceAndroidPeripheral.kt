@@ -138,10 +138,6 @@ internal class BluetoothDeviceAndroidPeripheral(
                 disconnectTimeout,
             )
 
-            if (bondState.value == Bond.Bonding) {
-                logger.debug { message = "Awaiting bond state" }
-                awaitNotBonding()
-            }
             suspendUntil<State.Connecting.Services>()
             discoverServices()
             configureCharacteristicObservations()
