@@ -16,9 +16,13 @@ import com.juul.tuulbox.coroutines.flow.broadcastReceiverFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 internal fun bondStateFor(bluetoothDevice: BluetoothDevice): Flow<Bond> =
     broadcastReceiverFlow(IntentFilter(ACTION_BOND_STATE_CHANGED))
+        .onEach { intent ->
+            println("Bond state for ${intent.bluetoothDevice}: ${intent.bondState}")
+        }
         .filter { intent -> bluetoothDevice == intent.bluetoothDevice }
         .map { intent -> intent.bondState }
         .map(::Bond)
