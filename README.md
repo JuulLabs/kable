@@ -517,7 +517,7 @@ after initialization will result in an `IllegalStateException` being thrown.
 
 ### Android Permissions
 
-Kable [declares permissions for common use cases](core/src/androidMain/AndroidManifest.xml), but your app's
+Kable [declares permissions for common use cases](kable-core/src/androidMain/AndroidManifest.xml), but your app's
 configuration may need to be adjusted under the following conditions:
 
 <table>
