@@ -13,7 +13,7 @@ public actual fun Peripheral(
 @Suppress("FunctionName") // Builder function.
 internal fun Peripheral(
     bluetoothDevice: BluetoothDevice,
-    builderAction: PeripheralBuilderAction = {},
+    builderAction: PeripheralBuilderAction,
 ): WebBluetoothPeripheral = Peripheral(bluetoothDevice, PeripheralBuilder().apply(builderAction))
 
 @Suppress("FunctionName") // Builder function.
