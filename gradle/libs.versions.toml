@@ -8,8 +8,8 @@ kotlin = "2.0.21"
 tuulbox = "8.0.0"
 
 [libraries]
-androidx-core = { module = "androidx.core:core-ktx", version = "1.13.1" }
-androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.1.1" }
+androidx-core = { module = "androidx.core:core-ktx", version = "1.15.0" }
+androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.1" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.3.0" }
@@ -19,7 +19,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.5.4" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
 tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "1.0.0-pre.822" }
+wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "1.0.0-pre.832" }
 wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 
 [plugins]
