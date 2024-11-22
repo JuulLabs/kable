@@ -36,7 +36,7 @@ public suspend fun requestPeripheral(
         coroutineContext.ensureActive()
         throw when (e) {
             is TypeError -> IllegalStateException("Requesting a device is not supported", e)
-            else -> InternalException("Failed to invoke device request", e)
+            else -> InternalError("Failed to invoke device request", e)
         }
     }
 
@@ -70,10 +70,10 @@ public suspend fun requestPeripheral(
                     detail("processed", JSON.stringify(requestDeviceOptions))
                     message = e.toString()
                 }
-                throw InternalException("Type error when requesting device", e)
+                throw InternalError("Type error when requesting device", e)
             }
 
-            else -> throw InternalException("Failed to request device", e)
+            else -> throw InternalError("Failed to request device", e)
         }
     }?.let(builder::build)
 }

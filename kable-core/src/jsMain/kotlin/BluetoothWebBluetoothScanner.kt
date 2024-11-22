@@ -57,7 +57,7 @@ internal class BluetoothWebBluetoothScanner(
             throw IllegalStateException("Scanning not supported", e)
         } catch (e: JsError) {
             ensureActive()
-            throw InternalException("Failed to request scan", e)
+            throw InternalError("Failed to request scan", e)
         }
 
         logger.verbose { message = "Adding scan listener" }
@@ -95,7 +95,7 @@ internal class BluetoothWebBluetoothScanner(
                 detail("options", JSON.stringify(options))
                 message = e.toString()
             }
-            throw InternalException("Failed to start scan", e)
+            throw InternalError("Failed to start scan", e)
         }
 
         awaitClose {

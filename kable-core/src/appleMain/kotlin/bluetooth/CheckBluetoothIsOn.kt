@@ -1,7 +1,7 @@
 package com.juul.kable.bluetooth
 
 import com.juul.kable.CentralManager
-import com.juul.kable.InternalException
+import com.juul.kable.InternalError
 import com.juul.kable.UnmetRequirementException
 import com.juul.kable.UnmetRequirementReason.BluetoothDisabled
 import platform.CoreBluetooth.CBManagerState
@@ -33,5 +33,5 @@ private fun nameFor(state: CBManagerState) = when (state) {
     CBManagerStateUnauthorized -> "Unauthorized"
     CBManagerStateUnknown -> "Unknown"
     CBManagerStateUnsupported -> "Unsupported"
-    else -> throw InternalException("Unsupported bluetooth state: $state")
+    else -> throw InternalError("Unsupported bluetooth state: $state")
 }

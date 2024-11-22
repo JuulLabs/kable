@@ -4,7 +4,7 @@ import android.bluetooth.BluetoothAdapter.STATE_OFF
 import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
 import android.bluetooth.BluetoothAdapter.STATE_TURNING_ON
-import com.juul.kable.InternalException
+import com.juul.kable.InternalError
 import com.juul.kable.UnmetRequirementException
 import com.juul.kable.UnmetRequirementReason.BluetoothDisabled
 import com.juul.kable.getBluetoothAdapter
@@ -29,5 +29,5 @@ private fun nameFor(state: Int) = when (state) {
     STATE_ON -> "STATE_ON"
     STATE_TURNING_OFF -> "STATE_TURNING_OFF"
     STATE_TURNING_ON -> "STATE_TURNING_ON"
-    else -> throw InternalException("Unsupported bluetooth state: $state")
+    else -> throw InternalError("Unsupported bluetooth state: $state")
 }
