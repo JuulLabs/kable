@@ -52,7 +52,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
     private val disconnectTimeout: Duration,
-) : BasePeripheral(cbPeripheral.identifier.toUuid()), CoreBluetoothPeripheral {
+) : BasePeripheral(logging, cbPeripheral.identifier.toUuid()), CoreBluetoothPeripheral {
 
     private val central = CentralManager.Default
 

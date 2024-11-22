@@ -57,7 +57,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
     private val disconnectTimeout: Duration,
-) : BasePeripheral(bluetoothDevice.toString()), AndroidPeripheral {
+) : BasePeripheral(logging, bluetoothDevice.toString()), AndroidPeripheral {
 
     init {
         onBluetoothDisabled { state ->

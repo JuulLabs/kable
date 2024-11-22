@@ -1,9 +1,10 @@
 package com.juul.kable
 
+import com.juul.kable.logs.Logging
 import kotlinx.coroutines.CoroutineName
 
-internal abstract class BasePeripheral(identifier: Identifier) : Peripheral {
+internal abstract class BasePeripheral(logging: Logging, identifier: Identifier) : Peripheral {
 
     override val coroutineContext =
-        SilentSupervisor() + CoroutineName("Kable/Peripheral/$identifier")
+        LoggingSupervisor(logging, identifier) + CoroutineName("Kable/Peripheral/$identifier")
 }

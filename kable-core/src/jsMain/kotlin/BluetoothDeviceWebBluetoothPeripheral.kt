@@ -39,7 +39,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val disconnectTimeout: Duration,
     private val logging: Logging,
-) : BasePeripheral(bluetoothDevice.id), WebBluetoothPeripheral {
+) : BasePeripheral(logging, bluetoothDevice.id), WebBluetoothPeripheral {
 
     private val connectAction = sharedRepeatableAction(::establishConnection)
 
