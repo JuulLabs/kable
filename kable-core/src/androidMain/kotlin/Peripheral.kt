@@ -12,7 +12,7 @@ public actual fun Peripheral(
 
 public fun Peripheral(
     bluetoothDevice: BluetoothDevice,
-    builderAction: PeripheralBuilderAction,
+    builderAction: PeripheralBuilderAction = {},
 ): Peripheral {
     val builder = PeripheralBuilder().apply(builderAction)
     return BluetoothDeviceAndroidPeripheral(

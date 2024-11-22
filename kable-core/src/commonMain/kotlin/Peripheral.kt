@@ -289,7 +289,7 @@ internal typealias PeripheralBuilderAction = PeripheralBuilder.() -> Unit
 
 public expect fun Peripheral(
     advertisement: Advertisement,
-    builderAction: PeripheralBuilderAction,
+    builderAction: PeripheralBuilderAction = {},
 ): Peripheral
 
 /**
