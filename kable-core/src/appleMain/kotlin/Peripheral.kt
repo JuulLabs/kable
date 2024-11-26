@@ -23,7 +23,7 @@ public fun Peripheral(
 @Suppress("FunctionName") // Builder function.
 public fun Peripheral(
     cbPeripheral: CBPeripheral,
-    builderAction: PeripheralBuilderAction,
+    builderAction: PeripheralBuilderAction = {},
 ): CoreBluetoothPeripheral {
     val builder = PeripheralBuilder().apply(builderAction)
     return CBPeripheralCoreBluetoothPeripheral(

@@ -350,6 +350,8 @@ public final class com/juul/kable/PeripheralBuilder {
 public final class com/juul/kable/PeripheralKt {
 	public static final fun Peripheral (Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static final fun Peripheral (Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
+	public static synthetic fun Peripheral$default (Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
+	public static synthetic fun Peripheral$default (Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 }
 
 public final class com/juul/kable/Peripheral_deprecatedKt {
