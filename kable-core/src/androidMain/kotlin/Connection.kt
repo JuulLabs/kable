@@ -183,7 +183,7 @@ internal class Connection(
         // `guard` should always enforce a 1:1 matching of request-to-response, but if an Android
         // `BluetoothGattCallback` method is called out-of-order then we'll cast to the wrong type.
         return response as? T
-            ?: throw InternalException(
+            ?: throw InternalError(
                 "Expected response type ${type.simpleName} but received ${response::class.simpleName}",
             )
     }

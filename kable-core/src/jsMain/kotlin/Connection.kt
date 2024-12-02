@@ -91,7 +91,7 @@ internal class Connection(
         // we throw `InternalException`, as the Web Bluetooth Permission API spec is not stable, nor
         // is it utilized by Kable.
         // https://webbluetoothcg.github.io/web-bluetooth/#permission-api-integration
-        ?: throw InternalException("GATT server unavailable")
+        ?: throw InternalError("GATT server unavailable")
 
     private fun servicesOrThrow(): List<DiscoveredService> =
         discoveredServices.value ?: error("Services have not been discovered")
@@ -134,7 +134,7 @@ internal class Connection(
                 coroutineContext.ensureActive()
                 throw when (e) {
                     is DOMException -> IOException("Failed to start notification", e)
-                    else -> InternalException("Unexpected start notification failure", e)
+                    else -> InternalError("Unexpected start notification failure", e)
                 }
             }
         }
@@ -163,7 +163,7 @@ internal class Connection(
                         // No-op: System implicitly clears notifications on disconnect.
                     }
 
-                    else -> throw InternalException("Unexpected stop notification failure", e)
+                    else -> throw InternalError("Unexpected stop notification failure", e)
                 }
             } finally {
                 val listener = observationListeners.remove(platformCharacteristic) ?: return
