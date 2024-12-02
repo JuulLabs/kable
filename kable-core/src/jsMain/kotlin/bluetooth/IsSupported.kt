@@ -1,6 +1,6 @@
 package com.juul.kable.bluetooth
 
-import com.juul.kable.InternalException
+import com.juul.kable.InternalError
 import com.juul.kable.bluetoothOrNull
 import js.errors.JsError
 import js.errors.TypeError
@@ -17,6 +17,6 @@ internal actual suspend fun isSupported(): Boolean {
     return try {
         promise.await()
     } catch (e: JsError) {
-        throw InternalException("Failed to get bluetooth availability", e)
+        throw InternalError("Failed to get bluetooth availability", e)
     }
 }

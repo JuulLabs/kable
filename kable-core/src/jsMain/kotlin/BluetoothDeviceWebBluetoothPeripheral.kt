@@ -160,7 +160,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
                 continuation.resume(rssi)
             } else {
                 continuation.resumeWithException(
-                    InternalException("BluetoothAdvertisingEvent.rssi was null"),
+                    InternalError("BluetoothAdvertisingEvent.rssi was null"),
                 )
             }
         }
