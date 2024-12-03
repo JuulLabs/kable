@@ -33,6 +33,8 @@ import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.detail
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,8 +42,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlin.coroutines.cancellation.CancellationException
-import kotlin.time.Duration
 
 // Number of service discovery attempts to make if no services are discovered.
 // https://github.com/JuulLabs/kable/issues/295
@@ -145,7 +145,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     }
 
     override suspend fun connect(): CoroutineScope =
-        connectAction.await()
+        connectAction.awaitConnect()
 
     override suspend fun disconnect() {
         connectAction.cancelAndJoin(
