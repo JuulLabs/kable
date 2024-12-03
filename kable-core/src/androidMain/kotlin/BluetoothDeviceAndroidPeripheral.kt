@@ -166,8 +166,8 @@ internal class BluetoothDeviceAndroidPeripheral(
             .requestConnectionPriority(priority.intValue)
     }
 
-    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int? {
-        return mtu.value ?: (DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE)
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int {
+        return (mtu.value ?: DEFAULT_ATT_MTU) - ATT_MTU_HEADER_SIZE
     }
 
     @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.
