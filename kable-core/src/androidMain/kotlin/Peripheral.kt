@@ -10,6 +10,12 @@ public actual fun Peripheral(
     return Peripheral(advertisement.bluetoothDevice, builderAction)
 }
 
+/** @throws IllegalStateException If bluetooth is not supported. */
+public fun Peripheral(
+    identifier: Identifier,
+    builderAction: PeripheralBuilderAction = {},
+): Peripheral = Peripheral(getBluetoothAdapter().getRemoteDevice(identifier), builderAction)
+
 public fun Peripheral(
     bluetoothDevice: BluetoothDevice,
     builderAction: PeripheralBuilderAction = {},
