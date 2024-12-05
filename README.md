@@ -140,6 +140,9 @@ peripheral.launch {
 > ```kotlin
 > peripheral.cancel()
 > ```
+>
+> Once a [`Peripheral`] is cancelled (via `cancel`) it can no longer be used (e.g. calling `connect` will throw
+> `IllegalStateException`).
 
 > [!TIP]
 > `launch`ed coroutines from a `Peripheral` object are permitted to run until `Peripheral.cancel()` is called

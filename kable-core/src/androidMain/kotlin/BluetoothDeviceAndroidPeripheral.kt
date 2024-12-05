@@ -145,7 +145,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     }
 
     override suspend fun connect(): CoroutineScope =
-        connectAction.await()
+        connectAction.awaitConnect()
 
     override suspend fun disconnect() {
         connectAction.cancelAndJoin(
