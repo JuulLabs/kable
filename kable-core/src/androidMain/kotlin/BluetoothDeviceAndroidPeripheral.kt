@@ -48,6 +48,9 @@ import kotlin.uuid.toKotlinUuid
 // https://github.com/JuulLabs/kable/issues/295
 private const val DISCOVER_SERVICES_RETRIES = 5
 
+private const val DEFAULT_ATT_MTU = 23
+private const val ATT_MTU_HEADER_SIZE = 3
+
 internal class BluetoothDeviceAndroidPeripheral(
     private val bluetoothDevice: BluetoothDevice,
     private val autoConnectPredicate: () -> Boolean,
@@ -146,7 +149,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     }
 
     override suspend fun connect(): CoroutineScope =
-        connectAction.await()
+        connectAction.awaitConnect()
 
     override suspend fun disconnect() {
         connectAction.cancelAndJoin(
@@ -163,6 +166,9 @@ internal class BluetoothDeviceAndroidPeripheral(
             .gatt
             .requestConnectionPriority(priority.intValue)
     }
+
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
+        (mtu.value ?: DEFAULT_ATT_MTU) - ATT_MTU_HEADER_SIZE
 
     @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.
     override suspend fun rssi(): Int =

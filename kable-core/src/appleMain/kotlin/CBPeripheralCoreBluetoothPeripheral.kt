@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.sync.withLock
 import kotlinx.io.IOException
+import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
+import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
 import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBManagerState
 import platform.CoreBluetooth.CBManagerStatePoweredOn
@@ -136,12 +138,20 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     }
 
     override suspend fun connect(): CoroutineScope =
-        connectAction.await()
+        connectAction.awaitConnect()
 
     override suspend fun disconnect() {
         connectAction.cancelAndJoin(
             CancellationException(NotConnectedException("Disconnect requested")),
         )
+    }
+
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int {
+        val type = when (writeType) {
+            WithResponse -> CBCharacteristicWriteWithResponse
+            WithoutResponse -> CBCharacteristicWriteWithoutResponse
+        }
+        return cbPeripheral.maximumWriteValueLengthForType(type).toInt()
     }
 
     @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.

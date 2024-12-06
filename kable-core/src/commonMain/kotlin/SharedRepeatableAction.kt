@@ -86,6 +86,7 @@ internal class SharedRepeatableAction<T>(
 
     private suspend fun stateOrNull(): State<T>? = guard.withLock { state }
 
+    /** @throws IllegalStateException if parent [scope] is not active. */
     suspend fun await() = getOrCreate().action.await()
 
     /**
