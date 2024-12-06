@@ -116,9 +116,8 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         )
     }
 
-    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int {
-        return DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
-    }
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
+        DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
 
     /**
      * Per [Web Bluetooth / Scanning Sample][https://googlechrome.github.io/samples/web-bluetooth/scan.html]:
