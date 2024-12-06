@@ -1,10 +1,10 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.Name
 import com.juul.kable.Filter.Service
 import kotlin.jvm.JvmInline
+import kotlin.uuid.Uuid
 
 @JvmInline
 internal value class FilterPredicate(

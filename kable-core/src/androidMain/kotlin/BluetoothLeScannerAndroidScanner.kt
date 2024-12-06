@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
+import kotlin.uuid.toJavaUuid
 
 internal class BluetoothLeScannerAndroidScanner(
     private val filters: List<FilterPredicate>,
@@ -142,7 +143,7 @@ private fun FilterPredicate.toNativeScanFilter(): ScanFilter =
                 is Name.Exact -> setDeviceName(filter.exact)
                 is Address -> setDeviceAddress(filter.address)
                 is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
-                is Service -> setServiceUuid(ParcelUuid(filter.uuid))
+                is Service -> setServiceUuid(ParcelUuid(filter.uuid.toJavaUuid()))
                 else -> throw AssertionError("Unsupported filter element")
             }
         }

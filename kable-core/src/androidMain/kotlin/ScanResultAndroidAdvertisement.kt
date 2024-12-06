@@ -9,9 +9,11 @@ import android.bluetooth.le.ScanResult
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.ParcelUuid
-import com.benasher44.uuid.Uuid
 import com.juul.kable.PlatformAdvertisement.BondState
 import kotlinx.parcelize.Parcelize
+import kotlin.uuid.Uuid
+import kotlin.uuid.toJavaUuid
+import kotlin.uuid.toKotlinUuid
 
 @Parcelize
 internal class ScanResultAndroidAdvertisement(
@@ -65,10 +67,10 @@ internal class ScanResultAndroidAdvertisement(
         get() = scanResult.scanRecord?.txPowerLevel
 
     override val uuids: List<Uuid>
-        get() = scanResult.scanRecord?.serviceUuids?.map { it.uuid } ?: emptyList()
+        get() = scanResult.scanRecord?.serviceUuids?.map { it.uuid.toKotlinUuid() } ?: emptyList()
 
     override fun serviceData(uuid: Uuid): ByteArray? =
-        scanResult.scanRecord?.serviceData?.get(ParcelUuid(uuid))
+        scanResult.scanRecord?.serviceData?.get(ParcelUuid(uuid.toJavaUuid()))
 
     override fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
         scanResult.scanRecord?.getManufacturerSpecificData(companyIdentifierCode)

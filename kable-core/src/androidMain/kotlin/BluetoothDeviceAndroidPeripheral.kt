@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
+import kotlin.uuid.toKotlinUuid
 
 // Number of service discovery attempts to make if no services are discovered.
 // https://github.com/JuulLabs/kable/issues/295
@@ -369,7 +370,7 @@ private val Priority.intValue: Int
     }
 
 private val PlatformCharacteristic.configDescriptor: PlatformDescriptor?
-    get() = descriptors.firstOrNull { clientCharacteristicConfigUuid == it.uuid }
+    get() = descriptors.firstOrNull { clientCharacteristicConfigUuid == it.uuid.toKotlinUuid() }
 
 private val PlatformCharacteristic.supportsNotify: Boolean
     get() = properties and PROPERTY_NOTIFY != 0

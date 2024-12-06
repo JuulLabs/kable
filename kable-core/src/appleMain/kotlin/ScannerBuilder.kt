@@ -1,10 +1,10 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 import platform.CoreBluetooth.CBCentralManagerScanOptionAllowDuplicatesKey
 import platform.CoreBluetooth.CBCentralManagerScanOptionSolicitedServiceUUIDsKey
+import kotlin.uuid.Uuid
 
 public actual class ScannerBuilder {
 

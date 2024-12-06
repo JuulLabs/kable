@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.benasher44.uuid.uuidFrom
 import com.juul.kable.logs.LogMessage
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation.Read
@@ -9,10 +8,11 @@ import com.juul.kable.logs.Logging.Format.Multiline
 import com.juul.kable.logs.Logging.Level.Data
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.uuid.Uuid
 
-private val TEST_UUID_1 = uuidFrom("ad0be000-0000-4000-a000-000000000000")
-private val TEST_UUID_2 = uuidFrom("c0c0a000-0000-4000-a000-000000000000")
-private val TEST_UUID_3 = uuidFrom("decade00-0000-4000-a000-000000000000")
+private val TEST_UUID_1 = Uuid.parse("ad0be000-0000-4000-a000-000000000000")
+private val TEST_UUID_2 = Uuid.parse("c0c0a000-0000-4000-a000-000000000000")
+private val TEST_UUID_3 = Uuid.parse("decade00-0000-4000-a000-000000000000")
 
 class LogMessageTests {
 
