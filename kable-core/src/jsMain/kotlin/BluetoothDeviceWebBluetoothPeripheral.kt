@@ -32,6 +32,8 @@ import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
 
 private const val ADVERTISEMENT_RECEIVED = "advertisementreceived"
+private const val DEFAULT_ATT_MTU = 23
+private const val ATT_MTU_HEADER_SIZE = 3
 
 internal class BluetoothDeviceWebBluetoothPeripheral(
     private val bluetoothDevice: BluetoothDevice,
@@ -113,6 +115,9 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
             CancellationException(NotConnectedException("Disconnect requested")),
         )
     }
+
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
+        DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
 
     /**
      * Per [Web Bluetooth / Scanning Sample][https://googlechrome.github.io/samples/web-bluetooth/scan.html]:

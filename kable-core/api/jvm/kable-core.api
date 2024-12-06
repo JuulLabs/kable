@@ -235,6 +235,7 @@ public abstract interface class com/juul/kable/Peripheral : kotlinx/coroutines/C
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getServices ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun maximumWriteValueLengthForType (Lcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun read (Lcom/juul/kable/Descriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
