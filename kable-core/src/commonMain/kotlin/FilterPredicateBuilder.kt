@@ -1,6 +1,6 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
+import kotlin.uuid.Uuid
 
 public class FilterPredicateBuilder internal constructor() {
     public var name: Filter.Name? = null

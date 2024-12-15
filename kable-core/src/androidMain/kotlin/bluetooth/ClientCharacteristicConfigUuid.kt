@@ -1,6 +1,6 @@
 package com.juul.kable.bluetooth
 
-import com.benasher44.uuid.uuidFrom
 import com.juul.kable.external.CLIENT_CHARACTERISTIC_CONFIG_UUID
+import kotlin.uuid.Uuid
 
-internal val clientCharacteristicConfigUuid = uuidFrom(CLIENT_CHARACTERISTIC_CONFIG_UUID)
+internal val clientCharacteristicConfigUuid = Uuid.parse(CLIENT_CHARACTERISTIC_CONFIG_UUID)

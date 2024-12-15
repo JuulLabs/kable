@@ -1,9 +1,9 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.Filter.Name.Exact
 import com.juul.kable.Filter.Name.Prefix
 import kotlin.experimental.and
+import kotlin.uuid.Uuid
 
 /**
  * All [Filter]s are supported on all platforms, except for [Filter.Address], which is only supported on Android.

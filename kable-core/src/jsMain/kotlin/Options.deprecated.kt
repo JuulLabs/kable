@@ -1,6 +1,6 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
+import kotlin.uuid.Uuid
 
 @Deprecated(
     message = "Use Options builder instead. See https://github.com/JuulLabs/kable/issues/723 for details.",

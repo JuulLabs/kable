@@ -3,7 +3,6 @@
 
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.State.Disconnecting
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
@@ -152,6 +151,15 @@ public interface Peripheral : CoroutineScope {
      * @return [discovered services][DiscoveredService], or `null` until services have been discovered.
      */
     public val services: StateFlow<List<DiscoveredService>?>
+
+    /**
+     * Return the current ATT MTU size, minus the size of the ATT headers (3 bytes).
+     *
+     * On Android, this will be the default (23 - 3) unless you called [requestMtu] when connecting.
+     * For iOS, this is automatically negotiated, and can also vary depending on the writeType.
+     * On JavaScript, this will return the default (23 - 3) every time as there is no ATT MTU property available.
+     */
+    public suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int
 
     /**
      * On JavaScript, requires Chrome 79+ with the

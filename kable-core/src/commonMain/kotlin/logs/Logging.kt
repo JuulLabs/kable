@@ -1,7 +1,7 @@
 package com.juul.kable.logs
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.ObsoleteKableApi
+import kotlin.uuid.Uuid
 
 public typealias LoggingBuilder = Logging.() -> Unit
 

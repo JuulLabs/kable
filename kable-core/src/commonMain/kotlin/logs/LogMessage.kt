@@ -1,12 +1,12 @@
 package com.juul.kable.logs
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.Characteristic
 import com.juul.kable.Descriptor
 import com.juul.kable.WriteType
 import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.Logging.Format.Compact
 import com.juul.kable.logs.Logging.Format.Multiline
+import kotlin.uuid.Uuid
 
 internal expect val LOG_INDENT: String?
 

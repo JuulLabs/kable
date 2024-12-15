@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import platform.CoreBluetooth.CBAdvertisementDataIsConnectable
 import platform.CoreBluetooth.CBAdvertisementDataLocalNameKey
 import platform.CoreBluetooth.CBAdvertisementDataManufacturerDataKey
@@ -12,6 +11,7 @@ import platform.CoreBluetooth.CBUUID
 import platform.Foundation.NSData
 import platform.Foundation.NSNumber
 import kotlin.experimental.ExperimentalNativeApi
+import kotlin.uuid.Uuid
 
 internal class CBPeripheralCoreBluetoothAdvertisement(
     override val rssi: Int,

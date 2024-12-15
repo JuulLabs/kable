@@ -1,6 +1,6 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
+import kotlin.uuid.Uuid
 
 internal actual class PlatformService
 internal actual class PlatformCharacteristic

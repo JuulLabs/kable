@@ -2,9 +2,9 @@
 
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlin.jvm.JvmName
+import kotlin.uuid.Uuid
 import com.juul.kable.bluetooth.isSupported as isBluetoothSupported
 
 @Deprecated(
@@ -30,7 +30,7 @@ public object Bluetooth {
 
         /** @param shortUuid 32-bits (or less) short UUID (if larger than 32-bits, will be truncated to 32-bits). */
         public operator fun plus(shortUuid: Long): Uuid =
-            Uuid(mostSignificantBits + (shortUuid and 0xFFFF_FFFF shl 32), leastSignificantBits)
+            Uuid.fromLongs(mostSignificantBits + (shortUuid and 0xFFFF_FFFF shl 32), leastSignificantBits)
 
         override fun toString(): String = "00000000-0000-1000-8000-00805F9B34FB"
     }

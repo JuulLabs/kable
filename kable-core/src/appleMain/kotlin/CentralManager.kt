@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.logs.Logging
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +11,7 @@ import platform.CoreBluetooth.CBPeripheral
 import platform.Foundation.NSData
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
+import kotlin.uuid.Uuid
 
 private const val DISPATCH_QUEUE_LABEL = "central"
 

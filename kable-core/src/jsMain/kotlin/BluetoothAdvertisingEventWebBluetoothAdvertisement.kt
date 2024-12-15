@@ -1,10 +1,10 @@
 package com.juul.kable
 
-import com.benasher44.uuid.Uuid
 import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.iterable
 import org.khronos.webgl.DataView
+import kotlin.uuid.Uuid
 
 internal class BluetoothAdvertisingEventWebBluetoothAdvertisement(
     private val advertisement: BluetoothAdvertisingEvent,
