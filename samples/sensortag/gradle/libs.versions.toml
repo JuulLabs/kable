@@ -14,7 +14,7 @@ androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version =
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.9.3" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.9.0" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.1" }
-desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.3" }
+desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.4" }
 kable = { module = "com.juul.kable:kable-core", version = "0.35.0-rc" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.0" }
 krayon-axis = { module = "com.juul.krayon:axis", version.ref = "krayon" }
