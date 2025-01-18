@@ -380,12 +380,12 @@ whereas characteristics and descriptors have the capability of being read from, 
 
 For example, a peripheral might have the following structure:
 
-- Service S1 (`00001815-0000-1000-8000-00805f9b34fb`)
+- Service S1 (`0x1815` or `00001815-0000-1000-8000-00805f9b34fb`)
     - Characteristic C1
         - Descriptor D1
         - Descriptor D2
-    - Characteristic C2 (`00002a56-0000-1000-8000-00805f9b34fb`)
-        - Descriptor D3 (`00002902-0000-1000-8000-00805f9b34fb`)
+    - Characteristic C2 (`0x2a56` or `00002a56-0000-1000-8000-00805f9b34fb`)
+        - Descriptor D3 (`gatt.client_characteristic_configuration` or `00002902-0000-1000-8000-00805f9b34fb`)
 - Service S2
     - Characteristic C3
 
@@ -401,9 +401,9 @@ In the above example, to lazily access "Descriptor D3":
 
 ```kotlin
 val descriptor = descriptorOf(
-    service = "00001815-0000-1000-8000-00805f9b34fb",
-    characteristic = "00002a56-0000-1000-8000-00805f9b34fb",
-    descriptor = "00002902-0000-1000-8000-00805f9b34fb"
+    service = Bluetooth.BaseUuid + 0x1815,
+    characteristic = Bluetooth.BaseUuid + 0x2A56,
+    descriptor = Uuid.descriptor("gatt.client_characteristic_configuration"),
 )
 ```
 
@@ -417,12 +417,25 @@ To access "Descriptor D3" using a discovered descriptor:
 ```kotlin
 val services = peripheral.services.value ?: error("Services have not been discovered")
 val descriptor = services
-    .first { it.serviceUuid == uuidFrom("00001815-0000-1000-8000-00805f9b34fb") }
+    .first { it.serviceUuid == Uuid.parse("00001815-0000-1000-8000-00805f9b34fb") }
     .characteristics
-    .first { it.characteristicUuid == uuidFrom("00002a56-0000-1000-8000-00805f9b34fb") }
+    .first { it.characteristicUuid == Uuid.parse("00002a56-0000-1000-8000-00805f9b34fb") }
     .descriptors
-    .first { it.descriptorUuid == uuidFrom("00002902-0000-1000-8000-00805f9b34fb") }
+    .first { it.descriptorUuid == Uuid.parse("00002902-0000-1000-8000-00805f9b34fb") }
 ```
+
+> [!TIP]
+> Shorthand notations are available for UUIDs. The accessing "Descriptor D3" example could be written as:
+>
+> ```kotlin
+> val services = peripheral.services.value ?: error("Services have not been discovered")
+> val descriptor = services
+>   .first { it.serviceUuid == Bluetooth.BaseUuid + 0x1815 }
+>   .characteristics
+>   .first { it.characteristicUuid == Bluetooth.BaseUuid + 0x2A56 }
+>   .descriptors
+>   .first { it.descriptorUuid == Uuid.descriptor("gatt.client_characteristic_configuration") }
+> ```
 
 > [!TIP]
 > _This example uses a similar search algorithm as `descriptorOf`, but other search methods may be utilized. For example,
