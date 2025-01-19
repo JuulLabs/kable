@@ -43,6 +43,9 @@ val heartRateServiceUuid = Uuid.service("heart_rate")
 println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 ```
 
+> [!NOTE]
+> List of known UUID names can be found in [`Uuid.kt`](https://github.com/JuulLabs/kable/blob/main/kable-core/src/commonMain/kotlin/Uuid.kt).
+
 Additional example shorthand notations:
 
 | Shorthand                         | Canonical UUID                         |
