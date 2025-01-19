@@ -111,8 +111,3 @@ internal actual class PlatformDiscoveredDescriptor internal constructor(
     override fun toString() =
         "DiscoveredDescriptor(serviceUuid=$serviceUuid, serviceInstanceId=$serviceInstanceId, characteristicUuid=$characteristicUuid, characteristicInstanceId=$characteristicInstanceId, descriptorUuid=$descriptorUuid)"
 }
-
-internal fun PlatformCharacteristic.toLazyCharacteristic() = LazyCharacteristic(
-    serviceUuid = service.uuid.toKotlinUuid(),
-    characteristicUuid = uuid.toKotlinUuid(),
-)

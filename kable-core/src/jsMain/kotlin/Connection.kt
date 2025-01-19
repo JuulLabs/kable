@@ -114,7 +114,7 @@ internal class Connection(
         val platformCharacteristic = servicesOrThrow().obtain(characteristic, Notify or Indicate)
         if (platformCharacteristic in observationListeners) return
 
-        val listener = characteristic.createObservationListener()
+        val listener = platformCharacteristic.createObservationListener()
         observationListeners[platformCharacteristic] = listener
 
         platformCharacteristic.apply {
@@ -230,7 +230,7 @@ internal class Connection(
         bluetoothDevice.removeEventListener(GATT_SERVER_DISCONNECTED, disconnectedListener)
     }
 
-    private fun Characteristic.createObservationListener(): ObservationListener = { event ->
+    private fun PlatformCharacteristic.createObservationListener(): ObservationListener = { event ->
         val target = event.target.unsafeCast<BluetoothRemoteGATTCharacteristic>()
         val data = target.value!!
         logger.debug {
@@ -238,7 +238,14 @@ internal class Connection(
             detail(this@createObservationListener)
             detail(data, Operation.Change)
         }
-        val characteristicChange = ObservationEvent.CharacteristicChange(this, data)
+
+        // We're abusing `PlatformDiscoveredCharacteristic` by passing an `emptyList()` for
+        // descriptors but this allows us to keep the `interface` hierarchy simpler. We can get away
+        // with this because propagating observation events don't use the descriptors (we needed
+        // `PlatformDiscoveredCharacteristic` for the equality functions used by `isAssociatedWith`).
+        val discoveredCharacteristic = PlatformDiscoveredCharacteristic(this, emptyList())
+
+        val characteristicChange = ObservationEvent.CharacteristicChange(discoveredCharacteristic, data)
 
         if (!characteristicChanges.tryEmit(characteristicChange)) {
             logger.error {
