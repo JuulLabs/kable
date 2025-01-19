@@ -62,7 +62,7 @@ internal class Connection(
     internal val gatt: BluetoothGatt,
     private val threading: Threading,
     private val callback: Callback,
-    private val services: MutableStateFlow<List<DiscoveredService>?>,
+    private val services: MutableStateFlow<List<PlatformDiscoveredService>?>,
     private val disconnectTimeout: Duration,
     logging: Logging,
 ) {
@@ -107,7 +107,7 @@ internal class Connection(
         repeat(retries) { attempt ->
             val discoveredServices = execute<OnServicesDiscovered> {
                 discoverServicesOrThrow()
-            }.services.map(::DiscoveredService)
+            }.services.map(::PlatformDiscoveredService)
 
             if (discoveredServices.isEmpty()) {
                 logger.warn {

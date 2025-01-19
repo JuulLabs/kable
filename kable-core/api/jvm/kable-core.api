@@ -69,25 +69,22 @@ public abstract interface class com/juul/kable/Descriptor {
 	public abstract fun getServiceUuid ()Lkotlin/uuid/Uuid;
 }
 
-public final class com/juul/kable/DiscoveredCharacteristic : com/juul/kable/Characteristic {
-	public fun <init> ()V
-	public fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
-	public final fun getDescriptors ()Ljava/util/List;
-	public final fun getProperties-bty6q6U ()I
-	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
+public abstract interface class com/juul/kable/DiscoveredCharacteristic : com/juul/kable/Characteristic {
+	public abstract fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
+	public abstract fun getDescriptors ()Ljava/util/List;
+	public abstract fun getProperties-bty6q6U ()I
+	public abstract fun getServiceUuid ()Lkotlin/uuid/Uuid;
 }
 
-public final class com/juul/kable/DiscoveredDescriptor : com/juul/kable/Descriptor {
-	public fun <init> ()V
-	public fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
-	public fun getDescriptorUuid ()Lkotlin/uuid/Uuid;
-	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
+public abstract interface class com/juul/kable/DiscoveredDescriptor : com/juul/kable/Descriptor {
+	public abstract fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
+	public abstract fun getDescriptorUuid ()Lkotlin/uuid/Uuid;
+	public abstract fun getServiceUuid ()Lkotlin/uuid/Uuid;
 }
 
-public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
-	public fun <init> ()V
-	public final fun getCharacteristics ()Ljava/util/List;
-	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
+public abstract interface class com/juul/kable/DiscoveredService : com/juul/kable/Service {
+	public abstract fun getCharacteristics ()Ljava/util/List;
+	public abstract fun getServiceUuid ()Lkotlin/uuid/Uuid;
 }
 
 public abstract interface annotation class com/juul/kable/ExperimentalApi : java/lang/annotation/Annotation {

@@ -8,7 +8,6 @@ import com.juul.kable.external.BluetoothRemoteGATTService
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.await
-import kotlin.uuid.Uuid
 
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformService = BluetoothRemoteGATTService
@@ -20,42 +19,41 @@ internal actual typealias PlatformCharacteristic = BluetoothRemoteGATTCharacteri
 internal actual typealias PlatformDescriptor = BluetoothRemoteGATTDescriptor
 private typealias PlatformProperties = BluetoothCharacteristicProperties
 
-public actual data class DiscoveredService internal constructor(
+internal actual data class PlatformDiscoveredService internal constructor(
     internal actual val service: PlatformService,
-    public actual val characteristics: List<DiscoveredCharacteristic>,
-) : Service {
+    actual override val characteristics: List<PlatformDiscoveredCharacteristic>,
+) : DiscoveredService {
 
-    actual override val serviceUuid: Uuid = service.uuid.toUuid()
+    override val serviceUuid = service.uuid.toUuid()
 }
 
-public actual data class DiscoveredCharacteristic internal constructor(
+internal actual data class PlatformDiscoveredCharacteristic internal constructor(
     internal actual val characteristic: PlatformCharacteristic,
-    public actual val descriptors: List<DiscoveredDescriptor>,
-) : Characteristic {
+    actual override val descriptors: List<PlatformDiscoveredDescriptor>,
+) : DiscoveredCharacteristic {
 
-    actual override val serviceUuid: Uuid = characteristic.service.uuid.toUuid()
-    actual override val characteristicUuid: Uuid = characteristic.uuid.toUuid()
-
-    public actual val properties: Properties = Properties(characteristic.properties)
+    override val serviceUuid = characteristic.service.uuid.toUuid()
+    override val characteristicUuid = characteristic.uuid.toUuid()
+    override val properties = Properties(characteristic.properties)
 }
 
-public actual data class DiscoveredDescriptor internal constructor(
+internal actual data class PlatformDiscoveredDescriptor internal constructor(
     internal actual val descriptor: PlatformDescriptor,
-) : Descriptor {
+) : DiscoveredDescriptor {
 
-    actual override val serviceUuid: Uuid = descriptor.characteristic.service.uuid.toUuid()
-    actual override val characteristicUuid: Uuid = descriptor.characteristic.uuid.toUuid()
-    actual override val descriptorUuid: Uuid = descriptor.uuid.toUuid()
+    override val serviceUuid = descriptor.characteristic.service.uuid.toUuid()
+    override val characteristicUuid = descriptor.characteristic.uuid.toUuid()
+    override val descriptorUuid = descriptor.uuid.toUuid()
 }
 
-internal suspend fun PlatformService.toDiscoveredService(logger: Logger): DiscoveredService {
+internal suspend fun PlatformService.toDiscoveredService(logger: Logger): PlatformDiscoveredService {
     val characteristics = getCharacteristics()
         .await()
         .map { characteristic ->
             characteristic.toDiscoveredCharacteristic(logger)
         }
 
-    return DiscoveredService(
+    return PlatformDiscoveredService(
         service = this,
         characteristics = characteristics,
     )
@@ -63,7 +61,7 @@ internal suspend fun PlatformService.toDiscoveredService(logger: Logger): Discov
 
 private suspend fun BluetoothRemoteGATTCharacteristic.toDiscoveredCharacteristic(
     logger: Logger,
-): DiscoveredCharacteristic {
+): PlatformDiscoveredCharacteristic {
     val descriptors = runCatching { getDescriptors().await() }
         .onFailure {
             logger.warn {
@@ -72,9 +70,9 @@ private suspend fun BluetoothRemoteGATTCharacteristic.toDiscoveredCharacteristic
             }
         }
         .getOrDefault(emptyArray())
-    val platformDescriptors = descriptors.map(::DiscoveredDescriptor)
+    val platformDescriptors = descriptors.map(::PlatformDiscoveredDescriptor)
 
-    return DiscoveredCharacteristic(
+    return PlatformDiscoveredCharacteristic(
         characteristic = this,
         descriptors = platformDescriptors,
     )

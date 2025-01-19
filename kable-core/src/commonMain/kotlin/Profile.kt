@@ -82,27 +82,38 @@ internal expect class PlatformService
 internal expect class PlatformCharacteristic
 internal expect class PlatformDescriptor
 
-/** Wrapper around platform specific Bluetooth LE service. Holds a strong reference to underlying service. */
-public expect class DiscoveredService : Service {
+public interface DiscoveredService : Service {
     override val serviceUuid: Uuid
-    internal val service: PlatformService
     public val characteristics: List<DiscoveredCharacteristic>
 }
 
-/** Wrapper around platform specific Bluetooth LE characteristic. Holds a strong reference to underlying characteristic. */
-public expect class DiscoveredCharacteristic : Characteristic {
+public interface DiscoveredCharacteristic : Characteristic {
     override val serviceUuid: Uuid
     override val characteristicUuid: Uuid
-    internal val characteristic: PlatformCharacteristic
     public val descriptors: List<DiscoveredDescriptor>
     public val properties: Properties
 }
 
-/** Wrapper around platform specific Bluetooth LE descriptor. Holds a strong reference to underlying descriptor. */
-public expect class DiscoveredDescriptor : Descriptor {
+public interface DiscoveredDescriptor : Descriptor {
     override val serviceUuid: Uuid
     override val characteristicUuid: Uuid
     override val descriptorUuid: Uuid
+}
+
+/** Wrapper around platform specific Bluetooth LE service. Holds a strong reference to underlying service. */
+internal expect class PlatformDiscoveredService : DiscoveredService {
+    internal val service: PlatformService
+    override val characteristics: List<PlatformDiscoveredCharacteristic>
+}
+
+/** Wrapper around platform specific Bluetooth LE characteristic. Holds a strong reference to underlying characteristic. */
+internal expect class PlatformDiscoveredCharacteristic : DiscoveredCharacteristic {
+    internal val characteristic: PlatformCharacteristic
+    override val descriptors: List<PlatformDiscoveredDescriptor>
+}
+
+/** Wrapper around platform specific Bluetooth LE descriptor. Holds a strong reference to underlying descriptor. */
+internal expect class PlatformDiscoveredDescriptor : DiscoveredDescriptor {
     internal val descriptor: PlatformDescriptor
 }
 
@@ -135,11 +146,11 @@ public fun descriptorOf(
     descriptorUuid = Uuid.parse(descriptor),
 )
 
-internal fun List<DiscoveredService>.obtain(
+internal fun List<PlatformDiscoveredService>.obtain(
     characteristic: Characteristic,
     properties: Properties?,
 ): PlatformCharacteristic {
-    if (characteristic is DiscoveredCharacteristic) return characteristic.characteristic
+    if (characteristic is PlatformDiscoveredCharacteristic) return characteristic.characteristic
 
     val discoveredService = firstOrNull {
         it.serviceUuid == characteristic.serviceUuid
@@ -153,10 +164,10 @@ internal fun List<DiscoveredService>.obtain(
     return discoveredCharacteristic.characteristic
 }
 
-internal fun List<DiscoveredService>.obtain(
+internal fun List<PlatformDiscoveredService>.obtain(
     descriptor: Descriptor,
 ): PlatformDescriptor {
-    if (descriptor is DiscoveredDescriptor) return descriptor.descriptor
+    if (descriptor is PlatformDiscoveredDescriptor) return descriptor.descriptor
 
     val discoveredService = firstOrNull {
         it.serviceUuid == descriptor.serviceUuid

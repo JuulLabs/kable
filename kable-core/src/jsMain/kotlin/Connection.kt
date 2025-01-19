@@ -48,7 +48,7 @@ internal class Connection(
     parentContext: CoroutineContext,
     private val bluetoothDevice: BluetoothDevice,
     private val state: MutableStateFlow<State>,
-    private val discoveredServices: MutableStateFlow<List<DiscoveredService>?>,
+    private val discoveredServices: MutableStateFlow<List<PlatformDiscoveredService>?>,
     private val characteristicChanges: MutableSharedFlow<ObservationEvent<DataView>>,
     private val disconnectTimeout: Duration,
     logging: Logging,
@@ -93,7 +93,7 @@ internal class Connection(
         // https://webbluetoothcg.github.io/web-bluetooth/#permission-api-integration
         ?: throw InternalError("GATT server unavailable")
 
-    private fun servicesOrThrow(): List<DiscoveredService> =
+    private fun servicesOrThrow(): List<PlatformDiscoveredService> =
         discoveredServices.value ?: error("Services have not been discovered")
 
     suspend fun discoverServices() {

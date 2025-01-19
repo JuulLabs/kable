@@ -4,7 +4,6 @@ import com.juul.kable.Characteristic.Properties
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBService
-import kotlin.uuid.Uuid
 
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformService = CBService
@@ -15,42 +14,42 @@ internal actual typealias PlatformCharacteristic = CBCharacteristic
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316
 internal actual typealias PlatformDescriptor = CBDescriptor
 
-public actual data class DiscoveredService internal constructor(
+internal actual data class PlatformDiscoveredService internal constructor(
     internal actual val service: PlatformService,
-) : Service {
+) : DiscoveredService {
 
-    public actual val characteristics: List<DiscoveredCharacteristic> =
+    actual override val characteristics =
         service.characteristics
             .orEmpty()
             .map { it as PlatformCharacteristic }
-            .map(::DiscoveredCharacteristic)
+            .map(::PlatformDiscoveredCharacteristic)
 
-    actual override val serviceUuid: Uuid = service.UUID.toUuid()
+    override val serviceUuid = service.UUID.toUuid()
 }
 
-public actual data class DiscoveredCharacteristic internal constructor(
+internal actual data class PlatformDiscoveredCharacteristic internal constructor(
     internal actual val characteristic: PlatformCharacteristic,
-) : Characteristic {
+) : DiscoveredCharacteristic {
 
-    public actual val descriptors: List<DiscoveredDescriptor> =
+    actual override val descriptors =
         characteristic.descriptors
             .orEmpty()
             .map { it as PlatformDescriptor }
-            .map(::DiscoveredDescriptor)
+            .map(::PlatformDiscoveredDescriptor)
 
-    actual override val serviceUuid: Uuid = characteristic.service!!.UUID.toUuid()
-    actual override val characteristicUuid: Uuid = characteristic.UUID.toUuid()
+    override val serviceUuid = characteristic.service!!.UUID.toUuid()
+    override val characteristicUuid = characteristic.UUID.toUuid()
 
-    public actual val properties: Properties = Properties(characteristic.properties.toInt())
+    override val properties = Properties(characteristic.properties.toInt())
 }
 
-public actual data class DiscoveredDescriptor internal constructor(
+internal actual data class PlatformDiscoveredDescriptor internal constructor(
     internal actual val descriptor: PlatformDescriptor,
-) : Descriptor {
+) : DiscoveredDescriptor {
 
-    actual override val serviceUuid: Uuid = descriptor.characteristic!!.service!!.UUID.toUuid()
-    actual override val characteristicUuid: Uuid = descriptor.characteristic!!.UUID.toUuid()
-    actual override val descriptorUuid: Uuid = descriptor.UUID.toUuid()
+    override val serviceUuid = descriptor.characteristic!!.service!!.UUID.toUuid()
+    override val characteristicUuid = descriptor.characteristic!!.UUID.toUuid()
+    override val descriptorUuid = descriptor.UUID.toUuid()
 }
 
 internal fun PlatformCharacteristic.toLazyCharacteristic() = LazyCharacteristic(
