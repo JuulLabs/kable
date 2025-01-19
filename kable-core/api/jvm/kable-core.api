@@ -169,6 +169,10 @@ public final class com/juul/kable/FiltersBuilder {
 	public final fun match (Lkotlin/jvm/functions/Function1;)V
 }
 
+public class com/juul/kable/GattRequestRejectedException : java/lang/IllegalStateException {
+	public fun <init> ()V
+}
+
 public final class com/juul/kable/GattStatusException : java/io/IOException {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
