@@ -24,8 +24,8 @@ a 16-bit or 32-bit UUID (in [`Int`] or [`Long`] form) to the Bluetooth Base UUID
 [`Uuid`] representation; for example:
 
 ```kotlin
-val uuid16bit: Int = 0x180D
-val heartRateServiceUuid: Uuid = Bluetooth.BaseUuid + uuid16bit
+val uuid16bit = 0x180D
+val heartRateServiceUuid = Bluetooth.BaseUuid + uuid16bit
 println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 ```
 
@@ -34,12 +34,12 @@ functions:
 
 - `Uuid.service(name: String)`
 - `Uuid.characteristic(name: String)`
-- `Uuid.descriptors(name: String)`
+- `Uuid.descriptor(name: String)`
 
 For example:
 
 ```kotlin
-val heartRateServiceUuid: Uuid = Uuid.service("heart_rate")
+val heartRateServiceUuid = Uuid.service("heart_rate")
 println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 ```
 
