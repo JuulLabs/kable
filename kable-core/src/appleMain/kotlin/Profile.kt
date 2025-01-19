@@ -32,12 +32,16 @@ internal actual class PlatformDiscoveredService internal constructor(
         return service === other.service
     }
 
-    override fun hashCode(): Int = service.hashCode()
+    override fun hashCode() = service.hashCode()
+
+    override fun toString() = "DiscoveredService(serviceUuid=$serviceUuid, hashCode=${hashCode()})"
 }
 
 internal actual class PlatformDiscoveredCharacteristic internal constructor(
     actual val characteristic: PlatformCharacteristic,
 ) : DiscoveredCharacteristic {
+
+    private val cbService = characteristic.service!!
 
     actual override val descriptors =
         characteristic.descriptors
@@ -45,7 +49,7 @@ internal actual class PlatformDiscoveredCharacteristic internal constructor(
             .map { it as PlatformDescriptor }
             .map(::PlatformDiscoveredDescriptor)
 
-    override val serviceUuid = characteristic.service!!.UUID.toUuid()
+    override val serviceUuid = cbService.UUID.toUuid()
     override val characteristicUuid = characteristic.UUID.toUuid()
     override val properties = Properties(characteristic.properties.toInt())
 
@@ -55,15 +59,21 @@ internal actual class PlatformDiscoveredCharacteristic internal constructor(
         return characteristic === other.characteristic
     }
 
-    override fun hashCode(): Int = characteristic.hashCode()
+    override fun hashCode() = characteristic.hashCode()
+
+    override fun toString() =
+        "DiscoveredCharacteristic(serviceUuid=$serviceUuid, serviceHashCode=${cbService.hashCode()}, characteristicUuid=$characteristicUuid, characteristicHashCode=${hashCode()})"
 }
 
 internal actual class PlatformDiscoveredDescriptor internal constructor(
     actual val descriptor: PlatformDescriptor,
 ) : DiscoveredDescriptor {
 
-    override val serviceUuid = descriptor.characteristic!!.service!!.UUID.toUuid()
-    override val characteristicUuid = descriptor.characteristic!!.UUID.toUuid()
+    private val cbCharacteristic = descriptor.characteristic!!
+    private val cbService = cbCharacteristic.service!!
+
+    override val serviceUuid = cbService.UUID.toUuid()
+    override val characteristicUuid = cbCharacteristic.UUID.toUuid()
     override val descriptorUuid = descriptor.UUID.toUuid()
 
     override fun equals(other: Any?): Boolean {
@@ -72,7 +82,10 @@ internal actual class PlatformDiscoveredDescriptor internal constructor(
         return descriptor === other.descriptor
     }
 
-    override fun hashCode(): Int = descriptor.hashCode()
+    override fun hashCode() = descriptor.hashCode()
+
+    override fun toString() =
+        "DiscoveredService(serviceUuid=$serviceUuid, serviceHashCode=${cbService.hashCode()}, characteristicUuid=$characteristicUuid, characteristicHashCode=${cbCharacteristic.hashCode()}, descriptorUuid=$descriptorUuid)"
 }
 
 internal fun PlatformCharacteristic.toLazyCharacteristic() = LazyCharacteristic(

@@ -39,6 +39,8 @@ internal actual class PlatformDiscoveredService(
         result = 31 * result + instanceId
         return result
     }
+
+    override fun toString() = "DiscoveredService(serviceUuid=$serviceUuid, instanceId=$instanceId)"
 }
 
 internal actual class PlatformDiscoveredCharacteristic internal constructor(
@@ -70,6 +72,9 @@ internal actual class PlatformDiscoveredCharacteristic internal constructor(
         result = 31 * result + instanceId
         return result
     }
+
+    override fun toString() =
+        "DiscoveredCharacteristic(serviceUuid=$serviceUuid, serviceInstanceId=$serviceInstanceId, characteristicUuid=$characteristicUuid, instanceId=$instanceId)"
 }
 
 internal actual class PlatformDiscoveredDescriptor internal constructor(
@@ -102,6 +107,9 @@ internal actual class PlatformDiscoveredDescriptor internal constructor(
         result = 31 * result + descriptorUuid.hashCode()
         return result
     }
+
+    override fun toString() =
+        "DiscoveredDescriptor(serviceUuid=$serviceUuid, serviceInstanceId=$serviceInstanceId, characteristicUuid=$characteristicUuid, characteristicInstanceId=$characteristicInstanceId, descriptorUuid=$descriptorUuid)"
 }
 
 internal fun PlatformCharacteristic.toLazyCharacteristic() = LazyCharacteristic(

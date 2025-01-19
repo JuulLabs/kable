@@ -32,7 +32,9 @@ internal actual class PlatformDiscoveredService internal constructor(
         return service === other.service
     }
 
-    override fun hashCode(): Int = service.hashCode()
+    override fun hashCode() = service.hashCode()
+
+    override fun toString() = "DiscoveredService(serviceUuid=$serviceUuid, hashCode=${hashCode()})"
 }
 
 internal actual class PlatformDiscoveredCharacteristic internal constructor(
@@ -50,7 +52,10 @@ internal actual class PlatformDiscoveredCharacteristic internal constructor(
         return characteristic === other.characteristic
     }
 
-    override fun hashCode(): Int = characteristic.hashCode()
+    override fun hashCode() = characteristic.hashCode()
+
+    override fun toString() =
+        "DiscoveredService(serviceUuid=$serviceUuid, serviceHashCode=${characteristic.service.hashCode()}, characteristicUuid=$characteristicUuid, characteristicHashCode=${hashCode()})"
 }
 
 internal actual class PlatformDiscoveredDescriptor internal constructor(
@@ -67,7 +72,10 @@ internal actual class PlatformDiscoveredDescriptor internal constructor(
         return descriptor === other.descriptor
     }
 
-    override fun hashCode(): Int = descriptor.hashCode()
+    override fun hashCode() = descriptor.hashCode()
+
+    override fun toString() =
+        "DiscoveredService(serviceUuid=$serviceUuid, serviceHashCode=${descriptor.characteristic.service.hashCode()}, characteristicUuid=$characteristicUuid, characteristicHashCode=${descriptor.characteristic.hashCode()}, descriptorUuid=$descriptorUuid)"
 }
 
 internal suspend fun PlatformService.toDiscoveredService(logger: Logger): PlatformDiscoveredService {
