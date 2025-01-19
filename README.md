@@ -48,7 +48,7 @@ Additional example shorthand notations:
 | Shorthand                         | Canonical UUID                         |
 |-----------------------------------|----------------------------------------|
 | `Bluetooth.BaseUuid + 0x180D`     | `0000180D-0000-1000-8000-00805F9B34FB` |
-| `Bluetooth.BaseUuid + 0x2A37`     | `00002A37-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + 0x12345678` | `12345678-0000-1000-8000-00805F9B34FB` |
 | `Uuid.service("blood_pressure")`  | `00001810-0000-1000-8000-00805F9B34FB` |
 | `Uuid.characteristic("altitude")` | `00002AB3-0000-1000-8000-00805F9B34FB` |
 | `Uuid.descriptor("valid_range")`  | `00002906-0000-1000-8000-00805F9B34FB` |
