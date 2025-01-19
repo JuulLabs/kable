@@ -83,38 +83,31 @@ internal expect class PlatformCharacteristic
 internal expect class PlatformDescriptor
 
 public interface DiscoveredService : Service {
-    override val serviceUuid: Uuid
     public val characteristics: List<DiscoveredCharacteristic>
 }
 
 public interface DiscoveredCharacteristic : Characteristic {
-    override val serviceUuid: Uuid
-    override val characteristicUuid: Uuid
     public val descriptors: List<DiscoveredDescriptor>
     public val properties: Properties
 }
 
-public interface DiscoveredDescriptor : Descriptor {
-    override val serviceUuid: Uuid
-    override val characteristicUuid: Uuid
-    override val descriptorUuid: Uuid
-}
+public interface DiscoveredDescriptor : Descriptor
 
 /** Wrapper around platform specific Bluetooth LE service. Holds a strong reference to underlying service. */
 internal expect class PlatformDiscoveredService : DiscoveredService {
-    internal val service: PlatformService
+    val service: PlatformService
     override val characteristics: List<PlatformDiscoveredCharacteristic>
 }
 
 /** Wrapper around platform specific Bluetooth LE characteristic. Holds a strong reference to underlying characteristic. */
 internal expect class PlatformDiscoveredCharacteristic : DiscoveredCharacteristic {
-    internal val characteristic: PlatformCharacteristic
+    val characteristic: PlatformCharacteristic
     override val descriptors: List<PlatformDiscoveredDescriptor>
 }
 
 /** Wrapper around platform specific Bluetooth LE descriptor. Holds a strong reference to underlying descriptor. */
 internal expect class PlatformDiscoveredDescriptor : DiscoveredDescriptor {
-    internal val descriptor: PlatformDescriptor
+    val descriptor: PlatformDescriptor
 }
 
 public data class LazyCharacteristic internal constructor(
