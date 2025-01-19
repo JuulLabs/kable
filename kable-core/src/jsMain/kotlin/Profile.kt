@@ -19,31 +19,55 @@ internal actual typealias PlatformCharacteristic = BluetoothRemoteGATTCharacteri
 internal actual typealias PlatformDescriptor = BluetoothRemoteGATTDescriptor
 private typealias PlatformProperties = BluetoothCharacteristicProperties
 
-internal actual data class PlatformDiscoveredService internal constructor(
-    internal actual val service: PlatformService,
+internal actual class PlatformDiscoveredService internal constructor(
+    actual val service: PlatformService,
     actual override val characteristics: List<PlatformDiscoveredCharacteristic>,
 ) : DiscoveredService {
 
     override val serviceUuid = service.uuid.toUuid()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PlatformDiscoveredService) return false
+        return service === other.service
+    }
+
+    override fun hashCode(): Int = service.hashCode()
 }
 
-internal actual data class PlatformDiscoveredCharacteristic internal constructor(
-    internal actual val characteristic: PlatformCharacteristic,
+internal actual class PlatformDiscoveredCharacteristic internal constructor(
+    actual val characteristic: PlatformCharacteristic,
     actual override val descriptors: List<PlatformDiscoveredDescriptor>,
 ) : DiscoveredCharacteristic {
 
     override val serviceUuid = characteristic.service.uuid.toUuid()
     override val characteristicUuid = characteristic.uuid.toUuid()
     override val properties = Properties(characteristic.properties)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PlatformDiscoveredCharacteristic) return false
+        return characteristic === other.characteristic
+    }
+
+    override fun hashCode(): Int = characteristic.hashCode()
 }
 
-internal actual data class PlatformDiscoveredDescriptor internal constructor(
-    internal actual val descriptor: PlatformDescriptor,
+internal actual class PlatformDiscoveredDescriptor internal constructor(
+    actual val descriptor: PlatformDescriptor,
 ) : DiscoveredDescriptor {
 
     override val serviceUuid = descriptor.characteristic.service.uuid.toUuid()
     override val characteristicUuid = descriptor.characteristic.uuid.toUuid()
     override val descriptorUuid = descriptor.uuid.toUuid()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PlatformDiscoveredDescriptor) return false
+        return descriptor === other.descriptor
+    }
+
+    override fun hashCode(): Int = descriptor.hashCode()
 }
 
 internal suspend fun PlatformService.toDiscoveredService(logger: Logger): PlatformDiscoveredService {
