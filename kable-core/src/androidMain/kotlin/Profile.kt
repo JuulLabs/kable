@@ -22,7 +22,7 @@ internal actual class PlatformDiscoveredService(
 ) : DiscoveredService {
 
     actual override val characteristics = service.characteristics.map(::PlatformDiscoveredCharacteristic)
-    override val serviceUuid get() = service.uuid.toKotlinUuid()
+    actual override val serviceUuid get() = service.uuid.toKotlinUuid()
     val instanceId get() = service.instanceId
 
     override fun equals(other: Any?): Boolean {
@@ -48,11 +48,11 @@ internal actual class PlatformDiscoveredCharacteristic internal constructor(
 ) : DiscoveredCharacteristic {
 
     actual override val descriptors = characteristic.descriptors.map(::PlatformDiscoveredDescriptor)
-    override val serviceUuid get() = characteristic.service.uuid.toKotlinUuid()
+    actual override val serviceUuid get() = characteristic.service.uuid.toKotlinUuid()
     val serviceInstanceId get() = characteristic.service.instanceId
-    override val characteristicUuid get() = characteristic.uuid.toKotlinUuid()
+    actual override val characteristicUuid get() = characteristic.uuid.toKotlinUuid()
     val instanceId get() = characteristic.instanceId
-    override val properties get() = Properties(characteristic.properties)
+    actual override val properties get() = Properties(characteristic.properties)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -81,11 +81,11 @@ internal actual class PlatformDiscoveredDescriptor internal constructor(
     actual val descriptor: PlatformDescriptor,
 ) : DiscoveredDescriptor {
 
-    override val serviceUuid get() = descriptor.characteristic.service.uuid.toKotlinUuid()
+    actual override val serviceUuid get() = descriptor.characteristic.service.uuid.toKotlinUuid()
     val serviceInstanceId get() = descriptor.characteristic.service.instanceId
-    override val characteristicUuid get() = descriptor.characteristic.uuid.toKotlinUuid()
+    actual override val characteristicUuid get() = descriptor.characteristic.uuid.toKotlinUuid()
     val characteristicInstanceId get() = descriptor.characteristic.instanceId
-    override val descriptorUuid get() = descriptor.uuid.toKotlinUuid()
+    actual override val descriptorUuid get() = descriptor.uuid.toKotlinUuid()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

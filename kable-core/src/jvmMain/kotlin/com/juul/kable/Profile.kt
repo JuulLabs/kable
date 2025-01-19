@@ -11,7 +11,7 @@ internal actual class PlatformDiscoveredService : DiscoveredService {
         get() = jvmNotImplementedException()
     actual override val characteristics: List<PlatformDiscoveredCharacteristic>
         get() = jvmNotImplementedException()
-    override val serviceUuid: Uuid
+    actual override val serviceUuid: Uuid
         get() = jvmNotImplementedException()
 }
 
@@ -20,21 +20,21 @@ internal actual class PlatformDiscoveredCharacteristic : DiscoveredCharacteristi
         get() = jvmNotImplementedException()
     actual override val descriptors: List<PlatformDiscoveredDescriptor>
         get() = jvmNotImplementedException()
-    override val properties: Characteristic.Properties
+    actual override val properties: Characteristic.Properties
         get() = jvmNotImplementedException()
-    override val serviceUuid: Uuid
+    actual override val serviceUuid: Uuid
         get() = jvmNotImplementedException()
-    override val characteristicUuid: Uuid
+    actual override val characteristicUuid: Uuid
         get() = jvmNotImplementedException()
 }
 
 internal actual class PlatformDiscoveredDescriptor : DiscoveredDescriptor {
     actual val descriptor: PlatformDescriptor
         get() = jvmNotImplementedException()
-    override val serviceUuid: Uuid
+    actual override val serviceUuid: Uuid
         get() = jvmNotImplementedException()
-    override val characteristicUuid: Uuid
+    actual override val characteristicUuid: Uuid
         get() = jvmNotImplementedException()
-    override val descriptorUuid: Uuid
+    actual override val descriptorUuid: Uuid
         get() = jvmNotImplementedException()
 }

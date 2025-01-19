@@ -24,7 +24,7 @@ internal actual class PlatformDiscoveredService internal constructor(
             .map { it as PlatformCharacteristic }
             .map(::PlatformDiscoveredCharacteristic)
 
-    override val serviceUuid = service.UUID.toUuid()
+    actual override val serviceUuid = service.UUID.toUuid()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -49,9 +49,9 @@ internal actual class PlatformDiscoveredCharacteristic internal constructor(
             .map { it as PlatformDescriptor }
             .map(::PlatformDiscoveredDescriptor)
 
-    override val serviceUuid = cbService.UUID.toUuid()
-    override val characteristicUuid = characteristic.UUID.toUuid()
-    override val properties = Properties(characteristic.properties.toInt())
+    actual override val serviceUuid = cbService.UUID.toUuid()
+    actual override val characteristicUuid = characteristic.UUID.toUuid()
+    actual override val properties = Properties(characteristic.properties.toInt())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -72,9 +72,9 @@ internal actual class PlatformDiscoveredDescriptor internal constructor(
     private val cbCharacteristic = descriptor.characteristic!!
     private val cbService = cbCharacteristic.service!!
 
-    override val serviceUuid = cbService.UUID.toUuid()
-    override val characteristicUuid = cbCharacteristic.UUID.toUuid()
-    override val descriptorUuid = descriptor.UUID.toUuid()
+    actual override val serviceUuid = cbService.UUID.toUuid()
+    actual override val characteristicUuid = cbCharacteristic.UUID.toUuid()
+    actual override val descriptorUuid = descriptor.UUID.toUuid()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
