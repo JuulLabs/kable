@@ -224,6 +224,38 @@ class SharedRepeatableActionTests {
     }
 
     @Test
+    fun parentCancelled_cancelAndJoin_doesNotThrow() = runTest {
+        val parentScope = CoroutineScope(SupervisorJob())
+
+        val cancellation = MutableStateFlow<Throwable?>(null)
+        val action = parentScope.sharedRepeatableAction { scope ->
+            scope.launch(start = UNDISPATCHED) {
+                try {
+                    awaitCancellation()
+                } catch (e: Exception) {
+                    if (e is CancellationException) cancellation.value = e
+                    throw e
+                }
+            }
+            1
+        }
+
+        assertEquals(
+            expected = 1,
+            actual = action.await(),
+        )
+        parentScope.cancel(CancellationException("parent"))
+        parentScope.coroutineContext.job.join()
+        val e = cancellation.filterNotNull().first()
+        assertIs<CancellationException>(e)
+
+        val result = runCatching {
+            action.cancelAndJoin(CancellationException("action"))
+        }
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
     fun awaitWithLaunch_awaitTwice_completes() = runTest {
         val testScope = CoroutineScope(SupervisorJob())
 

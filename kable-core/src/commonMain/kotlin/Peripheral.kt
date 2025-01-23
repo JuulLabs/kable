@@ -118,10 +118,9 @@ public interface Peripheral : CoroutineScope {
      * supervisor scope, meaning any failures in launched coroutines will not fail other launched
      * coroutines nor cause a disconnect.
      *
-     * @throws IllegalStateException when a connection request could not be made (e.g. bluetooth not supported).
+     * @throws IllegalStateException when a connection request could not be made (e.g. bluetooth not supported or [Peripheral]'s [CoroutineScope] has been [cancelled][Peripheral.cancel]).
      * @throws NotConnectedException if unable to establish connection (e.g. connection lost while discovering services).
      * @throws IOException (Android) if request failed due to Binder remote-invocation error.
-     * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [cancelled][Peripheral.cancel].
      */
     public suspend fun connect(): CoroutineScope
 
@@ -133,8 +132,6 @@ public interface Peripheral : CoroutineScope {
      *
      * Any coroutines launched from [connect] will be spun down prior to closing underlying
      * peripheral connection.
-     *
-     * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [cancelled][Peripheral.cancel].
      */
     public suspend fun disconnect(): Unit
 
