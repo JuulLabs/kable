@@ -4,7 +4,7 @@ package com.juul.kable.logs
 
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
-import com.juul.kable.gatt.GattStatus
+import com.juul.kable.android.GattStatus
 import kotlin.uuid.toKotlinUuid
 
 internal actual val LOG_INDENT: String? = null
