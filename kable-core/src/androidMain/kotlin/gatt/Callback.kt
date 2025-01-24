@@ -23,6 +23,7 @@ import com.juul.kable.State.Disconnected.Status.LinkManagerProtocolTimeout
 import com.juul.kable.State.Disconnected.Status.PeripheralDisconnected
 import com.juul.kable.State.Disconnected.Status.Timeout
 import com.juul.kable.State.Disconnected.Status.Unknown
+import com.juul.kable.android.GattStatus
 import com.juul.kable.external.GATT_CONN_CANCEL
 import com.juul.kable.external.GATT_CONN_FAIL_ESTABLISH
 import com.juul.kable.external.GATT_CONN_L2C_FAILURE
