@@ -276,7 +276,9 @@ public abstract interface class com/juul/kable/PlatformAdvertisement : com/juul/
 
 public final class com/juul/kable/ProfileKt {
 	public static final fun characteristicOf (Ljava/lang/String;Ljava/lang/String;)Lcom/juul/kable/Characteristic;
+	public static final fun characteristicOf (Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;)Lcom/juul/kable/Characteristic;
 	public static final fun descriptorOf (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/juul/kable/Descriptor;
+	public static final fun descriptorOf (Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;Lkotlin/uuid/Uuid;)Lcom/juul/kable/Descriptor;
 	public static final fun getBroadcast-G25LNqA (I)Z
 	public static final fun getExtendedProperties-G25LNqA (I)Z
 	public static final fun getIndicate-G25LNqA (I)Z
@@ -427,6 +429,12 @@ public final class com/juul/kable/UnmetRequirementReason : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/UnmetRequirementReason;
 	public static fun values ()[Lcom/juul/kable/UnmetRequirementReason;
+}
+
+public final class com/juul/kable/UuidKt {
+	public static final fun characteristic (Lkotlin/uuid/Uuid$Companion;Ljava/lang/String;)Lkotlin/uuid/Uuid;
+	public static final fun descriptor (Lkotlin/uuid/Uuid$Companion;Ljava/lang/String;)Lkotlin/uuid/Uuid;
+	public static final fun service (Lkotlin/uuid/Uuid$Companion;Ljava/lang/String;)Lkotlin/uuid/Uuid;
 }
 
 public final class com/juul/kable/WriteType : java/lang/Enum {

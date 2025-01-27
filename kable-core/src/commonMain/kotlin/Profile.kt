@@ -117,6 +117,13 @@ public data class LazyDescriptor(
     public override val descriptorUuid: Uuid,
 ) : Descriptor
 
+@Deprecated(
+    """
+    Use `characteristicOf` that accepts `Uuid` arguments.
+    Example: `characteristicOf(Uuid.service("battery_service"), Uuid.characteristic("battery_level"))`,
+    """,
+    replaceWith = ReplaceWith("characteristicOf(Uuid.parse(service), Uuid.parse(characteristic))"),
+)
 public fun characteristicOf(
     service: String,
     characteristic: String,
@@ -125,6 +132,13 @@ public fun characteristicOf(
     characteristicUuid = Uuid.parse(characteristic),
 )
 
+public fun characteristicOf(service: Uuid, characteristic: Uuid): Characteristic =
+    LazyCharacteristic(service, characteristic)
+
+@Deprecated(
+    "Use `descriptorOf` that accepts `Uuid` arguments.",
+    replaceWith = ReplaceWith("descriptorOf(Uuid.parse(service), Uuid.parse(characteristic), Uuid.parse(descriptor))"),
+)
 public fun descriptorOf(
     service: String,
     characteristic: String,
@@ -134,6 +148,9 @@ public fun descriptorOf(
     characteristicUuid = Uuid.parse(characteristic),
     descriptorUuid = Uuid.parse(descriptor),
 )
+
+public fun descriptorOf(service: Uuid, characteristic: Uuid, descriptor: Uuid): Descriptor =
+    LazyDescriptor(service, characteristic, descriptor)
 
 internal fun List<DiscoveredService>.obtain(
     characteristic: Characteristic,
