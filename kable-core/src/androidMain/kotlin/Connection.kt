@@ -4,9 +4,9 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.os.Handler
 import com.juul.kable.State.Disconnected
+import com.juul.kable.android.GattStatus
 import com.juul.kable.coroutines.childSupervisor
 import com.juul.kable.gatt.Callback
-import com.juul.kable.gatt.GattStatus
 import com.juul.kable.gatt.Response
 import com.juul.kable.gatt.Response.OnServicesDiscovered
 import com.juul.kable.logs.Logger
@@ -272,5 +272,7 @@ internal class Connection(
 }
 
 private fun checkResponse(response: Response) {
-    if (response.status != GattSuccess) throw GattStatusException(response.toString())
+    if (response.status != GattSuccess) {
+        throw GattStatusException(response.toString(), status = response.status.value)
+    }
 }

@@ -19,14 +19,14 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.6.0" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
 tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2025.1.3" }
+wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2025.1.6" }
 wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 
 [plugins]
 android-library = { id = "com.android.library", version = "8.8.0" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.17.0" }
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
-dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
+dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "5.0.1" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.30.0" }
