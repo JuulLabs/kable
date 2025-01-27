@@ -101,7 +101,7 @@ internal class Observers<T>(
 
     suspend fun onConnected() {
         synchronized(lock) {
-            observations.entries
+            observations.entries.toSet()
         }.forEach { (_, observation) ->
             // Pipe failures to `characteristicChanges` while honoring in-flight connection cancellations.
             try {

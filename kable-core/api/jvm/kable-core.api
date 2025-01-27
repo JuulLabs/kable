@@ -169,10 +169,14 @@ public final class com/juul/kable/FiltersBuilder {
 	public final fun match (Lkotlin/jvm/functions/Function1;)V
 }
 
-public final class com/juul/kable/GattStatusException : java/io/IOException {
+public class com/juul/kable/GattRequestRejectedException : java/lang/IllegalStateException {
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/juul/kable/GattStatusException : java/io/IOException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;I)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getStatus ()I
 }
 
 public final class com/juul/kable/IdentifierKt {

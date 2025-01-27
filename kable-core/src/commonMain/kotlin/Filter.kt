@@ -146,8 +146,9 @@ internal fun Filter.Name.matches(name: String?): Boolean {
 internal fun Filter.ManufacturerData.matches(data: ByteArray?): Boolean {
     if (data == null) return false
     if (dataMask == null) return this.data.contentEquals(data)
-    requireDataAndMaskHaveSameLength(data, dataMask)
-    for (i in this.data.indices) {
+    val lastMaskIndex = dataMask.indexOfLast { it != 0.toByte() }
+    if (lastMaskIndex > data.lastIndex) return false
+    for (i in 0..lastMaskIndex) {
         if (dataMask[i] and this.data[i] != dataMask[i] and data[i]) return false
     }
     return true
