@@ -160,6 +160,90 @@ class FilterPredicateTests {
         val predicate = ManufacturerDataFilter(37, byteArrayOf(2), byteArrayOf(2)).toPredicate()
         assertTrue(predicate.matches(manufacturerData = ManufacturerData(37, byteArrayOf(3))))
     }
+
+    @Test
+    fun matches_manufacturerDataFilterVsDataWithLengthLongerThanFilterDataThatMatches_isTrue() {
+        val texasInstrumentsCompanyId = 0x000D
+        val sensorTagManufacturerData = byteArrayOf(0x03, 0x00, 0x00)
+
+        val predicate = ManufacturerDataFilter(
+            id = texasInstrumentsCompanyId,
+            data = byteArrayOf(0x03),
+            dataMask = byteArrayOf(0xFF.toByte()),
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                manufacturerData = ManufacturerData(
+                    code = texasInstrumentsCompanyId,
+                    data = sensorTagManufacturerData,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_manufacturerDataFilterVsDataWithLengthLongerThanFilterDataThatDoesNotMatch_isFalse() {
+        val texasInstrumentsCompanyId = 0x000D
+        val sensorTagManufacturerData = byteArrayOf(0x03, 0x00, 0x00)
+
+        val predicate = ManufacturerDataFilter(
+            id = texasInstrumentsCompanyId,
+            data = byteArrayOf(0x02),
+            dataMask = byteArrayOf(0x0F.toByte()),
+        ).toPredicate()
+
+        assertFalse(
+            predicate.matches(
+                manufacturerData = ManufacturerData(
+                    code = texasInstrumentsCompanyId,
+                    data = sensorTagManufacturerData,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_manufacturerDataFilterVsDataWithLengthShorterThanFilterDataButMatchesMaskPortion_isTrue() {
+        val texasInstrumentsCompanyId = 0x000D
+        val sensorTagManufacturerData = byteArrayOf(0x03, 0x00, 0x00)
+
+        val predicate = ManufacturerDataFilter(
+            id = texasInstrumentsCompanyId,
+            data = byteArrayOf(0x03, 0x00, 0x00, 0x00),
+            dataMask = byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0x00.toByte()),
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                manufacturerData = ManufacturerData(
+                    code = texasInstrumentsCompanyId,
+                    data = sensorTagManufacturerData,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_manufacturerDataFilterVsDataWithLengthShorterThanFilterData_isFalse() {
+        val texasInstrumentsCompanyId = 0x000D
+        val sensorTagManufacturerData = byteArrayOf(0x03, 0x00, 0x00)
+
+        val predicate = ManufacturerDataFilter(
+            id = texasInstrumentsCompanyId,
+            data = byteArrayOf(0x03, 0x00, 0x00, 0x00),
+            dataMask = byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()),
+        ).toPredicate()
+
+        assertFalse(
+            predicate.matches(
+                manufacturerData = ManufacturerData(
+                    code = texasInstrumentsCompanyId,
+                    data = sensorTagManufacturerData,
+                ),
+            ),
+        )
+    }
 }
 
 private fun Filter.toPredicate() = FilterPredicate(listOf(this))
