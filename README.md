@@ -11,6 +11,51 @@ with Bluetooth Low Energy devices.
 
 Usage is demonstrated with the [SensorTag sample app].
 
+## UUIDs
+
+UUIDs (Universally Unique Identifiers) are used to uniquely identify various components of a
+Bluetooth Low Energy device. The Bluetooth Base UUID (`00000000-0000-1000-8000-00805F9B34FB`) allows
+for short form (16-bit or 32-bit) UUIDs which are reserved for standard, predefined components
+(e.g. 0x180D for "Heart Rate Service", or 0x2A37 for "Heart Rate Measurement").
+128-bit UUIDs outside of the Bluetooth Base UUID are typically used for custom applications.
+
+The `Bluetooth.BaseUuid` is provided to simplify defining 16-bit or 32-bit UUIDs. Simply add (`+`)
+a 16-bit or 32-bit UUID (in [`Int`] or [`Long`] form) to the Bluetooth Base UUID to get a "full"
+[`Uuid`] representation; for example:
+
+```kotlin
+val uuid16bit = 0x180D
+val heartRateServiceUuid = Bluetooth.BaseUuid + uuid16bit
+println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
+```
+
+Web Bluetooth named UUIDs may also be used to acquire [`Uuid`]s via the following [`Uuid`] extension
+functions:
+
+- `Uuid.service(name: String)`
+- `Uuid.characteristic(name: String)`
+- `Uuid.descriptor(name: String)`
+
+For example:
+
+```kotlin
+val heartRateServiceUuid = Uuid.service("heart_rate")
+println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
+```
+
+> [!NOTE]
+> List of known UUID names can be found in [`Uuid.kt`](https://github.com/JuulLabs/kable/blob/main/kable-core/src/commonMain/kotlin/Uuid.kt).
+
+Additional example shorthand notations:
+
+| Shorthand                         | Canonical UUID                         |
+|-----------------------------------|----------------------------------------|
+| `Bluetooth.BaseUuid + 0x180D`     | `0000180D-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + 0x12345678` | `12345678-0000-1000-8000-00805F9B34FB` |
+| `Uuid.service("blood_pressure")`  | `00001810-0000-1000-8000-00805F9B34FB` |
+| `Uuid.characteristic("altitude")` | `00002AB3-0000-1000-8000-00805F9B34FB` |
+| `Uuid.descriptor("valid_range")`  | `00002906-0000-1000-8000-00805F9B34FB` |
+
 ## Scanning
 
 To scan for nearby peripherals, the [`Scanner`] provides an [`advertisements`] [`Flow`] which is a stream of
@@ -68,7 +113,7 @@ To have peripherals D1 and D3 emitted during a scan, you could use the following
 val scanner = Scanner {
     filters {
         match {
-            services = listOf(uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb")) // SensorTag
+            services = listOf(Bluetooth.BaseUuid + 0xaa80) // SensorTag
         }
         match {
             name = Filter.Name.Prefix("Ex")
@@ -316,8 +361,8 @@ val options = Options {
         }
     }
     optionalServices = listOf(
-        uuidFrom("f000aa80-0451-4000-b000-000000000000"),
-        uuidFrom("f000aa81-0451-4000-b000-000000000000"),
+        Uuid.parse("f000aa80-0451-4000-b000-000000000000"),
+        Uuid.parse("f000aa81-0451-4000-b000-000000000000"),
     )
 }
 val peripheral = requestPeripheral(options)
@@ -380,12 +425,12 @@ whereas characteristics and descriptors have the capability of being read from, 
 
 For example, a peripheral might have the following structure:
 
-- Service S1 (`00001815-0000-1000-8000-00805f9b34fb`)
+- Service S1 (`0x1815` or `00001815-0000-1000-8000-00805f9b34fb`)
     - Characteristic C1
         - Descriptor D1
         - Descriptor D2
-    - Characteristic C2 (`00002a56-0000-1000-8000-00805f9b34fb`)
-        - Descriptor D3 (`00002902-0000-1000-8000-00805f9b34fb`)
+    - Characteristic C2 (`0x2a56` or `00002a56-0000-1000-8000-00805f9b34fb`)
+        - Descriptor D3 (`gatt.client_characteristic_configuration` or `00002902-0000-1000-8000-00805f9b34fb`)
 - Service S2
     - Characteristic C3
 
@@ -401,9 +446,9 @@ In the above example, to lazily access "Descriptor D3":
 
 ```kotlin
 val descriptor = descriptorOf(
-    service = "00001815-0000-1000-8000-00805f9b34fb",
-    characteristic = "00002a56-0000-1000-8000-00805f9b34fb",
-    descriptor = "00002902-0000-1000-8000-00805f9b34fb"
+    service = Bluetooth.BaseUuid + 0x1815,
+    characteristic = Bluetooth.BaseUuid + 0x2A56,
+    descriptor = Uuid.descriptor("gatt.client_characteristic_configuration"),
 )
 ```
 
@@ -417,18 +462,31 @@ To access "Descriptor D3" using a discovered descriptor:
 ```kotlin
 val services = peripheral.services.value ?: error("Services have not been discovered")
 val descriptor = services
-    .first { it.serviceUuid == uuidFrom("00001815-0000-1000-8000-00805f9b34fb") }
+    .first { it.serviceUuid == Uuid.parse("00001815-0000-1000-8000-00805f9b34fb") }
     .characteristics
-    .first { it.characteristicUuid == uuidFrom("00002a56-0000-1000-8000-00805f9b34fb") }
+    .first { it.characteristicUuid == Uuid.parse("00002a56-0000-1000-8000-00805f9b34fb") }
     .descriptors
-    .first { it.descriptorUuid == uuidFrom("00002902-0000-1000-8000-00805f9b34fb") }
+    .first { it.descriptorUuid == Uuid.parse("00002902-0000-1000-8000-00805f9b34fb") }
 ```
 
 > [!TIP]
-> _This example uses a similar search algorithm as `descriptorOf`, but other search methods may be utilized. For example,
+> Shorthand notations are available for UUIDs. The accessing "Descriptor D3" example could be written as:
+>
+> ```kotlin
+> val services = peripheral.services.value ?: error("Services have not been discovered")
+> val descriptor = services
+>   .first { it.serviceUuid == Bluetooth.BaseUuid + 0x1815 }
+>   .characteristics
+>   .first { it.characteristicUuid == Bluetooth.BaseUuid + 0x2A56 }
+>   .descriptors
+>   .first { it.descriptorUuid == Uuid.descriptor("gatt.client_characteristic_configuration") }
+> ```
+
+> [!TIP]
+> This example uses a similar search algorithm as `descriptorOf`, but other search methods may be utilized. For example,
 > properties of the characteristic could be queried to find a specific characteristic that is expected to be the parent of
 > the sought after descriptor. When searching for a specific characteristic, descriptors can be read that may identity the
-> sought after characteristic._
+> sought after characteristic.
 
 When connected, data can be read from, or written to, characteristics and/or descriptors via [`read`] and [`write`]
 functions.
@@ -667,12 +725,13 @@ limitations under the License.
 [`Characteristic`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-characteristic/index.html
 [`Connected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-connected/index.html
 [`CoroutineScope.peripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/peripheral.html
-[`requestPeripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/request-peripheral.html
 [`CoroutineScope`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-scope/
 [`Disconnected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-disconnected/index.html
 [`Disconnecting`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-disconnecting/index.html
 [`Filter`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-filter/index.html
 [`Flow`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/
+[`Int`]: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/
+[`Long`]: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/
 [`NotConnectedException`]: https://juullabs.github.io/kable/kable-exceptions/com.juul.kable/-not-connected-exception/index.html
 [`Options`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-options/index.html
 [`Peripheral.disconnect`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/disconnect.html
@@ -680,6 +739,7 @@ limitations under the License.
 [`Peripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/index.html
 [`ScanSettings`]: https://developer.android.com/reference/kotlin/android/bluetooth/le/ScanSettings
 [`Scanner`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-scanner.html
+[`Uuid`]: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.uuid/-uuid/
 [`WithoutResponse`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-write-type/-without-response/index.html
 [`WriteType`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-write-type/index.html
 [`advertisements`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-scanner/advertisements.html
@@ -692,6 +752,7 @@ limitations under the License.
 [`observationExceptionHandler`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral-builder/observation-exception-handler.html
 [`observe`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/observe.html
 [`read`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/read.html
+[`requestPeripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/request-peripheral.html
 [`state`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/state.html
 [`writeWithoutResponse`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/write-without-response.html
 [`write`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-peripheral/write.html
