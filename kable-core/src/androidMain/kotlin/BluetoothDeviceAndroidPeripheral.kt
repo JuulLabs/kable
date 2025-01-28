@@ -34,6 +34,7 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -72,7 +73,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         }
     }
 
-    private val connectAction = sharedRepeatableAction(::establishConnection)
+    private val connectAction = scope.sharedRepeatableAction(::establishConnection)
 
     override val identifier: String = bluetoothDevice.address
     private val logger = Logger(logging, "Kable/Peripheral", bluetoothDevice.toString())
@@ -349,7 +350,11 @@ internal class BluetoothDeviceAndroidPeripheral(
         bluetoothState
             .filter { state -> state == STATE_TURNING_OFF || state == STATE_OFF }
             .onEach(action)
-            .launchIn(this)
+            .launchIn(scope)
+    }
+
+    override fun close() {
+        scope.cancel("$this closed")
     }
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"

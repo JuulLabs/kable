@@ -169,29 +169,29 @@ val peripheral = Peripheral(advertisement) {
 ```
 
 [`Peripheral`] objects represent actions that can be performed against a remote peripheral, such as connection
-handling and I/O operations. [`Peripheral`] objects are themselves [`CoroutineScope`]s, and coroutines can be
-`launch`ed from them:
+handling and I/O operations. [`Peripheral`] objects provide a [`CoroutineScope`] `scope` property, and coroutines
+can be `launch`ed from it:
 
 ```kotlin
-peripheral.launch {
-    // Long running task that will be cancelled when peripheral
-    // is disposed (i.e. `Peripheral.cancel()` is called).
+peripheral.scope.launch {
+    // Long running task that will be cancelled when peripheral is disposed
+    // (i.e. `peripheral.close()` is called).
 }
 ```
 
 > [!IMPORTANT]
-> When a [`Peripheral`] is no longer needed, it should be disposed via `cancel`:
+> When a [`Peripheral`] is no longer needed, it should be disposed via `close`:
 >
 > ```kotlin
-> peripheral.cancel()
+> peripheral.close()
 > ```
 >
-> Once a [`Peripheral`] is cancelled (via `cancel`) it can no longer be used (e.g. calling `connect` will throw
+> Once a [`Peripheral`] is disposed (via `close`) it can no longer be used (e.g. calling `connect` will throw
 > `IllegalStateException`).
 
 > [!TIP]
-> `launch`ed coroutines from a `Peripheral` object are permitted to run until `Peripheral.cancel()` is called
-> (i.e. can span across reconnects); for tasks that should only run for the duration of a single connection
+> `launch`ed coroutines from a `Peripheral` object's `scope` are permitted to run until `Peripheral.dispose()`
+> is called (i.e. can span across reconnects); for tasks that should only run for the duration of a single connection
 > (i.e. shutdown on disconnect), `launch` via the `CoroutineScope` returned from `Peripheral.connect` instead.
 
 ### Configuration

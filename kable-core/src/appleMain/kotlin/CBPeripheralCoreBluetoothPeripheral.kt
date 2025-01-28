@@ -15,6 +15,7 @@ import com.juul.kable.logs.Logging.DataProcessor.Operation.Write
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -82,7 +83,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         }
     }
 
-    private val connectAction = sharedRepeatableAction(::establishConnection)
+    private val connectAction = scope.sharedRepeatableAction(::establishConnection)
 
     private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
     private val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
@@ -345,14 +346,14 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             .filter { event -> event.identifier == cbPeripheral.identifier }
             .map(ConnectionEvent::toState)
             .onEach(action)
-            .launchIn(this)
+            .launchIn(scope)
     }
 
     private fun onBluetoothPoweredOff(action: suspend (CBManagerState) -> Unit) {
         central.delegate
             .state.filter { state -> state != CBManagerStatePoweredOn }
             .onEach(action)
-            .launchIn(this)
+            .launchIn(scope)
     }
 
     private fun createPeripheralDelegate() = PeripheralDelegate(
@@ -361,6 +362,10 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         logging,
         cbPeripheral.identifier.UUIDString,
     )
+
+    override fun close() {
+        scope.cancel("$this closed")
+    }
 
     override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"
 }

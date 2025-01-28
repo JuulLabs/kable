@@ -22,7 +22,17 @@ public enum class WriteType {
     WithoutResponse,
 }
 
-public interface Peripheral : CoroutineScope {
+/**
+ * Represents a remote Bluetooth Low Energy peripheral. Should be disposed (via [close]) when no
+ * longer needed.
+ */
+public interface Peripheral : AutoCloseable {
+
+    /**
+     * [CoroutineScope] tied to the lifecycle of this [Peripheral] (is cancelled upon [Peripheral]
+     * being disposed via [close]).
+     */
+    public val scope: CoroutineScope
 
     /**
      * Provides a conflated [Flow] of the [Peripheral]'s [State].
