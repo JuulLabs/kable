@@ -31,7 +31,7 @@ internal fun BluetoothDevice.connect(
     transport: Transport,
     phy: Phy,
     state: MutableStateFlow<State>,
-    services: MutableStateFlow<List<DiscoveredService>?>,
+    services: MutableStateFlow<List<PlatformDiscoveredService>?>,
     mtu: MutableStateFlow<Int?>,
     onCharacteristicChanged: MutableSharedFlow<ObservationEvent<ByteArray>>,
     logging: Logging,

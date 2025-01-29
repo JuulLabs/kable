@@ -176,7 +176,7 @@ internal class PeripheralDelegate(
             detail(didUpdateValueForCharacteristic.value, Change)
         }
 
-        val characteristic = didUpdateValueForCharacteristic.toLazyCharacteristic()
+        val characteristic = PlatformDiscoveredCharacteristic(didUpdateValueForCharacteristic)
         val change = if (error == null) {
             // Assumption: `value == null` and `error == null` are mutually exclusive.
             // i.e. When `error == null` then `CBCharacteristic`'s `value` is non-null.

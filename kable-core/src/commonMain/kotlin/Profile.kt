@@ -82,28 +82,39 @@ internal expect class PlatformService
 internal expect class PlatformCharacteristic
 internal expect class PlatformDescriptor
 
-/** Wrapper around platform specific Bluetooth LE service. Holds a strong reference to underlying service. */
-public expect class DiscoveredService : Service {
-    override val serviceUuid: Uuid
-    internal val service: PlatformService
+public interface DiscoveredService : Service {
     public val characteristics: List<DiscoveredCharacteristic>
 }
 
-/** Wrapper around platform specific Bluetooth LE characteristic. Holds a strong reference to underlying characteristic. */
-public expect class DiscoveredCharacteristic : Characteristic {
-    override val serviceUuid: Uuid
-    override val characteristicUuid: Uuid
-    internal val characteristic: PlatformCharacteristic
+public interface DiscoveredCharacteristic : Characteristic {
     public val descriptors: List<DiscoveredDescriptor>
     public val properties: Properties
 }
 
+public interface DiscoveredDescriptor : Descriptor
+
+/** Wrapper around platform specific Bluetooth LE service. Holds a strong reference to underlying service. */
+internal expect class PlatformDiscoveredService : DiscoveredService {
+    val service: PlatformService
+    override val serviceUuid: Uuid
+    override val characteristics: List<PlatformDiscoveredCharacteristic>
+}
+
+/** Wrapper around platform specific Bluetooth LE characteristic. Holds a strong reference to underlying characteristic. */
+internal expect class PlatformDiscoveredCharacteristic : DiscoveredCharacteristic {
+    val characteristic: PlatformCharacteristic
+    override val serviceUuid: Uuid
+    override val characteristicUuid: Uuid
+    override val descriptors: List<PlatformDiscoveredDescriptor>
+    override val properties: Properties
+}
+
 /** Wrapper around platform specific Bluetooth LE descriptor. Holds a strong reference to underlying descriptor. */
-public expect class DiscoveredDescriptor : Descriptor {
+internal expect class PlatformDiscoveredDescriptor : DiscoveredDescriptor {
+    val descriptor: PlatformDescriptor
     override val serviceUuid: Uuid
     override val characteristicUuid: Uuid
     override val descriptorUuid: Uuid
-    internal val descriptor: PlatformDescriptor
 }
 
 public data class LazyCharacteristic internal constructor(
@@ -152,11 +163,11 @@ public fun descriptorOf(
 public fun descriptorOf(service: Uuid, characteristic: Uuid, descriptor: Uuid): Descriptor =
     LazyDescriptor(service, characteristic, descriptor)
 
-internal fun List<DiscoveredService>.obtain(
+internal fun List<PlatformDiscoveredService>.obtain(
     characteristic: Characteristic,
     properties: Properties?,
 ): PlatformCharacteristic {
-    if (characteristic is DiscoveredCharacteristic) return characteristic.characteristic
+    if (characteristic is PlatformDiscoveredCharacteristic) return characteristic.characteristic
 
     val discoveredService = firstOrNull {
         it.serviceUuid == characteristic.serviceUuid
@@ -170,10 +181,10 @@ internal fun List<DiscoveredService>.obtain(
     return discoveredCharacteristic.characteristic
 }
 
-internal fun List<DiscoveredService>.obtain(
+internal fun List<PlatformDiscoveredService>.obtain(
     descriptor: Descriptor,
 ): PlatformDescriptor {
-    if (descriptor is DiscoveredDescriptor) return descriptor.descriptor
+    if (descriptor is PlatformDiscoveredDescriptor) return descriptor.descriptor
 
     val discoveredService = firstOrNull {
         it.serviceUuid == descriptor.serviceUuid

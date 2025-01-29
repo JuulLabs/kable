@@ -114,39 +114,16 @@ public abstract interface class com/juul/kable/Descriptor {
 	public abstract fun getServiceUuid ()Lkotlin/uuid/Uuid;
 }
 
-public final class com/juul/kable/DiscoveredCharacteristic : com/juul/kable/Characteristic {
-	public final fun copy (Landroid/bluetooth/BluetoothGattCharacteristic;)Lcom/juul/kable/DiscoveredCharacteristic;
-	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredCharacteristic;Landroid/bluetooth/BluetoothGattCharacteristic;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredCharacteristic;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
-	public final fun getDescriptors ()Ljava/util/List;
-	public final fun getInstanceId ()I
-	public final fun getProperties-bty6q6U ()I
-	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
+public abstract interface class com/juul/kable/DiscoveredCharacteristic : com/juul/kable/Characteristic {
+	public abstract fun getDescriptors ()Ljava/util/List;
+	public abstract fun getProperties-bty6q6U ()I
 }
 
-public final class com/juul/kable/DiscoveredDescriptor : com/juul/kable/Descriptor {
-	public final fun copy (Landroid/bluetooth/BluetoothGattDescriptor;)Lcom/juul/kable/DiscoveredDescriptor;
-	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredDescriptor;Landroid/bluetooth/BluetoothGattDescriptor;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredDescriptor;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getCharacteristicUuid ()Lkotlin/uuid/Uuid;
-	public fun getDescriptorUuid ()Lkotlin/uuid/Uuid;
-	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
+public abstract interface class com/juul/kable/DiscoveredDescriptor : com/juul/kable/Descriptor {
 }
 
-public final class com/juul/kable/DiscoveredService : com/juul/kable/Service {
-	public final fun copy (Landroid/bluetooth/BluetoothGattService;)Lcom/juul/kable/DiscoveredService;
-	public static synthetic fun copy$default (Lcom/juul/kable/DiscoveredService;Landroid/bluetooth/BluetoothGattService;ILjava/lang/Object;)Lcom/juul/kable/DiscoveredService;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getCharacteristics ()Ljava/util/List;
-	public final fun getInstanceId ()I
-	public fun getServiceUuid ()Lkotlin/uuid/Uuid;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
+public abstract interface class com/juul/kable/DiscoveredService : com/juul/kable/Service {
+	public abstract fun getCharacteristics ()Ljava/util/List;
 }
 
 public abstract interface annotation class com/juul/kable/ExperimentalApi : java/lang/annotation/Annotation {

@@ -55,6 +55,11 @@ kotlin {
             implementation(libs.tuulbox.coroutines)
         }
 
+        androidUnitTest.dependencies {
+            implementation(libs.equalsverifier)
+            implementation(libs.mockk)
+        }
+
         jsMain.dependencies {
             api(libs.wrappers.web)
             api(project.dependencies.platform(libs.wrappers.bom))

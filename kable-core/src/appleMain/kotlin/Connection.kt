@@ -47,7 +47,7 @@ internal class Connection(
     private val peripheral: CBPeripheral,
     private val delegate: PeripheralDelegate,
     private val state: MutableStateFlow<State>,
-    private val services: MutableStateFlow<List<DiscoveredService>?>,
+    private val services: MutableStateFlow<List<PlatformDiscoveredService>?>,
     private val disconnectTimeout: Duration,
     identifier: String,
     logging: Logging,
@@ -117,7 +117,7 @@ internal class Connection(
         services.value = peripheral.services
             .orEmpty()
             .map { it as PlatformService }
-            .map(::DiscoveredService)
+            .map(::PlatformDiscoveredService)
     }
 
     suspend inline fun <reified T : Response> execute(

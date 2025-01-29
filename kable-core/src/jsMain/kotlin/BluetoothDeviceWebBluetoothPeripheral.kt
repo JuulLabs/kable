@@ -56,7 +56,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     private fun connectionOrThrow() = connection.value
         ?: throw NotConnectedException("Connection not established, current state: ${state.value}")
 
-    private val _services = MutableStateFlow<List<DiscoveredService>?>(null)
+    private val _services = MutableStateFlow<List<PlatformDiscoveredService>?>(null)
     override val services = _services.asStateFlow()
     private fun servicesOrThrow() = services.value ?: error("Services have not been discovered")
 
