@@ -14,6 +14,7 @@ import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
 import com.juul.kable.NotConnectedException
 import com.juul.kable.ObservationEvent
 import com.juul.kable.ObservationEvent.CharacteristicChange
+import com.juul.kable.PlatformDiscoveredCharacteristic
 import com.juul.kable.State
 import com.juul.kable.State.Disconnected.Status.Cancelled
 import com.juul.kable.State.Disconnected.Status.CentralDisconnected
@@ -42,7 +43,6 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation.Change
 import com.juul.kable.logs.Logging.DataProcessor.Operation.Read
 import com.juul.kable.logs.detail
-import com.juul.kable.toLazyCharacteristic
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.SendChannel
@@ -189,7 +189,7 @@ internal class Callback(
             detail(characteristic)
             detail(value, Change)
         }
-        val event = CharacteristicChange(characteristic.toLazyCharacteristic(), value)
+        val event = CharacteristicChange(PlatformDiscoveredCharacteristic(characteristic), value)
         onCharacteristicChanged.tryEmitOrLog(event)
     }
 

@@ -77,7 +77,7 @@ public class CentralManager internal constructor(
         peripheral: CBPeripheral,
         delegate: PeripheralDelegate,
         state: MutableStateFlow<State>,
-        services: MutableStateFlow<List<DiscoveredService>?>,
+        services: MutableStateFlow<List<PlatformDiscoveredService>?>,
         disconnectTimeout: Duration,
         logging: Logging,
         options: Map<Any?, *>? = null,

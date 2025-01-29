@@ -81,7 +81,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val _state = MutableStateFlow<State>(Disconnected())
     override val state = _state.asStateFlow()
 
-    private val _services = MutableStateFlow<List<DiscoveredService>?>(null)
+    private val _services = MutableStateFlow<List<PlatformDiscoveredService>?>(null)
     override val services = _services.asStateFlow()
     private fun servicesOrThrow() = services.value ?: error("Services have not been discovered")
 
