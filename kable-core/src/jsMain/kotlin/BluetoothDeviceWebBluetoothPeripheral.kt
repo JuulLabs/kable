@@ -17,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.async
 import kotlinx.coroutines.await
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,7 +44,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     private val logging: Logging,
 ) : BasePeripheral(bluetoothDevice.id), WebBluetoothPeripheral {
 
-    private val connectAction = sharedRepeatableAction(::establishConnection)
+    private val connectAction = scope.sharedRepeatableAction(::establishConnection)
 
     private val logger = Logger(logging, identifier = bluetoothDevice.id)
 
@@ -281,6 +282,10 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
 
     internal suspend fun stopObservation(characteristic: Characteristic) {
         connectionOrThrow().stopObservation(characteristic)
+    }
+
+    override fun close() {
+        scope.cancel("$this closed")
     }
 
     override fun toString(): String = "Peripheral(bluetoothDevice=${bluetoothDevice.string()})"

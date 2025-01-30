@@ -223,11 +223,12 @@ public final class com/juul/kable/ObservationExceptionPeripheral {
 public abstract interface annotation class com/juul/kable/ObsoleteKableApi : java/lang/annotation/Annotation {
 }
 
-public abstract interface class com/juul/kable/Peripheral : kotlinx/coroutines/CoroutineScope {
+public abstract interface class com/juul/kable/Peripheral : java/lang/AutoCloseable {
 	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getIdentifier ()Ljava/lang/String;
 	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getScope ()Lkotlinx/coroutines/CoroutineScope;
 	public abstract fun getServices ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun maximumWriteValueLengthForType (Lcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

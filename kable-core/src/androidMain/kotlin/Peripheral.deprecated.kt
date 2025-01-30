@@ -38,7 +38,7 @@ public fun CoroutineScope.peripheral(
         builder.disconnectTimeout,
     )
     coroutineContext.job.invokeOnCompletion {
-        peripheral.cancel()
+        peripheral.scope.cancel()
     }
     return peripheral
 }
