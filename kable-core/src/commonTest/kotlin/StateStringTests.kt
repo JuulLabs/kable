@@ -17,6 +17,7 @@ import com.juul.kable.State.Disconnected.Status.Timeout
 import com.juul.kable.State.Disconnected.Status.Unknown
 import com.juul.kable.State.Disconnected.Status.UnknownDevice
 import com.juul.kable.State.Disconnecting
+import kotlinx.coroutines.GlobalScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -24,7 +25,7 @@ public class StateStringTests {
 
     @Test
     fun stringRepresentation() {
-        Connected.assertEquals("Connected")
+        Connected(GlobalScope).assertEquals("Connected")
         Bluetooth.assertEquals("Connecting.Bluetooth")
         Observes.assertEquals("Connecting.Observes")
         Services.assertEquals("Connecting.Services")

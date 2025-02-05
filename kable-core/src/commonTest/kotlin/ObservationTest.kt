@@ -44,7 +44,7 @@ class ObservationTest {
 
     @Test
     fun manySubscribers_startsObservationOnce() = runTest {
-        val state = MutableStateFlow<State>(Connected)
+        val state = MutableStateFlow<State>(Connected(this))
         val characteristic = generateCharacteristic()
         val counter = ObservationCounter(characteristic)
         val observation = Observation(state, counter, characteristic, logging, identifier = "test")
@@ -66,7 +66,7 @@ class ObservationTest {
         val observation = Observation(state, counter, characteristic, logging, identifier = "test")
         val onSubscriptionActions = List(10) { suspend { } }
 
-        state.value = Connected
+        state.value = Connected(this)
         onSubscriptionActions.forEach { action ->
             observation.onSubscription(action)
         }
@@ -86,7 +86,7 @@ class ObservationTest {
 
     @Test
     fun subscribersGoesToZero_whileDisconnected_doesNotStopObservation() = runTest {
-        val state = MutableStateFlow<State>(Connected)
+        val state = MutableStateFlow<State>(Connected(this))
         val characteristic = generateCharacteristic()
         val counter = ObservationCounter(characteristic)
         val observation = Observation(state, counter, characteristic, logging, identifier = "test")
@@ -112,7 +112,7 @@ class ObservationTest {
 
     @Test
     fun hasSubscribers_reconnects_reObservesOnce() = runTest {
-        val state = MutableStateFlow<State>(Connected)
+        val state = MutableStateFlow<State>(Connected(this))
         val characteristic = generateCharacteristic()
         val counter = ObservationCounter(characteristic)
         val observation = Observation(state, counter, characteristic, logging, identifier = "test")
@@ -160,7 +160,7 @@ class ObservationTest {
         repeat(5) {
             observation.onSubscription { }
         }
-        state.value = Connected
+        state.value = Connected(this)
         repeat(5) {
             observation.onSubscription { }
         }
@@ -311,7 +311,7 @@ class ObservationTest {
 
     @Test
     fun failureDuringStopObservation_propagates() = runTest {
-        val state = MutableStateFlow<State>(Connected)
+        val state = MutableStateFlow<State>(Connected(this))
         val characteristic = generateCharacteristic()
         val handler = object : Observation.Handler {
             override suspend fun startObservation(characteristic: Characteristic) {}
@@ -332,7 +332,7 @@ class ObservationTest {
 
     @Test
     fun failureInSubscriptionAction_propagates() = runTest {
-        val state = MutableStateFlow<State>(Connected)
+        val state = MutableStateFlow<State>(Connected(this))
         val characteristic = generateCharacteristic()
         val counter = ObservationCounter(characteristic)
         val observation = Observation(state, counter, characteristic, logging, identifier = "test")

@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import kotlinx.coroutines.GlobalScope
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -158,31 +159,31 @@ public class StateIsAtLeastTests {
 
     @Test
     fun connected_isAtLeast_disconnected_is_true() {
-        assertTrue(State.Connected.isAtLeast<State.Disconnected>())
+        assertTrue(State.Connected(GlobalScope).isAtLeast<State.Disconnected>())
     }
 
     @Test
     fun connected_isAtLeast_disconnecting_is_true() {
-        assertTrue(State.Connected.isAtLeast<State.Disconnecting>())
+        assertTrue(State.Connected(GlobalScope).isAtLeast<State.Disconnecting>())
     }
 
     @Test
     fun connected_isAtLeast_connectingBluetooth_is_true() {
-        assertTrue(State.Connected.isAtLeast<State.Connecting.Bluetooth>())
+        assertTrue(State.Connected(GlobalScope).isAtLeast<State.Connecting.Bluetooth>())
     }
 
     @Test
     fun connected_isAtLeast_connectingServices_is_true() {
-        assertTrue(State.Connected.isAtLeast<State.Connecting.Services>())
+        assertTrue(State.Connected(GlobalScope).isAtLeast<State.Connecting.Services>())
     }
 
     @Test
     fun connected_isAtLeast_connectingObserves_is_true() {
-        assertTrue(State.Connected.isAtLeast<State.Connecting.Observes>())
+        assertTrue(State.Connected(GlobalScope).isAtLeast<State.Connecting.Observes>())
     }
 
     @Test
     fun connected_isAtLeast_connected_is_true() {
-        assertTrue(State.Connected.isAtLeast<State.Connected>())
+        assertTrue(State.Connected(GlobalScope).isAtLeast<State.Connected>())
     }
 }
