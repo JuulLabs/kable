@@ -4,6 +4,8 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM
 import android.os.ParcelUuid
 import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.ManufacturerData
@@ -149,10 +151,17 @@ private fun FilterPredicate.toNativeScanFilter(): ScanFilter =
         }
     }.build()
 
-// Scan filter does not support name prefix filtering, and only allows at most one service uuid
-// and one manufacturer data.
-private fun FilterPredicate.supportsNativeScanFiltering(): Boolean =
-    !containsNamePrefix() && serviceCount() <= 1 && manufacturerDataCount() <= 1
+private fun FilterPredicate.supportsNativeScanFiltering(): Boolean {
+    // Workaround a bug where native filter matches all devices when only a company ID is specified.
+    // See https://github.com/JuulLabs/kable/issues/854 for more details.
+    if (SDK_INT <= VANILLA_ICE_CREAM && hasNullManufacturerData) return false
+
+    // Scan filter does not support name prefix filtering, and only allows at most one service uuid
+    // and one manufacturer data.
+    return !containsNamePrefix() &&
+            serviceCount() <= 1 &&
+            manufacturerDataCount() <= 1
+}
 
 private fun FilterPredicate.containsNamePrefix(): Boolean =
     filters.any { it is Name.Prefix }
@@ -162,3 +171,6 @@ private fun FilterPredicate.serviceCount(): Int =
 
 private fun FilterPredicate.manufacturerDataCount(): Int =
     filters.count { it is ManufacturerData }
+
+private val FilterPredicate.hasNullManufacturerData
+    get() = filters.any { (it as? ManufacturerData)?.data != null }
