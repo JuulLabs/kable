@@ -159,8 +159,8 @@ private fun FilterPredicate.supportsNativeScanFiltering(): Boolean {
     // Scan filter does not support name prefix filtering, and only allows at most one service uuid
     // and one manufacturer data.
     return !containsNamePrefix() &&
-            serviceCount() <= 1 &&
-            manufacturerDataCount() <= 1
+        serviceCount() <= 1 &&
+        manufacturerDataCount() <= 1
 }
 
 private fun FilterPredicate.containsNamePrefix(): Boolean =
