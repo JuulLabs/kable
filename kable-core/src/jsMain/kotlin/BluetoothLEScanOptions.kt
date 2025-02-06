@@ -46,7 +46,9 @@ private fun FilterPredicate.toBluetoothLEScanFilterInit(): BluetoothLEScanFilter
 private fun toBluetoothManufacturerDataFilterInit(filter: Filter.ManufacturerData) =
     jso<BluetoothManufacturerDataFilterInit> {
         companyIdentifier = filter.id
-        dataPrefix = filter.data
+        if (filter.data != null) {
+            dataPrefix = filter.data
+        }
         if (filter.dataMask != null) {
             mask = filter.dataMask
         }

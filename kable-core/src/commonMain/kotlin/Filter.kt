@@ -103,7 +103,8 @@ public sealed class Filter {
          */
         public val id: Int,
 
-        public val data: ByteArray,
+        /** Must be non-`null` if [dataMask] is non-`null`. */
+        public val data: ByteArray? = null,
 
         /**
          * For any bit in the mask, set it to 1 if advertisement manufacturer data needs to match the corresponding bit
@@ -112,16 +113,20 @@ public sealed class Filter {
         public val dataMask: ByteArray? = null,
     ) : Filter() {
 
-        public constructor(id: ByteArray, data: ByteArray, dataMask: ByteArray? = null) : this(id.toShort(), data, dataMask)
+        public constructor(id: ByteArray, data: ByteArray? = null, dataMask: ByteArray? = null) : this(id.toShort(), data, dataMask)
 
         init {
             require(id >= 0) { "Company identifier cannot be negative, was $id" }
             require(id <= 65535) { "Company identifier cannot be more than 16-bits (65535), was $id" }
-            if (dataMask != null) requireDataAndMaskHaveSameLength(data, dataMask)
+            if (data != null && data.isEmpty()) throw IllegalArgumentException("If data is present (non-null), it must be non-empty")
+            if (dataMask != null) {
+                requireNotNull(data) { "Data is null but must be non-null when dataMask is non-null" }
+                requireDataAndMaskHaveSameLength(data, dataMask)
+            }
         }
 
         override fun toString(): String =
-            "ManufacturerData(id=$id, data=${data.toHexString()}, dataMask=${dataMask?.toHexString()})"
+            "ManufacturerData(id=$id, data=${data?.toHexString()}, dataMask=${dataMask?.toHexString()})"
     }
 }
 
@@ -144,6 +149,7 @@ internal fun Filter.Name.matches(name: String?): Boolean {
 }
 
 internal fun Filter.ManufacturerData.matches(data: ByteArray?): Boolean {
+    if (this.data == null) return true
     if (data == null) return false
     if (dataMask == null) return this.data.contentEquals(data)
     val lastMaskIndex = dataMask.indexOfLast { it != 0.toByte() }
