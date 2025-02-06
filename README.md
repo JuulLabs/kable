@@ -82,21 +82,22 @@ val scanner = Scanner {
 Scan results can be filtered by providing a list of [`Filter`]s via the `filters` DSL.
 The following filters are supported:
 
-| Filter             | Android | Apple | JavaScript |
-|--------------------|:-------:|:-----:|:----------:|
-| `Service`          |   ✓✓    |  ✓✓*  |     ✓✓     |
-| `Name`             |   ✓✓    |   ✓   |     ✓✓     |
-| `NamePrefix`       |    ✓    |   ✓   |     ✓✓     |
-| `Address`          |   ✓✓    |       |            |
-| `ManufacturerData` |   ✓✓    |   ✓   |     ✓✓     |
+| Filter             | Android       | Apple         | JavaScript |
+|--------------------|:-------------:|:-------------:|:----------:|
+| `Service`          | ✓             | ✓<sup>2</sup> | ✓          |
+| `Name`             | ✓             | ✓<sup>1</sup> | ✓          |
+| `NamePrefix`       | ✓<sup>1</sup> | ✓<sup>1</sup> | ✓          |
+| `Address`          | ✓             |               |            |
+| `ManufacturerData` | ✓<sup>3</sup> | ✓<sup>1</sup> | ✓          |
 
-✓✓ = Supported natively  
-✓ = Support provided by Kable via flow filter  
-✓✓* = Supported natively if the only filter type used, otherwise falls back to flow filter  
+✓&nbsp; Supported natively  
+✓<sup>1</sup> Support provided by Kable via flow filter  
+✓<sup>2</sup> Supported natively if the only filter type used, otherwise falls back to flow filter  
+✓<sup>3</sup> Supported natively except when filtering only by company ID on Android &lt; 16
 
 > [!TIP]
-> _When a filter is supported natively, the system will often be able to perform scan optimizations. If feasible, it is
-> recommended to provide only `Filter.Service` filters (and at least one) — as it is natively supported on all platforms._
+> When a filter is supported natively, the system will often be able to perform scan optimizations. If feasible, it is
+> recommended to provide only `Filter.Service` filters (and at least one) — as it is natively supported on all platforms.
 
 When filters are specified, only [`Advertisement`]s that match at least one [`Filter`] will be emitted. For example, if
 you had the following peripherals nearby when performing a scan:
