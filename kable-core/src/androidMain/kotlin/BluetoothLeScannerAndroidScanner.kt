@@ -4,6 +4,8 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM
 import android.os.ParcelUuid
 import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.ManufacturerData
@@ -142,7 +144,7 @@ private fun FilterPredicate.toNativeScanFilter(): ScanFilter =
             when (filter) {
                 is Name.Exact -> setDeviceName(filter.exact)
                 is Address -> setDeviceAddress(filter.address)
-                is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
+                is ManufacturerData -> setManufacturerData(filter.id, filterDataCompat(filter.data), filter.dataMask)
                 is Service -> setServiceUuid(ParcelUuid(filter.uuid.toJavaUuid()))
                 else -> throw AssertionError("Unsupported filter element")
             }
@@ -162,3 +164,8 @@ private fun FilterPredicate.serviceCount(): Int =
 
 private fun FilterPredicate.manufacturerDataCount(): Int =
     filters.count { it is ManufacturerData }
+
+// Android doesn't properly check for nullness of manufacturer data until Android 16.
+// See https://github.com/JuulLabs/kable/issues/854 for more details.
+private fun filterDataCompat(data: ByteArray?): ByteArray? =
+    if (data == null && SDK_INT <= VANILLA_ICE_CREAM) byteArrayOf() else data

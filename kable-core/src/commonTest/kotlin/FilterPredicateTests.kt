@@ -3,6 +3,7 @@ package com.juul.kable
 import com.juul.kable.Filter.Name.Exact
 import com.juul.kable.Filter.Name.Prefix
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
@@ -240,6 +241,119 @@ class FilterPredicateTests {
                 manufacturerData = ManufacturerData(
                     code = texasInstrumentsCompanyId,
                     data = sensorTagManufacturerData,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun manufacturerDataFilter_nullDataWithNullDataMask_isAllowed() {
+        ManufacturerDataFilter(
+            id = 1,
+            data = null,
+            dataMask = null,
+        )
+    }
+
+    @Test
+    fun manufacturerDataFilter_nullDataWithEmptyDataMask_throwsIllegalArgumentException() {
+        assertFailsWith<IllegalArgumentException> {
+            ManufacturerDataFilter(
+                id = 1,
+                data = null,
+                dataMask = byteArrayOf(),
+            )
+        }
+    }
+
+    @Test
+    fun manufacturerDataFilter_nullDataWithNonNullDataMask_throwsIllegalArgumentException() {
+        assertFailsWith<IllegalArgumentException> {
+            ManufacturerDataFilter(
+                id = 1,
+                data = null,
+                dataMask = byteArrayOf(0xFF.toByte(), 0xFF.toByte()),
+            )
+        }
+    }
+
+    @Test
+    fun manufacturerDataFilter_emptyData_throwsIllegalArgumentException() {
+        assertFailsWith<IllegalArgumentException> {
+            ManufacturerDataFilter(
+                id = 1,
+                data = byteArrayOf(),
+            )
+        }
+    }
+
+    @Test
+    fun matches_manufacturerDataFilterWithNullDataVsEmptyData_isTrue() {
+        val predicate = ManufacturerDataFilter(
+            id = 1,
+            data = null,
+            dataMask = null,
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                manufacturerData = ManufacturerData(
+                    code = 1,
+                    data = byteArrayOf(),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_manufacturerDataFilterWithNullDataVsData_isTrue() {
+        val predicate = ManufacturerDataFilter(
+            id = 1,
+            data = null,
+            dataMask = null,
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                manufacturerData = ManufacturerData(
+                    code = 1,
+                    data = byteArrayOf(0xFF.toByte(), 0xFF.toByte()),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_manufacturerDataFilterWithoutDataMaskVsData_isTrue() {
+        val predicate = ManufacturerDataFilter(
+            id = 1,
+            data = byteArrayOf(0xFF.toByte(), 0xFF.toByte()),
+            dataMask = null,
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                manufacturerData = ManufacturerData(
+                    code = 1,
+                    data = byteArrayOf(0xFF.toByte(), 0xFF.toByte()),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_manufacturerDataFilterWithoutDataMaskVsDifferentData_isFalse() {
+        val predicate = ManufacturerDataFilter(
+            id = 1,
+            data = byteArrayOf(0xF0.toByte(), 0x0D.toByte()),
+            dataMask = null,
+        ).toPredicate()
+
+        assertFalse(
+            predicate.matches(
+                manufacturerData = ManufacturerData(
+                    code = 1,
+                    data = byteArrayOf(0x12, 0x34),
                 ),
             ),
         )
