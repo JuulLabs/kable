@@ -124,14 +124,14 @@ public interface Peripheral : AutoCloseable {
      * returns immediately.
      *
      * The returned [CoroutineScope] can be used to launch coroutines, and is cancelled upon
-     * disconnect or [Peripheral] [cancellation][Peripheral.cancel]. The [CoroutineScope] is a
-     * supervisor scope, meaning any failures in launched coroutines will not fail other launched
-     * coroutines nor cause a disconnect.
+     * [disconnect] or [closure][Peripheral.close]. The [CoroutineScope] is a supervisor scope,
+     * meaning any failures in launched coroutines will not fail other launched coroutines nor cause
+     * a disconnect.
      *
      * @throws IllegalStateException when a connection request could not be made (e.g. bluetooth not supported).
      * @throws NotConnectedException if unable to establish connection (e.g. connection lost while discovering services).
      * @throws IOException (Android) if request failed due to Binder remote-invocation error.
-     * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [cancelled][Peripheral.cancel].
+     * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [closed][Peripheral.close].
      */
     public suspend fun connect(): CoroutineScope
 
@@ -141,10 +141,11 @@ public interface Peripheral : AutoCloseable {
      *
      * Multiple concurrent invocations will all suspend until disconnected (or failure occurs).
      *
-     * Any coroutines launched from [connect] will be spun down prior to closing underlying
-     * peripheral connection.
+     * Any coroutines launched from connection [scope][CoroutineScope] (i.e. [CoroutineScope]
+     * returned by [connect] or [State.Connected.scope]) will be spun down prior to closing
+     * underlying peripheral connection.
      *
-     * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [cancelled][Peripheral.cancel].
+     * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [closed][Peripheral.close].
      */
     public suspend fun disconnect(): Unit
 

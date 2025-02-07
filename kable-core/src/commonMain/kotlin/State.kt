@@ -1,5 +1,7 @@
 package com.juul.kable
 
+import kotlinx.coroutines.CoroutineScope
+
 public sealed class State {
 
     public sealed class Connecting : State() {
@@ -30,7 +32,20 @@ public sealed class State {
     /**
      * [Peripheral] is ready (i.e. has connected, discovered services and wired up [observers][Peripheral.observe]).
      */
-    public object Connected : State()
+    public data class Connected(
+
+        /**
+         * Connection [scope][CoroutineScope] that can be used to launch coroutines, and is
+         * cancelled upon connection loss, [disconnect][Peripheral.disconnect] or
+         * [closure][Peripheral.close]. The [CoroutineScope] is a supervisor scope, meaning any
+         * failures in launched coroutines will not fail other launched coroutines nor cause a
+         * disconnect.
+         */
+        val scope: CoroutineScope,
+    ) : State() {
+
+        override fun toString(): String = "Connected"
+    }
 
     public object Disconnecting : State()
 
@@ -130,7 +145,7 @@ public sealed class State {
     }
 
     override fun toString(): String = when (this) {
-        Connected -> "Connected"
+        is Connected -> "Connected"
         Connecting.Bluetooth -> "Connecting.Bluetooth"
         Connecting.Observes -> "Connecting.Observes"
         Connecting.Services -> "Connecting.Services"
@@ -156,7 +171,7 @@ internal inline fun <reified T : State> State.isAtLeast(): Boolean {
         State.Connecting.Bluetooth -> 2
         State.Connecting.Services -> 3
         State.Connecting.Observes -> 4
-        State.Connected -> 5
+        is State.Connected -> 5
     }
     val targetState = when (T::class) {
         State.Disconnected::class -> 0
