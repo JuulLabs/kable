@@ -6,7 +6,6 @@ import android.bluetooth.le.ScanCallback.SCAN_FAILED_FEATURE_UNSUPPORTED
 import android.bluetooth.le.ScanCallback.SCAN_FAILED_INTERNAL_ERROR
 import android.bluetooth.le.ScanCallback.SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES
 import android.bluetooth.le.ScanCallback.SCAN_FAILED_SCANNING_TOO_FREQUENTLY
-import com.juul.kable.InternalError
 
 @JvmInline
 internal value class ScanError(internal val errorCode: Int) {
@@ -18,7 +17,7 @@ internal value class ScanError(internal val errorCode: Int) {
         SCAN_FAILED_FEATURE_UNSUPPORTED -> "SCAN_FAILED_FEATURE_UNSUPPORTED"
         SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES -> "SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES"
         SCAN_FAILED_SCANNING_TOO_FREQUENTLY -> "SCAN_FAILED_SCANNING_TOO_FREQUENTLY"
-        else -> throw InternalError("Unsupported error code $errorCode")
+        else -> "UNKNOWN"
     }.let { name -> "$name($errorCode)" }
 }
 
@@ -43,5 +42,5 @@ internal val ScanError.message: String
         SCAN_FAILED_SCANNING_TOO_FREQUENTLY ->
             "Failed to start scan as application tries to scan too frequently"
 
-        else -> throw InternalError("Unsupported error code $errorCode")
+        else -> "Unknown scan error code: $errorCode"
     }

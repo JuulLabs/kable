@@ -321,7 +321,14 @@ public abstract class com/juul/kable/State {
 }
 
 public final class com/juul/kable/State$Connected : com/juul/kable/State {
-	public static final field INSTANCE Lcom/juul/kable/State$Connected;
+	public fun <init> (Lkotlinx/coroutines/CoroutineScope;)V
+	public final fun component1 ()Lkotlinx/coroutines/CoroutineScope;
+	public final fun copy (Lkotlinx/coroutines/CoroutineScope;)Lcom/juul/kable/State$Connected;
+	public static synthetic fun copy$default (Lcom/juul/kable/State$Connected;Lkotlinx/coroutines/CoroutineScope;ILjava/lang/Object;)Lcom/juul/kable/State$Connected;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class com/juul/kable/State$Connecting : com/juul/kable/State {

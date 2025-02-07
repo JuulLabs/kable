@@ -334,7 +334,7 @@ val peripheral = Peripheral {
     autoConnectIf { autoConnect.value }
 }
 
-while (peripheral.state.value != Connected) {
+while (peripheral.state.value !is Connected) {
     autoConnect.value = try {
         peripheral.connect()
         false
@@ -383,15 +383,21 @@ connected, services have been discovered, and observations (if any) have been re
 automatically upon connection._
 
 > [!TIP]
-> _Multiple concurrent calls to [`connect`] will all suspend until connection is ready._
+> Multiple concurrent calls to [`connect`] will all suspend until connection is ready.
 
 ```kotlin
 peripheral.connect()
 ```
 
-The [`connect`] function returns a [`CoroutineScope`] that can be used to `launch` tasks that should run until peripheral
-disconnects. When [`disconnect`] is called, any coroutines [`launch`]ed from the [`CoroutineScope`] returned by [`connect`]
-will be cancelled prior to performing the underlying disconnect process.
+> [!TIP]
+> The [`connect`] function returns a [`CoroutineScope`] that can be used to `launch` tasks that
+> should run until peripheral disconnects. When [`disconnect`] is called, any coroutines
+> `launch`ed from the [`CoroutineScope`] returned by [`connect`] will be cancelled prior to
+> performing the underlying disconnect process.
+
+> [!TIP]
+> The connection [`CoroutineScope`] is also available as the `scope` property on the [`Connected`]
+> [`State`][connection-state].
 
 To disconnect, the [`disconnect`] function will disconnect an active connection, or cancel an in-flight connection
 attempt. The [`disconnect`] function suspends until the peripheral has settled on a disconnected state.
