@@ -89,10 +89,11 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
             throw failure
         }
 
+        val connectionScope = connectionOrThrow().taskScope
         logger.info { message = "Connected" }
-        _state.value = State.Connected
+        _state.value = State.Connected(connectionScope)
 
-        return connectionOrThrow().taskScope
+        return connectionScope
     }
 
     private suspend fun discoverServices() {
