@@ -144,24 +144,17 @@ private fun FilterPredicate.toNativeScanFilter(): ScanFilter =
             when (filter) {
                 is Name.Exact -> setDeviceName(filter.exact)
                 is Address -> setDeviceAddress(filter.address)
-                is ManufacturerData -> setManufacturerData(filter.id, filter.data, filter.dataMask)
+                is ManufacturerData -> setManufacturerData(filter.id, filterDataCompat(filter.data), filter.dataMask)
                 is Service -> setServiceUuid(ParcelUuid(filter.uuid.toJavaUuid()))
                 else -> throw AssertionError("Unsupported filter element")
             }
         }
     }.build()
 
-private fun FilterPredicate.supportsNativeScanFiltering(): Boolean {
-    // Workaround a bug where native filter matches all devices when only a company ID is specified.
-    // See https://github.com/JuulLabs/kable/issues/854 for more details.
-    if (SDK_INT <= VANILLA_ICE_CREAM && hasNullManufacturerData) return false
-
-    // Scan filter does not support name prefix filtering, and only allows at most one service uuid
-    // and one manufacturer data.
-    return !containsNamePrefix() &&
-        serviceCount() <= 1 &&
-        manufacturerDataCount() <= 1
-}
+// Scan filter does not support name prefix filtering, and only allows at most one service uuid
+// and one manufacturer data.
+private fun FilterPredicate.supportsNativeScanFiltering(): Boolean =
+    !containsNamePrefix() && serviceCount() <= 1 && manufacturerDataCount() <= 1
 
 private fun FilterPredicate.containsNamePrefix(): Boolean =
     filters.any { it is Name.Prefix }
@@ -172,5 +165,7 @@ private fun FilterPredicate.serviceCount(): Int =
 private fun FilterPredicate.manufacturerDataCount(): Int =
     filters.count { it is ManufacturerData }
 
-private val FilterPredicate.hasNullManufacturerData
-    get() = filters.any { (it as? ManufacturerData)?.data != null }
+// Android doesn't properly check for nullness of manufacturer data until Android 16.
+// See https://github.com/JuulLabs/kable/issues/854 for more details.
+private fun filterDataCompat(data: ByteArray?): ByteArray? =
+    if (data == null && SDK_INT <= VANILLA_ICE_CREAM) byteArrayOf() else data
