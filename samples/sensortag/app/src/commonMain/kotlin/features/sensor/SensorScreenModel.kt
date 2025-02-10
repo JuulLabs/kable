@@ -10,6 +10,8 @@ import com.juul.sensortag.bluetooth.requirements.Deficiency.BluetoothOff
 import com.juul.sensortag.coroutines.flow.withStartTime
 import com.juul.sensortag.features.sensor.chart.Sample
 import com.juul.sensortag.peripheral
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -26,8 +28,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 private val reconnectDelay = 1.seconds
 

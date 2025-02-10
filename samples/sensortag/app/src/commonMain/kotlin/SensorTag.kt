@@ -1,77 +1,73 @@
 package com.juul.sensortag
 
-import com.benasher44.uuid.Uuid
-import com.benasher44.uuid.uuidFrom
 import com.juul.kable.Bluetooth
-import com.juul.kable.ExperimentalApi
 import com.juul.kable.Peripheral
 import com.juul.kable.Scanner
 import com.juul.kable.WriteType.WithResponse
+import com.juul.kable.characteristic
 import com.juul.kable.characteristicOf
 import com.juul.kable.logs.Logging.Level.Events
+import com.juul.kable.service
 import com.juul.khronicle.Log
+import kotlin.coroutines.coroutineContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
-import kotlin.coroutines.coroutineContext
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onStart
 
-private const val GYRO_MULTIPLIER = 500f / 65536f
-
-private val movementSensorServiceUuid = sensorTagUuid("aa80")
-private val movementSensorDataUuid = sensorTagUuid("aa81")
-private val movementNotificationUuid = sensorTagUuid("2902")
-private val movementConfigurationUuid = sensorTagUuid("aa82")
-private val movementPeriodUuid = sensorTagUuid("aa83")
-private val clientCharacteristicConfigUuid = Bluetooth.BaseUuid + 0x2902
-
-private val movementConfigCharacteristic = characteristicOf(
-    service = movementSensorServiceUuid,
-    characteristic = movementConfigurationUuid,
-)
+const val movementService16bitUuid = 0xAA80
+val movementServiceUuid = SensorTag.BaseUuid + movementService16bitUuid
 
 private val movementDataCharacteristic = characteristicOf(
-    service = movementSensorServiceUuid,
-    characteristic = movementSensorDataUuid,
+    service = movementServiceUuid,
+    characteristic = SensorTag.BaseUuid + 0xAA81,
 )
-
+private val movementConfigCharacteristic = characteristicOf(
+    service = movementServiceUuid,
+    characteristic = SensorTag.BaseUuid + 0xAA82
+)
 private val movementPeriodCharacteristic = characteristicOf(
-    service = movementSensorServiceUuid,
-    characteristic = movementPeriodUuid,
+    service = movementServiceUuid,
+    characteristic = SensorTag.BaseUuid + 0xAA83
 )
-
-private val batteryCharacteristic = characteristicOf(
-    service = Bluetooth.BaseUuid + 0x180F,
-    characteristic = Bluetooth.BaseUuid + 0x2A19,
+val batteryCharacteristic = characteristicOf(
+    service = Uuid.service("battery_service"),
+    characteristic = Uuid.characteristic("battery_level"),
 )
 
 private val rssiInterval = 5.seconds
 
 class SensorTag(private val peripheral: Peripheral) {
 
-    companion object {
-        val Uuid = uuidFrom("0000aa80-0000-1000-8000-00805f9b34fb")
-        val PeriodRange = 100.milliseconds..2550.milliseconds
+    /** SensorTag base UUID: f0000000-0451-4000-b000-000000000000 */
+    object BaseUuid {
 
-        val services = listOf(
-            movementSensorServiceUuid,
-            movementSensorDataUuid,
-            movementNotificationUuid,
-            movementConfigurationUuid,
-            movementPeriodUuid,
-            clientCharacteristicConfigUuid,
-            batteryCharacteristic.serviceUuid,
-        )
+        private const val mostSignificantBits = -1152921504534413312L // f0000000-0451-4000
+        private const val leastSignificantBits = -5764607523034234880L // b000-000000000000
+
+        operator fun plus(shortUuid: Int): Uuid = plus(shortUuid.toLong())
+
+        /** @param shortUuid 32-bits (or less) short UUID (if larger than 32-bits, will be truncated to 32-bits). */
+        operator fun plus(shortUuid: Long): Uuid =
+            Uuid.fromLongs(mostSignificantBits + (shortUuid and 0xFFFF_FFFF shl 32), leastSignificantBits)
+
+        override fun toString(): String = "f0000000-0451-4000-b000-000000000000"
+    }
+
+    companion object {
+        val AdvertisedServices = listOf(Bluetooth.BaseUuid + movementService16bitUuid)
+        const val GyroMultiplier = 500f / 65536f
+        val PeriodRange = 100.milliseconds..2550.milliseconds
 
         val scanner by lazy {
             Scanner {
@@ -79,9 +75,7 @@ class SensorTag(private val peripheral: Peripheral) {
                     level = Events
                 }
                 filters {
-                    match {
-                        services = listOf(Uuid)
-                    }
+                    match { services = AdvertisedServices }
                 }
             }
         }
@@ -112,7 +106,7 @@ class SensorTag(private val peripheral: Peripheral) {
     val gyro: Flow<Vector3f> = peripheral
         .observe(movementDataCharacteristic)
         .map(::Vector3f)
-        .map { it * GYRO_MULTIPLIER }
+        .map { it * GyroMultiplier }
 
     suspend fun connect() {
         Log.info { "Connecting" }
@@ -135,7 +129,6 @@ class SensorTag(private val peripheral: Peripheral) {
     private suspend fun monitorRssi() {
         try {
             while (coroutineContext.isActive) {
-                @OptIn(ExperimentalApi::class)
                 _rssi.value = peripheral.rssi()
 
                 Log.debug { "RSSI: ${_rssi.value}" }
@@ -176,11 +169,6 @@ class SensorTag(private val peripheral: Peripheral) {
         peripheral.write(movementConfigCharacteristic, byteArrayOf(0x0, 0x0), WithResponse)
     }
 
-    private suspend fun readBatteryLevel(): ByteArray = peripheral.read(batteryCharacteristic)
+    private suspend fun readBatteryLevel(): ByteArray =
+        peripheral.read(batteryCharacteristic)
 }
-
-private fun sensorTagUuid(short16BitUuid: String): Uuid =
-    uuidFrom("f000${short16BitUuid.lowercase()}-0451-4000-b000-000000000000")
-
-private fun characteristicOf(service: Uuid, characteristic: Uuid) =
-    characteristicOf(service.toString(), characteristic.toString())

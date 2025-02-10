@@ -6,6 +6,8 @@ import com.juul.sensortag.SensorTag
 import com.juul.sensortag.features.scan.DeviceLocator.State.NotYetScanned
 import com.juul.sensortag.features.scan.DeviceLocator.State.Scanned
 import com.juul.sensortag.features.scan.DeviceLocator.State.Scanning
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -16,8 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import kotlin.coroutines.cancellation.CancellationException
-import kotlin.time.Duration.Companion.seconds
 
 class ScannerDeviceLocator(
     private val scope: CoroutineScope,

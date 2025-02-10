@@ -4,13 +4,13 @@ import com.juul.kable.Peripheral
 import com.juul.kable.State.Disconnected
 import com.juul.kable.logs.Logging.Level.Data
 import com.juul.khronicle.Log
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.io.IOException
-import kotlin.time.Duration.Companion.seconds
 
 suspend fun CoroutineScope.headlessApp() {
     Log.info { "Searching for SensorTag..." }

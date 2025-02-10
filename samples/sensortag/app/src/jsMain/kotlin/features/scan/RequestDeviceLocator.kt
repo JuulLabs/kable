@@ -5,7 +5,9 @@ import com.juul.kable.PlatformAdvertisement
 import com.juul.kable.logs.Logging.Level.Data
 import com.juul.kable.requestPeripheral
 import com.juul.sensortag.SensorTag
+import com.juul.sensortag.batteryCharacteristic
 import com.juul.sensortag.features.scan.DeviceLocator.State.NotYetScanned
+import com.juul.sensortag.movementServiceUuid
 import com.juul.sensortag.peripheral
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,11 +16,12 @@ import kotlinx.coroutines.launch
 
 private val options = Options {
     filters {
-        match {
-            services = listOf(SensorTag.Uuid)
-        }
+        match { services = SensorTag.AdvertisedServices }
     }
-    optionalServices = SensorTag.services
+    optionalServices = listOf(
+        movementServiceUuid,
+        batteryCharacteristic.serviceUuid,
+    )
 }
 
 class RequestDeviceLocator(
