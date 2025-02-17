@@ -1,37 +1,41 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.compose)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlin.multiplatform)
+    id("com.android.library")
+    kotlin("multiplatform")
 }
 
 kotlin {
-    explicitApi()
     jvmToolchain(libs.versions.jvm.get().toInt())
 
     androidTarget()
+    iosX64()
     iosArm64()
+    iosSimulatorArm64()
     js().browser()
     macosX64()
     macosArm64()
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
+        val nopMain by creating {
+            dependsOn(commonMain.get())
+        }
+        macosMain.get().dependsOn(nopMain)
+        jsMain.get().dependsOn(nopMain)
+
         commonMain.dependencies {
-            api(libs.coroutines)
-            api(projects.mokoPermissionsBluetooth)
-            api(projects.mokoPermissionsCompose)
+            implementation(libs.coroutines)
         }
 
         androidMain.dependencies {
             implementation(libs.compose.activity)
-            implementation(libs.tuulbox.coroutines)
+            implementation(libs.androidx.lifecycle)
         }
     }
 }
 
 android {
-    namespace = "com.juul.sensortag.bluetooth"
+    namespace = "dev.icerock.moko.permissions"
     compileSdk = libs.versions.android.compile.get().toInt()
     defaultConfig.minSdk = libs.versions.android.min.get().toInt()
-    buildFeatures.compose = true
 }

@@ -1,10 +1,11 @@
 package com.juul.sensortag
 
-import com.juul.sensortag.permissions.DeniedAlwaysException
-import com.juul.sensortag.permissions.DeniedException
-import com.juul.sensortag.permissions.Permission
-import com.juul.sensortag.permissions.PermissionState
-import com.juul.sensortag.permissions.PermissionsController
+import dev.icerock.moko.permissions.DeniedAlwaysException
+import dev.icerock.moko.permissions.DeniedException
+import dev.icerock.moko.permissions.Permission
+import dev.icerock.moko.permissions.PermissionState
+import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.RequestCanceledException
 
 suspend fun PermissionsController.requestPermission(permission: Permission) = try {
     providePermission(permission)
@@ -13,7 +14,6 @@ suspend fun PermissionsController.requestPermission(permission: Permission) = tr
     PermissionState.DeniedAlways
 } catch (e: DeniedException) {
     PermissionState.Denied
-} catch (e: Exception) {
-    // RequestCanceledException
+} catch (e: RequestCanceledException) {
     null
 }

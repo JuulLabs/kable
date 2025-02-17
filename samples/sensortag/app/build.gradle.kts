@@ -16,7 +16,7 @@ kotlin {
             binaryOption("bundleId", "com.juul.sensortag.ios")
             binaryOption("bundleShortVersionString", "0.0.1")
             binaryOption("bundleVersion", "1")
-            export(libs.coroutines.core)
+            export(libs.coroutines)
         }
     }
     js {
@@ -60,7 +60,7 @@ kotlin {
         appleMain.get().dependsOn(notJsMain)
 
         commonMain.dependencies {
-            api(libs.coroutines.core)
+            api(libs.coroutines)
             implementation(compose.foundation)
             implementation(compose.material)
             implementation(compose.runtime)
@@ -72,7 +72,6 @@ kotlin {
             implementation(libs.khronicle)
             implementation(libs.serialization)
             implementation(projects.bluetooth)
-            implementation(projects.permissions)
         }
 
         androidMain.dependencies {

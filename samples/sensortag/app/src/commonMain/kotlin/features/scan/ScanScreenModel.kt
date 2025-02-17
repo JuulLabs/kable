@@ -15,10 +15,12 @@ import com.juul.sensortag.features.scan.DeviceLocator.State.NotYetScanned
 import com.juul.sensortag.features.scan.DeviceLocator.State.Scanning
 import com.juul.sensortag.features.sensor.SensorScreen
 import com.juul.sensortag.peripheral
-import com.juul.sensortag.permissions.Permission
-import com.juul.sensortag.permissions.PermissionState
-import com.juul.sensortag.permissions.PermissionsController
 import com.juul.sensortag.requestPermission
+import dev.icerock.moko.permissions.Permission
+import dev.icerock.moko.permissions.PermissionState
+import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.bluetooth.BLUETOOTH_CONNECT
+import dev.icerock.moko.permissions.bluetooth.BLUETOOTH_SCAN
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -11,7 +11,9 @@ include(
     "app",
     "bluetooth",
     "ios",
-    "permissions",
+    "moko-permissions",
+    "moko-permissions-bluetooth",
+    "moko-permissions-compose",
 )
 
 // Configure sibling composite projects (`../<project>`) by adding `composite.<project>=true` to `local.properties`.

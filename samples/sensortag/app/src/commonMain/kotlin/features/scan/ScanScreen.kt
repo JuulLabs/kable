@@ -52,8 +52,8 @@ import com.juul.sensortag.features.components.BluetoothDisabled
 import com.juul.sensortag.features.scan.DeviceLocator.State.NotYetScanned
 import com.juul.sensortag.features.scan.DeviceLocator.State.Scanning
 import com.juul.sensortag.icons.LocationDisabled
-import com.juul.sensortag.permissions.BindEffect
-import com.juul.sensortag.permissions.rememberPermissionsControllerFactory
+import dev.icerock.moko.permissions.compose.BindEffect
+import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
 
 class ScanScreen : Screen {
 
