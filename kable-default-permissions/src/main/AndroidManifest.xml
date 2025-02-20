@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
+
+    <!-- Necessary to perform any Bluetooth classic or BLE communication, such as requesting a
+    connection, accepting a connection, and transferring data. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30"
+        />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30"
+        />
+
+    <!-- Not needed for apps targeting Android 9 (API 28) or lower, but there is no `minSdkVersion` attribute. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION"
+        android:maxSdkVersion="30"
+        />
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30"
+        />
+
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s"
+        />
+
+    <!-- Required to call `BluetoothDevice.getName()`, `BluetoothDevice.getBondState()`, `BluetoothGatt.disconnect()`, etc. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- "If you say the feature is required for your app, then the Google Play store will hide your
+    app from users on devices lacking those features. For this reason, you should only set the
+    required attribute to `true` if your app can't work without the feature."
+    — https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#features
+
+    Marked as `false` as Kable shouldn't make this decision for the consuming app. -->
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
+</manifest>
