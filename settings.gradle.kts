@@ -10,5 +10,6 @@ pluginManagement {
 
 include(
     "kable-core",
+    "kable-default-permissions",
     "kable-log-engine-khronicle",
 )
