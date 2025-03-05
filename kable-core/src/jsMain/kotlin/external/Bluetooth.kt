@@ -8,4 +8,5 @@ internal abstract external class Bluetooth : EventTarget {
     fun getAvailability(): Promise<Boolean>
     fun requestDevice(options: RequestDeviceOptions): Promise<BluetoothDevice>
     fun requestLEScan(options: BluetoothLEScanOptions): Promise<BluetoothScan>
+    fun getDevices(): Promise<Array<BluetoothDevice>>
 }
