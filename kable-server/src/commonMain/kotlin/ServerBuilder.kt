@@ -8,13 +8,20 @@ public class ServerBuilder(
     internal val scope: CoroutineScope,
 ) {
 
-    internal var services = mutableMapOf<Uuid, ServiceBuilder>()
+    internal val services = mutableMapOf<Uuid, ServiceBuilder>()
 
-    public fun service(uuid: Uuid, primary: Boolean = true, builder: ServiceBuilder.() -> Unit) {
+    public fun service(
+        uuid: Uuid,
+        primary: Boolean = true,
+        builder: ServiceBuilder.() -> Unit,
+    ) {
         require(uuid !in services) { "Service $uuid already configured" }
         services[uuid] = ServiceBuilder(this, uuid, primary).apply(builder)
     }
 }
 
-public fun ServerBuilder.service(uuid: Int, primary: Boolean = true, builder: ServiceBuilder.() -> Unit): Unit =
-    service(Bluetooth.BaseUuid + uuid, primary, builder)
+public fun ServerBuilder.service(
+    uuid: Int,
+    primary: Boolean = true,
+    builder: ServiceBuilder.() -> Unit,
+): Unit = service(Bluetooth.BaseUuid + uuid, primary, builder)
