@@ -12,7 +12,7 @@ junit-version = "1.2.1"
 espresso-core = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
-agp = "8.6.1"
+agp = "8.5.1"
 lifecycle-runtime-ktx = "2.8.6"
 activity-compose = "1.9.2"
 compose-bom = "2024.04.01"
@@ -49,7 +49,7 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "8.6.1" }
+android-library = { id = "com.android.library", version = "8.5.1" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.16.3" }
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "1.9.20" }
