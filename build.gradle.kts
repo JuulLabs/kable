@@ -19,6 +19,10 @@ tasks.dokkaHtmlMultiModule.configure {
     outputDirectory.fileProvider(layout.buildDirectory.file("dokkaHtmlMultiModule").map { it.asFile })
 }
 
+apiValidation {
+    ignoredProjects.add("kable-default-permissions")
+}
+
 allprojects {
     group = "com.juul.kable"
 

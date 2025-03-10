@@ -584,86 +584,13 @@ after initialization will result in an `IllegalStateException` being thrown.
 
 ### Android Permissions
 
-Kable [declares permissions for common use cases](kable-core/src/androidMain/AndroidManifest.xml), but your app's
-configuration may need to be adjusted under the following conditions:
+Kable does not declare any permissions; it is expected that the consuming app declares any necessary
+permissions. For detailed information on Android Bluetooth permissions, refer to the official
+Android Developers guide: [Bluetooth permissions]
 
-<table>
-<tr>
-<td align="center">Your app...</td>
-<td align="center"><code>AndroidManifest.xml</code> additions</td>
-</tr>
-
-<tr>
-<td>
-
-[Obtains the user's location (e.g. maps)](https://developer.android.com/training/location/permissions#foreground)
-
-</td>
-<td>
-
-```xml
-<uses-permission
-    android:name="android.permission.ACCESS_COARSE_LOCATION"
-    tools:node="replace"/>
-<uses-permission
-    android:name="android.permission.ACCESS_FINE_LOCATION"
-    tools:node="replace"/>
-```
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-[Derives the user's location from Bluetooth Low Energy scans](https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#declare-android12-or-higher)
-
-</td>
-<td>
-
-```xml
-<uses-permission
-    android:name="android.permission.BLUETOOTH_SCAN"
-    tools:node="replace"/>
-```
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-[Performs background Bluetooth Low Energy scans](https://developer.android.com/training/location/permissions#background)
-
-</td>
-<td>
-
-```xml
-<uses-permission
-    android:name="android.permission.ACCESS_BACKGROUND_LOCATION"
-    android:maxSdkVersion="30"/>
-```
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-[Requires Bluetooth Low Energy (and won't function without it)](https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#features)
-
-</td>
-<td>
-
-```xml
-<uses-feature
-    android:name="android.hardware.bluetooth_le"
-    android:required="true"/>
-```
-
-</td>
-</tr>
-</table>
+> [!TIP]
+> For convenience, the `com.juul.kable:kable-default-permissions` Maven artifact may be used to
+> provide permissions for common use cases.
 
 ### Gradle
 
@@ -696,6 +623,7 @@ kotlin {
 
         androidMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}")
+            implementation("com.juul.kable:kable-default-permissions:${kableVersion}") // Optional
         }
     }
 }
@@ -724,6 +652,7 @@ limitations under the License.
 ```
 
 
+[Bluetooth permissions]: https://developer.android.com/develop/connectivity/bluetooth/bt-permissions
 [Coroutine scope]: https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
 [SensorTag sample app]: https://github.com/JuulLabs/sensortag
