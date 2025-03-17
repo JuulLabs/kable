@@ -10,15 +10,14 @@ import android.bluetooth.BluetoothProfile.STATE_CONNECTED
 import android.bluetooth.BluetoothProfile.STATE_CONNECTING
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTED
 import android.bluetooth.BluetoothProfile.STATE_DISCONNECTING
+import com.juul.kable.server.Request.CharacteristicReadRequest
+import com.juul.kable.server.Request.CharacteristicWriteRequest
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.onFailure
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-
-internal sealed class Request {
-    data class OnServiceAdded(val status: Int)
-}
 
 internal sealed class State {
     data class Disconnected(val status: Int) : State()
@@ -31,6 +30,7 @@ internal class Callback : BluetoothGattServerCallback() {
 
     val state = MutableStateFlow<State>()
     val onServiceAdded = Channel<BluetoothGattService>(CONFLATED)
+    val messages = MutableSharedFlow<Request>(extraBufferCapacity = Int.MAX_VALUE)
 
     override fun onConnectionStateChange(
         device: BluetoothDevice?,
@@ -49,7 +49,7 @@ internal class Callback : BluetoothGattServerCallback() {
         if (status == GATT_SUCCESS && service != null) {
             onServiceAdded.trySendOrLog(service)
         } else {
-            // todo: log error
+            // todo: propagate error
         }
     }
 
@@ -59,7 +59,7 @@ internal class Callback : BluetoothGattServerCallback() {
         offset: Int,
         characteristic: BluetoothGattCharacteristic?,
     ) {
-        super.onCharacteristicReadRequest(device, requestId, offset, characteristic)
+        messages.tryEmitOrLog(CharacteristicReadRequest(requestId))
     }
 
     override fun onCharacteristicWriteRequest(
@@ -71,14 +71,14 @@ internal class Callback : BluetoothGattServerCallback() {
         offset: Int,
         value: ByteArray?
     ) {
-        super.onCharacteristicWriteRequest(
-            device,
-            requestId,
-            characteristic,
-            preparedWrite,
-            responseNeeded,
-            offset,
-            value,
+        messages.tryEmitOrLog(
+            CharacteristicWriteRequest(
+                requestId,
+                characteristic,
+                preparedWrite,
+                responseNeeded,
+                value,
+            )
         )
     }
 
@@ -138,6 +138,12 @@ internal class Callback : BluetoothGattServerCallback() {
 
 private fun <E> SendChannel<E>.trySendOrLog(element: E) {
     trySend(element).onFailure { cause ->
+        TODO() // log
+    }
+}
+
+private fun <E> MutableSharedFlow<E>.tryEmitOrLog(element: E) {
+    if (!tryEmit(element)) {
         TODO() // log
     }
 }

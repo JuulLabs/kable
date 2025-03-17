@@ -8,26 +8,24 @@ import kotlinx.coroutines.launch
 
 private val CCCD = Uuid.descriptor("gatt.client_characteristic_configuration")
 
-public class SubscriptionAction {
-    public suspend fun send(value: ByteArray) {
-        TODO()
-    }
-}
-
 public class CharacteristicBuilder(
     service: ServiceBuilder,
-    private val uuid: Uuid,
+    internal val uuid: Uuid,
 ) {
 
     internal sealed class Property {
         data object Notification : Property()
         data object Indication : Property()
         data class Read(val encrypted: Boolean, val manInTheMiddleProtection: Boolean) : Property()
-        data class Write(val encrypted: Boolean, val manInTheMiddleProtection: Boolean) : Property()
+        data class Write(
+            val withResponse: Boolean,
+            val encrypted: Boolean,
+            val manInTheMiddleProtection: Boolean,
+        ) : Property()
     }
 
     internal val scope = service.scope.createChildScope()
-    private var properties = mutableSetOf<Property>()
+    internal var properties = mutableSetOf<Property>()
     private var onRead: (suspend ReadAction.() -> Unit)? = null
     private var onWrite: (suspend (value: ByteArray) -> Unit)? = null
     private var descriptors = mutableMapOf<Uuid, DescriptorBuilder>()
@@ -35,7 +33,7 @@ public class CharacteristicBuilder(
     public fun onSubscription(
         notification: Boolean = true,
         indication: Boolean = true,
-        action: suspend SubscriptionAction.() -> Unit,
+        action: suspend CharacteristicSink.() -> Unit,
     ) {
         require(CCCD !in descriptors) { "Descriptor $CCCD (CCCD) already configured" }
         if (notification) properties += Property.Notification
@@ -53,7 +51,7 @@ public class CharacteristicBuilder(
                         TODO("GATT error: notifications not supported")
                     }
                     check(indicationsBit && !indication) {
-                        TODO("GATT error: notifications not supported")
+                        TODO("GATT error: indications not supported")
                     }
 
                     if (notificationsBit && notificationsJob?.isActive != true) {
@@ -87,12 +85,13 @@ public class CharacteristicBuilder(
     }
 
     public fun onWrite(
+        withResponse: Boolean = false,
         encrypted: Boolean = false,
         manInTheMiddleProtection: Boolean = true,
         action: suspend (value: ByteArray) -> Unit,
     ) {
         requireNotConfigured("onWrite", onWrite)
-        properties += Property.Write(encrypted, manInTheMiddleProtection)
+        properties += Property.Write(withResponse, encrypted, manInTheMiddleProtection)
         onWrite = action
     }
 

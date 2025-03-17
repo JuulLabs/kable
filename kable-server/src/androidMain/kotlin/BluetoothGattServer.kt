@@ -1,15 +1,10 @@
 package com.juul.kable.server
 
 import android.Manifest
-import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattServer
-import android.bluetooth.BluetoothGattService
-import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
-import android.bluetooth.BluetoothGattService.SERVICE_TYPE_SECONDARY
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import androidx.annotation.RequiresPermission
-import kotlin.uuid.toJavaUuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -45,7 +40,7 @@ public class BluetoothGattServer internal constructor(
     ) {
         services.forEach { service ->
             executor.execute {
-                addService(service.toBluetoothGattService())
+                addService(service.build())
                 callback.onServiceAdded.receive()
             }
         }
@@ -54,17 +49,4 @@ public class BluetoothGattServer internal constructor(
     override suspend fun stop() {
         scope.coroutineContext.cancelAndJoinChildren()
     }
-}
-
-private fun ServiceBuilder.toBluetoothGattService() = BluetoothGattService(
-    uuid.toJavaUuid(),
-    if (primary) SERVICE_TYPE_PRIMARY else SERVICE_TYPE_SECONDARY,
-).apply {
-    this@toBluetoothGattService.characteristics.values.forEach { characteristic ->
-        addCharacteristic(characteristic.toBluetoothGattCharacteristic())
-    }
-}
-
-private fun CharacteristicBuilder.toBluetoothGattCharacteristic(): BluetoothGattCharacteristic {
-    BluetoothGattCharacteristic()
 }

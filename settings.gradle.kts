@@ -1,5 +1,7 @@
 rootProject.name = "kable"
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
     repositories {
         google()
