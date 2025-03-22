@@ -21,8 +21,8 @@ import kotlin.test.assertFalse
 import kotlin.uuid.Uuid
 
 private fun generateCharacteristic() = characteristicOf(
-    service = Uuid.random().toString(),
-    characteristic = Uuid.random().toString(),
+    service = Uuid.random(),
+    characteristic = Uuid.random(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)

@@ -6,6 +6,6 @@ package com.juul.kable
         expression = "WebBluetoothPeripheral",
         imports = ["com.juul.kable.WebBluetoothPeripheral"],
     ),
-    level = DeprecationLevel.ERROR,
+    level = DeprecationLevel.HIDDEN,
 )
 public typealias JsPeripheral = WebBluetoothPeripheral

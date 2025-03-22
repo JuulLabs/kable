@@ -294,9 +294,9 @@ public abstract interface class com/juul/kable/Scanner {
 public final class com/juul/kable/ScannerBuilder {
 	public fun <init> ()V
 	public final fun filters (Lkotlin/jvm/functions/Function1;)V
-	public final fun getFilters ()Ljava/util/List;
+	public final synthetic fun getFilters ()Ljava/util/List;
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
-	public final fun setFilters (Ljava/util/List;)V
+	public final synthetic fun setFilters (Ljava/util/List;)V
 }
 
 public final class com/juul/kable/ScannerKt {
