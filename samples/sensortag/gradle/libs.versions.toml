@@ -16,7 +16,7 @@ compose-ui = { module = "androidx.compose.ui:ui", version = "1.7.8" }
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.1" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.2" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
-kable = { module = "com.juul.kable:kable-core", version = "0.36.0" }
+kable = { module = "com.juul.kable:kable-core", version = "0.36.1" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.1" }
 krayon-axis = { module = "com.juul.krayon:axis", version.ref = "krayon" }
 krayon-compose = { module = "com.juul.krayon:compose", version.ref = "krayon" }
