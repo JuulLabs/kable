@@ -16,5 +16,5 @@ internal abstract external class BluetoothAdvertisingEvent : Event {
     val rssi: Int?
     val txPower: Int?
     val manufacturerData: BluetoothManufacturerDataMap
-    val serviceData: Any?
+    val serviceData: BluetoothServiceDataMap
 }

@@ -3,6 +3,7 @@ package com.juul.kable
 import com.juul.kable.external.BluetoothLEScanFilterInit
 import com.juul.kable.external.BluetoothLEScanOptions
 import com.juul.kable.external.BluetoothManufacturerDataFilterInit
+import com.juul.kable.external.BluetoothServiceDataFilterInit
 import js.objects.jso
 import kotlin.uuid.Uuid
 
@@ -41,11 +42,28 @@ private fun FilterPredicate.toBluetoothLEScanFilterInit(): BluetoothLEScanFilter
         ?.map(::toBluetoothManufacturerDataFilterInit)
         ?.toTypedArray()
         ?.let { manufacturerData = it }
+    filters
+        .filterIsInstance<Filter.ServiceData>()
+        .takeIf(Collection<Filter.ServiceData>::isNotEmpty)
+        ?.map(::toBluetoothServiceDataFilterInit)
+        ?.toTypedArray()
+        ?.let { serviceData = it }
 }
 
 private fun toBluetoothManufacturerDataFilterInit(filter: Filter.ManufacturerData) =
     jso<BluetoothManufacturerDataFilterInit> {
         companyIdentifier = filter.id
+        if (filter.data != null) {
+            dataPrefix = filter.data
+        }
+        if (filter.dataMask != null) {
+            mask = filter.dataMask
+        }
+    }
+
+private fun toBluetoothServiceDataFilterInit(filter: Filter.ServiceData) =
+    jso<BluetoothServiceDataFilterInit> {
+        service = filter.uuid.toBluetoothServiceUUID()
         if (filter.data != null) {
             dataPrefix = filter.data
         }

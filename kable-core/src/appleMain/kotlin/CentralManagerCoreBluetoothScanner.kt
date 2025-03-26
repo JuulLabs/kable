@@ -73,6 +73,7 @@ internal class CentralManagerCoreBluetoothScanner(
                     services = advertisementData.serviceUuids,
                     name = advertisementData.localName,
                     manufacturerData = advertisementData.manufacturerData,
+                    serviceData = advertisementData.serviceData?.map { (key, value) -> key.toUuid() to value.toByteArray() }?.toMap(),
                 )
             }
             .map { (cbPeripheral, rssi, advertisementData) ->

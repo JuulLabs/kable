@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanResult
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.ParcelUuid
+import androidx.core.util.isNotEmpty
 import com.juul.kable.PlatformAdvertisement.BondState
 import kotlinx.parcelize.Parcelize
 import kotlin.uuid.Uuid
@@ -69,6 +70,9 @@ internal class ScanResultAndroidAdvertisement(
     override val uuids: List<Uuid>
         get() = scanResult.scanRecord?.serviceUuids?.map { it.uuid.toKotlinUuid() } ?: emptyList()
 
+    internal val serviceData: Map<ParcelUuid, ByteArray>?
+        get() = scanResult.scanRecord?.serviceData
+
     override fun serviceData(uuid: Uuid): ByteArray? =
         scanResult.scanRecord?.serviceData?.get(ParcelUuid(uuid.toJavaUuid()))
 
@@ -76,7 +80,7 @@ internal class ScanResultAndroidAdvertisement(
         scanResult.scanRecord?.getManufacturerSpecificData(companyIdentifierCode)
 
     override val manufacturerData: ManufacturerData?
-        get() = scanResult.scanRecord?.manufacturerSpecificData?.takeIf { it.size() > 0 }?.let {
+        get() = scanResult.scanRecord?.manufacturerSpecificData?.takeIf { it.isNotEmpty() }?.let {
             ManufacturerData(
                 it.keyAt(0),
                 it.valueAt(0),
