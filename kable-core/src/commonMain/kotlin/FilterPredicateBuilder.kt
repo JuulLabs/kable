@@ -7,11 +7,13 @@ public class FilterPredicateBuilder internal constructor() {
     public var address: String? = null
     public var services: List<Uuid> = emptyList()
     public var manufacturerData: List<Filter.ManufacturerData> = emptyList()
+    public var serviceData: List<Filter.ServiceData> = emptyList()
 
     internal fun build(): FilterPredicate? = buildList {
         name?.let(::add)
         address?.let(Filter::Address)?.let(::add)
         addAll(services.map(Filter::Service))
         addAll(manufacturerData)
+        addAll(serviceData)
     }.ifEmpty { null }?.let(::FilterPredicate)
 }

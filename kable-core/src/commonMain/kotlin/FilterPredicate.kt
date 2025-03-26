@@ -28,10 +28,11 @@ internal fun List<FilterPredicate>.matches(
     name: String? = null,
     address: String? = null,
     manufacturerData: ManufacturerData? = null,
+    serviceData: Map<Uuid, ByteArray>? = null,
 ) = if (isEmpty()) {
     true
 } else {
-    any { it.matches(services, name, address, manufacturerData) }
+    any { it.matches(services, name, address, manufacturerData, serviceData) }
 }
 
 /** Returns `true` if all of the filters on this predicate match the given parameters. */
@@ -40,16 +41,19 @@ internal fun FilterPredicate.matches(
     name: String? = null,
     address: String? = null,
     manufacturerData: ManufacturerData? = null,
-): Boolean = filters.all { it.matches(services, name, address, manufacturerData) }
+    serviceData: Map<Uuid, ByteArray>? = null,
+): Boolean = filters.all { it.matches(services, name, address, manufacturerData, serviceData) }
 
 private fun Filter.matches(
-    services: List<Uuid>? = null,
-    name: String? = null,
-    address: String? = null,
-    manufacturerData: ManufacturerData? = null,
+    services: List<Uuid>?,
+    name: String?,
+    address: String?,
+    manufacturerData: ManufacturerData?,
+    serviceData: Map<Uuid, ByteArray>?,
 ): Boolean = when (this) {
     is Address -> matches(address)
     is Filter.ManufacturerData -> matches(manufacturerData?.code, manufacturerData?.data)
+    is Filter.ServiceData -> matches(serviceData?.get(uuid))
     is Name -> matches(name)
     is Service -> matches(services)
 }
