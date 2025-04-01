@@ -53,7 +53,7 @@ private fun Filter.matches(
 ): Boolean = when (this) {
     is Address -> matches(address)
     is Filter.ManufacturerData -> matches(manufacturerData?.code, manufacturerData?.data)
-    is Filter.ServiceData -> matches(serviceData?.get(uuid))
+    is Filter.ServiceData -> serviceData != null && uuid in serviceData && matches(serviceData[uuid])
     is Name -> matches(name)
     is Service -> matches(services)
 }
