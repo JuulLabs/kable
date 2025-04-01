@@ -155,10 +155,10 @@ private fun FilterPredicate.toNativeScanFilter(): ScanFilter =
         }
     }.build()
 
-// Scan filter does not support name prefix filtering, and only allows at most one service uuid
-// and one manufacturer data.
+// Scan filter does not support name prefix filtering, and only allows at most one each of the
+// following: service uuid, manufacturer data, service data.
 private fun FilterPredicate.supportsNativeScanFiltering(): Boolean =
-    !containsNamePrefix() && serviceCount() <= 1 && manufacturerDataCount() <= 1
+    !containsNamePrefix() && serviceCount() <= 1 && manufacturerDataCount() <= 1 && serviceDataCount() <= 1
 
 private fun FilterPredicate.containsNamePrefix(): Boolean =
     filters.any { it is Name.Prefix }
@@ -168,6 +168,9 @@ private fun FilterPredicate.serviceCount(): Int =
 
 private fun FilterPredicate.manufacturerDataCount(): Int =
     filters.count { it is ManufacturerData }
+
+private fun FilterPredicate.serviceDataCount(): Int =
+    filters.count { it is ServiceData }
 
 // Android doesn't properly check for nullness of manufacturer or service data until Android 16.
 // See https://github.com/JuulLabs/kable/issues/854 for more details.
