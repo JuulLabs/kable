@@ -148,7 +148,7 @@ private fun FilterPredicate.toNativeScanFilter(): ScanFilter =
                 is Name.Exact -> setDeviceName(filter.exact)
                 is Address -> setDeviceAddress(filter.address)
                 is ManufacturerData -> setManufacturerData(filter.id, filterDataCompat(filter.data), filter.dataMask)
-                is ServiceData -> setServiceData(ParcelUuid(filter.uuid.toJavaUuid()), filter.data, filter.dataMask)
+                is ServiceData -> setServiceData(ParcelUuid(filter.uuid.toJavaUuid()), filterDataCompat(filter.data), filter.dataMask)
                 is Service -> setServiceUuid(ParcelUuid(filter.uuid.toJavaUuid()))
                 else -> throw AssertionError("Unsupported filter element")
             }
@@ -169,7 +169,7 @@ private fun FilterPredicate.serviceCount(): Int =
 private fun FilterPredicate.manufacturerDataCount(): Int =
     filters.count { it is ManufacturerData }
 
-// Android doesn't properly check for nullness of manufacturer data until Android 16.
+// Android doesn't properly check for nullness of manufacturer or service data until Android 16.
 // See https://github.com/JuulLabs/kable/issues/854 for more details.
 private fun filterDataCompat(data: ByteArray?): ByteArray? =
     if (data == null && SDK_INT <= VANILLA_ICE_CREAM) byteArrayOf() else data
