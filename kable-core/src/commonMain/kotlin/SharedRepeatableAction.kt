@@ -1,13 +1,14 @@
 package com.juul.kable
 
 import com.juul.kable.SharedRepeatableAction.State
+import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.job
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 internal fun <T> CoroutineScope.sharedRepeatableAction(
@@ -68,9 +69,13 @@ internal class SharedRepeatableAction<T>(
     )
 
     private var state: State<T>? = null
-    private val guard = Mutex()
 
-    private suspend fun getOrCreate(): State<T> = guard.withLock {
+    // Warning! Do NOT use `Mutex` here. At time of writing (Coroutines 1.10.1 on JavaScript) using
+    // `Mutex` causes infinite loop (re-enters the lock lambda continuously) in `getOrCreate`'s
+    // `withLock` after `create` execution.
+    private val guard = reentrantLock()
+
+    private fun getOrCreate(): State<T> = guard.withLock {
         state
             ?.takeUnless { it.root.isCompleted }
             ?: create().also { state = it }
@@ -84,7 +89,7 @@ internal class SharedRepeatableAction<T>(
         return State(root, action)
     }
 
-    private suspend fun stateOrNull(): State<T>? = guard.withLock { state }
+    private fun stateOrNull(): State<T>? = guard.withLock { state }
 
     /** @throws IllegalStateException if parent [scope] is not active. */
     suspend fun await() = getOrCreate().action.await()

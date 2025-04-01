@@ -6,6 +6,7 @@ import platform.CoreBluetooth.CBPeripheral
 @Deprecated(
     message = "Replaced with `Peripheral` builder function (not a CoroutineScope extension function).",
     replaceWith = ReplaceWith("Peripheral(cbPeripheral, builderAction)"),
+    level = DeprecationLevel.ERROR,
 )
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -15,6 +16,7 @@ public actual fun CoroutineScope.peripheral(
 @Deprecated(
     message = "Replaced with `Peripheral` builder function (not a CoroutineScope extension function).",
     replaceWith = ReplaceWith("Peripheral(cbPeripheral, builderAction)"),
+    level = DeprecationLevel.ERROR,
 )
 public fun CoroutineScope.peripheral(
     identifier: Identifier,
@@ -24,6 +26,7 @@ public fun CoroutineScope.peripheral(
 @Deprecated(
     message = "Replaced with `Peripheral` builder function (not a CoroutineScope extension function).",
     replaceWith = ReplaceWith("Peripheral(cbPeripheral, builderAction)"),
+    level = DeprecationLevel.ERROR,
 )
 public fun CoroutineScope.peripheral(
     cbPeripheral: CBPeripheral,

@@ -8,6 +8,7 @@ import kotlinx.coroutines.job
 @Deprecated(
     message = "Replaced with `Peripheral` builder function (not a CoroutineScope extension function).",
     replaceWith = ReplaceWith("Peripheral(advertisement, builderAction)"),
+    level = DeprecationLevel.ERROR,
 )
 public actual fun CoroutineScope.peripheral(
     advertisement: Advertisement,
@@ -20,6 +21,7 @@ public actual fun CoroutineScope.peripheral(
 @Deprecated(
     message = "Replaced with `Peripheral` builder function (not a CoroutineScope extension function).",
     replaceWith = ReplaceWith("Peripheral(bluetoothDevice, builderAction)"),
+    level = DeprecationLevel.WARNING,
 )
 public fun CoroutineScope.peripheral(
     bluetoothDevice: BluetoothDevice,
@@ -46,6 +48,7 @@ public fun CoroutineScope.peripheral(
 @Deprecated(
     message = "Replaced with `Peripheral` builder function (not a CoroutineScope extension function).",
     replaceWith = ReplaceWith("Peripheral(identifier, builderAction)"),
+    level = DeprecationLevel.ERROR,
 )
 public fun CoroutineScope.peripheral(
     identifier: Identifier,
