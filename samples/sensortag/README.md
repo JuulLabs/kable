@@ -40,7 +40,7 @@ A live demo can be viewed [here](https://juullabs.github.io/sensortag), or to bu
 demo within a browser window on your local machine, run:
 
 ```shell
-./gradlew jsBrowserRun
+./gradlew jsBrowserDevelopmentRun
 ```
 
 > [!IMPORTANT]
