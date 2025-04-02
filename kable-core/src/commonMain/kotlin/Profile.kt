@@ -134,6 +134,7 @@ public data class LazyDescriptor(
     Example: `characteristicOf(Uuid.service("battery_service"), Uuid.characteristic("battery_level"))`,
     """,
     replaceWith = ReplaceWith("characteristicOf(Uuid.parse(service), Uuid.parse(characteristic))"),
+    level = DeprecationLevel.ERROR,
 )
 public fun characteristicOf(
     service: String,
@@ -149,6 +150,7 @@ public fun characteristicOf(service: Uuid, characteristic: Uuid): Characteristic
 @Deprecated(
     "Use `descriptorOf` that accepts `Uuid` arguments.",
     replaceWith = ReplaceWith("descriptorOf(Uuid.parse(service), Uuid.parse(characteristic), Uuid.parse(descriptor))"),
+    level = DeprecationLevel.ERROR,
 )
 public fun descriptorOf(
     service: String,

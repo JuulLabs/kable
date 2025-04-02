@@ -6,6 +6,6 @@ package com.juul.kable
         expression = "CoreBluetoothPeripheral",
         imports = ["com.juul.kable.CoreBluetoothPeripheral"],
     ),
-    level = DeprecationLevel.ERROR,
+    level = DeprecationLevel.HIDDEN,
 )
 public typealias ApplePeripheral = CoreBluetoothPeripheral

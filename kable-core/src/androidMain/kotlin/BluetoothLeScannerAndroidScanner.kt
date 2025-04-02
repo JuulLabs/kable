@@ -11,6 +11,7 @@ import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.ManufacturerData
 import com.juul.kable.Filter.Name
 import com.juul.kable.Filter.Service
+import com.juul.kable.Filter.ServiceData
 import com.juul.kable.bluetooth.checkBluetoothIsOn
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 import kotlin.uuid.toJavaUuid
+import kotlin.uuid.toKotlinUuid
 
 internal class BluetoothLeScannerAndroidScanner(
     private val filters: List<FilterPredicate>,
@@ -109,6 +111,7 @@ internal class BluetoothLeScannerAndroidScanner(
             name = advertisement.name,
             address = advertisement.address,
             manufacturerData = advertisement.manufacturerData,
+            serviceData = advertisement.serviceData?.mapKeys { (key) -> key.uuid.toKotlinUuid() },
         )
     }
 }
@@ -145,16 +148,17 @@ private fun FilterPredicate.toNativeScanFilter(): ScanFilter =
                 is Name.Exact -> setDeviceName(filter.exact)
                 is Address -> setDeviceAddress(filter.address)
                 is ManufacturerData -> setManufacturerData(filter.id, filterDataCompat(filter.data), filter.dataMask)
+                is ServiceData -> setServiceData(ParcelUuid(filter.uuid.toJavaUuid()), filterDataCompat(filter.data), filter.dataMask)
                 is Service -> setServiceUuid(ParcelUuid(filter.uuid.toJavaUuid()))
                 else -> throw AssertionError("Unsupported filter element")
             }
         }
     }.build()
 
-// Scan filter does not support name prefix filtering, and only allows at most one service uuid
-// and one manufacturer data.
+// Scan filter does not support name prefix filtering, and only allows at most one each of the
+// following: service uuid, manufacturer data, service data.
 private fun FilterPredicate.supportsNativeScanFiltering(): Boolean =
-    !containsNamePrefix() && serviceCount() <= 1 && manufacturerDataCount() <= 1
+    !containsNamePrefix() && serviceCount() <= 1 && manufacturerDataCount() <= 1 && serviceDataCount() <= 1
 
 private fun FilterPredicate.containsNamePrefix(): Boolean =
     filters.any { it is Name.Prefix }
@@ -165,7 +169,10 @@ private fun FilterPredicate.serviceCount(): Int =
 private fun FilterPredicate.manufacturerDataCount(): Int =
     filters.count { it is ManufacturerData }
 
-// Android doesn't properly check for nullness of manufacturer data until Android 16.
+private fun FilterPredicate.serviceDataCount(): Int =
+    filters.count { it is ServiceData }
+
+// Android doesn't properly check for nullness of manufacturer or service data until Android 16.
 // See https://github.com/JuulLabs/kable/issues/854 for more details.
 private fun filterDataCompat(data: ByteArray?): ByteArray? =
     if (data == null && SDK_INT <= VANILLA_ICE_CREAM) byteArrayOf() else data
