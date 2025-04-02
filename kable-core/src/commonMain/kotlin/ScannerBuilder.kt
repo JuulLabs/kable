@@ -12,7 +12,7 @@ public expect class ScannerBuilder internal constructor() {
     @Deprecated(
         message = "Use filters(FiltersBuilder.() -> Unit)",
         replaceWith = ReplaceWith("filters { }"),
-        level = DeprecationLevel.ERROR,
+        level = DeprecationLevel.HIDDEN,
     )
     public var filters: List<Filter>?
 
