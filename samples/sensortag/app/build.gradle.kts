@@ -76,6 +76,7 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.compose.activity)
+            implementation(libs.kable.permissions)
         }
 
         composeMain.dependencies {

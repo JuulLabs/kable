@@ -5,6 +5,7 @@ android-min = "21"
 android-target = "31"
 compose = "1.7.3"
 jvm = "17"
+kable = "0.37.0"
 kotlin = "2.1.20"
 krayon = "0.20.1"
 voyager = "1.1.0-beta03"
@@ -16,7 +17,8 @@ compose-ui = { module = "androidx.compose.ui:ui", version = "1.7.8" }
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.1" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.2" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
-kable = { module = "com.juul.kable:kable-core", version = "0.36.1" }
+kable = { module = "com.juul.kable:kable-core", version.ref = "kable" }
+kable-permissions = { module = "com.juul.kable:kable-default-permissions", version.ref = "kable" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.1" }
 krayon-axis = { module = "com.juul.krayon:axis", version.ref = "krayon" }
 krayon-compose = { module = "com.juul.krayon:compose", version.ref = "krayon" }
