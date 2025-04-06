@@ -30,7 +30,7 @@ import kotlin.reflect.KClass
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
-private data class ScanFilters(
+internal data class ScanFilters(
 
     /** [ScanFilter]s applied using Android's native filtering. */
     val native: List<ScanFilter>,
@@ -144,7 +144,7 @@ private fun logMessage(
     }
 }
 
-private fun List<FilterPredicate>.toScanFilters(): ScanFilters =
+internal fun List<FilterPredicate>.toScanFilters(): ScanFilters =
     if (all(FilterPredicate::supportsNativeScanFiltering)) {
         ScanFilters(
             native = map(FilterPredicate::toNativeScanFilter),
@@ -171,10 +171,13 @@ private fun List<FilterPredicate>.toScanFilters(): ScanFilters =
         )
     }
 
-// Scan filter does not support name prefix filtering, and only allows at most one each of the
-// following: service uuid, manufacturer data, service data.
+// Android's `ScanFilter` does not support name prefix filtering, and only allows at most one of each filter type.
 private val FilterPredicate.supportsNativeScanFiltering: Boolean
-    get() = !containsNamePrefix() && serviceCount() <= 1 && manufacturerDataCount() <= 1 && serviceDataCount() <= 1
+    get() = !containsNamePrefix() &&
+        nameExactCount() <= 1 &&
+        serviceCount() <= 1 &&
+        manufacturerDataCount() <= 1 &&
+        serviceDataCount() <= 1
 
 private val Filter.canFilterNatively: Boolean
     get() = when (this) {
@@ -205,14 +208,10 @@ private fun List<Filter>.toNativeScanFilter(): ScanFilter =
 private fun FilterPredicate.containsNamePrefix(): Boolean =
     filters.any { it is Name.Prefix }
 
-private fun FilterPredicate.serviceCount(): Int =
-    filters.count { it is Service }
-
-private fun FilterPredicate.manufacturerDataCount(): Int =
-    filters.count { it is ManufacturerData }
-
-private fun FilterPredicate.serviceDataCount(): Int =
-    filters.count { it is ServiceData }
+private fun FilterPredicate.nameExactCount(): Int = filters.count { it is Name.Exact }
+private fun FilterPredicate.serviceCount(): Int = filters.count { it is Service }
+private fun FilterPredicate.manufacturerDataCount(): Int = filters.count { it is ManufacturerData }
+private fun FilterPredicate.serviceDataCount(): Int = filters.count { it is ServiceData }
 
 // Android doesn't properly check for nullness of manufacturer or service data until Android 16.
 // See https://github.com/JuulLabs/kable/issues/854 for more details.
