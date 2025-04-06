@@ -174,17 +174,17 @@ internal fun List<FilterPredicate>.toScanFilters(): ScanFilters =
 // Android's `ScanFilter` does not support name prefix filtering, and only allows at most one of each filter type.
 private val FilterPredicate.supportsNativeScanFiltering: Boolean
     get() {
-        var nameExact = 0
         var service = 0
+        var nameExact = 0
+        var address = 0
         var manufacturerData = 0
         var serviceData = 0
-        var address = 0
         filters.forEach { filter ->
             when (filter) {
-                is Name.Prefix -> return false
-                is Name.Exact -> if (++nameExact > 1) return false
-                is Address -> if (++address > 1) return false
                 is Service -> if (++service > 1) return false
+                is Name.Exact -> if (++nameExact > 1) return false
+                is Name.Prefix -> return false
+                is Address -> if (++address > 1) return false
                 is ManufacturerData -> if (++manufacturerData > 1) return false
                 is ServiceData -> if (++serviceData > 1) return false
             }
@@ -194,11 +194,11 @@ private val FilterPredicate.supportsNativeScanFiltering: Boolean
 
 private val Filter.canFilterNatively: Boolean
     get() = when (this) {
+        is Service -> true
         is Name.Exact -> true
         is Address -> true
         is ManufacturerData -> true
         is ServiceData -> true
-        is Service -> true
         else -> false
     }
 
@@ -208,11 +208,11 @@ private fun List<Filter>.toNativeScanFilter(): ScanFilter =
     ScanFilter.Builder().apply {
         onEach { filter ->
             when (filter) {
+                is Service -> setServiceUuid(ParcelUuid(filter.uuid.toJavaUuid()))
                 is Name.Exact -> setDeviceName(filter.exact)
                 is Address -> setDeviceAddress(filter.address)
                 is ManufacturerData -> setManufacturerData(filter.id, filterDataCompat(filter.data), filter.dataMask)
                 is ServiceData -> setServiceData(ParcelUuid(filter.uuid.toJavaUuid()), filterDataCompat(filter.data), filter.dataMask)
-                is Service -> setServiceUuid(ParcelUuid(filter.uuid.toJavaUuid()))
                 else -> throw AssertionError("Unsupported filter element")
             }
         }
