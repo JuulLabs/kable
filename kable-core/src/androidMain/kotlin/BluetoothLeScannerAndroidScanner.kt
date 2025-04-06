@@ -173,11 +173,24 @@ internal fun List<FilterPredicate>.toScanFilters(): ScanFilters =
 
 // Android's `ScanFilter` does not support name prefix filtering, and only allows at most one of each filter type.
 private val FilterPredicate.supportsNativeScanFiltering: Boolean
-    get() = !containsNamePrefix() &&
-        nameExactCount() <= 1 &&
-        serviceCount() <= 1 &&
-        manufacturerDataCount() <= 1 &&
-        serviceDataCount() <= 1
+    get() {
+        var nameExact = 0
+        var service = 0
+        var manufacturerData = 0
+        var serviceData = 0
+        var address = 0
+        filters.forEach { filter ->
+            when (filter) {
+                is Name.Prefix -> return false
+                is Name.Exact -> if (++nameExact > 1) return false
+                is Address -> if (++address > 1) return false
+                is Service -> if (++service > 1) return false
+                is ManufacturerData -> if (++manufacturerData > 1) return false
+                is ServiceData -> if (++serviceData > 1) return false
+            }
+        }
+        return true
+    }
 
 private val Filter.canFilterNatively: Boolean
     get() = when (this) {
@@ -204,14 +217,6 @@ private fun List<Filter>.toNativeScanFilter(): ScanFilter =
             }
         }
     }.build()
-
-private fun FilterPredicate.containsNamePrefix(): Boolean =
-    filters.any { it is Name.Prefix }
-
-private fun FilterPredicate.nameExactCount(): Int = filters.count { it is Name.Exact }
-private fun FilterPredicate.serviceCount(): Int = filters.count { it is Service }
-private fun FilterPredicate.manufacturerDataCount(): Int = filters.count { it is ManufacturerData }
-private fun FilterPredicate.serviceDataCount(): Int = filters.count { it is ServiceData }
 
 // Android doesn't properly check for nullness of manufacturer or service data until Android 16.
 // See https://github.com/JuulLabs/kable/issues/854 for more details.
