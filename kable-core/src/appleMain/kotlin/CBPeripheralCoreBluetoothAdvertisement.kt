@@ -92,7 +92,7 @@ internal fun NSData.toManufacturerData(): ManufacturerData? = toByteArray().toMa
 private fun ByteArray.toManufacturerData(): ManufacturerData? =
     takeIf { size >= 2 }?.getShortAt(0)?.let { code ->
         ManufacturerData(
-            code.toInt(),
+            code.toInt() and 0xFF_FF,
             if (size > 2) slice(2 until size).toByteArray() else byteArrayOf(),
         )
     }
