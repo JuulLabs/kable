@@ -58,6 +58,7 @@ kotlin {
         androidUnitTest.dependencies {
             implementation(libs.equalsverifier)
             implementation(libs.mockk)
+            implementation(libs.robolectric)
         }
 
         jsMain.dependencies {
