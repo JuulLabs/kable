@@ -88,3 +88,9 @@ android {
         disable += "MissingPermission"
     }
 }
+
+dokka {
+    pluginsConfiguration.html {
+        footerMessage.set("(c) JUUL Labs, Inc.")
+    }
+}
