@@ -134,6 +134,9 @@ public interface AndroidPeripheral : Peripheral {
      * @throws GattRequestRejectedException if Android was unable to fulfill the MTU change request.
      * @throws GattStatusException if MTU change request failed.
      */
+    @Deprecated(
+        
+    )
     public suspend fun requestMtu(mtu: Int): Int
 
     /**
