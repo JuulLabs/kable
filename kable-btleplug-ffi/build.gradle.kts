@@ -58,6 +58,7 @@ tasks.register<Exec>("cargoTest") {
 
 tasks.register<Exec>("cargoBuild") {
     commonRustSetup()
+    outputs.dir("target")
     commandLine("cargo", "build", "--release")
 }
 
@@ -83,7 +84,10 @@ tasks.register<Exec>("cargoFormat") {
 
 tasks.register<Exec>("cargoUniffiBindgen") {
     commonRustSetup()
-    dependsOn("cargoBuild", "cleanUniffiBindgen")
+    dependsOn("cargoBuild")
+    doFirst { project.delete("build/generated/uniffi/kotlin") }
+    inputs.file("target/release/libbtleplug_ffi.dylib")
+    outputs.dir("build/generated/uniffi/kotlin")
     commandLine(
         "cargo",
         "run",
@@ -101,17 +105,12 @@ tasks.register<Exec>("cargoUniffiBindgen") {
     )
 }
 
-tasks.register<Exec>("cleanUniffiBindgen") {
-    commonRustSetup()
-    commandLine("rm", "-rf", "./build/generated/uniffi/kotlin")
-}
-
 tasks.named("allTests") {
     dependsOn("cargoTest")
 }
 
 tasks.named("clean") {
-    dependsOn("cargoClean", "cleanUniffiBindgen")
+    dependsOn("cargoClean")
 }
 
 tasks.named("compileKotlinJvm") {
