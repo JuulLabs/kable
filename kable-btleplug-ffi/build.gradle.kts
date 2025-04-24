@@ -87,6 +87,7 @@ tasks.register<Exec>("cargoUniffiBindgen") {
     commandLine(
         "cargo",
         "run",
+        "--release",
         "--bin",
         "uniffi-bindgen",
         "generate",
@@ -102,8 +103,7 @@ tasks.register<Exec>("cargoUniffiBindgen") {
 
 tasks.register<Exec>("cleanUniffiBindgen") {
     commonRustSetup()
-    workingDir("build/generated/uniffi")
-    commandLine("rm", "-rf", "./kotlin")
+    commandLine("rm", "-rf", "./build/generated/uniffi/kotlin")
 }
 
 tasks.named("allTests") {

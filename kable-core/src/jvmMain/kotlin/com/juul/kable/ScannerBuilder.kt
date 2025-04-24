@@ -5,9 +5,9 @@ import com.juul.kable.btleplug.ffi.scan
 import com.juul.kable.logs.LoggingBuilder
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 
 public actual class ScannerBuilder {
 
@@ -34,7 +34,7 @@ private class BtleplugScanner : PlatformScanner {
         val handle = scan(
             object : ScanCallback {
                 override suspend fun onAdvertisement(name: String) {
-                    channel.send(object : PlatformAdvertisement {
+                    val advertisement = object : PlatformAdvertisement {
                         override val name: String get() = name
                         override val peripheralName: String?
                             get() = TODO("Not yet implemented")
@@ -60,7 +60,8 @@ private class BtleplugScanner : PlatformScanner {
                         override val manufacturerData: ManufacturerData?
                             get() = TODO("Not yet implemented")
 
-                    })
+                    }
+                    channel.trySendBlocking(advertisement)
                 }
             },
         )
