@@ -9,6 +9,7 @@ pluginManagement {
 }
 
 include(
+    "kable-btleplug-ffi",
     "kable-core",
     "kable-default-permissions",
     "kable-log-engine-khronicle",

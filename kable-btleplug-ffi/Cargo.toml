@@ -1,0 +1,19 @@
+[package]
+name = "btleplug-ffi"
+edition = "2024"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/commonMain/rust/uniffi-bindgen.rs"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/commonMain/rust/lib.rs"
+
+[dependencies]
+btleplug = { version = "0.11.8", features = ["serde"] }
+uniffi = { version = "0.29.1", features = [ "bindgen", "cli", "tokio" ] }
+serde = "1.0.219"
+
+[build-dependencies]
+uniffi = { version = "0.29.1", features = [ "build" ] }
