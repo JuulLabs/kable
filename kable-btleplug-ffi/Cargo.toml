@@ -14,6 +14,7 @@ path = "src/commonMain/rust/lib.rs"
 btleplug = { version = "0.11.8", features = ["serde"] }
 uniffi = { version = "0.29.1", features = [ "bindgen", "cli", "tokio" ] }
 serde = "1.0.219"
+tokio = { version = "1.44.2", features = ["time"] }
 
 [build-dependencies]
 uniffi = { version = "0.29.1", features = [ "build" ] }

@@ -163,6 +163,7 @@ version = "0.0.0"
 dependencies = [
  "btleplug",
  "serde",
+ "tokio",
  "uniffi",
 ]
 
