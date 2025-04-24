@@ -30,13 +30,15 @@ kotlin {
     }
 }
 
-fun Exec.commonRustSetup() {
+fun Task.commonRustSetup() {
     group = "rust"
 
-    inputs.dir("src/commonMain/rust")
-    inputs.file("Cargo.lock")
-    inputs.file("Cargo.toml")
-    inputs.file("uniffi.toml")
+    if (this is Exec) {
+        inputs.dir("src/commonMain/rust")
+        inputs.file("Cargo.lock")
+        inputs.file("Cargo.toml")
+        inputs.file("uniffi.toml")
+    }
 }
 
 tasks.register<Exec>("cargoClean") {
@@ -69,7 +71,7 @@ tasks.register<Exec>("cargoLintRust") {
     commandLine("cargo", "fmt", "--check")
 }
 
-tasks.register<Exec>("cargoLint") {
+tasks.register("cargoLint") {
     commonRustSetup()
     dependsOn("cargoLintClippy", "cargoLintRust")
 }
