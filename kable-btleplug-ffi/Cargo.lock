@@ -168,6 +168,7 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "uniffi",
+ "uuid",
 ]
 
 [[package]]

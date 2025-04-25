@@ -33,41 +33,23 @@ private class BtleplugScanner : PlatformScanner {
     override val advertisements: Flow<PlatformAdvertisement> = callbackFlow {
         val handle = scan(
             object : ScanCallback {
-                override suspend fun onAdvertisement(name: String) {
-                    val advertisement = object : PlatformAdvertisement {
-                        override val name: String get() = name
-                        override val peripheralName: String?
-                            get() = TODO("Not yet implemented")
-                        override val identifier: Identifier
-                            get() = TODO("Not yet implemented")
-                        override val isConnectable: Boolean?
-                            get() = TODO("Not yet implemented")
-                        override val rssi: Int
-                            get() = TODO("Not yet implemented")
-                        override val txPower: Int?
-                            get() = TODO("Not yet implemented")
-                        override val uuids: List<Uuid>
-                            get() = TODO("Not yet implemented")
+                override suspend fun manufacturerDataAdertisement(id: String, manufacturerData: Map<UShort, ByteArray>) {
+                    TODO("Not yet implemented")
+                }
 
-                        override fun serviceData(uuid: Uuid): ByteArray? {
-                            TODO("Not yet implemented")
-                        }
+                override suspend fun serviceDataAdvertisement(id: String, serviceData: Map<String, ByteArray>) {
+                    TODO("Not yet implemented")
+                }
 
-                        override fun manufacturerData(companyIdentifierCode: Int): ByteArray? {
-                            TODO("Not yet implemented")
-                        }
-
-                        override val manufacturerData: ManufacturerData?
-                            get() = TODO("Not yet implemented")
-
-                    }
-                    channel.trySendBlocking(advertisement)
+                override suspend fun servicesAdvertisement(id: String, services: List<String>) {
+                    TODO("Not yet implemented")
                 }
             },
         )
 
         awaitClose {
             handle.close()
+            handle.destroy()
         }
     }
 }
