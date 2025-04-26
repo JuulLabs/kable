@@ -143,7 +143,6 @@ tasks.register<Exec>("cargoBuild") {
             "${executable}Build${target.name}"
         },
     )
-    outputs.dir("target")
     commandLine("cargo", "build", "--release")
 }
 
