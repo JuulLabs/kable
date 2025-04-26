@@ -37,56 +37,87 @@ fun Task.commonRustSetup() {
     }
 }
 
+val currentOs = run {
+    val name = System.getProperty("os.name").lowercase()
+    when {
+        "mac" in name -> "apple"
+        "windows" in name -> "windows"
+        else -> "linux"
+    }
+}
+
+val currentArch = run {
+    val arch = System.getProperty("os.arch").lowercase()
+    when {
+        "arm" in arch || "aarch" in arch -> "aarch64"
+        else -> "x86_64"
+    }
+}
+
 data class Target(
     val name: String,
     val triple: String,
     val libraryName: String,
 )
 
-val targets = run {
-    val currentOs = run {
-        val name = System.getProperty("os.name").lowercase()
-        when {
-            "mac" in name -> "apple"
-            "windows" in name -> "windows"
-            else -> "linux"
-        }
-    }
-    val currentArch = run {
-        val arch = System.getProperty("os.arch").lowercase()
-        when {
-            "arm" in arch || "aarch" in arch -> "aarch64"
-            else -> "x86_64"
-        }
-    }
-    listOf(
-        Target("MacosArm64", "aarch64-apple-darwin", "libbtleplug_ffi.dylib"),
-        Target("MacosX64", "x86_64-apple-darwin", "btleplug_ffi.dylib"),
-        Target("WindowsX64", "x86_64-pc-windows-msvc", "btleplug_ffi.dll"),
-        Target("LinuxX64", "x86_64-unknown-linux-gnu", "libbtleplug_ffi.so"),
-        Target("LinuxArm64", "aarch64-unknown-linux-gnu", "libbtleplug_ffi.so"),
-    ).filter { target ->
-        currentOs.contains("mac") || (currentOs in target.triple && currentArch in target.triple)
-    }
+val targets = listOf(
+    Target("MacosArm64", "aarch64-apple-darwin", "libbtleplug_ffi.dylib"),
+    Target("MacosX64", "x86_64-apple-darwin", "btleplug_ffi.dylib"),
+    Target("WindowsX64", "x86_64-pc-windows-msvc", "btleplug_ffi.dll"),
+    Target("LinuxX64", "x86_64-unknown-linux-gnu", "libbtleplug_ffi.so"),
+    Target("LinuxArm64", "aarch64-unknown-linux-gnu", "libbtleplug_ffi.so"),
+).filter { target ->
+    System.getProperty("buildDistribution") == "true" ||
+            (currentOs in target.triple && currentArch in target.triple)
+}
+
+val currentTarget = targets.single { target ->
+    currentOs in target.triple && currentArch in target.triple
 }
 
 targets.forEach { target ->
-    tasks.register<Exec>("cargoInstallTarget${target.name}") {
+    tasks.register<Exec>("rustupTargetAdd${target.name}") {
         commonRustSetup()
-        commandLine("rustup", "target", "add", target.triple)
-        onlyIf { !File("~/.rustup/toolchains/stable-${target.triple}").exists() }
+        onlyIf { !File("${System.getProperty("user.home")}/.rustup/toolchains/stable-${target.triple}").exists() }
+        if (target == currentTarget) {
+            commandLine("rustup", "target", "add", target.triple)
+        } else {
+            commandLine(
+                "rustup",
+                "toolchain",
+                "add",
+                "stable-${target.triple}",
+                "--profile",
+                "minimal",
+                "--force-non-host",
+            )
+        }
     }
 
-    tasks.register<Exec>("cargoBuild${target.name}") {
+    val executable = if (target == currentTarget) "cargo" else "cross"
+    tasks.register<Exec>("${executable}Build${target.name}") {
         commonRustSetup()
-        dependsOn("cargoInstallTarget${target.name}")
+        if (target != currentTarget) {
+            dependsOn("cargoInstallCross")
+            dependsOn("rustupTargetAdd${target.name}")
+        }
         outputs.dir("target/${target.triple}/release")
         commandLine(
-            "cargo", "build",
+            executable,
+            "build",
             "--release",
             "--target", target.triple,
         )
     }
+}
+
+tasks.register<Exec>("cargoInstallCross") {
+    commonRustSetup()
+    onlyIf {
+        val extension = if (currentOs == "windows") ".exe" else ""
+        !File("${System.getProperty("user.home")}/.cargo/bin/cross$extension").exists()
+    }
+    commandLine("cargo", "install", "cross")
 }
 
 tasks.register<Exec>("cargoClean") {
@@ -106,7 +137,12 @@ tasks.register<Exec>("cargoTest") {
 
 tasks.register<Exec>("cargoBuild") {
     commonRustSetup()
-    dependsOn(targets.map { "cargoBuild${it.name}" })
+    dependsOn(
+        targets.map { target ->
+            val executable = if (target == currentTarget) "cargo" else "cross"
+            "${executable}Build${target.name}"
+        },
+    )
     outputs.dir("target")
     commandLine("cargo", "build", "--release")
 }
@@ -133,15 +169,17 @@ tasks.register<Exec>("cargoFormat") {
 
 tasks.register<Exec>("cargoUniffiBindgen") {
     commonRustSetup()
-    dependsOn("cargoBuild")
+    dependsOn("cargoBuild${currentTarget.name}")
     doFirst { project.delete("build/generated/uniffi/kotlin") }
-    val input = "target/${targets.first().triple}/release/${targets.first().libraryName}"
+    val input = "target/${currentTarget.triple}/release/${currentTarget.libraryName}"
     inputs.file(input)
     outputs.dir("build/generated/uniffi/kotlin")
     commandLine(
         "cargo",
         "run",
         "--release",
+        "--target",
+        currentTarget.triple,
         "--bin",
         "uniffi-bindgen",
         "generate",

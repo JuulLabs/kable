@@ -22,3 +22,6 @@ uuid = "1.16.0"
 
 [build-dependencies]
 uniffi = { version = "0.29.1", features = ["build"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+dbus = { version = "0.9.7", features = ["vendored"] }
