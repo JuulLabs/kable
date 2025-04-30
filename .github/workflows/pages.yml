@@ -18,7 +18,7 @@ jobs:
           cache-read-only: true
           validate-wrappers: true
 
-      - run: ./gradlew dokkaHtmlMultiModule
+      - run: ./gradlew dokkaGenerate
       - run: >
           tar
           --dereference --hard-dereference
