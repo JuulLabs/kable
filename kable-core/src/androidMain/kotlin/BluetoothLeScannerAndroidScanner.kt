@@ -11,6 +11,7 @@ import com.juul.kable.Filter.Address
 import com.juul.kable.Filter.ManufacturerData
 import com.juul.kable.Filter.Name
 import com.juul.kable.Filter.Service
+import com.juul.kable.Filter.ServiceData
 import com.juul.kable.bluetooth.checkBluetoothIsOn
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
@@ -25,10 +26,21 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
+import kotlin.reflect.KClass
 import kotlin.uuid.toJavaUuid
+import kotlin.uuid.toKotlinUuid
+
+internal data class ScanFilters(
+
+    /** [ScanFilter]s applied using Android's native filtering. */
+    val native: List<ScanFilter>,
+
+    /** [FilterPredicate]s applied via flow [filter][Flow.filter] operator. */
+    val flow: List<FilterPredicate>,
+)
 
 internal class BluetoothLeScannerAndroidScanner(
-    private val filters: List<FilterPredicate>,
+    filters: List<FilterPredicate>,
     private val scanSettings: ScanSettings,
     private val preConflate: Boolean,
     logging: Logging,
@@ -36,7 +48,7 @@ internal class BluetoothLeScannerAndroidScanner(
 
     private val logger = Logger(logging, tag = "Kable/Scanner", identifier = null)
 
-    private val scanFilters = filters.toNativeScanFilters()
+    private val scanFilters = filters.toScanFilters()
 
     override val advertisements: Flow<PlatformAdvertisement> = callbackFlow {
         logger.debug { message = "Initializing scan" }
@@ -85,7 +97,7 @@ internal class BluetoothLeScannerAndroidScanner(
         logger.info {
             message = logMessage("Starting", preConflate, scanFilters)
         }
-        scanner.startScan(scanFilters, scanSettings, callback)
+        scanner.startScan(scanFilters.native, scanSettings, callback)
 
         awaitClose {
             logger.info {
@@ -100,23 +112,24 @@ internal class BluetoothLeScannerAndroidScanner(
             }
         }
     }.filter { advertisement ->
-        // Short-circuit (i.e. don't filter) if native scan filters were applied.
-        if (scanFilters.isNotEmpty()) return@filter true
-
-        // Perform filtering here, since we were not able to use native scan filters.
-        filters.matches(
-            services = advertisement.uuids,
-            name = advertisement.name,
-            address = advertisement.address,
-            manufacturerData = advertisement.manufacturerData,
-        )
+        if (scanFilters.flow.isEmpty()) {
+            true
+        } else {
+            scanFilters.flow.matches(
+                services = advertisement.uuids,
+                name = advertisement.name,
+                address = advertisement.address,
+                manufacturerData = advertisement.manufacturerData,
+                serviceData = advertisement.serviceData?.mapKeys { (key) -> key.uuid.toKotlinUuid() },
+            )
+        }
     }
 }
 
 private fun logMessage(
     prefix: String,
     preConflate: Boolean,
-    scanFilters: List<ScanFilter>,
+    scanFilters: ScanFilters,
 ) = buildString {
     append(prefix)
     append(' ')
@@ -124,48 +137,88 @@ private fun logMessage(
     if (preConflate) {
         append("pre-conflated ")
     }
-    if (scanFilters.isEmpty()) {
+    if (scanFilters.native.isEmpty() && scanFilters.flow.isEmpty()) {
         append("without filters")
     } else {
-        append("with ${scanFilters.size} filter(s)")
+        append("with ${scanFilters.native.count()} native and ${scanFilters.flow.count()} flow filter(s)")
     }
 }
 
-private fun List<FilterPredicate>.toNativeScanFilters(): List<ScanFilter> =
+internal fun List<FilterPredicate>.toScanFilters(): ScanFilters =
     if (all(FilterPredicate::supportsNativeScanFiltering)) {
-        map(FilterPredicate::toNativeScanFilter)
+        ScanFilters(
+            native = map(FilterPredicate::toNativeScanFilter),
+            flow = emptyList(),
+        )
+    } else if (count() == 1) {
+        val nativeFilters = mutableMapOf<KClass<*>, Filter>()
+        val flowFilters = mutableListOf<Filter>()
+        single().filters.forEach { filter ->
+            if (filter.canFilterNatively && filter::class !in nativeFilters) {
+                nativeFilters[filter::class] = filter
+            } else {
+                flowFilters += filter
+            }
+        }
+        ScanFilters(
+            native = listOf(nativeFilters.values.toList().toNativeScanFilter()),
+            flow = listOf(FilterPredicate(flowFilters)),
+        )
     } else {
-        emptyList()
+        ScanFilters(
+            native = emptyList(),
+            flow = this,
+        )
     }
 
-private fun FilterPredicate.toNativeScanFilter(): ScanFilter =
-    ScanFilter.Builder().apply {
-        filters.map { filter ->
+// Android's `ScanFilter` does not support name prefix filtering, and only allows at most one of each filter type.
+private val FilterPredicate.supportsNativeScanFiltering: Boolean
+    get() {
+        var service = 0
+        var nameExact = 0
+        var address = 0
+        var manufacturerData = 0
+        var serviceData = 0
+        filters.forEach { filter ->
             when (filter) {
+                is Service -> if (++service > 1) return false
+                is Name.Exact -> if (++nameExact > 1) return false
+                is Name.Prefix -> return false
+                is Address -> if (++address > 1) return false
+                is ManufacturerData -> if (++manufacturerData > 1) return false
+                is ServiceData -> if (++serviceData > 1) return false
+            }
+        }
+        return true
+    }
+
+private val Filter.canFilterNatively: Boolean
+    get() = when (this) {
+        is Service -> true
+        is Name.Exact -> true
+        is Address -> true
+        is ManufacturerData -> true
+        is ServiceData -> true
+        else -> false
+    }
+
+private fun FilterPredicate.toNativeScanFilter(): ScanFilter = filters.toNativeScanFilter()
+
+private fun List<Filter>.toNativeScanFilter(): ScanFilter =
+    ScanFilter.Builder().apply {
+        onEach { filter ->
+            when (filter) {
+                is Service -> setServiceUuid(ParcelUuid(filter.uuid.toJavaUuid()))
                 is Name.Exact -> setDeviceName(filter.exact)
                 is Address -> setDeviceAddress(filter.address)
                 is ManufacturerData -> setManufacturerData(filter.id, filterDataCompat(filter.data), filter.dataMask)
-                is Service -> setServiceUuid(ParcelUuid(filter.uuid.toJavaUuid()))
+                is ServiceData -> setServiceData(ParcelUuid(filter.uuid.toJavaUuid()), filterDataCompat(filter.data), filter.dataMask)
                 else -> throw AssertionError("Unsupported filter element")
             }
         }
     }.build()
 
-// Scan filter does not support name prefix filtering, and only allows at most one service uuid
-// and one manufacturer data.
-private fun FilterPredicate.supportsNativeScanFiltering(): Boolean =
-    !containsNamePrefix() && serviceCount() <= 1 && manufacturerDataCount() <= 1
-
-private fun FilterPredicate.containsNamePrefix(): Boolean =
-    filters.any { it is Name.Prefix }
-
-private fun FilterPredicate.serviceCount(): Int =
-    filters.count { it is Service }
-
-private fun FilterPredicate.manufacturerDataCount(): Int =
-    filters.count { it is ManufacturerData }
-
-// Android doesn't properly check for nullness of manufacturer data until Android 16.
+// Android doesn't properly check for nullness of manufacturer or service data until Android 16.
 // See https://github.com/JuulLabs/kable/issues/854 for more details.
 private fun filterDataCompat(data: ByteArray?): ByteArray? =
     if (data == null && SDK_INT <= VANILLA_ICE_CREAM) byteArrayOf() else data

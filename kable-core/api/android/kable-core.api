@@ -186,14 +186,25 @@ public final class com/juul/kable/Filter$Service : com/juul/kable/Filter {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/juul/kable/Filter$ServiceData : com/juul/kable/Filter {
+	public fun <init> (Lkotlin/uuid/Uuid;[B[B)V
+	public synthetic fun <init> (Lkotlin/uuid/Uuid;[B[BILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getData ()[B
+	public final fun getDataMask ()[B
+	public final fun getUuid ()Lkotlin/uuid/Uuid;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/juul/kable/FilterPredicateBuilder {
 	public final fun getAddress ()Ljava/lang/String;
 	public final fun getManufacturerData ()Ljava/util/List;
 	public final fun getName ()Lcom/juul/kable/Filter$Name;
+	public final fun getServiceData ()Ljava/util/List;
 	public final fun getServices ()Ljava/util/List;
 	public final fun setAddress (Ljava/lang/String;)V
 	public final fun setManufacturerData (Ljava/util/List;)V
 	public final fun setName (Lcom/juul/kable/Filter$Name;)V
+	public final fun setServiceData (Ljava/util/List;)V
 	public final fun setServices (Ljava/util/List;)V
 }
 
