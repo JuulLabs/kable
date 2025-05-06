@@ -2,13 +2,8 @@
 name = "btleplug-ffi"
 edition = "2024"
 
-[[bin]]
-name = "uniffi-bindgen"
-path = "src/commonMain/rust/uniffi-bindgen.rs"
-
 [lib]
 crate-type = ["cdylib"]
-path = "src/commonMain/rust/lib.rs"
 
 [dependencies]
 async-trait = "0.1.88"
@@ -17,7 +12,7 @@ serde = "1.0.219"
 tokio = { version = "1.44.2", features = ["macros", "time"] }
 tokio-stream = "0.1.17"
 tokio-util = "0.7.14"
-uniffi = { version = "0.29.1", features = ["bindgen", "cli", "tokio"] }
+uniffi = { version = "0.29.1", features = ["tokio"] }
 uuid = "1.16.0"
 
 [build-dependencies]
