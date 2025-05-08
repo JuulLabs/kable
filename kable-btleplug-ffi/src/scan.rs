@@ -1,22 +1,22 @@
-use std::collections::HashMap;
-
 use crate::cancellation_handle::CancellationHandle;
 use crate::uuid::Uuid;
 use btleplug::api::{Central, CentralEvent, Peripheral, ScanFilter};
 use btleplug::platform::{Adapter, PeripheralId};
+use std::collections::HashMap;
+use std::sync::Arc;
 use tokio_stream::StreamExt;
 use tokio_util::sync::CancellationToken;
 
-/// ID is a UUID on Apple, and a mac-address on Linux and Windows.
 #[uniffi::export(callback_interface)]
 #[async_trait::async_trait]
 pub trait ScanCallback: Send + Sync {
     async fn update(&self, peripheral: PeripheralProperties);
 }
 
+/// ID is a UUID on Apple, and a mac-address on Linux and Windows.
 #[derive(uniffi::Record, Clone)]
 pub struct PeripheralProperties {
-    pub id: String,
+    pub id: Arc<crate::peripheral_id::PeripheralId>,
     pub local_name: Option<String>,
     pub tx_power_level: Option<i16>,
     pub rssi: Option<i16>,
@@ -62,17 +62,30 @@ pub async fn scan(callbacks: Box<dyn ScanCallback>) -> CancellationHandle {
 }
 
 async fn handle_event(adapter: &Adapter, callbacks: &dyn ScanCallback, id: PeripheralId) {
-    let peripheral = adapter.peripheral(&id).await.unwrap().properties().await.unwrap().unwrap();
+    let peripheral = adapter
+        .peripheral(&id)
+        .await
+        .unwrap()
+        .properties()
+        .await
+        .unwrap()
+        .unwrap();
     let properties = PeripheralProperties {
-        id: id.to_string(),
+        id: Arc::new(id.into()),
         local_name: peripheral.local_name,
         tx_power_level: peripheral.tx_power_level,
         rssi: peripheral.rssi,
         manufacturer_data: peripheral.manufacturer_data,
-        service_data: peripheral.service_data.into_iter()
+        service_data: peripheral
+            .service_data
+            .into_iter()
             .map(|(uuid, bytes)| (uuid.into(), bytes))
             .collect(),
-        services: peripheral.services.into_iter().map(|uuid| uuid.into()).collect(),
+        services: peripheral
+            .services
+            .into_iter()
+            .map(|uuid| uuid.into())
+            .collect(),
         class: peripheral.class,
     };
     callbacks.update(properties).await;

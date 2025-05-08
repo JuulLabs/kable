@@ -1,6 +1,8 @@
 package com.juul.kable
 
-/** Depending on the OS, this is either a UUID (Apple) or a mac-address (Linux, Windows). */
-public actual typealias Identifier = String
+import com.juul.kable.btleplug.ffi.PeripheralId
 
-public actual fun String.toIdentifier(): Identifier = this
+/** Depending on the OS, this is either a UUID (Apple) or a mac-address (Linux, Windows). */
+public actual typealias Identifier = PeripheralId
+
+public actual fun String.toIdentifier(): Identifier = PeripheralId(this)

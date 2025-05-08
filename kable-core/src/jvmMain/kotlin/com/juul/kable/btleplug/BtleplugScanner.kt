@@ -31,7 +31,7 @@ internal class BtleplugScanner(
                 val isMatch = filters.matches(
                     services = advertisement.uuids,
                     name = advertisement.name,
-                    address = advertisement.identifier,
+                    address = null, // TODO: Possible to support on non-Apple?
                     manufacturerData = advertisement.manufacturerData,
                     serviceData = advertisement.serviceData.mapValues { (_, value) -> value.toByteArray() },
                 )
