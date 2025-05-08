@@ -1,6 +1,7 @@
 package com.juul.kable.uniffi.plugin
 
 import com.juul.kable.uniffi.plugin.tasks.registerCargoBuildTask
+import com.juul.kable.uniffi.plugin.tasks.registerCargoCheckTask
 import com.juul.kable.uniffi.plugin.tasks.registerCargoCleanTask
 import com.juul.kable.uniffi.plugin.tasks.registerCargoFormatTask
 import com.juul.kable.uniffi.plugin.tasks.registerCargoLintTasks
@@ -24,6 +25,7 @@ abstract class UniffiKotlinPlugin : Plugin<Project> {
             val accessor = UniffiKotlinExtensionAccessor(extension)
             configureKotlinJvm()
             tasks.registerCargoBuildTask(accessor)
+            tasks.registerCargoCheckTask()
             tasks.registerCargoCleanTask()
             tasks.registerCargoFormatTask()
             tasks.registerCargoLintTasks()

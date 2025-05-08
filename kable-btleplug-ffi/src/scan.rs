@@ -1,21 +1,29 @@
 use std::collections::HashMap;
 
 use crate::cancellation_handle::CancellationHandle;
-use btleplug::api::{Central, CentralEvent, ScanFilter};
+use crate::uuid::Uuid;
+use btleplug::api::{Central, CentralEvent, Peripheral, ScanFilter};
+use btleplug::platform::{Adapter, PeripheralId};
 use tokio_stream::StreamExt;
 use tokio_util::sync::CancellationToken;
 
-/// As a temporary hack to avoid some ffi work, UUIDs are passed as strings
+/// ID is a UUID on Apple, and a mac-address on Linux and Windows.
 #[uniffi::export(callback_interface)]
 #[async_trait::async_trait]
 pub trait ScanCallback: Send + Sync {
-    async fn manufacturer_data_adertisement(
-        &self,
-        id: String,
-        manufacturer_data: HashMap<u16, Vec<u8>>,
-    );
-    async fn service_data_advertisement(&self, id: String, service_data: HashMap<String, Vec<u8>>);
-    async fn services_advertisement(&self, id: String, services: Vec<String>);
+    async fn update(&self, peripheral: PeripheralProperties);
+}
+
+#[derive(uniffi::Record, Clone)]
+pub struct PeripheralProperties {
+    pub id: String,
+    pub local_name: Option<String>,
+    pub tx_power_level: Option<i16>,
+    pub rssi: Option<i16>,
+    pub manufacturer_data: HashMap<u16, Vec<u8>>,
+    pub service_data: HashMap<Uuid, Vec<u8>>,
+    pub services: Vec<Uuid>,
+    pub class: Option<u32>,
 }
 
 #[uniffi::export(async_runtime = "tokio")]
@@ -39,8 +47,13 @@ pub async fn scan(callbacks: Box<dyn ScanCallback>) -> CancellationHandle {
                         adapter.stop_scan().await.unwrap();
                         break;
                     },
-                    Some(event) = events.next() =>
-                        handle_event(&*callbacks, event).await
+                    Some(event) = events.next() => match event {
+                        CentralEvent::DeviceDiscovered(id) =>
+                            handle_event(&adapter, &*callbacks, id).await,
+                        CentralEvent::DeviceUpdated(id) =>
+                            handle_event(&adapter, &*callbacks, id).await,
+                        _ => {}
+                    }
                 }
             }
         });
@@ -48,35 +61,19 @@ pub async fn scan(callbacks: Box<dyn ScanCallback>) -> CancellationHandle {
     handle
 }
 
-async fn handle_event(callbacks: &dyn ScanCallback, event: CentralEvent) {
-    match event {
-        CentralEvent::ManufacturerDataAdvertisement {
-            id,
-            manufacturer_data,
-        } => {
-            callbacks
-                .manufacturer_data_adertisement(id.to_string(), manufacturer_data)
-                .await;
-        }
-        CentralEvent::ServiceDataAdvertisement { id, service_data } => {
-            callbacks
-                .service_data_advertisement(
-                    id.to_string(),
-                    service_data
-                        .into_iter()
-                        .map(|(k, v)| (k.to_string(), v))
-                        .collect(),
-                )
-                .await;
-        }
-        CentralEvent::ServicesAdvertisement { id, services } => {
-            callbacks
-                .services_advertisement(
-                    id.to_string(),
-                    services.into_iter().map(|uuid| uuid.to_string()).collect(),
-                )
-                .await;
-        }
-        _ => {}
-    }
+async fn handle_event(adapter: &Adapter, callbacks: &dyn ScanCallback, id: PeripheralId) {
+    let peripheral = adapter.peripheral(&id).await.unwrap().properties().await.unwrap().unwrap();
+    let properties = PeripheralProperties {
+        id: id.to_string(),
+        local_name: peripheral.local_name,
+        tx_power_level: peripheral.tx_power_level,
+        rssi: peripheral.rssi,
+        manufacturer_data: peripheral.manufacturer_data,
+        service_data: peripheral.service_data.into_iter()
+            .map(|(uuid, bytes)| (uuid.into(), bytes))
+            .collect(),
+        services: peripheral.services.into_iter().map(|uuid| uuid.into()).collect(),
+        class: peripheral.class,
+    };
+    callbacks.update(properties).await;
 }

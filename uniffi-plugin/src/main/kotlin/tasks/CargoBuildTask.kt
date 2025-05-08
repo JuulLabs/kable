@@ -2,7 +2,6 @@ package com.juul.kable.uniffi.plugin.tasks
 
 import com.juul.kable.uniffi.plugin.UNIFFI_TASK_GROUP
 import com.juul.kable.uniffi.plugin.UniffiKotlinExtensionAccessor
-import com.juul.kable.uniffi.plugin.UniffiOs
 import com.juul.kable.uniffi.plugin.UniffiTarget
 import com.juul.kable.uniffi.plugin.cargoBuild
 import com.juul.kable.uniffi.plugin.rustSources

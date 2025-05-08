@@ -5,6 +5,7 @@ uniffi::setup_scaffolding!();
 
 pub mod cancellation_handle;
 pub mod scan;
+pub mod uuid;
 
 static MANAGER: OnceCell<Manager> = OnceCell::const_new();
 
