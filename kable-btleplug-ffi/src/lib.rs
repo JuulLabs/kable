@@ -4,7 +4,9 @@ use tokio::sync::OnceCell;
 uniffi::setup_scaffolding!();
 
 pub mod cancellation_handle;
+pub mod peripheral;
 pub mod peripheral_id;
+pub mod peripheral_properties;
 pub mod scan;
 pub mod uuid;
 

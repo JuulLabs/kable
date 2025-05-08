@@ -1,8 +1,7 @@
 use crate::cancellation_handle::CancellationHandle;
-use crate::uuid::Uuid;
+use crate::peripheral_properties::PeripheralProperties;
 use btleplug::api::{Central, CentralEvent, Peripheral, ScanFilter};
 use btleplug::platform::{Adapter, PeripheralId};
-use std::collections::HashMap;
 use std::sync::Arc;
 use tokio_stream::StreamExt;
 use tokio_util::sync::CancellationToken;
@@ -11,19 +10,6 @@ use tokio_util::sync::CancellationToken;
 #[async_trait::async_trait]
 pub trait ScanCallback: Send + Sync {
     async fn update(&self, peripheral: PeripheralProperties);
-}
-
-/// ID is a UUID on Apple, and a mac-address on Linux and Windows.
-#[derive(uniffi::Record, Clone)]
-pub struct PeripheralProperties {
-    pub id: Arc<crate::peripheral_id::PeripheralId>,
-    pub local_name: Option<String>,
-    pub tx_power_level: Option<i16>,
-    pub rssi: Option<i16>,
-    pub manufacturer_data: HashMap<u16, Vec<u8>>,
-    pub service_data: HashMap<Uuid, Vec<u8>>,
-    pub services: Vec<Uuid>,
-    pub class: Option<u32>,
 }
 
 #[uniffi::export(async_runtime = "tokio")]
@@ -70,23 +56,6 @@ async fn handle_event(adapter: &Adapter, callbacks: &dyn ScanCallback, id: Perip
         .await
         .unwrap()
         .unwrap();
-    let properties = PeripheralProperties {
-        id: Arc::new(id.into()),
-        local_name: peripheral.local_name,
-        tx_power_level: peripheral.tx_power_level,
-        rssi: peripheral.rssi,
-        manufacturer_data: peripheral.manufacturer_data,
-        service_data: peripheral
-            .service_data
-            .into_iter()
-            .map(|(uuid, bytes)| (uuid.into(), bytes))
-            .collect(),
-        services: peripheral
-            .services
-            .into_iter()
-            .map(|uuid| uuid.into())
-            .collect(),
-        class: peripheral.class,
-    };
+    let properties = PeripheralProperties::new(Arc::new(id.into()), peripheral);
     callbacks.update(properties).await;
 }

@@ -12,19 +12,22 @@ import com.juul.kable.State
 import com.juul.kable.State.Disconnected
 import com.juul.kable.WriteType
 import com.juul.kable.awaitConnect
-import com.juul.kable.bluetooth.checkBluetoothIsSupported
+import com.juul.kable.btleplug.ffi.PeripheralCallbacks
+import com.juul.kable.btleplug.ffi.Uuid
+import com.juul.kable.btleplug.ffi.getPeripheral
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.sharedRepeatableAction
 import com.juul.kable.suspendUntil
-import com.juul.kable.unwrapCancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import sun.util.logging.resources.logging
+import kotlinx.coroutines.runBlocking
+import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalApi::class)
@@ -39,9 +42,24 @@ internal class BtleplugPeripheral(
     private val _state = MutableStateFlow<State>(Disconnected())
     override val state = _state.asStateFlow()
 
-    override val name: String?
-        get() = TODO("Not yet implemented")
+    private val callbacks = object : PeripheralCallbacks {
+        override fun connected() {
+            _state.value = State.Connecting.Services
+        }
 
+        override fun disconnected() {
+            _state.value = Disconnected()
+        }
+
+        override fun notification(uuid: Uuid, data: ByteArray) {
+            // TODO: Not yet implemented
+        }
+    }
+
+    private val peripheral = scope.async { getPeripheral(identifier, callbacks) }
+
+    override val name: String?
+        get() = runBlocking { peripheral.await().properties().localName }
 
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
         // TODO: Check Bluetooth is on/supported
@@ -49,10 +67,14 @@ internal class BtleplugPeripheral(
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
 
-
-        // TODO: Physically connect
+        if (!peripheral.await().connect()) {
+            throw IOException("Failed to connect.")
+        }
         suspendUntil<State.Connecting.Services>()
-        // TODO: discoverServices()
+        if (!peripheral.await().discoverServices()) {
+            throw IOException("Failed to discover services")
+        }
+        _state.value = State.Connecting.Observes
         // TODO: configureCharacteristicObservations()
 
         return scope
@@ -73,9 +95,8 @@ internal class BtleplugPeripheral(
     }
 
     @ExperimentalApi
-    override suspend fun rssi(): Int {
-        TODO("Not yet implemented")
-    }
+    override suspend fun rssi(): Int =
+        peripheral.await().properties().rssi?.toInt() ?: Int.MIN_VALUE
 
     override suspend fun read(characteristic: Characteristic): ByteArray {
         TODO("Not yet implemented")

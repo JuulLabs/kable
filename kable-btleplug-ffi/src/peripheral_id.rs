@@ -1,14 +1,15 @@
 #[cfg(target_os = "windows")]
 use btleplug::api::BDAddr;
+#[cfg(target_os = "linux")]
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 #[cfg(target_os = "windows")]
 use std::str::FromStr;
 
-#[derive(Clone, Deserialize, Serialize, uniffi::Object)]
+#[derive(Clone, uniffi::Object)]
 #[uniffi::export(Display)]
 pub struct PeripheralId {
-    platform: btleplug::platform::PeripheralId,
+    pub platform: btleplug::platform::PeripheralId,
 }
 
 #[cfg(target_os = "macos")]

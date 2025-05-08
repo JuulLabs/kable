@@ -1,6 +1,6 @@
 use tokio_util::sync::CancellationToken;
 
-#[derive(uniffi::Object)]
+#[derive(Clone, uniffi::Object)]
 pub struct CancellationHandle {
     cancellation_token: CancellationToken,
 }
