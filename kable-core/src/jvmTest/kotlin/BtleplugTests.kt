@@ -1,3 +1,4 @@
+import com.juul.kable.Filter
 import com.juul.kable.Scanner
 import kotlin.test.Test
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -12,8 +13,14 @@ class BtleplugTests {
 
     @Test
     fun test() = runTest {
-        val advertisements = Scanner().advertisements
-            .take(5)
+        val scanner = Scanner {
+            filters {
+                // Empty prefix used as a proxy for non-null name.
+                match { name = Filter.Name.Prefix("") }
+            }
+        }
+        val advertisements = scanner.advertisements
+            .take(3)
             .toList()
         for (advertisement in advertisements) {
             println(advertisement)

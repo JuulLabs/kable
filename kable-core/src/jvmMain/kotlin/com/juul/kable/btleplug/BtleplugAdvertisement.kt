@@ -9,7 +9,7 @@ import kotlin.uuid.Uuid
 
 internal data class BtleplugAdvertisement(
     private val manufacturerDataMap: Map<UShort, ByteString>,
-    private val serviceData: Map<Uuid, ByteString>,
+    internal val serviceData: Map<Uuid, ByteString>,
     override val name: String?,
     override val peripheralName: String?,
     override val identifier: Identifier,
