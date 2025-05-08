@@ -1,5 +1,5 @@
 plugins {
-    id("net.cedrickc.uniffikotlin")
+    id("com.juul.kable.uniffi")
 }
 
 uniffiKotlin {
