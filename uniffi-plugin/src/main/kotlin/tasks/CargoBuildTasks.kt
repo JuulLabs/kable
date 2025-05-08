@@ -11,41 +11,15 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.register
 
 internal fun TaskContainer.registerCargoBuildTask(accessor: UniffiKotlinExtensionAccessor) {
-    register("cargoBuild") {
+    register<Exec>("cargoBuild") {
         group = UNIFFI_TASK_GROUP
 
-        for (target in UniffiTarget.all) {
-            dependsOn("cargoBuild${target.taskName}")
-        }
-    }
-
-    for (target in UniffiTarget.all) {
-        registerCargoBuildTask(target, accessor)
-    }
-}
-
-internal fun TaskContainer.registerCargoBuildTask(
-    target: UniffiTarget,
-    accessor: UniffiKotlinExtensionAccessor,
-) {
-    register<Exec>("cargoBuild${target.taskName}") {
-        group = UNIFFI_TASK_GROUP
-
-        onlyIf { target == UniffiTarget.current || accessor.enableCrossBuild }
-
-        inputs.property("enableCrossBuild", accessor.enableCrossBuild)
         inputs.property("optimized", accessor.optimized)
         inputs.rustSources()
-        outputs.cargoBuild(target, accessor.optimized)
+        outputs.cargoBuild(UniffiTarget.current, accessor.optimized)
 
-        when (target.os) {
-            UniffiOs.current -> commandLine("cargo", "build")
-            UniffiOs.Linux -> commandLine("cross", "build")
-            UniffiOs.Windows -> commandLine("cargo", "xwin", "build")
-            UniffiOs.Apple -> error("Apple build task configured for non-apple platform")
-        }
-
-        args("--target", target.triple)
+        commandLine("cargo", "build")
+        args("--target", UniffiTarget.current.triple)
         if (accessor.optimized) {
             args("--release")
         }

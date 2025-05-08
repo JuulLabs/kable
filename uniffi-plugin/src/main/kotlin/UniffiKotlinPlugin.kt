@@ -22,7 +22,7 @@ abstract class UniffiKotlinPlugin : Plugin<Project> {
         project.afterEvaluate {
             val extension = extensions.getByType(UniffiKotlinExtension::class.java)
             val accessor = UniffiKotlinExtensionAccessor(extension)
-            configureKotlinJvm(accessor)
+            configureKotlinJvm()
             tasks.registerCargoBuildTask(accessor)
             tasks.registerCargoCleanTask()
             tasks.registerCargoFormatTask()
@@ -34,18 +34,7 @@ abstract class UniffiKotlinPlugin : Plugin<Project> {
     }
 }
 
-private fun Project.configureKotlinJvm(accessor: UniffiKotlinExtensionAccessor) {
-    extensions.getByType(KotlinJvmProjectExtension::class.java).apply {
-        jvmToolchain(accessor.jvmToolchain)
-    }
-    extensions.getByType(KotlinSourceSetContainer::class.java)
-        .sourceSets
-        .getByName(KOTLIN_SOURCE_SET)
-        .dependencies {
-            api("net.java.dev.jna:jna:5.17.0")
-            api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-        }
-
+private fun Project.configureKotlinJvm() {
     val sourceSet = extensions
         .getByType(KotlinSourceSetContainer::class.java)
         .sourceSets

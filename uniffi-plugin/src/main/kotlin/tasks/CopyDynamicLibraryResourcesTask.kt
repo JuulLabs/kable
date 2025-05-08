@@ -14,19 +14,16 @@ internal fun TaskContainer.registerCopyDynamicLibraryResourcesTask(accessor: Uni
     register<Copy>("copyDynamicLibraryResources") {
         dependsOn("cargoBuild")
 
-        inputs.property("enableCrossBuild", accessor.enableCrossBuild)
         inputs.property("optimized", accessor.optimized)
         destinationDir = project.layout.buildDirectory.get().asFile
             .resolve("resources")
             .resolve(KOTLIN_SOURCE_SET)
 
-        val targets = if (accessor.enableCrossBuild) UniffiTarget.all else listOf(UniffiTarget.current)
-        for (target in targets) {
-            inputs.cargoBuild(target, accessor.optimized)
-            from(target.buildDirectory(accessor.optimized)) {
-                include { it.name.matches(target.os.library) }
-                into("${target.os.jnaName}-${target.arch.jnaName}")
-            }
+        val target = UniffiTarget.current
+        inputs.cargoBuild(target, accessor.optimized)
+        from(target.buildDirectory(accessor.optimized)) {
+            include { it.name.matches(target.os.library) }
+            into("${target.os.jnaName}-${target.arch.jnaName}")
         }
     }
 }

@@ -68,7 +68,7 @@ internal fun TaskContainer.registerUniffiBindgenTasks(accessor: UniffiKotlinExte
 
     register<Exec>("generateKotlinBindings") {
         group = UNIFFI_TASK_GROUP
-        dependsOn("cargoBuild${UniffiTarget.current.taskName}")
+        dependsOn("cargoBuild")
         dependsOn("generateUniffiBindgenCargoProject")
 
         inputs.property("optimized", accessor.optimized)
