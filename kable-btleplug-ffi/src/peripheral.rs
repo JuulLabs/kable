@@ -57,11 +57,15 @@ pub async fn get_peripheral(
 ) -> Peripheral {
     let adapter = get_adapter().await;
     let mut events = adapter.events().await.unwrap();
+
+    let peripherals = adapter.peripherals().await.unwrap();
+    for peripheral in peripherals {
+        println!("{:?}", peripheral);
+    }
     let peripheral = if let Ok(peripheral) = adapter.peripheral(&id.platform).await {
         peripheral
     } else {
-        let _ = adapter.add_peripheral(&id.platform).await;
-        adapter.peripheral(&id.platform).await.unwrap()
+        adapter.add_peripheral(&id.platform).await.unwrap()
     };
     let mut notifications = peripheral.notifications().await.unwrap();
 

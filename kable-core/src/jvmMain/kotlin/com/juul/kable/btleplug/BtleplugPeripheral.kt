@@ -22,13 +22,16 @@ import com.juul.kable.suspendUntil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalApi::class)
 internal class BtleplugPeripheral(
@@ -48,7 +51,7 @@ internal class BtleplugPeripheral(
         }
 
         override fun disconnected() {
-            _state.value = Disconnected()
+            scope.launch { disconnect() }
         }
 
         override fun notification(uuid: Uuid, data: ByteArray) {
@@ -76,6 +79,8 @@ internal class BtleplugPeripheral(
         }
         _state.value = State.Connecting.Observes
         // TODO: configureCharacteristicObservations()
+        delay(1.seconds)
+        _state.value = State.Connected(scope)
 
         return scope
     }
@@ -84,7 +89,9 @@ internal class BtleplugPeripheral(
         connectAction.awaitConnect()
 
     override suspend fun disconnect() {
+        _state.value = State.Disconnecting
         connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnect requested")))
+        _state.value = Disconnected()
     }
 
     override val services: StateFlow<List<DiscoveredService>?>

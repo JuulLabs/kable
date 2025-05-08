@@ -1,3 +1,4 @@
+use btleplug::platform::Adapter;
 use btleplug::{api::Manager as _, platform::Manager};
 use tokio::sync::OnceCell;
 
@@ -10,14 +11,20 @@ pub mod peripheral_properties;
 pub mod scan;
 pub mod uuid;
 
-static MANAGER: OnceCell<Manager> = OnceCell::const_new();
+static ADAPTER: OnceCell<Adapter> = OnceCell::const_new();
 
-async fn get_adapter() -> btleplug::platform::Adapter {
-    MANAGER
-        .get_or_init(async || Manager::new().await.unwrap())
+async fn get_adapter() -> Adapter {
+    ADAPTER.get_or_init(create_adapter).await.clone()
+}
+
+async fn create_adapter() -> Adapter {
+    Manager::new()
         .await
+        .unwrap()
         .adapters()
         .await
         .unwrap()
-        .remove(0)
+        .get(0)
+        .unwrap()
+        .clone()
 }
