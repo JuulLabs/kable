@@ -7,31 +7,32 @@ import com.juul.kable.DiscoveredService
 import com.juul.kable.ExperimentalApi
 import com.juul.kable.Identifier
 import com.juul.kable.NotConnectedException
+import com.juul.kable.ObservationEvent.Disconnected.characteristic
 import com.juul.kable.OnSubscriptionAction
 import com.juul.kable.State
 import com.juul.kable.State.Disconnected
 import com.juul.kable.WriteType
 import com.juul.kable.awaitConnect
 import com.juul.kable.btleplug.ffi.PeripheralCallbacks
-import com.juul.kable.btleplug.ffi.Uuid
 import com.juul.kable.btleplug.ffi.getPeripheral
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.sharedRepeatableAction
 import com.juul.kable.suspendUntil
+import jdk.internal.org.objectweb.asm.Type.getDescriptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.seconds
+import com.juul.kable.btleplug.ffi.Uuid as FfiUuid
 
 @OptIn(ExperimentalApi::class)
 internal class BtleplugPeripheral(
@@ -45,6 +46,9 @@ internal class BtleplugPeripheral(
     private val _state = MutableStateFlow<State>(Disconnected())
     override val state = _state.asStateFlow()
 
+    private val _services = MutableStateFlow<List<DiscoveredService>?>(null)
+    override val services = _services.asStateFlow()
+
     private val callbacks = object : PeripheralCallbacks {
         override fun connected() {
             _state.value = State.Connecting.Services
@@ -54,7 +58,7 @@ internal class BtleplugPeripheral(
             scope.launch { disconnect() }
         }
 
-        override fun notification(uuid: Uuid, data: ByteArray) {
+        override fun notification(uuid: FfiUuid, data: ByteArray) {
             // TODO: Not yet implemented
         }
     }
@@ -64,19 +68,34 @@ internal class BtleplugPeripheral(
     override val name: String?
         get() = runBlocking { peripheral.await().properties().localName }
 
+    private suspend fun getCharacteristic(service: FfiUuid, characteristic: FfiUuid) =
+        peripheral.await().services()
+            .single { it.uuid == service }
+            .characteristics
+            .single { it.uuid == characteristic }
+
+    private suspend fun getDescriptor(service: FfiUuid, characteristic: FfiUuid, descriptor: FfiUuid) =
+        getCharacteristic(service, characteristic)
+            .descriptors
+            .single { it.uuid == descriptor }
+
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
         // TODO: Check Bluetooth is on/supported
 
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
-
         if (!peripheral.await().connect()) {
             throw IOException("Failed to connect.")
         }
         suspendUntil<State.Connecting.Services>()
+
+        logger.info { message = "Discovering services" }
         if (!peripheral.await().discoverServices()) {
             throw IOException("Failed to discover services")
         }
+        _services.value = peripheral.await().services().map(::BtleplugService)
+
+        logger.info { message = "Configuring characteristic observations" }
         _state.value = State.Connecting.Observes
         // TODO: configureCharacteristicObservations()
         delay(1.seconds)
@@ -94,31 +113,39 @@ internal class BtleplugPeripheral(
         _state.value = Disconnected()
     }
 
-    override val services: StateFlow<List<DiscoveredService>?>
-        get() = TODO("Not yet implemented")
-
-    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int {
-        TODO("Not yet implemented")
-    }
+    // STOPSHIP: Double check this, but seems to be the default.
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int = 20
 
     @ExperimentalApi
     override suspend fun rssi(): Int =
         peripheral.await().properties().rssi?.toInt() ?: Int.MIN_VALUE
 
     override suspend fun read(characteristic: Characteristic): ByteArray {
-        TODO("Not yet implemented")
+        val ffi = getCharacteristic(characteristic.serviceUuid.toString(), characteristic.characteristicUuid.toString())
+        return peripheral.await().read(ffi)
     }
 
     override suspend fun read(descriptor: Descriptor): ByteArray {
-        TODO("Not yet implemented")
+        val ffi = getDescriptor(
+            descriptor.serviceUuid.toString(),
+            descriptor.characteristicUuid.toString(),
+            descriptor.descriptorUuid.toString(),
+        )
+        return peripheral.await().readDescriptor(ffi)
     }
 
     override suspend fun write(characteristic: Characteristic, data: ByteArray, writeType: WriteType) {
-        TODO("Not yet implemented")
+        val ffi = getCharacteristic(characteristic.serviceUuid.toString(), characteristic.characteristicUuid.toString())
+        return peripheral.await().write(ffi, data, writeType.ffi())
     }
 
     override suspend fun write(descriptor: Descriptor, data: ByteArray) {
-        TODO("Not yet implemented")
+        val ffi = getDescriptor(
+            descriptor.serviceUuid.toString(),
+            descriptor.characteristicUuid.toString(),
+            descriptor.descriptorUuid.toString(),
+        )
+        return peripheral.await().writeDescriptor(ffi, data)
     }
 
     override fun observe(characteristic: Characteristic, onSubscription: OnSubscriptionAction): Flow<ByteArray> {
@@ -130,4 +157,9 @@ internal class BtleplugPeripheral(
     }
 
     override fun toString(): String = "Peripheral(identifier=$identifier)"
+}
+
+private fun WriteType.ffi() = when (this) {
+    WriteType.WithResponse -> com.juul.kable.btleplug.ffi.WriteType.WITH_RESPONSE
+    WriteType.WithoutResponse -> com.juul.kable.btleplug.ffi.WriteType.WITHOUT_RESPONSE
 }

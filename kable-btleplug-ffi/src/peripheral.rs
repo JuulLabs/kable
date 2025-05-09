@@ -1,8 +1,13 @@
+use crate::Result;
 use crate::cancellation_handle::CancellationHandle;
+use crate::characteristic::Characteristic;
+use crate::descriptor::Descriptor;
 use crate::get_adapter;
 use crate::peripheral_id::PeripheralId;
 use crate::peripheral_properties::PeripheralProperties;
+use crate::service::Service;
 use crate::uuid::Uuid;
+use crate::write_type::WriteType;
 use btleplug::api::{Central, CentralEvent, Peripheral as _};
 use std::sync::Arc;
 use tokio_stream::StreamExt;
@@ -25,6 +30,13 @@ pub struct Peripheral {
 
 #[uniffi::export(async_runtime = "tokio")]
 impl Peripheral {
+    async fn properties(&self) -> PeripheralProperties {
+        PeripheralProperties::new(
+            self.id.clone(),
+            self.platform.properties().await.unwrap().unwrap(),
+        )
+    }
+
     async fn connect(&self) -> bool {
         self.platform.connect().await.is_ok()
     }
@@ -35,12 +47,56 @@ impl Peripheral {
     async fn discover_services(&self) -> bool {
         self.platform.discover_services().await.is_ok()
     }
+    async fn services(&self) -> Vec<Service> {
+        self.platform
+            .services()
+            .into_iter()
+            .map(|x| x.into())
+            .collect()
+    }
 
-    async fn properties(&self) -> PeripheralProperties {
-        PeripheralProperties::new(
-            self.id.clone(),
-            self.platform.properties().await.unwrap().unwrap(),
-        )
+    async fn read(&self, characteristic: Characteristic) -> Result<Vec<u8>> {
+        self.platform
+            .read(&characteristic.into())
+            .await
+            .map_err(|err| err.into())
+    }
+    async fn write(
+        &self,
+        characteristic: Characteristic,
+        data: Vec<u8>,
+        write_type: WriteType,
+    ) -> Result<()> {
+        self.platform
+            .write(&characteristic.into(), &data, write_type.into())
+            .await
+            .map_err(|err| err.into())
+    }
+
+    async fn read_descriptor(&self, descriptor: Descriptor) -> Result<Vec<u8>> {
+        self.platform
+            .read_descriptor(&descriptor.into())
+            .await
+            .map_err(|err| err.into())
+    }
+    async fn write_descriptor(&self, descriptor: Descriptor, data: Vec<u8>) -> Result<()> {
+        self.platform
+            .write_descriptor(&descriptor.into(), &data)
+            .await
+            .map_err(|err| err.into())
+    }
+
+    async fn subscribe(&self, characteristic: Characteristic) -> Result<()> {
+        self.platform
+            .subscribe(&characteristic.into())
+            .await
+            .map_err(|err| err.into())
+    }
+    async fn unsubscribe(&self, characteristic: Characteristic) -> Result<()> {
+        self.platform
+            .unsubscribe(&characteristic.into())
+            .await
+            .map_err(|err| err.into())
     }
 }
 

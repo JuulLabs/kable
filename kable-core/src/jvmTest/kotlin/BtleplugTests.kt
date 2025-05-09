@@ -1,16 +1,9 @@
 import com.juul.kable.Bluetooth
-import com.juul.kable.Filter
 import com.juul.kable.Peripheral
 import com.juul.kable.Scanner
-import kotlin.test.Test
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.last
-import kotlinx.coroutines.flow.runningFold
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
 
 // Sensortag!
 const val movementService16bitUuid = 0xAA80
