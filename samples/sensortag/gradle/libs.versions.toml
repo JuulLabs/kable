@@ -14,7 +14,7 @@ voyager = "1.1.0-beta03"
 androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version = "2.9.0" }
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.10.1" }
 compose-ui = { module = "androidx.compose.ui:ui", version = "1.8.0" }
-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.1" }
+coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.2" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 kable = { module = "com.juul.kable:kable-core", version.ref = "kable" }
