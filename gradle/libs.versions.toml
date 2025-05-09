@@ -31,5 +31,5 @@ api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinter = { id = "org.jmailen.kotlinter", version = "5.0.1" }
+kotlinter = { id = "org.jmailen.kotlinter", version = "5.0.2" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.30.0" }
