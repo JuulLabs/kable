@@ -18,7 +18,7 @@ use tokio_util::sync::CancellationToken;
 pub trait PeripheralCallbacks: Send + Sync {
     fn connected(&self);
     fn disconnected(&self);
-    fn notification(&self, uuid: Uuid, data: Vec<u8>);
+    async fn notification(&self, uuid: Uuid, data: Vec<u8>);
 }
 
 #[derive(Clone, uniffi::Object)]
@@ -148,7 +148,7 @@ pub async fn get_peripheral(
                         _ => {}
                     },
                     Some(notification) = notifications.next() =>
-                        callbacks.notification(notification.uuid.into(), notification.value)
+                        callbacks.notification(notification.uuid.into(), notification.value).await
                 }
             }
         });

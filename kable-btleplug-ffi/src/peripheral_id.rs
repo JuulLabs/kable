@@ -52,7 +52,7 @@ impl Display for PeripheralId {
 #[uniffi::export]
 impl PeripheralId {
     #[uniffi::constructor]
-    fn new2(value: String) -> Self {
+    fn new(value: String) -> Self {
         PeripheralId {
             platform: BDAddr::from_str(&value).unwrap().into(),
         }

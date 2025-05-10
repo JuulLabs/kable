@@ -26,7 +26,7 @@ internal data class BtleplugAdvertisement(
             .associate { (key, value) -> Uuid.parse(key) to ByteString(value) },
         name = properties.localName,
         peripheralName = properties.localName,
-        identifier = properties.id,
+        identifier = Identifier(properties.id),
         isConnectable = true, // STOPSHIP: Double-check this.
         rssi = properties.rssi?.toInt() ?: Int.MIN_VALUE,
         txPower = properties.txPowerLevel?.toInt(),
