@@ -83,18 +83,25 @@ internal class BtleplugPeripheral(
         }
 
     internal suspend fun getCharacteristic(characteristic: Characteristic) =
-        getCharacteristic(characteristic.serviceUuid.toString(), characteristic.characteristicUuid.toString())
+        getCharacteristic(
+            characteristic.serviceUuid.toString(),
+            characteristic.characteristicUuid.toString(),
+        )
 
     private suspend fun getCharacteristic(service: FfiUuid, characteristic: FfiUuid) =
-        peripheral.await().services()
-            .single { it.uuid == service }
-            .characteristics
-            .single { it.uuid == characteristic }
+        withContext(Dispatchers.IO) {
+            peripheral.await().services()
+                .single { it.uuid == service }
+                .characteristics
+                .single { it.uuid == characteristic }
+        }
 
     private suspend fun getDescriptor(service: FfiUuid, characteristic: FfiUuid, descriptor: FfiUuid) =
-        getCharacteristic(service, characteristic)
-            .descriptors
-            .single { it.uuid == descriptor }
+        withContext(Dispatchers.IO) {
+            getCharacteristic(service, characteristic)
+                .descriptors
+                .single { it.uuid == descriptor }
+        }
 
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
         // TODO: Check Bluetooth is on/supported
@@ -134,21 +141,22 @@ internal class BtleplugPeripheral(
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int = 20
 
     @ExperimentalApi
-    override suspend fun rssi(): Int =
+    override suspend fun rssi(): Int = withContext(Dispatchers.IO) {
         peripheral.await().properties().rssi?.toInt() ?: Int.MIN_VALUE
+    }
 
     override suspend fun read(characteristic: Characteristic): ByteArray {
         logger.verbose { "Reading from $characteristic" }
-        val ffi = peripheral.await()
         return withContext(Dispatchers.IO) {
+            val ffi = peripheral.await()
             ffi.read(getCharacteristic(characteristic))
         }
     }
 
     override suspend fun read(descriptor: Descriptor): ByteArray {
         logger.verbose { "Reading from $descriptor" }
-        val ffi = peripheral.await()
         return withContext(Dispatchers.IO) {
+            val ffi = peripheral.await()
             ffi.readDescriptor(
                 getDescriptor(
                     descriptor.serviceUuid.toString(),
@@ -161,16 +169,16 @@ internal class BtleplugPeripheral(
 
     override suspend fun write(characteristic: Characteristic, data: ByteArray, writeType: WriteType) {
         logger.verbose { "Writing to $characteristic, type=$writeType data=${data.size} bytes" }
-        val ffi = peripheral.await()
         return withContext(Dispatchers.IO) {
+            val ffi = peripheral.await()
             ffi.write(getCharacteristic(characteristic), data, writeType.ffi())
         }
     }
 
     override suspend fun write(descriptor: Descriptor, data: ByteArray) {
         logger.verbose { "Writing to $descriptor, data=${data.size} bytes" }
-        val ffi = peripheral.await()
         return withContext(Dispatchers.IO) {
+            val ffi = peripheral.await()
             ffi.writeDescriptor(
                 getDescriptor(
                     descriptor.serviceUuid.toString(),

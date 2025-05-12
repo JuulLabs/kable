@@ -13,18 +13,17 @@ private class BtleplugObservationHandler(
 ) : Observation.Handler {
     override suspend fun startObservation(characteristic: Characteristic) {
         peripheral.logger.info { "Start observation: $characteristic" }
-        val ffi = peripheral.peripheral.await()
         with(Dispatchers.IO) {
+            val ffi = peripheral.peripheral.await()
             ffi.subscribe(peripheral.getCharacteristic(characteristic))
         }
     }
 
     override suspend fun stopObservation(characteristic: Characteristic) {
         peripheral.logger.info { "Stop observation: $characteristic" }
-        val ffi = peripheral.peripheral.await()
         with(Dispatchers.IO) {
+            val ffi = peripheral.peripheral.await()
             ffi.unsubscribe(peripheral.getCharacteristic(characteristic))
         }
     }
-
 }
