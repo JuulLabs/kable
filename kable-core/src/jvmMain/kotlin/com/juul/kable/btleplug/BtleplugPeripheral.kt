@@ -77,7 +77,10 @@ internal class BtleplugPeripheral(
     }
 
     override val name: String?
-        get() = runBlocking { peripheral.await().properties().localName }
+        get() = when (peripheral.isCompleted) {
+            true -> runBlocking { peripheral.getCompleted().properties() }.localName
+            false -> null
+        }
 
     internal suspend fun getCharacteristic(characteristic: Characteristic) =
         getCharacteristic(characteristic.serviceUuid.toString(), characteristic.characteristicUuid.toString())
