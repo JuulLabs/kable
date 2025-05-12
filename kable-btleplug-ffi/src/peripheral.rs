@@ -1,4 +1,3 @@
-use crate::Result;
 use crate::cancellation_handle::CancellationHandle;
 use crate::characteristic::Characteristic;
 use crate::descriptor::Descriptor;
@@ -8,6 +7,7 @@ use crate::peripheral_properties::PeripheralProperties;
 use crate::service::Service;
 use crate::uuid::Uuid;
 use crate::write_type::WriteType;
+use crate::Result;
 use btleplug::api::{Central, CentralEvent, Peripheral as _};
 use std::sync::Arc;
 use tokio_stream::StreamExt;
@@ -115,13 +115,32 @@ pub async fn get_peripheral(
     let mut events = adapter.events().await.unwrap();
 
     let peripherals = adapter.peripherals().await.unwrap();
-    for peripheral in peripherals {
-        println!("{:?}", peripheral);
-    }
     let peripheral = if let Ok(peripheral) = adapter.peripheral(&id.platform).await {
+        // Already present in the adapter. This path should get hit whenever there's a peripheral
+        // created from a scan event/advertisement.
         peripheral
     } else {
-        adapter.add_peripheral(&id.platform).await.unwrap()
+        // None of the non-Android platforms support [Adapter::add_peripheral], so we can't use that
+        // to eagerly get dummy peripheral. As a very, very sad workaround we need to wait until the
+        // peripheral shows up on its own.
+        // TODO: This should support a cancellation handle somehow. We probably need to
+        //       pre-create in Kotlin and pass into this function (bleh).
+        let buffer: btleplug::platform::Peripheral;
+        loop {
+            tokio::select! {
+                Some(event) = events.next() => match event {
+                    CentralEvent::DeviceDiscovered(device) |
+                    CentralEvent::DeviceUpdated(device) => {
+                        if (device == id.platform) {
+                            buffer = adapter.peripheral(&device).await.unwrap();
+                            break;
+                        }
+                    },
+                    _ => {}
+                },
+            }
+        }
+        buffer
     };
     let mut notifications = peripheral.notifications().await.unwrap();
 

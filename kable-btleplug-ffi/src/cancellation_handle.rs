@@ -12,7 +12,10 @@ impl CancellationHandle {
             cancellation_token: token,
         }
     }
+}
 
+#[uniffi::export]
+impl CancellationHandle {
     pub fn cancel(&self) {
         self.cancellation_token.cancel();
     }

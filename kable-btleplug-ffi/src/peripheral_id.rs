@@ -6,8 +6,8 @@ use std::fmt::Display;
 #[cfg(target_os = "windows")]
 use std::str::FromStr;
 
-#[derive(Clone, uniffi::Object)]
-#[uniffi::export(Display)]
+#[derive(Eq, PartialEq, Hash, Clone, uniffi::Object)]
+#[uniffi::export(Display, Hash, Eq)]
 pub struct PeripheralId {
     pub platform: btleplug::platform::PeripheralId,
 }

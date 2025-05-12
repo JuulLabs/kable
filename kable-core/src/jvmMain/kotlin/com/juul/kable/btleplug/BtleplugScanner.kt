@@ -47,7 +47,7 @@ internal class BtleplugScanner(
         val handle = scan(callback)
         awaitClose {
             logger.verbose { message = "Removing scan listener" }
-            handle.close()
+            handle.cancel()
             handle.destroy()
         }
     }
