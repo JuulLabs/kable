@@ -8,7 +8,7 @@ kotlin = "2.1.21"
 tuulbox = "8.0.1"
 
 [libraries]
-androidx-core = { module = "androidx.core:core-ktx", version = "1.15.0" }
+androidx-core = { module = "androidx.core:core-ktx", version = "1.16.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.2" }
