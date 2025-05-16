@@ -6,7 +6,7 @@ android-target = "31"
 compose = "1.7.3"
 jvm = "17"
 kable = "0.37.1"
-kotlin = "2.1.20"
+kotlin = "2.1.21"
 krayon = "0.20.1"
 voyager = "1.1.0-beta03"
 
