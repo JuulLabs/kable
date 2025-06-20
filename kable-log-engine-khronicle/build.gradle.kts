@@ -11,10 +11,10 @@ kotlin {
 
     iosArm64()
     iosX64()
-    js().browser()
-    macosArm64()
-    macosX64()
-    jvm()
+    // js().browser()
+    // macosArm64()
+    // macosX64()
+    // jvm()
 
     sourceSets {
         commonMain.dependencies {
