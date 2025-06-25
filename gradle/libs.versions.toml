@@ -11,13 +11,13 @@ tuulbox = "8.0.1"
 androidx-core = { module = "androidx.core:core-ktx", version = "1.16.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.2" }
+datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.0" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.0" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.1" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.7.0" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.8.0" }
 mockk = { module = "io.mockk:mockk", version = "1.14.4" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.15.1" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
