@@ -20,7 +20,7 @@ kotlin {
         }
     }
     js {
-        moduleName = "sample"
+        outputModuleName = "sample"
         browser {
             commonWebpackConfig {
                 outputFileName = "sample.js"
