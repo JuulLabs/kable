@@ -58,6 +58,7 @@ kotlin {
         androidUnitTest.dependencies {
             implementation(libs.equalsverifier)
             implementation(libs.mockk)
+            implementation(libs.robolectric)
         }
 
         jsMain.dependencies {
@@ -85,5 +86,11 @@ android {
         // we disable the "missing permission" lint check. Caution must be taken during later Android version bumps to
         // make sure we aren't missing any newly introduced permission requirements.
         disable += "MissingPermission"
+    }
+}
+
+dokka {
+    pluginsConfiguration.html {
+        footerMessage.set("(c) JUUL Labs, Inc.")
     }
 }
