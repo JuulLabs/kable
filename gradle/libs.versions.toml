@@ -3,8 +3,8 @@ android-compile = "35"
 android-min = "21"
 atomicfu = "0.28.0"
 coroutines = "1.10.2"
-jvm-toolchain = "11"
-kotlin = "2.1.21"
+jvm-toolchain = "17"
+kotlin = "2.2.0"
 tuulbox = "8.0.1"
 
 [libraries]
@@ -12,7 +12,7 @@ androidx-core = { module = "androidx.core:core-ktx", version = "1.16.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.0" }
-equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "3.19.4" }
+equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.0" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.1" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -32,4 +32,4 @@ atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "5.1.1" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.32.0" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.33.0" }
