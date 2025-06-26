@@ -1,8 +1,8 @@
 [versions]
-agp = "8.9.1"
+agp = "8.11.0"
 android-compile = "35"
 android-min = "21"
-android-target = "31"
+android-target = "33"
 compose = "1.8.0"
 jvm = "17"
 kable = "0.37.1"
