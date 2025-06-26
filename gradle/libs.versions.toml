@@ -12,7 +12,7 @@ tuulbox = "8.0.1"
 androidx-core = { module = "androidx.core:core-ktx", version = "1.16.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.2" }
+datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.0" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.0" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.1" }
@@ -20,16 +20,16 @@ kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.7.0" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.8.0" }
 mockk = { module = "io.mockk:mockk", version = "1.14.4" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.15.1" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
 tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2025.6.5" }
+wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2025.6.10" }
 wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "8.8.1" }
+android-library = { id = "com.android.library", version = "8.11.0" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.17.0" }
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }

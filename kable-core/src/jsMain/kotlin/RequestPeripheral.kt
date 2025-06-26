@@ -58,7 +58,7 @@ public suspend fun requestPeripheral(
                 throw IllegalStateException("Operation is not permitted in this context due to security concerns", e)
 
             e is TypeError -> {
-                // Example failure when executing `requestDevice(jso {})`:
+                // Example failure when executing `requestDevice(unsafeJso {})`:
                 // > TypeError: Failed to execute 'requestDevice' on 'Bluetooth': Either 'filters'
                 // > should be present or 'acceptAllAdvertisements' should be true, but not both.
                 //

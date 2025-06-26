@@ -4,11 +4,11 @@ import com.juul.kable.external.BluetoothLEScanFilterInit
 import com.juul.kable.external.BluetoothLEScanOptions
 import com.juul.kable.external.BluetoothManufacturerDataFilterInit
 import com.juul.kable.external.BluetoothServiceDataFilterInit
-import js.objects.jso
+import js.objects.unsafeJso
 import kotlin.uuid.Uuid
 
 /** Convert list of public API type to Web Bluetooth (JavaScript) type. */
-internal fun List<FilterPredicate>.toBluetoothLEScanOptions(): BluetoothLEScanOptions = jso {
+internal fun List<FilterPredicate>.toBluetoothLEScanOptions(): BluetoothLEScanOptions = unsafeJso {
     if (isEmpty()) {
         acceptAllAdvertisements = true
     } else {
@@ -20,7 +20,7 @@ internal fun List<FilterPredicate>.toBluetoothLEScanFilterInit(): Array<Bluetoot
     map(FilterPredicate::toBluetoothLEScanFilterInit)
         .toTypedArray()
 
-private fun FilterPredicate.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit = jso {
+private fun FilterPredicate.toBluetoothLEScanFilterInit(): BluetoothLEScanFilterInit = unsafeJso {
     filters
         .filterIsInstance<Filter.Service>()
         .takeIf(Collection<Filter.Service>::isNotEmpty)
@@ -51,7 +51,7 @@ private fun FilterPredicate.toBluetoothLEScanFilterInit(): BluetoothLEScanFilter
 }
 
 private fun toBluetoothManufacturerDataFilterInit(filter: Filter.ManufacturerData) =
-    jso<BluetoothManufacturerDataFilterInit> {
+    unsafeJso<BluetoothManufacturerDataFilterInit> {
         companyIdentifier = filter.id
         if (filter.data != null) {
             dataPrefix = filter.data
@@ -62,7 +62,7 @@ private fun toBluetoothManufacturerDataFilterInit(filter: Filter.ManufacturerDat
     }
 
 private fun toBluetoothServiceDataFilterInit(filter: Filter.ServiceData) =
-    jso<BluetoothServiceDataFilterInit> {
+    unsafeJso<BluetoothServiceDataFilterInit> {
         service = filter.uuid.toBluetoothServiceUUID()
         if (filter.data != null) {
             dataPrefix = filter.data
