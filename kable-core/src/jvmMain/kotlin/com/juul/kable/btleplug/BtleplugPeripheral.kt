@@ -14,24 +14,24 @@ import com.juul.kable.State
 import com.juul.kable.State.Disconnected
 import com.juul.kable.WriteType
 import com.juul.kable.awaitConnect
+import com.juul.kable.btleplug.ffi.CancellationHandle
 import com.juul.kable.btleplug.ffi.PeripheralCallbacks
-import com.juul.kable.btleplug.ffi.getPeripheral
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.sharedRepeatableAction
 import com.juul.kable.suspendUntil
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 import com.juul.kable.btleplug.ffi.Uuid as FfiUuid
 
 @OptIn(ExperimentalApi::class)
@@ -59,7 +59,7 @@ internal class BtleplugPeripheral(
         }
 
         override suspend fun notification(uuid: FfiUuid, data: ByteArray) {
-            val characteristic = peripheral.await()
+            val characteristic = ffi
                 .services()
                 .asSequence()
                 .flatMap { it.characteristics }
@@ -70,16 +70,21 @@ internal class BtleplugPeripheral(
         }
     }
 
-    internal val peripheral = scope.async { getPeripheral(identifier.ffi, callbacks) }
+    internal val ffi = com.juul.kable.btleplug.ffi.Peripheral(identifier.ffi, callbacks)
 
     private val observers = Observers<ByteArray>(this, logging) { cause ->
         logger.error(cause) { message = "Exception in observers" }
     }
 
+    private var _name: String? = null
     override val name: String?
-        get() = when (peripheral.isCompleted) {
-            true -> runBlocking { peripheral.getCompleted().properties() }.localName
-            false -> null
+        get() {
+            try {
+                _name = runBlocking { ffi.properties() }.localName
+            } catch (_: Exception) {
+                null
+            }
+            return _name
         }
 
     internal suspend fun getCharacteristic(characteristic: Characteristic) =
@@ -90,7 +95,7 @@ internal class BtleplugPeripheral(
 
     private suspend fun getCharacteristic(service: FfiUuid, characteristic: FfiUuid) =
         withContext(Dispatchers.IO) {
-            peripheral.await().services()
+            ffi.services()
                 .single { it.uuid == service }
                 .characteristics
                 .single { it.uuid == characteristic }
@@ -104,20 +109,22 @@ internal class BtleplugPeripheral(
         }
 
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
+        val cancellationHandle = CancellationHandle()
+        scope.coroutineContext.job.invokeOnCompletion {
+            cancellationHandle.cancel()
+        }
         // TODO: Check Bluetooth is on/supported
 
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
-        if (!peripheral.await().connect()) {
+        if (!ffi.connect(cancellationHandle)) {
             throw IOException("Failed to connect.")
         }
         suspendUntil<State.Connecting.Services>()
 
         logger.info { message = "Discovering services" }
-        if (!peripheral.await().discoverServices()) {
-            throw IOException("Failed to discover services")
-        }
-        _services.value = peripheral.await().services().map(::BtleplugService)
+        ffi.discoverServices()
+        _services.value = ffi.services().map(::BtleplugService)
 
         logger.verbose { message = "Configuring characteristic observations" }
         _state.value = State.Connecting.Observes
@@ -142,13 +149,12 @@ internal class BtleplugPeripheral(
 
     @ExperimentalApi
     override suspend fun rssi(): Int = withContext(Dispatchers.IO) {
-        peripheral.await().properties().rssi?.toInt() ?: Int.MIN_VALUE
+        ffi.properties().rssi?.toInt() ?: Int.MIN_VALUE
     }
 
     override suspend fun read(characteristic: Characteristic): ByteArray {
         logger.verbose { message = "Reading from $characteristic" }
         return withContext(Dispatchers.IO) {
-            val ffi = peripheral.await()
             ffi.read(getCharacteristic(characteristic))
         }
     }
@@ -156,7 +162,6 @@ internal class BtleplugPeripheral(
     override suspend fun read(descriptor: Descriptor): ByteArray {
         logger.verbose { message = "Reading from $descriptor" }
         return withContext(Dispatchers.IO) {
-            val ffi = peripheral.await()
             ffi.readDescriptor(
                 getDescriptor(
                     descriptor.serviceUuid.toString(),
@@ -170,7 +175,6 @@ internal class BtleplugPeripheral(
     override suspend fun write(characteristic: Characteristic, data: ByteArray, writeType: WriteType) {
         logger.verbose { message = "Writing to $characteristic, type=$writeType data=${data.size} bytes" }
         return withContext(Dispatchers.IO) {
-            val ffi = peripheral.await()
             ffi.write(getCharacteristic(characteristic), data, writeType.ffi())
         }
     }
@@ -178,7 +182,6 @@ internal class BtleplugPeripheral(
     override suspend fun write(descriptor: Descriptor, data: ByteArray) {
         logger.verbose { message = "Writing to $descriptor, data=${data.size} bytes" }
         return withContext(Dispatchers.IO) {
-            val ffi = peripheral.await()
             ffi.writeDescriptor(
                 getDescriptor(
                     descriptor.serviceUuid.toString(),

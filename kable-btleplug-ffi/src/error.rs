@@ -2,6 +2,9 @@ use std::time::Duration;
 
 #[derive(Debug, thiserror::Error, uniffi::Enum)]
 pub enum Error {
+    #[error("Cancelled")]
+    Cancelled,
+
     #[error("Permission denied")]
     PermissionDenied,
 

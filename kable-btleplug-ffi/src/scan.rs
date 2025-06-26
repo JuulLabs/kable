@@ -15,7 +15,7 @@ pub trait ScanCallback: Send + Sync {
 #[uniffi::export(async_runtime = "tokio")]
 pub async fn scan(callbacks: Box<dyn ScanCallback>) -> CancellationHandle {
     let token = CancellationToken::new();
-    let handle = CancellationHandle::new(token.clone());
+    let handle = CancellationHandle::from_token(token.clone());
 
     let adapter = crate::get_adapter().await;
     let mut events = adapter.events().await.unwrap();
