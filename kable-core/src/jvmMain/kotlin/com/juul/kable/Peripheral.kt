@@ -20,6 +20,7 @@ public fun Peripheral(
     val builder = PeripheralBuilder().apply(builderAction)
     return BtleplugPeripheral(
         identifier,
+        builder.onServicesDiscovered,
         builder.logging,
     )
 }

@@ -1,3 +1,4 @@
+use btleplug::api::{Central, CentralState};
 use btleplug::platform::Adapter;
 use btleplug::{api::Manager as _, platform::Manager};
 use tokio::sync::OnceCell;
@@ -35,4 +36,28 @@ async fn create_adapter() -> Adapter {
         .get(0)
         .unwrap()
         .clone()
+}
+
+#[uniffi::export(async_runtime = "tokio")]
+async fn is_adapter_on() -> bool {
+    get_adapter()
+        .await
+        .adapter_state()
+        .await
+        .map_or_else(|_| false, |state| state == CentralState::PoweredOn)
+}
+
+#[uniffi::export(async_runtime = "tokio")]
+async fn is_supported() -> bool {
+    is_supported_result().await.is_ok()
+}
+
+async fn is_supported_result() -> Result<bool> {
+    Manager::new()
+        .await?
+        .adapters()
+        .await?
+        .get(0)
+        .map(|_| true)
+        .ok_or(Error::NotSupported("Unable to get adapter".to_string()))
 }

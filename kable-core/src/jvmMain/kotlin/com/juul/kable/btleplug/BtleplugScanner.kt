@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.callbackFlow
 private const val SEND_FAILED = "Unable to deliver advertisement event due to failure in flow or premature closing."
 
 // TODO: This class should use Btleplug's native scan filtering instead of faking it after the fact.
+//       Because that's an efficiency thing and not a correctness thing, it can wait a little.
 internal class BtleplugScanner(
     private val filters: List<FilterPredicate>,
     logging: Logging,

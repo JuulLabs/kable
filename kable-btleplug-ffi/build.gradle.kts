@@ -13,6 +13,6 @@ kotlin {
 }
 
 uniffiKotlin {
-    optimized = false // TODO: Fix for CI
+    optimized = System.getenv("CI").toBoolean()
     packageName = "com.juul.kable.btleplug.ffi"
 }

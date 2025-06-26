@@ -13,7 +13,6 @@ internal data class BtleplugAdvertisement(
     override val name: String?,
     override val peripheralName: String?,
     override val identifier: Identifier,
-    override val isConnectable: Boolean,
     override val rssi: Int,
     override val txPower: Int?,
     override val uuids: List<Uuid>,
@@ -27,13 +26,15 @@ internal data class BtleplugAdvertisement(
         name = properties.localName,
         peripheralName = properties.localName,
         identifier = Identifier(properties.id),
-        isConnectable = true, // STOPSHIP: Double-check this.
         rssi = properties.rssi?.toInt() ?: Int.MIN_VALUE,
         txPower = properties.txPowerLevel?.toInt(),
         uuids = properties.services.map(Uuid::parse),
     )
 
-    // STOPSHIP: Double-check this. Maybe make the interface expose this as a map?
+    override val isConnectable: Boolean?
+        get() = null // Doesn't exist in btleplug
+
+    // TODO: Figure out why Btleplug exposes this as a map.
     override val manufacturerData: ManufacturerData?
         get() = manufacturerDataMap.asSequence()
             .singleOrNull()

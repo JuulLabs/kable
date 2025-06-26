@@ -4,29 +4,31 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.LoggingBuilder
 import kotlin.time.Duration
 
-public actual class ServicesDiscoveredPeripheral internal constructor() {
+public actual class ServicesDiscoveredPeripheral internal constructor(
+    private val peripheral: Peripheral,
+) {
 
     public actual suspend fun read(
         characteristic: Characteristic,
-    ): ByteArray = jvmNotImplementedException()
+    ): ByteArray = peripheral.read(characteristic)
 
     public actual suspend fun read(
         descriptor: Descriptor,
-    ): ByteArray = jvmNotImplementedException()
+    ): ByteArray = peripheral.read(descriptor)
 
     public actual suspend fun write(
         characteristic: Characteristic,
         data: ByteArray,
         writeType: WriteType,
     ) {
-        jvmNotImplementedException()
+        peripheral.write(characteristic, data, writeType)
     }
 
     public actual suspend fun write(
         descriptor: Descriptor,
         data: ByteArray,
     ) {
-        jvmNotImplementedException()
+        peripheral.write(descriptor, data)
     }
 }
 

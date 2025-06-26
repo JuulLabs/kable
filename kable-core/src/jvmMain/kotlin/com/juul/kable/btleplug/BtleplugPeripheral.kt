@@ -10,12 +10,15 @@ import com.juul.kable.NotConnectedException
 import com.juul.kable.ObservationEvent.CharacteristicChange
 import com.juul.kable.Observers
 import com.juul.kable.OnSubscriptionAction
+import com.juul.kable.ServicesDiscoveredAction
+import com.juul.kable.ServicesDiscoveredPeripheral
 import com.juul.kable.State
 import com.juul.kable.State.Disconnected
 import com.juul.kable.WriteType
 import com.juul.kable.awaitConnect
 import com.juul.kable.btleplug.ffi.CancellationHandle
 import com.juul.kable.btleplug.ffi.PeripheralCallbacks
+import com.juul.kable.btleplug.ffi.isAdapterOn
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.sharedRepeatableAction
@@ -37,6 +40,7 @@ import com.juul.kable.btleplug.ffi.Uuid as FfiUuid
 @OptIn(ExperimentalApi::class)
 internal class BtleplugPeripheral(
     override val identifier: Identifier,
+    private val onServicesDiscovered: ServicesDiscoveredAction,
     logging: Logging,
 ) : BasePeripheral(identifier) {
 
@@ -113,7 +117,11 @@ internal class BtleplugPeripheral(
         scope.coroutineContext.job.invokeOnCompletion {
             cancellationHandle.cancel()
         }
-        // TODO: Check Bluetooth is on/supported
+
+        if (!isAdapterOn()) {
+            logger.error { message = "Bluetooth adapter is off" }
+            throw IOException("Bluetooth adapter is off")
+        }
 
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
@@ -125,6 +133,7 @@ internal class BtleplugPeripheral(
         logger.info { message = "Discovering services" }
         ffi.discoverServices()
         _services.value = ffi.services().map(::BtleplugService)
+        ServicesDiscoveredPeripheral(this).run { onServicesDiscovered() }
 
         logger.verbose { message = "Configuring characteristic observations" }
         _state.value = State.Connecting.Observes
@@ -144,7 +153,7 @@ internal class BtleplugPeripheral(
         _state.value = Disconnected()
     }
 
-    // STOPSHIP: Double check this, but seems to be the default.
+    // Btleplug doesn't support retrieving the MTU, so we're stuck on the default
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int = 20
 
     @ExperimentalApi
