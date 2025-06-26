@@ -73,7 +73,7 @@ internal class BtleplugPeripheral(
     internal val peripheral = scope.async { getPeripheral(identifier.ffi, callbacks) }
 
     private val observers = Observers<ByteArray>(this, logging) { cause ->
-        logger.error(cause) { "Exception in observers" }
+        logger.error(cause) { message = "Exception in observers" }
     }
 
     override val name: String?
@@ -131,7 +131,7 @@ internal class BtleplugPeripheral(
         connectAction.awaitConnect()
 
     override suspend fun disconnect() {
-        logger.verbose { "Disconnect request" }
+        logger.verbose { message = "Disconnect request" }
         _state.value = State.Disconnecting
         connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnect requested")))
         _state.value = Disconnected()
@@ -146,7 +146,7 @@ internal class BtleplugPeripheral(
     }
 
     override suspend fun read(characteristic: Characteristic): ByteArray {
-        logger.verbose { "Reading from $characteristic" }
+        logger.verbose { message = "Reading from $characteristic" }
         return withContext(Dispatchers.IO) {
             val ffi = peripheral.await()
             ffi.read(getCharacteristic(characteristic))
@@ -154,7 +154,7 @@ internal class BtleplugPeripheral(
     }
 
     override suspend fun read(descriptor: Descriptor): ByteArray {
-        logger.verbose { "Reading from $descriptor" }
+        logger.verbose { message = "Reading from $descriptor" }
         return withContext(Dispatchers.IO) {
             val ffi = peripheral.await()
             ffi.readDescriptor(
@@ -168,7 +168,7 @@ internal class BtleplugPeripheral(
     }
 
     override suspend fun write(characteristic: Characteristic, data: ByteArray, writeType: WriteType) {
-        logger.verbose { "Writing to $characteristic, type=$writeType data=${data.size} bytes" }
+        logger.verbose { message = "Writing to $characteristic, type=$writeType data=${data.size} bytes" }
         return withContext(Dispatchers.IO) {
             val ffi = peripheral.await()
             ffi.write(getCharacteristic(characteristic), data, writeType.ffi())
@@ -176,7 +176,7 @@ internal class BtleplugPeripheral(
     }
 
     override suspend fun write(descriptor: Descriptor, data: ByteArray) {
-        logger.verbose { "Writing to $descriptor, data=${data.size} bytes" }
+        logger.verbose { message = "Writing to $descriptor, data=${data.size} bytes" }
         return withContext(Dispatchers.IO) {
             val ffi = peripheral.await()
             ffi.writeDescriptor(
