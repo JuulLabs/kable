@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import android.annotation.TargetApi
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.PHY_LE_1M_MASK
 import android.bluetooth.BluetoothDevice.PHY_LE_2M_MASK
