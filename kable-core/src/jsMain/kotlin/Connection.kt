@@ -205,7 +205,7 @@ internal class Connection(
             } finally {
                 disconnectGatt()
                 // Force the state as there are cases where the disconnected callback is not invoked
-                state.update { Disconnected() }
+                state.value = Disconnected()
             }
         }
     }
