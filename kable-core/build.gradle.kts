@@ -1,19 +1,18 @@
 plugins {
-    // Android plugin must be before multiplatform plugin until https://youtrack.jetbrains.com/issue/KT-34038 is fixed.
-    id("com.android.library")
-    kotlin("multiplatform")
-    id("kotlin-parcelize")
     alias(libs.plugins.atomicfu)
-    id("org.jmailen.kotlinter")
-    id("org.jetbrains.dokka")
+    id("com.android.library")
     id("com.vanniktech.maven.publish")
+    id("kotlin-parcelize")
+    id("org.jetbrains.dokka")
+    id("org.jmailen.kotlinter")
+    kotlin("multiplatform")
 }
 
 kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
-    androidTarget().publishAllLibraryVariants()
+    androidTarget().publishLibraryVariants("debug", "release")
     iosArm64()
     iosSimulatorArm64()
     iosX64()

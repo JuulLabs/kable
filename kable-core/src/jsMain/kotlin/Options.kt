@@ -1,7 +1,7 @@
 package com.juul.kable
 
 import com.juul.kable.external.RequestDeviceOptions
-import js.objects.jso
+import js.objects.unsafeJso
 import kotlin.uuid.Uuid
 
 /** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice */
@@ -17,7 +17,7 @@ internal fun Options.toRequestDeviceOptions(): RequestDeviceOptions {
     val jsFilters = filters.toBluetoothLEScanFilterInit()
     val jsOptionalServices = optionalServices.toBluetoothServiceUUID()
 
-    return jso {
+    return unsafeJso {
         if (jsFilters.isEmpty()) {
             acceptAllDevices = true
         } else {
