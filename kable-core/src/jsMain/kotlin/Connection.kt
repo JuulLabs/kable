@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -203,6 +204,8 @@ internal class Connection(
                 logger.warn { message = "Timed out after $disconnectTimeout waiting for disconnect" }
             } finally {
                 disconnectGatt()
+                // Force the state as there are cases where the disconnected callback is not invoked
+                state.update { Disconnected() }
             }
         }
     }
