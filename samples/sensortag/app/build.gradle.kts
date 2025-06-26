@@ -63,6 +63,7 @@ kotlin {
             api(libs.coroutines)
             implementation(compose.foundation)
             implementation(compose.material)
+            implementation(compose.materialIconsExtended)
             implementation(compose.runtime)
             implementation(compose.ui)
             implementation(libs.bundles.krayon)
