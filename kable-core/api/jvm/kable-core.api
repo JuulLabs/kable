@@ -1,5 +1,5 @@
 public abstract interface class com/juul/kable/Advertisement {
-	public abstract fun getIdentifier ()Ljava/lang/String;
+	public abstract fun getIdentifier ()Lcom/juul/kable/Identifier;
 	public abstract fun getManufacturerData ()Lcom/juul/kable/ManufacturerData;
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getPeripheralName ()Ljava/lang/String;
@@ -181,8 +181,15 @@ public final class com/juul/kable/GattStatusException : java/io/IOException {
 	public final fun getStatus ()I
 }
 
+public final class com/juul/kable/Identifier {
+	public fun <init> (Lcom/juul/kable/btleplug/ffi/PeripheralId;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/juul/kable/IdentifierKt {
-	public static final fun toIdentifier (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun toIdentifier (Ljava/lang/String;)Lcom/juul/kable/Identifier;
 }
 
 public final class com/juul/kable/InternalError : java/lang/Error {
@@ -237,7 +244,7 @@ public abstract interface annotation class com/juul/kable/ObsoleteKableApi : jav
 public abstract interface class com/juul/kable/Peripheral : java/lang/AutoCloseable {
 	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun disconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getIdentifier ()Ljava/lang/String;
+	public abstract fun getIdentifier ()Lcom/juul/kable/Identifier;
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getScope ()Lkotlinx/coroutines/CoroutineScope;
 	public abstract fun getServices ()Lkotlinx/coroutines/flow/StateFlow;
@@ -268,7 +275,9 @@ public final class com/juul/kable/PeripheralBuilder {
 
 public final class com/juul/kable/PeripheralKt {
 	public static final fun Peripheral (Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
+	public static final fun Peripheral (Lcom/juul/kable/Identifier;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun Peripheral$default (Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
+	public static synthetic fun Peripheral$default (Lcom/juul/kable/Identifier;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
 }
 
 public final class com/juul/kable/Peripheral_deprecatedKt {

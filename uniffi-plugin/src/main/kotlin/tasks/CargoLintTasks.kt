@@ -7,6 +7,8 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.register
 
 internal fun TaskContainer.registerCargoLintTasks() {
+    named("check") { dependsOn("cargoLint") }
+
     register("cargoLint") {
         group = UNIFFI_TASK_GROUP
         dependsOn("cargoLintClippy", "cargoLintRust")

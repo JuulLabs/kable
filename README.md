@@ -2,6 +2,7 @@
 ![badge][badge-ios]
 ![badge][badge-js]
 ![badge][badge-mac]
+![badge][badge-jvm]
 [![Slack](https://img.shields.io/badge/Slack-%23juul--libraries-ECB22E.svg?logo=data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTQgNTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTkuNzEyLjEzM2E1LjM4MSA1LjM4MSAwIDAgMC01LjM3NiA1LjM4NyA1LjM4MSA1LjM4MSAwIDAgMCA1LjM3NiA1LjM4Nmg1LjM3NlY1LjUyQTUuMzgxIDUuMzgxIDAgMCAwIDE5LjcxMi4xMzNtMCAxNC4zNjVINS4zNzZBNS4zODEgNS4zODEgMCAwIDAgMCAxOS44ODRhNS4zODEgNS4zODEgMCAwIDAgNS4zNzYgNS4zODdoMTQuMzM2YTUuMzgxIDUuMzgxIDAgMCAwIDUuMzc2LTUuMzg3IDUuMzgxIDUuMzgxIDAgMCAwLTUuMzc2LTUuMzg2IiBmaWxsPSIjMzZDNUYwIi8+PHBhdGggZD0iTTUzLjc2IDE5Ljg4NGE1LjM4MSA1LjM4MSAwIDAgMC01LjM3Ni01LjM4NiA1LjM4MSA1LjM4MSAwIDAgMC01LjM3NiA1LjM4NnY1LjM4N2g1LjM3NmE1LjM4MSA1LjM4MSAwIDAgMCA1LjM3Ni01LjM4N20tMTQuMzM2IDBWNS41MkE1LjM4MSA1LjM4MSAwIDAgMCAzNC4wNDguMTMzYTUuMzgxIDUuMzgxIDAgMCAwLTUuMzc2IDUuMzg3djE0LjM2NGE1LjM4MSA1LjM4MSAwIDAgMCA1LjM3NiA1LjM4NyA1LjM4MSA1LjM4MSAwIDAgMCA1LjM3Ni01LjM4NyIgZmlsbD0iIzJFQjY3RCIvPjxwYXRoIGQ9Ik0zNC4wNDggNTRhNS4zODEgNS4zODEgMCAwIDAgNS4zNzYtNS4zODcgNS4zODEgNS4zODEgMCAwIDAtNS4zNzYtNS4zODZoLTUuMzc2djUuMzg2QTUuMzgxIDUuMzgxIDAgMCAwIDM0LjA0OCA1NG0wLTE0LjM2NWgxNC4zMzZhNS4zODEgNS4zODEgMCAwIDAgNS4zNzYtNS4zODYgNS4zODEgNS4zODEgMCAwIDAtNS4zNzYtNS4zODdIMzQuMDQ4YTUuMzgxIDUuMzgxIDAgMCAwLTUuMzc2IDUuMzg3IDUuMzgxIDUuMzgxIDAgMCAwIDUuMzc2IDUuMzg2IiBmaWxsPSIjRUNCMjJFIi8+PHBhdGggZD0iTTAgMzQuMjQ5YTUuMzgxIDUuMzgxIDAgMCAwIDUuMzc2IDUuMzg2IDUuMzgxIDUuMzgxIDAgMCAwIDUuMzc2LTUuMzg2di01LjM4N0g1LjM3NkE1LjM4MSA1LjM4MSAwIDAgMCAwIDM0LjI1bTE0LjMzNi0uMDAxdjE0LjM2NEE1LjM4MSA1LjM4MSAwIDAgMCAxOS43MTIgNTRhNS4zODEgNS4zODEgMCAwIDAgNS4zNzYtNS4zODdWMzQuMjVhNS4zODEgNS4zODEgMCAwIDAtNS4zNzYtNS4zODcgNS4zODEgNS4zODEgMCAwIDAtNS4zNzYgNS4zODciIGZpbGw9IiNFMDFFNUEiLz48L2c+PC9zdmc+&labelColor=611f69)](https://kotlinlang.slack.com/messages/juul-libraries/)
 
 # Kable
@@ -82,13 +83,13 @@ val scanner = Scanner {
 Scan results can be filtered by providing a list of [`Filter`]s via the `filters` DSL.
 The following filters are supported:
 
-| Filter             |    Android    |     Apple     | JavaScript |
-|--------------------|:-------------:|:-------------:|:----------:|
-| `Service`          |       ✓       | ✓<sup>2</sup> |     ✓      |
-| `Name`             |       ✓       | ✓<sup>1</sup> |     ✓      |
-| `NamePrefix`       | ✓<sup>1</sup> | ✓<sup>1</sup> |     ✓      |
-| `Address`          |       ✓       |               |            |
-| `ManufacturerData` |       ✓       | ✓<sup>1</sup> |     ✓      |
+| Filter             |    Android    |     Apple     | JavaScript |      JVM      |
+|--------------------|:-------------:|:-------------:|:----------:|:-------------:|
+| `Service`          |       ✓       | ✓<sup>2</sup> |     ✓      | ✓<sup>1</sup> |
+| `Name`             |       ✓       | ✓<sup>1</sup> |     ✓      | ✓<sup>1</sup> |
+| `NamePrefix`       | ✓<sup>1</sup> | ✓<sup>1</sup> |     ✓      | ✓<sup>1</sup> |
+| `Address`          |       ✓       |               |            |               |
+| `ManufacturerData` |       ✓       | ✓<sup>1</sup> |     ✓      | ✓<sup>1</sup> |
 
 ✓&nbsp; Supported natively  
 ✓<sup>1</sup> Support provided by Kable via flow filter  
@@ -274,6 +275,7 @@ The default (when not specified, or set to `null`) is to use the platform specif
 - Android: Hardware (MAC) address (e.g. "00:11:22:AA:BB:CC")
 - Apple: The UUID associated with the peer
 - JavaScript: A `DOMString` that uniquely identifies a device
+- JVM: A platform specific string. This is a UUID on Mac, a mac-address on Windows, and a path on linux.
 
 #### Service Discovery
 
@@ -614,6 +616,7 @@ kotlin {
     macosX64()
     iosX64()
     iosArm64()
+    jvm()
 
     sourceSets {
         commonMain.dependencies {
