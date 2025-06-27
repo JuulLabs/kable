@@ -1,30 +1,34 @@
 package com.juul.kable.logs
 
-import com.juul.kable.jvmNotImplementedException
-
 public actual object SystemLogEngine : LogEngine {
 
     actual override fun verbose(throwable: Throwable?, tag: String, message: String) {
-        jvmNotImplementedException()
+        println("[V/$tag]: $message")
+        throwable?.printStackTrace()
     }
 
     actual override fun debug(throwable: Throwable?, tag: String, message: String) {
-        jvmNotImplementedException()
+        println("[D/$tag]: $message")
+        throwable?.printStackTrace()
     }
 
     actual override fun info(throwable: Throwable?, tag: String, message: String) {
-        jvmNotImplementedException()
+        println("[I/$tag]: $message")
+        throwable?.printStackTrace()
     }
 
     actual override fun warn(throwable: Throwable?, tag: String, message: String) {
-        jvmNotImplementedException()
+        println("[W/$tag]: $message")
+        throwable?.printStackTrace()
     }
 
     actual override fun error(throwable: Throwable?, tag: String, message: String) {
-        jvmNotImplementedException()
+        println("[E/$tag]: $message")
+        throwable?.printStackTrace()
     }
 
     actual override fun assert(throwable: Throwable?, tag: String, message: String) {
-        jvmNotImplementedException()
+        println("[A/$tag]: $message")
+        throwable?.printStackTrace()
     }
 }
