@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.le.ScanResult
 
 public actual fun Peripheral(
     advertisement: Advertisement,
@@ -9,6 +10,12 @@ public actual fun Peripheral(
     advertisement as ScanResultAndroidAdvertisement
     return Peripheral(advertisement.bluetoothDevice, builderAction)
 }
+
+@ExperimentalApi // Experimental while evaluating if this API introduces any footguns.
+public fun Peripheral(
+    scanResult: ScanResult,
+    builderAction: PeripheralBuilderAction,
+): Peripheral = Peripheral(scanResult.device, builderAction)
 
 /** @throws IllegalStateException If bluetooth is not supported. */
 public fun Peripheral(
