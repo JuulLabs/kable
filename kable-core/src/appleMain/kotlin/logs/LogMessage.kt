@@ -27,17 +27,29 @@ internal fun LogMessage.detail(characteristic: CBCharacteristic) {
     val serviceUuid = characteristic.service
         ?.UUID
         ?.toUuid()
-        ?: return
+    if (serviceUuid == null) {
+        detail("service", "Unknown")
+        return
+    }
 
     detail(serviceUuid, characteristic.UUID.toUuid())
 }
 
 internal fun LogMessage.detail(descriptor: CBDescriptor) {
-    val characteristic = descriptor.characteristic ?: return
+    val characteristic = descriptor.characteristic
+    if (characteristic == null) {
+        detail("characteristic", "Unknown")
+        return
+    }
+
     val serviceUuid = characteristic.service
         ?.UUID
         ?.toUuid()
-        ?: return
+
+    if (serviceUuid == null) {
+        detail("service", "Unknown")
+        return
+    }
 
     detail(
         serviceUuid,
