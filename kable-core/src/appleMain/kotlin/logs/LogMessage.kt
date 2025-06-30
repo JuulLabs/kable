@@ -19,21 +19,29 @@ internal fun LogMessage.detail(error: NSError?) {
     if (error != null) detail("error", error.toString())
 }
 
-internal fun LogMessage.detail(service: CBService) {
-    detail("service", service.UUID.UUIDString)
+internal fun LogMessage.detail(service: CBService? = null) {
+    detail("service", service?.UUID?.UUIDString ?: "Unknown UUID")
 }
 
 internal fun LogMessage.detail(characteristic: CBCharacteristic) {
-    detail(
-        characteristic.service!!.UUID.toUuid(),
-        characteristic.UUID.toUuid(),
-    )
+    val serviceUuid = characteristic.service
+        ?.UUID
+        ?.toUuid()
+        ?: return
+
+    detail(serviceUuid, characteristic.UUID.toUuid())
 }
 
 internal fun LogMessage.detail(descriptor: CBDescriptor) {
+    val characteristic = descriptor.characteristic ?: return
+    val serviceUuid = characteristic.service
+        ?.UUID
+        ?.toUuid()
+        ?: return
+
     detail(
-        descriptor.characteristic!!.service!!.UUID.toUuid(),
-        descriptor.characteristic!!.UUID.toUuid(),
+        serviceUuid,
+        characteristic.UUID.toUuid(),
         descriptor.UUID.toUuid(),
     )
 }
