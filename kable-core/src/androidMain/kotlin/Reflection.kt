@@ -19,7 +19,7 @@ internal fun BluetoothDevice.connectGattWithReflection(
     context: Context,
     autoConnect: Boolean,
     callback: BluetoothGattCallback,
-    transport: Int,
+    transport: Transport,
 ): BluetoothGatt? {
     return try {
         val bluetoothAdapter = getBluetoothAdapterOrNull() ?: return null
@@ -44,13 +44,16 @@ private fun BluetoothGatt(
     context: Context,
     iBluetoothGatt: Any,
     bluetoothDevice: BluetoothDevice,
-    transport: Int,
+    transport: Transport,
 ): BluetoothGatt {
     val constructors = BluetoothGatt::class.java.declaredConstructors
 
     val withTransport = constructors.firstOrNull { it.parameterTypes.size == 4 }
         ?.apply { isAccessible }
-        ?.run { newInstance(context, iBluetoothGatt, bluetoothDevice, transport) as BluetoothGatt }
+        ?.run {
+            @SuppressLint("NewApi") // If constructor exists w/ transport `int` then assume that integer constants exist.
+            newInstance(context, iBluetoothGatt, bluetoothDevice, transport.intValue) as BluetoothGatt
+        }
     if (withTransport != null) return withTransport
 
     return constructors.firstOrNull { it.parameterTypes.size == 3 }

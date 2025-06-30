@@ -1,19 +1,18 @@
 plugins {
-    // Android plugin must be before multiplatform plugin until https://youtrack.jetbrains.com/issue/KT-34038 is fixed.
-    id("com.android.library")
-    kotlin("multiplatform")
-    id("kotlin-parcelize")
     alias(libs.plugins.atomicfu)
-    id("org.jmailen.kotlinter")
-    id("org.jetbrains.dokka")
+    id("com.android.library")
     id("com.vanniktech.maven.publish")
+    id("kotlin-parcelize")
+    id("org.jetbrains.dokka")
+    id("org.jmailen.kotlinter")
+    kotlin("multiplatform")
 }
 
 kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
-    androidTarget().publishAllLibraryVariants()
+    androidTarget().publishLibraryVariants("debug", "release")
     iosArm64()
     iosSimulatorArm64()
     iosX64()
@@ -86,5 +85,11 @@ android {
         // we disable the "missing permission" lint check. Caution must be taken during later Android version bumps to
         // make sure we aren't missing any newly introduced permission requirements.
         disable += "MissingPermission"
+    }
+}
+
+dokka {
+    pluginsConfiguration.html {
+        footerMessage.set("(c) JUUL Labs, Inc.")
     }
 }

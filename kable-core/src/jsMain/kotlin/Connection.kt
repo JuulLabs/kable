@@ -203,6 +203,8 @@ internal class Connection(
                 logger.warn { message = "Timed out after $disconnectTimeout waiting for disconnect" }
             } finally {
                 disconnectGatt()
+                // Force the state as there are cases where the disconnected callback is not invoked
+                state.value = Disconnected()
             }
         }
     }

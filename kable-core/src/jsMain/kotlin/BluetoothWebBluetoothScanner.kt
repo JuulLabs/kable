@@ -84,7 +84,7 @@ internal class BluetoothWebBluetoothScanner(
                 throw IllegalStateException("Operation is not permitted in this context due to security concerns", e)
             }
 
-            // Example failure when executing `requestLEScan(jso {})`:
+            // Example failure when executing `requestLEScan(unsafeJso {})`:
             // > TypeError: Failed to execute 'requestLEScan' on 'Bluetooth': Either 'filters' should be present or 'acceptAllAdvertisements' should be true, but not both.
             //
             // Based on the input `filters`, we expect valid `options` to be produced; if that isn't
