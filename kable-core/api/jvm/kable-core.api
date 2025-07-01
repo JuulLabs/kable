@@ -181,13 +181,6 @@ public final class com/juul/kable/GattStatusException : java/io/IOException {
 	public final fun getStatus ()I
 }
 
-public final class com/juul/kable/Identifier {
-	public fun <init> (Lcom/juul/kable/btleplug/ffi/PeripheralId;)V
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class com/juul/kable/IdentifierKt {
 	public static final fun toIdentifier (Ljava/lang/String;)Ljava/lang/String;
 }
