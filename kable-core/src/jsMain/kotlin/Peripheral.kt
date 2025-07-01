@@ -5,7 +5,7 @@ import js.errors.JsError
 import kotlinx.coroutines.await
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
-import web.errors.DOMException.Companion.SecurityError
+import web.errors.SecurityError
 import kotlin.coroutines.coroutineContext
 
 public actual fun Peripheral(
@@ -29,7 +29,7 @@ public suspend fun Peripheral(
         throw when {
             // The Web Bluetooth API can only be used in a secure context.
             // https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API#security_considerations
-            e is DOMException && e.name == SecurityError ->
+            e is DOMException && e.name == DOMException.SecurityError ->
                 IllegalStateException("Operation is not permitted in this context due to security concerns", e)
 
             else -> InternalError("Failed to invoke getDevices request", e)
