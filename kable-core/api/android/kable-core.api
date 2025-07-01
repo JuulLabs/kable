@@ -337,6 +337,7 @@ public final class com/juul/kable/PeripheralBuilder {
 
 public final class com/juul/kable/PeripheralKt {
 	public static final fun Peripheral (Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
+	public static final fun Peripheral (Landroid/bluetooth/le/ScanResult;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static final fun Peripheral (Lcom/juul/kable/Advertisement;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static final fun Peripheral (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/juul/kable/Peripheral;
 	public static synthetic fun Peripheral$default (Landroid/bluetooth/BluetoothDevice;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/juul/kable/Peripheral;
@@ -409,14 +410,6 @@ public final class com/juul/kable/Reason : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/Reason;
 	public static fun values ()[Lcom/juul/kable/Reason;
-}
-
-public final class com/juul/kable/ScanResultAndroidAdvertisement$Creator : android/os/Parcelable$Creator {
-	public fun <init> ()V
-	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/juul/kable/ScanResultAndroidAdvertisement;
-	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
-	public final fun newArray (I)[Lcom/juul/kable/ScanResultAndroidAdvertisement;
-	public synthetic fun newArray (I)[Ljava/lang/Object;
 }
 
 public abstract interface class com/juul/kable/Scanner {
