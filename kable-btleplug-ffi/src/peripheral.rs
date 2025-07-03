@@ -36,7 +36,7 @@ impl Peripheral {
             .await
             .peripheral(&self.id.platform)
             .await
-            .map_err(|err| err.into())
+            .map_err(Into::into)
     }
 
     async fn platform_connect(
@@ -91,7 +91,7 @@ impl Peripheral {
         let callbacks = Arc::new(callbacks);
         let token = CancellationToken::new();
 
-        let peripheral = Peripheral {
+        let peripheral = Self {
             id: id.clone(),
             callbacks: callbacks.clone(),
             cancellation: CancellationHandle::from_token(token.clone()),
@@ -147,7 +147,7 @@ impl Peripheral {
             Ok(events) => events,
             Err(_) => return false,
         };
-        if let Err(_) = adapter.start_scan(ScanFilter::default()).await {
+        if adapter.start_scan(ScanFilter::default()).await.is_err() {
             return false;
         }
 
@@ -187,13 +187,13 @@ impl Peripheral {
             .await?
             .discover_services()
             .await
-            .map_err(|err| err.into())
+            .map_err(Into::into)
     }
 
     async fn services(&self) -> Result<Vec<Service>> {
         self.get_platform()
             .await
-            .map(|p| p.services().into_iter().map(|x| x.into()).collect())
+            .map(|p| p.services().into_iter().map(Into::into).collect())
     }
 
     async fn read(&self, characteristic: Characteristic) -> Result<Vec<u8>> {
@@ -201,7 +201,7 @@ impl Peripheral {
             .await?
             .read(&characteristic.into())
             .await
-            .map_err(|err| err.into())
+            .map_err(Into::into)
     }
 
     async fn write(
@@ -214,7 +214,7 @@ impl Peripheral {
             .await?
             .write(&characteristic.into(), &data, write_type.into())
             .await
-            .map_err(|err| err.into())
+            .map_err(Into::into)
     }
 
     async fn read_descriptor(&self, descriptor: Descriptor) -> Result<Vec<u8>> {
@@ -222,7 +222,7 @@ impl Peripheral {
             .await?
             .read_descriptor(&descriptor.into())
             .await
-            .map_err(|err| err.into())
+            .map_err(Into::into)
     }
 
     async fn write_descriptor(&self, descriptor: Descriptor, data: Vec<u8>) -> Result<()> {
@@ -230,7 +230,7 @@ impl Peripheral {
             .await?
             .write_descriptor(&descriptor.into(), &data)
             .await
-            .map_err(|err| err.into())
+            .map_err(Into::into)
     }
 
     async fn subscribe(&self, characteristic: Characteristic) -> Result<()> {
@@ -238,7 +238,7 @@ impl Peripheral {
             .await?
             .subscribe(&characteristic.into())
             .await
-            .map_err(|err| err.into())
+            .map_err(Into::into)
     }
 
     async fn unsubscribe(&self, characteristic: Characteristic) -> Result<()> {
@@ -246,7 +246,7 @@ impl Peripheral {
             .await?
             .unsubscribe(&characteristic.into())
             .await
-            .map_err(|err| err.into())
+            .map_err(Into::into)
     }
 }
 

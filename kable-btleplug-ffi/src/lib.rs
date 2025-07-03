@@ -33,7 +33,7 @@ async fn create_adapter() -> Adapter {
         .adapters()
         .await
         .unwrap()
-        .get(0)
+        .first()
         .unwrap()
         .clone()
 }
@@ -57,7 +57,7 @@ async fn is_supported_result() -> Result<bool> {
         .await?
         .adapters()
         .await?
-        .get(0)
+        .first()
         .map(|_| true)
         .ok_or(Error::NotSupported("Unable to get adapter".to_string()))
 }

@@ -10,28 +10,20 @@ pub struct Service {
 
 impl From<Service> for btleplug::api::Service {
     fn from(value: Service) -> Self {
-        btleplug::api::Service {
+        Self {
             uuid: value.uuid.into(),
             primary: value.primary,
-            characteristics: value
-                .characteristics
-                .into_iter()
-                .map(|x| x.into())
-                .collect(),
+            characteristics: value.characteristics.into_iter().map(Into::into).collect(),
         }
     }
 }
 
 impl From<btleplug::api::Service> for Service {
     fn from(value: btleplug::api::Service) -> Self {
-        Service {
+        Self {
             uuid: value.uuid.into(),
             primary: value.primary,
-            characteristics: value
-                .characteristics
-                .into_iter()
-                .map(|x| x.into())
-                .collect(),
+            characteristics: value.characteristics.into_iter().map(Into::into).collect(),
         }
     }
 }

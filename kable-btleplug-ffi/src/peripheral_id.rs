@@ -17,7 +17,7 @@ pub struct PeripheralId {
 impl PeripheralId {
     #[uniffi::constructor]
     fn new(value: String) -> Self {
-        PeripheralId {
+        Self {
             platform: uuid::Uuid::parse_str(&value).unwrap().into(),
         }
     }
@@ -26,7 +26,7 @@ impl PeripheralId {
 #[cfg(target_os = "macos")]
 impl Display for PeripheralId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.platform.to_string())
+        write!(f, "{}", self.platform)
     }
 }
 

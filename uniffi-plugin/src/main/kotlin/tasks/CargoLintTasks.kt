@@ -17,7 +17,7 @@ internal fun TaskContainer.registerCargoLintTasks() {
     register<Exec>("cargoLintClippy") {
         group = UNIFFI_TASK_GROUP
         inputs.rustSources()
-        commandLine("cargo", "clippy")
+        commandLine("cargo", "clippy", "--", "-D", "warnings")
     }
 
     register<Exec>("cargoLintRust") {

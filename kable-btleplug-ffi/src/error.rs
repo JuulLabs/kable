@@ -45,18 +45,18 @@ pub enum Error {
 impl From<btleplug::Error> for Error {
     fn from(value: btleplug::Error) -> Self {
         match value {
-            btleplug::Error::PermissionDenied => Error::PermissionDenied,
-            btleplug::Error::DeviceNotFound => Error::DeviceNotFound,
-            btleplug::Error::NotConnected => Error::NotConnected,
-            btleplug::Error::UnexpectedCallback => Error::UnexpectedCallback,
-            btleplug::Error::UnexpectedCharacteristic => Error::UnexpectedCharacteristic,
-            btleplug::Error::NoSuchCharacteristic => Error::NoSuchCharacteristic,
-            btleplug::Error::NotSupported(s) => Error::NotSupported(s),
-            btleplug::Error::TimedOut(d) => Error::TimedOut(d),
-            btleplug::Error::Uuid(e) => Error::Uuid(e.to_string()),
-            btleplug::Error::InvalidBDAddr(e) => Error::InvalidBDAddr(e.to_string()),
-            btleplug::Error::RuntimeError(s) => Error::RuntimeError(s),
-            _ => Error::Other(value.to_string()),
+            btleplug::Error::PermissionDenied => Self::PermissionDenied,
+            btleplug::Error::DeviceNotFound => Self::DeviceNotFound,
+            btleplug::Error::NotConnected => Self::NotConnected,
+            btleplug::Error::UnexpectedCallback => Self::UnexpectedCallback,
+            btleplug::Error::UnexpectedCharacteristic => Self::UnexpectedCharacteristic,
+            btleplug::Error::NoSuchCharacteristic => Self::NoSuchCharacteristic,
+            btleplug::Error::NotSupported(s) => Self::NotSupported(s),
+            btleplug::Error::TimedOut(d) => Self::TimedOut(d),
+            btleplug::Error::Uuid(e) => Self::Uuid(e.to_string()),
+            btleplug::Error::InvalidBDAddr(e) => Self::InvalidBDAddr(e.to_string()),
+            btleplug::Error::RuntimeError(s) => Self::RuntimeError(s),
+            _ => Self::Other(value.to_string()),
         }
     }
 }

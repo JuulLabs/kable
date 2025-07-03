@@ -23,3 +23,7 @@ uniffi = { version = "0.29.1", features = ["build"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 dbus = { version = "0.9.7", features = ["vendored"] }
+
+[lints.clippy]
+redundant_closure_for_method_calls = "deny"
+use_self = "deny"

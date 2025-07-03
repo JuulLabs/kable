@@ -7,7 +7,7 @@ pub struct CancellationHandle {
 
 impl CancellationHandle {
     pub fn from_token(token: CancellationToken) -> Self {
-        CancellationHandle {
+        Self {
             cancellation_token: token,
         }
     }
@@ -26,5 +26,11 @@ impl CancellationHandle {
 
     pub fn cancel(&self) {
         self.cancellation_token.cancel();
+    }
+}
+
+impl Default for CancellationHandle {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -31,11 +31,7 @@ impl PeripheralProperties {
                 .into_iter()
                 .map(|(uuid, bytes)| (uuid.into(), bytes))
                 .collect(),
-            services: platform
-                .services
-                .into_iter()
-                .map(|uuid| uuid.into())
-                .collect(),
+            services: platform.services.into_iter().map(Into::into).collect(),
             class: platform.class,
         }
     }
