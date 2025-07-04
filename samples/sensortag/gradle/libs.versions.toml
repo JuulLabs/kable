@@ -7,7 +7,7 @@ compose = "1.8.2"
 jvm = "17"
 kable = "0.38.0"
 kotlin = "2.2.0"
-krayon = "0.20.1"
+krayon = "0.20.2"
 voyager = "1.1.0-beta03"
 
 [libraries]
