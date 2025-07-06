@@ -6,8 +6,8 @@ import js.errors.TypeError
 import kotlinx.coroutines.await
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
-import web.errors.DOMException.Companion.NotFoundError
-import web.errors.DOMException.Companion.SecurityError
+import web.errors.NotFoundError
+import web.errors.SecurityError
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -50,15 +50,15 @@ public suspend fun requestPeripheral(
         coroutineContext.ensureActive()
         when {
             // User cancelled picker dialog by either clicking outside dialog, or clicking cancel button.
-            e is DOMException && e.name == NotFoundError -> null
+            e is DOMException && e.name == DOMException.NotFoundError -> null
 
             // The Web Bluetooth API can only be used in a secure context.
             // https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API#security_considerations
-            e is DOMException && e.name == SecurityError ->
+            e is DOMException && e.name == DOMException.SecurityError ->
                 throw IllegalStateException("Operation is not permitted in this context due to security concerns", e)
 
             e is TypeError -> {
-                // Example failure when executing `requestDevice(jso {})`:
+                // Example failure when executing `requestDevice(unsafeJso {})`:
                 // > TypeError: Failed to execute 'requestDevice' on 'Bluetooth': Either 'filters'
                 // > should be present or 'acceptAllAdvertisements' should be true, but not both.
                 //

@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.w3c.dom.events.Event
 import web.errors.DOMException
-import web.errors.DOMException.Companion.SecurityError
+import web.errors.SecurityError
 
 private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
 
@@ -80,11 +80,11 @@ internal class BluetoothWebBluetoothScanner(
 
             // The Web Bluetooth API can only be used in a secure context.
             // https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API#security_considerations
-            if (e is DOMException && e.name == SecurityError) {
+            if (e is DOMException && e.name == DOMException.SecurityError) {
                 throw IllegalStateException("Operation is not permitted in this context due to security concerns", e)
             }
 
-            // Example failure when executing `requestLEScan(jso {})`:
+            // Example failure when executing `requestLEScan(unsafeJso {})`:
             // > TypeError: Failed to execute 'requestLEScan' on 'Bluetooth': Either 'filters' should be present or 'acceptAllAdvertisements' should be true, but not both.
             //
             // Based on the input `filters`, we expect valid `options` to be produced; if that isn't
