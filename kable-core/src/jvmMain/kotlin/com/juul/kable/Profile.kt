@@ -1,40 +1,18 @@
+@file:JvmName("JvmProfileKt")
+
 package com.juul.kable
 
-import kotlin.uuid.Uuid
+import com.juul.kable.btleplug.BtleplugCharacteristic
+import com.juul.kable.btleplug.BtleplugDescriptor
+import com.juul.kable.btleplug.BtleplugService
+import com.juul.kable.btleplug.ffi.Characteristic as FfiCharacteristic
+import com.juul.kable.btleplug.ffi.Descriptor as FfiDescriptor
+import com.juul.kable.btleplug.ffi.Service as FfiService
 
-internal actual class PlatformService
-internal actual class PlatformCharacteristic
-internal actual class PlatformDescriptor
+internal actual typealias PlatformService = FfiService
+internal actual typealias PlatformCharacteristic = FfiCharacteristic
+internal actual typealias PlatformDescriptor = FfiDescriptor
 
-internal actual class PlatformDiscoveredService : DiscoveredService {
-    actual val service: PlatformService
-        get() = jvmNotImplementedException()
-    actual override val characteristics: List<PlatformDiscoveredCharacteristic>
-        get() = jvmNotImplementedException()
-    actual override val serviceUuid: Uuid
-        get() = jvmNotImplementedException()
-}
-
-internal actual class PlatformDiscoveredCharacteristic : DiscoveredCharacteristic {
-    actual val characteristic: PlatformCharacteristic
-        get() = jvmNotImplementedException()
-    actual override val descriptors: List<PlatformDiscoveredDescriptor>
-        get() = jvmNotImplementedException()
-    actual override val properties: Characteristic.Properties
-        get() = jvmNotImplementedException()
-    actual override val serviceUuid: Uuid
-        get() = jvmNotImplementedException()
-    actual override val characteristicUuid: Uuid
-        get() = jvmNotImplementedException()
-}
-
-internal actual class PlatformDiscoveredDescriptor : DiscoveredDescriptor {
-    actual val descriptor: PlatformDescriptor
-        get() = jvmNotImplementedException()
-    actual override val serviceUuid: Uuid
-        get() = jvmNotImplementedException()
-    actual override val characteristicUuid: Uuid
-        get() = jvmNotImplementedException()
-    actual override val descriptorUuid: Uuid
-        get() = jvmNotImplementedException()
-}
+internal actual typealias PlatformDiscoveredService = BtleplugService
+internal actual typealias PlatformDiscoveredCharacteristic = BtleplugCharacteristic
+internal actual typealias PlatformDiscoveredDescriptor = BtleplugDescriptor
