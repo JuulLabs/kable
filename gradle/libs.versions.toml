@@ -11,7 +11,7 @@ tuulbox = "8.0.1"
 androidx-core = { module = "androidx.core:core-ktx", version = "1.16.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1" }
+datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1-0.6.x-compat" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.0.4" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.1" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
