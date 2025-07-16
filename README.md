@@ -275,7 +275,7 @@ The default (when not specified, or set to `null`) is to use the platform specif
 - Android: Hardware (MAC) address (e.g. "00:11:22:AA:BB:CC")
 - Apple: The UUID associated with the peer
 - JavaScript: A `DOMString` that uniquely identifies a device
-- JVM: A platform specific string. This is a UUID on Mac, a mac-address on Windows, and a path on linux.
+- JVM: A platform specific string. This is a UUID on Mac, a MAC address on Windows, and a path on linux.
 
 #### Service Discovery
 
