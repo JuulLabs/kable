@@ -36,9 +36,7 @@ public actual class PeripheralBuilder internal actual constructor() {
 
     internal var logging: Logging = Logging()
     public actual fun logging(init: LoggingBuilder) {
-        val logging = Logging()
-        logging.init()
-        this.logging = logging
+        logging = Logging().apply(init)
     }
 
     internal var onServicesDiscovered: ServicesDiscoveredAction = {}

@@ -6,7 +6,7 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
-    includeBuild("./uniffi-plugin/")
+    includeBuild("uniffi-plugin")
 }
 
 include(

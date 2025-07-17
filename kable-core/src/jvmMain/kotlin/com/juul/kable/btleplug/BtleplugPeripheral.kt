@@ -37,6 +37,9 @@ import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import com.juul.kable.btleplug.ffi.Uuid as FfiUuid
 
+private const val DEFAULT_ATT_MTU = 23
+private const val ATT_MTU_HEADER_SIZE = 3
+
 @OptIn(ExperimentalApi::class)
 internal class BtleplugPeripheral(
     override val identifier: Identifier,
@@ -153,8 +156,8 @@ internal class BtleplugPeripheral(
         _state.value = Disconnected()
     }
 
-    // Btleplug doesn't support retrieving the MTU, so we're stuck on the default
-    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int = 20
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
+        DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
 
     @ExperimentalApi
     override suspend fun rssi(): Int = withContext(Dispatchers.IO) {

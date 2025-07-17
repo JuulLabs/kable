@@ -2,7 +2,7 @@ use crate::uuid::Uuid;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-/// ID is a UUID on Apple, a path on linux, and a mac-address on Windows.
+/// ID is a UUID on Apple, a path on Linux, and a MAC address on Windows.
 #[derive(Clone, uniffi::Record)]
 pub struct PeripheralProperties {
     pub id: Arc<crate::peripheral_id::PeripheralId>,
