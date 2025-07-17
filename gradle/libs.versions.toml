@@ -5,7 +5,7 @@ atomicfu = "0.29.0"
 coroutines = "1.10.2"
 jvm-toolchain = "17"
 kotlin = "2.2.0"
-tuulbox = "8.0.1"
+tuulbox = "8.0.3"
 
 [libraries]
 androidx-core = { module = "androidx.core:core-ktx", version = "1.16.0" }
@@ -27,9 +27,9 @@ wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 
 [plugins]
 android-library = { id = "com.android.library", version = "8.11.1" }
-api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.0" }
+api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "5.1.1" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.33.0" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.34.0" }
