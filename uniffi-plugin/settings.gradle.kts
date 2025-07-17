@@ -5,9 +5,3 @@ dependencyResolutionManagement {
         gradlePluginPortal()
     }
 }
-
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-}
