@@ -4,3 +4,4 @@
 .kotlin/
 build/
 local.properties
+kable-btleplug-ffi/target/
