@@ -63,6 +63,10 @@ kotlin {
             api(libs.wrappers.web)
             api(project.dependencies.platform(libs.wrappers.bom))
         }
+
+        jvmMain.dependencies {
+            implementation(project(":kable-btleplug-ffi"))
+        }
     }
 }
 
