@@ -27,6 +27,7 @@ dependencies {
 }
 
 apiValidation {
+    ignoredProjects.add("kable-btleplug-ffi")
     ignoredProjects.add("kable-default-permissions")
 }
 

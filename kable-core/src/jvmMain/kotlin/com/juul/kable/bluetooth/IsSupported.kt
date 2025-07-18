@@ -1,5 +1,4 @@
 package com.juul.kable.bluetooth
 
-import com.juul.kable.jvmNotImplementedException
-
-internal actual suspend fun isSupported(): Boolean = jvmNotImplementedException()
+internal actual suspend fun isSupported(): Boolean =
+    com.juul.kable.btleplug.ffi.isSupported()

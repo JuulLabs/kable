@@ -3,6 +3,7 @@ android-compile = "35"
 android-min = "21"
 atomicfu = "0.29.0"
 coroutines = "1.10.2"
+jna = "5.17.0"
 jvm-toolchain = "17"
 kotlin = "2.2.0"
 tuulbox = "8.0.3"
@@ -12,7 +13,9 @@ androidx-core = { module = "androidx.core:core-ktx", version = "1.16.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.0.6" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.1" }
+kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
