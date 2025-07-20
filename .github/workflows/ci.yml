@@ -10,6 +10,7 @@ on:
 jobs:
   assemble-rust:
     strategy:
+      fail-fast: false
       matrix:
         runner: ['macos-13','macos-latest','ubuntu-24.04-arm','ubuntu-latest','windows-11-arm','windows-latest']
     runs-on: ${{ matrix.runner }}
@@ -18,7 +19,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
         with:
           validate-wrappers: true
