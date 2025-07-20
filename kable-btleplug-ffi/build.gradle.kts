@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm")
-    id("com.juul.kable.uniffi")
     id("com.vanniktech.maven.publish")
+    id("com.juul.kable.uniffi")
 }
 
 kotlin {
