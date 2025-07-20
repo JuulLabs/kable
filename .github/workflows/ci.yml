@@ -26,6 +26,7 @@ jobs:
       - run: ./gradlew :kable-btleplug-ffi:assemble
       - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com
         working-directory: kable-btleplug-ffi/build/libs
+        shell: bash
       - uses: actions/upload-artifact@v4
         with:
           name: kable-btleplug-ffi-${{ matrix.runner }}
