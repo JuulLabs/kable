@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: ['macos-13','macos-latest','ubuntu-24.04-arm','ubuntu-latest','windows-latest']
+        runner: ['macos-13','ubuntu-24.04-arm','ubuntu-latest','windows-latest']
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -24,11 +24,13 @@ jobs:
         with:
           validate-wrappers: true
       - run: ./gradlew :kable-btleplug-ffi:assemble
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - run: unzip kable-btleplug-ffi.jar
+        working-directory: kable-btleplug-ffi/build/libs
+      - run: rm -rf META-INF com
+      - uses: actions/upload-artifact@v4
         with:
-          name: kable-btleplug-ffi-${{ matrix.runner }}
-          path: kable-btleplug-ffi/build/libs/kable-btleplug-ffi.jar
+          name: kable-btleplug-ffi-dylibs
+          path: kable-btleplug-ffi/build/libs/
           if-no-files-found: error
 
   build:
