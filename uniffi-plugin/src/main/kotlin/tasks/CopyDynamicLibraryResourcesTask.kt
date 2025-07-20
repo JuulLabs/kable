@@ -25,5 +25,9 @@ internal fun TaskContainer.registerCopyDynamicLibraryResourcesTask(accessor: Uni
             include { it.name.matches(target.os.library) }
             into("${target.os.jnaName}-${target.arch.jnaName}")
         }
+
+        val external = project.layout.buildDirectory.dir("external")
+        inputs.files(external)
+        from(external)
     }
 }

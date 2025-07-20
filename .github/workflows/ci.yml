@@ -24,19 +24,25 @@ jobs:
         with:
           validate-wrappers: true
       - run: ./gradlew :kable-btleplug-ffi:assemble
-      - run: unzip kable-btleplug-ffi.jar
+      - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com
         working-directory: kable-btleplug-ffi/build/libs
-      - run: rm -rf META-INF com
       - uses: actions/upload-artifact@v4
         with:
-          name: kable-btleplug-ffi-dylibs
+          name: kable-btleplug-ffi-${{ matrix.runner }}
           path: kable-btleplug-ffi/build/libs/
           if-no-files-found: error
+          retention-days: 1
 
   build:
     runs-on: macos-latest
+    needs: assemble-rust
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: kable-btleplug-ffi/build/external
+          pattern: kable-btleplug-ffi-*
+          merge-multiple: true
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -48,3 +54,9 @@ jobs:
       - run: ./gradlew assemble -PsuppressWarnings=true
       - run: ./gradlew check
       - run: ./gradlew -PRELEASE_SIGNING_ENABLED=false publishToMavenLocal
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maven-local-artifacts
+          path: ~/.m2/repository/
+          if-no-files-found: error
+          retention-days: 1
