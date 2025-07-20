@@ -8,6 +8,22 @@ on:
       - main
 
 jobs:
+  assemble-rust:
+    strategy:
+      matrix:
+        runner: ['macos-13','macos-latest','ubuntu-24.04-arm','ubuntu-latest','windows-11-arm','windows-latest']
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          validate-wrappers: true
+      - run: ./gradlew :kable-btleplug-ffi:assemble
+
   build:
     runs-on: macos-latest
     steps:
