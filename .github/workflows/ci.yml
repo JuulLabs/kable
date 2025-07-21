@@ -9,9 +9,9 @@ on:
 
 jobs:
   assemble-rust:
+    permissions:
+      contents: write
     strategy:
-      permissions:
-        contents: write
       fail-fast: false
       matrix:
         runner:
