@@ -10,9 +10,15 @@ on:
 jobs:
   assemble-rust:
     strategy:
+      permissions:
+        contents: write
       fail-fast: false
       matrix:
-        runner: ['macos-13','ubuntu-24.04-arm','ubuntu-latest','windows-latest']
+        runner:
+          - macos-13
+          - ubuntu-24.04-arm
+          - ubuntu-latest
+          - windows-latest
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -21,8 +27,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          validate-wrappers: true
       - run: ./gradlew :kable-btleplug-ffi:assemble
       - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com *.jar
         working-directory: kable-btleplug-ffi/build/libs
@@ -49,8 +53,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          validate-wrappers: true
 
       - run: ./gradlew assemble -PsuppressWarnings=true
       - run: ./gradlew check
