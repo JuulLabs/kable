@@ -8,8 +8,18 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: macos-latest
+  assemble-rust:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - macos-13
+          - ubuntu-24.04-arm
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -17,8 +27,32 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew :kable-btleplug-ffi:assemble
+      - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com *.jar
+        working-directory: kable-btleplug-ffi/build/libs
+        shell: bash
+      - uses: actions/upload-artifact@v4
         with:
-          validate-wrappers: true
+          name: kable-btleplug-ffi-${{ matrix.runner }}
+          path: kable-btleplug-ffi/build/libs/
+          if-no-files-found: error
+          retention-days: 1
+
+  build:
+    runs-on: macos-latest
+    needs: assemble-rust
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: kable-btleplug-ffi/build/external
+          pattern: kable-btleplug-ffi-*
+          merge-multiple: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
 
       - run: ./gradlew assemble -PsuppressWarnings=true
       - run: ./gradlew check
