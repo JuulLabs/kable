@@ -35,6 +35,9 @@ internal fun TaskContainer.registerUniffiBindgenTasks(accessor: UniffiKotlinExte
     named("clean") { dependsOn("cleanUniffiBindgenCargoProject") }
     named("compileKotlin") { dependsOn("generateKotlinBindings") }
 
+    // sourcesJar is created by the maven publishing plugin, so this plugin has to be applied after that one
+    named("sourcesJar") { dependsOn("generateKotlinBindings") }
+
     register("cleanUniffiBindgenCargoProject") {
         group = UNIFFI_TASK_GROUP
 
