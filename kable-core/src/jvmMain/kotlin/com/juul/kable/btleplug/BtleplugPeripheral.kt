@@ -21,20 +21,27 @@ import com.juul.kable.btleplug.ffi.PeripheralCallbacks
 import com.juul.kable.btleplug.ffi.isAdapterOn
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.properties
 import com.juul.kable.sharedRepeatableAction
 import com.juul.kable.suspendUntil
+import com.juul.kable.unwrapCancellationException
+import jdk.internal.joptsimple.internal.Messages.message
+import jdk.internal.org.objectweb.asm.Type.getDescriptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 import com.juul.kable.btleplug.ffi.Uuid as FfiUuid
 
 private const val DEFAULT_ATT_MTU = 23
@@ -62,7 +69,8 @@ internal class BtleplugPeripheral(
         }
 
         override fun disconnected() {
-            scope.launch { disconnect() }
+            logger.verbose { message = "Received disconnect" }
+            scope.launch { onDisconnected() }
         }
 
         override suspend fun notification(uuid: FfiUuid, data: ByteArray) {
@@ -128,19 +136,27 @@ internal class BtleplugPeripheral(
 
         logger.info { message = "Connecting" }
         _state.value = State.Connecting.Bluetooth
-        if (!ffi.connect(cancellationHandle)) {
-            throw IOException("Failed to connect.")
+        try {
+            if (!ffi.connect(cancellationHandle)) {
+                throw IOException("Failed to connect.")
+            }
+            suspendUntil<State.Connecting.Services>()
+
+            logger.info { message = "Discovering services" }
+            ffi.discoverServices()
+            _services.value = ffi.services().map(::BtleplugService)
+            ServicesDiscoveredPeripheral(this).run { onServicesDiscovered() }
+
+            logger.verbose { message = "Configuring characteristic observations" }
+            _state.value = State.Connecting.Observes
+            observers.onConnected()
+        } catch (e: Exception) {
+            val failure = e.unwrapCancellationException()
+            logger.error(failure) { message = "Failed to establish connection" }
+            throw failure
         }
-        suspendUntil<State.Connecting.Services>()
 
-        logger.info { message = "Discovering services" }
-        ffi.discoverServices()
-        _services.value = ffi.services().map(::BtleplugService)
-        ServicesDiscoveredPeripheral(this).run { onServicesDiscovered() }
-
-        logger.verbose { message = "Configuring characteristic observations" }
-        _state.value = State.Connecting.Observes
-        observers.onConnected()
+        logger.info { message = "Connected" }
         _state.value = State.Connected(scope)
 
         return scope
@@ -152,7 +168,16 @@ internal class BtleplugPeripheral(
     override suspend fun disconnect() {
         logger.verbose { message = "Disconnect request" }
         _state.value = State.Disconnecting
-        connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnect requested")))
+        ffi.disconnect()
+        val disconnected = withTimeoutOrNull(1.seconds) { state.first { it is Disconnected } }
+        if (disconnected == null) {
+            logger.warn { message = "Disconnect not reported in timely manner" }
+            onDisconnected()
+        }
+    }
+
+    private suspend fun onDisconnected() {
+        connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnected")))
         _state.value = Disconnected()
     }
 
@@ -209,7 +234,9 @@ internal class BtleplugPeripheral(
         observers.acquire(characteristic, onSubscription)
 
     override fun close() {
+        logger.debug { message = "Closing" }
         scope.cancel("$this closed")
+        ffi.destroy()
     }
 
     override fun toString(): String = "Peripheral(identifier=$identifier)"
