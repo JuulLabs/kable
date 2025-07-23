@@ -19,7 +19,7 @@ datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.7.1
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 kable = { module = "com.juul.kable:kable-core", version.ref = "kable" }
 kable-permissions = { module = "com.juul.kable:kable-default-permissions", version.ref = "kable" }
-khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.1" }
+khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.2" }
 krayon-axis = { module = "com.juul.krayon:axis", version.ref = "krayon" }
 krayon-compose = { module = "com.juul.krayon:compose", version.ref = "krayon" }
 krayon-scale = { module = "com.juul.krayon:scale", version.ref = "krayon" }
