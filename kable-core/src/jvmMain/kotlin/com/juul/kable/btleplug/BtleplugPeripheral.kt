@@ -13,19 +13,30 @@ import com.juul.kable.OnSubscriptionAction
 import com.juul.kable.ServicesDiscoveredAction
 import com.juul.kable.ServicesDiscoveredPeripheral
 import com.juul.kable.State
+import com.juul.kable.State.Connecting
 import com.juul.kable.State.Disconnected
+import com.juul.kable.State.Disconnecting
 import com.juul.kable.WriteType
 import com.juul.kable.awaitConnect
 import com.juul.kable.btleplug.ffi.CancellationHandle
 import com.juul.kable.btleplug.ffi.PeripheralCallbacks
 import com.juul.kable.btleplug.ffi.isAdapterOn
+import com.juul.kable.coroutines.childSupervisor
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import com.juul.kable.properties
 import com.juul.kable.sharedRepeatableAction
 import com.juul.kable.suspendUntil
+import com.juul.kable.unwrapCancellationException
+import jdk.internal.joptsimple.internal.Messages.message
+import jdk.internal.org.objectweb.asm.Type.getDescriptor
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,11 +69,14 @@ internal class BtleplugPeripheral(
 
     private val callbacks: PeripheralCallbacks = object : PeripheralCallbacks {
         override fun connected() {
-            _state.value = State.Connecting.Services
+            _state.value = Connecting.Services
         }
 
         override fun disconnected() {
-            scope.launch { disconnect() }
+            logger.verbose { message = "Received disconnect" }
+            runBlocking {
+                connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnected")))
+            }
         }
 
         override suspend fun notification(uuid: FfiUuid, data: ByteArray) {
@@ -116,9 +130,19 @@ internal class BtleplugPeripheral(
         }
 
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
+        val taskScope = scope.childSupervisor("$name/Tasks")
         val cancellationHandle = CancellationHandle()
-        scope.coroutineContext.job.invokeOnCompletion {
-            cancellationHandle.cancel()
+        scope.launch(start = CoroutineStart.ATOMIC) {
+            try {
+                awaitCancellation()
+            } finally {
+                withContext(NonCancellable) {
+                    _state.value = Disconnecting
+                    taskScope.coroutineContext.job.cancelAndJoin()
+                    ffi.disconnect()
+                    _state.value = Disconnected()
+                }
+            }
         }
 
         if (!isAdapterOn()) {
@@ -127,23 +151,30 @@ internal class BtleplugPeripheral(
         }
 
         logger.info { message = "Connecting" }
-        _state.value = State.Connecting.Bluetooth
-        if (!ffi.connect(cancellationHandle)) {
-            throw IOException("Failed to connect.")
+        _state.value = Connecting.Bluetooth
+        try {
+            if (!ffi.connect(cancellationHandle)) {
+                throw IOException("Failed to connect.")
+            }
+            suspendUntil<Connecting.Services>()
+
+            logger.info { message = "Discovering services" }
+            ffi.discoverServices()
+            _services.value = ffi.services().map(::BtleplugService)
+            ServicesDiscoveredPeripheral(this).run { onServicesDiscovered() }
+
+            logger.verbose { message = "Configuring characteristic observations" }
+            _state.value = Connecting.Observes
+            observers.onConnected()
+        } catch (e: Exception) {
+            val failure = e.unwrapCancellationException()
+            logger.error(failure) { message = "Failed to establish connection" }
+            throw failure
         }
-        suspendUntil<State.Connecting.Services>()
 
-        logger.info { message = "Discovering services" }
-        ffi.discoverServices()
-        _services.value = ffi.services().map(::BtleplugService)
-        ServicesDiscoveredPeripheral(this).run { onServicesDiscovered() }
-
-        logger.verbose { message = "Configuring characteristic observations" }
-        _state.value = State.Connecting.Observes
-        observers.onConnected()
-        _state.value = State.Connected(scope)
-
-        return scope
+        logger.info { message = "Connected" }
+        _state.value = State.Connected(taskScope)
+        return taskScope
     }
 
     override suspend fun connect(): CoroutineScope =
@@ -151,9 +182,7 @@ internal class BtleplugPeripheral(
 
     override suspend fun disconnect() {
         logger.verbose { message = "Disconnect request" }
-        _state.value = State.Disconnecting
         connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnect requested")))
-        _state.value = Disconnected()
     }
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
@@ -209,7 +238,9 @@ internal class BtleplugPeripheral(
         observers.acquire(characteristic, onSubscription)
 
     override fun close() {
+        logger.debug { message = "Closing" }
         scope.cancel("$this closed")
+        ffi.destroy()
     }
 
     override fun toString(): String = "Peripheral(identifier=$identifier)"
