@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+private val MTU_RANGE = 23..517
+
 public expect class ServicesDiscoveredPeripheral {
 
     public suspend fun read(
@@ -31,12 +33,27 @@ public class ObservationExceptionPeripheral internal constructor(peripheral: Per
     public val state: StateFlow<State> = peripheral.state
 }
 
+public class AndroidConfiguration {
+    /** The MTU to request upon connecting to remote peripheral. */
+    public var mtu: Int? = null
+        set(value) {
+            if (value != null) {
+                require(value in MTU_RANGE) { "MTU must be within $MTU_RANGE, $value was requested" }
+            }
+            field = value
+        }
+}
+
+internal typealias OnAndroidBuilder = AndroidConfiguration.() -> Unit
 internal typealias ServicesDiscoveredAction = suspend ServicesDiscoveredPeripheral.() -> Unit
 internal typealias ObservationExceptionHandler = suspend ObservationExceptionPeripheral.(cause: Exception) -> Unit
 
 internal val defaultDisconnectTimeout = 5.seconds
 
 public expect class PeripheralBuilder internal constructor() {
+
+    public fun onAndroid(action: OnAndroidBuilder)
+
     public fun logging(init: LoggingBuilder)
 
     /**
