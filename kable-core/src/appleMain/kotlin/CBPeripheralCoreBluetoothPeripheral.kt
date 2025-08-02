@@ -79,7 +79,14 @@ internal class CBPeripheralCoreBluetoothPeripheral(
                 message = "Bluetooth powered off"
                 detail("state", state)
             }
-            disconnect()
+
+            // When bluetooth is turned off from Control Center, the system does not provide
+            // disconnected events to the peripheral delegate, so we assume (explicitly set) the
+            // state as `Disconnected`.
+            // See https://github.com/JuulLabs/kable/issues/959 for more details.
+            _state.value = State.Disconnected()
+
+            disconnect("Bluetooth powered off")
         }
     }
 
@@ -143,8 +150,12 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         connectAction.awaitConnect()
 
     override suspend fun disconnect() {
+        disconnect("Disconnect requested")
+    }
+
+    private suspend fun disconnect(message: String) {
         connectAction.cancelAndJoin(
-            CancellationException(NotConnectedException("Disconnect requested")),
+            CancellationException(NotConnectedException(message)),
         )
     }
 
