@@ -193,7 +193,8 @@ peripheral.scope.launch {
 > [!TIP]
 > `launch`ed coroutines from a `Peripheral` object's `scope` are permitted to run until `Peripheral.dispose()`
 > is called (i.e. can span across reconnects); for tasks that should only run for the duration of a single connection
-> (i.e. shutdown on disconnect), `launch` via the `CoroutineScope` returned from `Peripheral.connect` instead.
+> (i.e. shutdown on disconnect), `launch` via the `CoroutineScope` returned from `Peripheral.connect` (or
+> [`Connected`] state `scope` property) instead.
 
 ### Configuration
 
