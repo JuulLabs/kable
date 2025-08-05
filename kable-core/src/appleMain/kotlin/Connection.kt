@@ -170,7 +170,10 @@ internal class Connection(
     }
 
     private suspend fun disconnect() {
-        if (state.value is Disconnected) return
+        if (state.value is Disconnected) {
+            logger.debug { message = "Skipping disconnect sequence" }
+            return
+        }
 
         withContext(NonCancellable) {
             try {
@@ -184,7 +187,7 @@ internal class Connection(
                     state.filterIsInstance<Disconnected>().first()
                 }
                 logger.info { message = "Disconnected" }
-            } catch (e: TimeoutCancellationException) {
+            } catch (_: TimeoutCancellationException) {
                 logger.warn { message = "Timed out after $disconnectTimeout waiting for disconnect" }
             } finally {
                 cancelPeripheralConnection()

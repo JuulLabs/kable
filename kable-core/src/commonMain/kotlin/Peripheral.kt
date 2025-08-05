@@ -142,8 +142,9 @@ public interface Peripheral : AutoCloseable {
      * Multiple concurrent invocations will all suspend until disconnected (or failure occurs).
      *
      * Any coroutines launched from connection [scope][CoroutineScope] (i.e. [CoroutineScope]
-     * returned by [connect] or [State.Connected.scope]) will be spun down prior to closing
-     * underlying peripheral connection.
+     * returned by [connect] or [State.Connected.scope]) will be spun down (allowed
+     * [PeripheralBuilder.disconnectTimeout] duration) prior to closing underlying peripheral
+     * connection.
      *
      * @throws CancellationException if [Peripheral]'s [CoroutineScope] has been [closed][Peripheral.close].
      */
