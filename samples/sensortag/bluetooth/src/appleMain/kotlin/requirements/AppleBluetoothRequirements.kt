@@ -16,7 +16,7 @@ import platform.darwin.NSObject
 // https://chrismaddern.com/determine-whether-bluetooth-is-enabled-on-ios-passively/
 private val options = mapOf<Any?, Any>(CBCentralManagerOptionShowPowerAlertKey to false)
 
-internal object AppleBluetoothRequirements : BluetoothRequirements {
+internal class AppleBluetoothRequirements : BluetoothRequirements {
 
     // Need to hold strong-reference to CBCentralManager and its delegate while in use.
     private var managerRef: NSObject? = null

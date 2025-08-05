@@ -5,4 +5,4 @@ import androidx.compose.runtime.remember
 
 @Composable
 public actual fun rememberBluetoothRequirementsFactory(): BluetoothRequirementsFactory =
-    remember { BluetoothRequirementsFactory { AppleBluetoothRequirements } }
+    remember { BluetoothRequirementsFactory { AppleBluetoothRequirements() } }

@@ -10,14 +10,13 @@ import com.juul.sensortag.bluetooth.requirements.Deficiency.BluetoothOff
 import com.juul.sensortag.coroutines.flow.withStartTime
 import com.juul.sensortag.features.sensor.chart.Sample
 import com.juul.sensortag.peripheral
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
@@ -28,8 +27,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-private val reconnectDelay = 1.seconds
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class SensorScreenModel(
     bluetoothRequirements: BluetoothRequirements,
@@ -54,14 +53,13 @@ class SensorScreenModel(
                             sensorTag.periodMillis,
                             ViewState::Connected,
                         )
-
                         is State.Disconnecting -> flowOf(ViewState.Disconnecting)
                         is State.Disconnected -> flowOf(ViewState.Disconnected)
                     }
                 }
             }
         }
-        .stateIn(screenModelScope, SharingStarted.WhileSubscribed(), ViewState.Connecting)
+        .stateIn(screenModelScope, Eagerly, ViewState.Connecting)
 
     val data = sensorTag.gyro
         .withStartTime()
@@ -72,8 +70,7 @@ class SensorScreenModel(
 
     init {
         onDisconnected {
-            Log.info { "Waiting $reconnectDelay to reconnect..." }
-            delay(reconnectDelay)
+            Log.info { "Reconnecting..." }
             sensorTag.connect()
         }
     }
@@ -92,8 +89,12 @@ class SensorScreenModel(
         }
     }
 
+    @OptIn(FlowPreview::class) // For `debounce`.
     private fun onDisconnected(action: suspend (ViewState.Disconnected) -> Unit) {
+        // When bluetooth is turned off, race conditions can occur w.r.t. bluetooth off vs. device
+        // disconnected, so debounce allows us to handle the most recent/relevant state.
         state
+            .debounce(1.seconds)
             .filterIsInstance<ViewState.Disconnected>()
             .onEach(action)
             .launchIn(screenModelScope)
