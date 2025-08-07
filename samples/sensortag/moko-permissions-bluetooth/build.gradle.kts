@@ -15,6 +15,7 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
     js().browser()
+    jvm()
     macosX64()
     macosArm64()
 
@@ -26,6 +27,7 @@ kotlin {
         }
         macosMain.get().dependsOn(nopMain)
         jsMain.get().dependsOn(nopMain)
+        jvmMain.get().dependsOn(nopMain)
 
         commonMain.dependencies {
             api(projects.mokoPermissions)

@@ -85,6 +85,22 @@ Console app can be built and run by executing:
 </tr>
 </table>
 
+## Desktop JVM (Linux, Mac, Windows)
+
+![MacOS desktop screen recording](artwork/desktop.gif)
+
+Desktop can be built and run by executing the following on Linux or Mac:
+
+```shell
+./gradlew app:run
+```
+
+On Windows, the command is similar:
+
+```cmd
+.\gradlew.bat app:run
+```
+
 # License
 
 ```

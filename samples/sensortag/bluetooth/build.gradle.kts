@@ -12,6 +12,7 @@ kotlin {
     androidTarget()
     iosArm64()
     js().browser()
+    jvm()
     macosX64()
     macosArm64()
 

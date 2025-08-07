@@ -28,6 +28,9 @@ kotlin {
         }
         binaries.executable()
     }
+
+    jvm()
+
     listOf(
         macosX64(),
         macosArm64(),
@@ -52,12 +55,14 @@ kotlin {
         androidMain.get().dependsOn(composeMain)
         iosMain.get().dependsOn(composeMain)
         jsMain.get().dependsOn(composeMain)
+        jvmMain.get().dependsOn(composeMain)
 
         val notJsMain by creating {
             dependsOn(commonMain.get())
         }
         androidMain.get().dependsOn(notJsMain)
         appleMain.get().dependsOn(notJsMain)
+        jvmMain.get().dependsOn(notJsMain)
 
         commonMain.dependencies {
             api(libs.coroutines)
@@ -82,6 +87,11 @@ kotlin {
 
         composeMain.dependencies {
             implementation(libs.krayon.compose)
+        }
+
+        jvmMain.dependencies {
+            implementation(compose.desktop.currentOs)
+            implementation(libs.coroutines.swing)
         }
 
         notJsMain.dependencies {
@@ -121,4 +131,12 @@ dependencies {
     // Provides `java.time` for kotlinx.datetime on Android API < 26.
     // https://github.com/Kotlin/kotlinx-datetime?tab=readme-ov-file#using-in-your-projects
     coreLibraryDesugaring(libs.desugar)
+}
+
+compose {
+    desktop {
+        application {
+            mainClass = "com.juul.sensortag.MainKt"
+        }
+    }
 }
