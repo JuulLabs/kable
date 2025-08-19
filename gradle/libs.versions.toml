@@ -5,7 +5,7 @@ atomicfu = "0.29.0"
 coroutines = "1.10.2"
 jna = "5.17.0"
 jvm-toolchain = "17"
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 tuulbox = "8.0.3"
 
 [libraries]
@@ -24,11 +24,11 @@ mockk = { module = "io.mockk:mockk", version = "1.14.5" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.15.1" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
 tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2025.8.10" }
+wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2025.8.16" }
 wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "8.12.0" }
+android-library = { id = "com.android.library", version = "8.12.1" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
