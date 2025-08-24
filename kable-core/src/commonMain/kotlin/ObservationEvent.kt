@@ -24,9 +24,6 @@ internal fun <T> ObservationEvent<T>.isAssociatedWith(characteristic: Characteri
         // `characteristic` is null for Disconnected, which applies to all characteristics.
         eventCharacteristic == null -> true
 
-        eventCharacteristic is DiscoveredCharacteristic && characteristic is DiscoveredCharacteristic ->
-            eventCharacteristic == characteristic
-
         else ->
             eventCharacteristic.characteristicUuid == characteristic.characteristicUuid &&
                 eventCharacteristic.serviceUuid == characteristic.serviceUuid
