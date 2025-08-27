@@ -78,4 +78,17 @@ public expect class PeripheralBuilder internal constructor() {
      * Only applicable on Android.
      */
     public var disconnectTimeout: Duration
+
+    /**
+     * Determines if characteristic equality should use UUID comparison (true), or compare by
+     * reference (false). Default is to compare by reference (false).
+     *
+     * Provides a workaround for I/O operations stalling when a peripheral has multiple
+     * characteristics with the same UUID until https://github.com/JuulLabs/kable/issues/1016 is
+     * fixed.
+     *
+     * Only applicable on Apple.
+     */
+    @ObsoleteKableApi // Will be removed after https://github.com/JuulLabs/kable/issues/1016 is fixed.
+    public var forceCharacteristicEqualityByUuid: Boolean
 }

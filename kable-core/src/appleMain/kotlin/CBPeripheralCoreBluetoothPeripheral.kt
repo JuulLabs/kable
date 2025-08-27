@@ -55,6 +55,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
     private val disconnectTimeout: Duration,
+    private val forceCharacteristicEqualityByUuid: Boolean,
 ) : BasePeripheral(cbPeripheral.identifier.toUuid()), CoreBluetoothPeripheral {
 
     private val central = CentralManager.Default
@@ -92,7 +93,12 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
     private val connectAction = scope.sharedRepeatableAction(::establishConnection)
 
-    private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
+    private val observers = Observers<NSData>(
+        this,
+        logging,
+        forceCharacteristicEqualityByUuid,
+        exceptionHandler = observationExceptionHandler,
+    )
     private val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
 
     private val _services = MutableStateFlow<List<PlatformDiscoveredService>?>(null)
@@ -234,7 +240,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             observers
                 .characteristicChanges
                 .onSubscription { central.readValue(cbPeripheral, platformCharacteristic) }
-                .first { event -> event.isAssociatedWith(characteristic) }
+                .first { event -> event.isAssociatedWith(characteristic, forceCharacteristicEqualityByUuid) }
         }
 
         return when (event) {

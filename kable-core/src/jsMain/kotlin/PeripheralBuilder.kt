@@ -54,6 +54,8 @@ public actual class PeripheralBuilder internal actual constructor() {
 
     public actual var disconnectTimeout: Duration = defaultDisconnectTimeout
 
+    public actual var forceCharacteristicEqualityByUuid: Boolean = false
+
     internal fun build(bluetoothDevice: BluetoothDevice) =
         BluetoothDeviceWebBluetoothPeripheral(
             bluetoothDevice,
