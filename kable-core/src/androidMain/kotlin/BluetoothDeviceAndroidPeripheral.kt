@@ -88,7 +88,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val _mtu = MutableStateFlow<Int?>(null)
     override val mtu = _mtu.asStateFlow()
 
-    private val observers = Observers<ByteArray>(this, logging, observationExceptionHandler)
+    private val observers = Observers<ByteArray>(this, logging, false, observationExceptionHandler)
 
     private val connection = MutableStateFlow<Connection?>(null)
     private fun connectionOrThrow() =

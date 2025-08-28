@@ -64,7 +64,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     @ExperimentalApi
     override val name: String? get() = bluetoothDevice.name
 
-    private val observers = Observers<DataView>(this, logging, observationExceptionHandler)
+    private val observers = Observers<DataView>(this, logging, false, observationExceptionHandler)
 
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
         logger.info { message = "Connecting" }
