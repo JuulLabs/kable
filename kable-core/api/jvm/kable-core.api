@@ -267,10 +267,12 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 
 public final class com/juul/kable/PeripheralBuilder {
 	public final fun getDisconnectTimeout-UwyO8pc ()J
+	public final fun getForceCharacteristicEqualityByUuid ()Z
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun observationExceptionHandler (Lkotlin/jvm/functions/Function3;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
 	public final fun setDisconnectTimeout-LRDsOJo (J)V
+	public final fun setForceCharacteristicEqualityByUuid (Z)V
 }
 
 public final class com/juul/kable/PeripheralKt {

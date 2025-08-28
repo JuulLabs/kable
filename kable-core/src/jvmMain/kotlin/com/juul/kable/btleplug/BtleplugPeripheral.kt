@@ -93,7 +93,7 @@ internal class BtleplugPeripheral(
 
     internal val ffi = com.juul.kable.btleplug.ffi.Peripheral(identifier.ffi, callbacks)
 
-    private val observers = Observers<ByteArray>(this, logging) { cause ->
+    private val observers = Observers<ByteArray>(this, logging, false) { cause ->
         logger.error(cause) { message = "Exception in observers" }
     }
 

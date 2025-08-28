@@ -323,6 +323,7 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 public final class com/juul/kable/PeripheralBuilder {
 	public final fun autoConnectIf (Lkotlin/jvm/functions/Function0;)V
 	public final fun getDisconnectTimeout-UwyO8pc ()J
+	public final fun getForceCharacteristicEqualityByUuid ()Z
 	public final fun getPhy ()Lcom/juul/kable/Phy;
 	public final fun getThreadingStrategy ()Lcom/juul/kable/ThreadingStrategy;
 	public final fun getTransport ()Lcom/juul/kable/Transport;
@@ -330,6 +331,7 @@ public final class com/juul/kable/PeripheralBuilder {
 	public final fun observationExceptionHandler (Lkotlin/jvm/functions/Function3;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
 	public final fun setDisconnectTimeout-LRDsOJo (J)V
+	public final fun setForceCharacteristicEqualityByUuid (Z)V
 	public final fun setPhy (Lcom/juul/kable/Phy;)V
 	public final fun setThreadingStrategy (Lcom/juul/kable/ThreadingStrategy;)V
 	public final fun setTransport (Lcom/juul/kable/Transport;)V

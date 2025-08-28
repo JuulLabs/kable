@@ -45,6 +45,7 @@ internal expect fun Peripheral.observationHandler(): Observation.Handler
 internal class Observers<T>(
     private val peripheral: Peripheral,
     private val logging: Logging,
+    private val forceCharacteristicEqualityByUuid: Boolean,
     private val exceptionHandler: ObservationExceptionHandler,
 ) {
 
@@ -77,7 +78,7 @@ internal class Observers<T>(
                     exceptionHandler(ObservationExceptionPeripheral(peripheral), e)
                 }
             }
-            .filter { event -> event.isAssociatedWith(characteristic) }
+            .filter { event -> event.isAssociatedWith(characteristic, forceCharacteristicEqualityByUuid) }
             .onEach { event ->
                 if (event is Error) {
                     exceptionHandler(ObservationExceptionPeripheral(peripheral), event.cause)
