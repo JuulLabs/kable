@@ -21,7 +21,7 @@ internal class ScanResultAndroidAdvertisement(
     private val scanResult: ScanResult,
 ) : PlatformAdvertisement {
 
-    internal val bluetoothDevice: BluetoothDevice
+    override val bluetoothDevice: BluetoothDevice
         get() = scanResult.device
 
     /** @see ScanRecord.getDeviceName */
