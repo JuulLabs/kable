@@ -3,6 +3,7 @@ package com.juul.kable
 import android.Manifest
 import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothStatusCodes
 import android.os.Build
@@ -160,4 +161,9 @@ public interface AndroidPeripheral : Peripheral {
      * is negotiated.
      */
     public val mtu: StateFlow<Int?>
+
+    /**
+     * Underlying [BluetoothDevice] that the [AndroidPeripheral] represents.
+     */
+    public val bluetoothDevice: BluetoothDevice
 }

@@ -50,7 +50,7 @@ import platform.CoreBluetooth.CBCharacteristicWriteWithResponse as CBWithRespons
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse as CBWithoutResponse
 
 internal class CBPeripheralCoreBluetoothPeripheral(
-    private val cbPeripheral: CBPeripheral,
+    override val cbPeripheral: CBPeripheral,
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
