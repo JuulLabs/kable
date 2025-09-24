@@ -27,11 +27,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.withLock
 import kotlinx.io.IOException
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
 import platform.CoreBluetooth.CBDescriptor
+import platform.CoreBluetooth.CBL2CAPChannel
 import platform.CoreBluetooth.CBManagerState
 import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.CoreBluetooth.CBPeripheral
@@ -99,7 +101,8 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         forceCharacteristicEqualityByUuid,
         exceptionHandler = observationExceptionHandler,
     )
-    private val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
+    private val canSendWriteWithoutResponse =
+        MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
 
     private val _services = MutableStateFlow<List<PlatformDiscoveredService>?>(null)
     override val services = _services.asStateFlow()
@@ -380,6 +383,12 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         logging,
         cbPeripheral.identifier.UUIDString,
     )
+
+    override suspend fun openL2CapChannel(psm: UShort): L2CapSocket =
+        suspendCancellableCoroutine { cont ->
+            (cbPeripheral.delegate as PeripheralDelegate).awaitingL2CapOpen = cont
+            cbPeripheral.openL2CAPChannel(psm)
+        }
 
     override fun close() {
         scope.cancel("$this closed")
