@@ -51,6 +51,7 @@ private const val DISCOVER_SERVICES_RETRIES = 5
 private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
 
+@OptIn(KableInternalApi::class)
 internal class BluetoothDeviceAndroidPeripheral(
     override val bluetoothDevice: BluetoothDevice,
     private val autoConnectPredicate: () -> Boolean,

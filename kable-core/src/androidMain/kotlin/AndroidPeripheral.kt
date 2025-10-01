@@ -165,5 +165,6 @@ public interface AndroidPeripheral : Peripheral {
     /**
      * Underlying [BluetoothDevice] that the [AndroidPeripheral] represents.
      */
+    @KableInternalApi
     public val bluetoothDevice: BluetoothDevice
 }

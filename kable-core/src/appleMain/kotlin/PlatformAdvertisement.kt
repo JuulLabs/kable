@@ -8,5 +8,6 @@ public actual interface PlatformAdvertisement : Advertisement {
     public fun serviceDataAsNSData(uuid: Uuid): NSData?
     public val manufacturerDataAsNSData: NSData?
     public fun manufacturerDataAsNSData(companyIdentifierCode: Int): NSData?
+    @KableInternalApi
     public val cbPeripheral: CBPeripheral
 }

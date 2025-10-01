@@ -14,5 +14,6 @@ public actual interface PlatformAdvertisement : Advertisement, Parcelable {
     public val address: String
     public val bondState: BondState
     public val bytes: ByteArray?
+    @KableInternalApi
     public val bluetoothDevice: BluetoothDevice
 }

@@ -8,6 +8,7 @@ import kotlin.coroutines.cancellation.CancellationException
 
 public interface CoreBluetoothPeripheral : Peripheral {
 
+    @KableInternalApi
     public val cbPeripheral: CBPeripheral
 
     @Throws(CancellationException::class, IOException::class)
