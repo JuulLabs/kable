@@ -1,5 +1,7 @@
 package com.juul.kable
 
+import com.juul.kable.logs.Logger
+
 /**
  * ¡¡¡Use At Your Own Risk!!!
  *
@@ -12,3 +14,13 @@ package com.juul.kable
 @RequiresOptIn(level = RequiresOptIn.Level.ERROR)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FUNCTION)
 public annotation class KableInternalApi
+
+private var hasDisplayedInternalLogWarning = false
+
+internal fun displayInternalLogWarning(logger: Logger) {
+    hasDisplayedInternalLogWarning = true
+    logger.warn {
+        message =
+            "You are using an internal API. Make sure you know what you are doing. Incorrect usage could break internal Kable state. Bugs related to internal API usage will be deprioritized by the Kable maintainers."
+    }
+}
