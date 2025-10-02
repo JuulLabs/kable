@@ -13,10 +13,11 @@ import platform.Foundation.NSNumber
 import kotlin.experimental.ExperimentalNativeApi
 import kotlin.uuid.Uuid
 
+@OptIn(KableInternalApi::class)
 internal class CBPeripheralCoreBluetoothAdvertisement(
     override val rssi: Int,
     private val data: Map<String, Any>,
-    internal val cbPeripheral: CBPeripheral,
+    override val cbPeripheral: CBPeripheral,
 ) : PlatformAdvertisement {
 
     override val identifier: Identifier
