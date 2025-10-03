@@ -23,7 +23,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - run: ./gradlew :kable-btleplug-ffi:assemble
       - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com *.jar
         working-directory: kable-btleplug-ffi/build/libs
@@ -49,7 +49,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       - run: ./gradlew check
       - name: publish
