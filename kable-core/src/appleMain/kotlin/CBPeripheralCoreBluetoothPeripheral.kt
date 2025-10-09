@@ -49,8 +49,9 @@ import kotlin.time.Duration
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse as CBWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse as CBWithoutResponse
 
+@OptIn(KableInternalApi::class)
 internal class CBPeripheralCoreBluetoothPeripheral(
-    private val cbPeripheral: CBPeripheral,
+    override val cbPeripheral: CBPeripheral,
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,

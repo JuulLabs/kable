@@ -16,12 +16,13 @@ import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
+@OptIn(KableInternalApi::class)
 @Parcelize
 internal class ScanResultAndroidAdvertisement(
     private val scanResult: ScanResult,
 ) : PlatformAdvertisement {
 
-    internal val bluetoothDevice: BluetoothDevice
+    override val bluetoothDevice: BluetoothDevice
         get() = scanResult.device
 
     /** @see ScanRecord.getDeviceName */
