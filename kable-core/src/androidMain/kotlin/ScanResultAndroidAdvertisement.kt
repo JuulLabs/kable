@@ -11,6 +11,8 @@ import android.os.Build.VERSION_CODES
 import android.os.ParcelUuid
 import androidx.core.util.isNotEmpty
 import com.juul.kable.PlatformAdvertisement.BondState
+import com.juul.kable.logs.Logging
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
@@ -20,10 +22,18 @@ import kotlin.uuid.toKotlinUuid
 @Parcelize
 internal class ScanResultAndroidAdvertisement(
     private val scanResult: ScanResult,
+    @IgnoredOnParcel
+    private val logging: Logging? = null,
 ) : PlatformAdvertisement {
 
-    override val bluetoothDevice: BluetoothDevice
+    internal val _bluetoothDevice: BluetoothDevice
         get() = scanResult.device
+
+    override val bluetoothDevice: BluetoothDevice
+        get() {
+            displayInternalLogWarning(logging)
+            return scanResult.device
+        }
 
     /** @see ScanRecord.getDeviceName */
     override val name: String?
@@ -35,7 +45,7 @@ internal class ScanResultAndroidAdvertisement(
      * @see BluetoothDevice.getName
      */
     override val peripheralName: String?
-        get() = bluetoothDevice.name
+        get() = _bluetoothDevice.name
 
     /**
      * Returns if the peripheral is connectable. Available on Android Oreo (API 26) and newer, on older versions of
@@ -45,17 +55,17 @@ internal class ScanResultAndroidAdvertisement(
         get() = if (VERSION.SDK_INT >= VERSION_CODES.O) scanResult.isConnectable else null
 
     override val address: String
-        get() = bluetoothDevice.address
+        get() = _bluetoothDevice.address
 
     override val identifier: Identifier
-        get() = bluetoothDevice.address
+        get() = _bluetoothDevice.address
 
     override val bondState: BondState
-        get() = when (bluetoothDevice.bondState) {
+        get() = when (_bluetoothDevice.bondState) {
             BOND_NONE -> BondState.None
             BOND_BONDING -> BondState.Bonding
             BOND_BONDED -> BondState.Bonded
-            else -> error("Unknown bond state: ${bluetoothDevice.bondState}")
+            else -> error("Unknown bond state: ${_bluetoothDevice.bondState}")
         }
 
     /** Returns raw bytes of the underlying scan record. */

@@ -19,8 +19,8 @@ public annotation class KableInternalApi
 
 private var hasDisplayedInternalLogWarning = false
 
-internal fun displayInternalLogWarning(logging: Logging) {
-    if (!hasDisplayedInternalLogWarning) {
+internal fun displayInternalLogWarning(logging: Logging?) {
+    if (!hasDisplayedInternalLogWarning && logging != null) {
         val logger = Logger(logging, "Kable/InternalApi", null)
         logger.warn {
             message =

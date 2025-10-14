@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import com.juul.kable.logs.Logging
 import platform.CoreBluetooth.CBAdvertisementDataIsConnectable
 import platform.CoreBluetooth.CBAdvertisementDataLocalNameKey
 import platform.CoreBluetooth.CBAdvertisementDataManufacturerDataKey
@@ -17,11 +18,18 @@ import kotlin.uuid.Uuid
 internal class CBPeripheralCoreBluetoothAdvertisement(
     override val rssi: Int,
     private val data: Map<String, Any>,
-    override val cbPeripheral: CBPeripheral,
+    internal val _cbPeripheral: CBPeripheral,
+    private val logging: Logging,
 ) : PlatformAdvertisement {
 
+    override val cbPeripheral: CBPeripheral = _cbPeripheral
+        get() {
+            displayInternalLogWarning(logging)
+            return field
+        }
+
     override val identifier: Identifier
-        get() = cbPeripheral.identifier.toUuid()
+        get() = _cbPeripheral.identifier.toUuid()
 
     override val name: String?
         get() = data[CBAdvertisementDataLocalNameKey] as? String
@@ -38,7 +46,7 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
      * https://developer.apple.com/forums/thread/72343
      */
     override val peripheralName: String?
-        get() = cbPeripheral.name
+        get() = _cbPeripheral.name
 
     /** https://developer.apple.com/documentation/corebluetooth/cbadvertisementdataisconnectable */
     override val isConnectable: Boolean?
@@ -48,7 +56,8 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
         get() = (data[CBAdvertisementDataTxPowerLevelKey] as? NSNumber)?.intValue
 
     override val uuids: List<Uuid>
-        get() = (data[CBAdvertisementDataServiceUUIDsKey] as? List<CBUUID>)?.map { it.toUuid() } ?: emptyList()
+        get() = (data[CBAdvertisementDataServiceUUIDsKey] as? List<CBUUID>)?.map { it.toUuid() }
+            ?: emptyList()
 
     override fun serviceData(uuid: Uuid): ByteArray? =
         serviceDataAsNSData(uuid)?.toByteArray()
