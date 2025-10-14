@@ -26,6 +26,6 @@ internal fun displayInternalLogWarning(logging: Logging?) {
             message =
                 "You are using an internal API. Make sure you know what you are doing. Incorrect usage could break internal Kable state. Bugs related to internal API usage will be deprioritized by the Kable maintainers."
         }
+        hasDisplayedInternalLogWarning = true
     }
-    hasDisplayedInternalLogWarning = true
 }
