@@ -76,7 +76,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     override val bluetoothDevice: BluetoothDevice = _bluetoothDevice
         get() {
-            displayInternalLogWarning(logger)
+            displayInternalLogWarning(logging)
             return field
         }
 
