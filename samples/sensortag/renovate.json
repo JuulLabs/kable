@@ -3,16 +3,5 @@
   "extends": [
     "config:base",
     ":disableRateLimiting"
-  ],
-  "packageRules": [
-    {
-      "groupName": "Kotlin, KSP and Compose",
-      "matchPackagePrefixes": [
-        "org.jetbrains.kotlin:",
-        "org.jetbrains.kotlin.",
-        "com.google.devtools.ksp",
-        "androidx.compose.compiler"
-      ]
-    }
   ]
 }
