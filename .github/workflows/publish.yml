@@ -28,7 +28,7 @@ jobs:
       - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com *.jar
         working-directory: kable-btleplug-ffi/build/libs
         shell: bash
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: kable-btleplug-ffi-${{ matrix.runner }}
           path: kable-btleplug-ffi/build/libs/
@@ -40,7 +40,7 @@ jobs:
     needs: assemble-rust
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           path: kable-btleplug-ffi/build/external
           pattern: kable-btleplug-ffi-*
