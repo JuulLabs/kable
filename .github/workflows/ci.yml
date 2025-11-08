@@ -26,12 +26,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - run: ./gradlew :kable-core:compileKotlinJvm
       - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com *.jar
         working-directory: kable-btleplug-ffi/build/libs
         shell: bash
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: kable-btleplug-ffi-${{ matrix.runner }}
           path: kable-btleplug-ffi/build/libs/
@@ -43,7 +43,7 @@ jobs:
     needs: assemble-rust
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           path: kable-btleplug-ffi/build/external
           pattern: kable-btleplug-ffi-*
@@ -52,7 +52,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       - run: ./gradlew assemble -PsuppressWarnings=true
       - run: ./gradlew check
