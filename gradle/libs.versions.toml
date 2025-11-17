@@ -12,7 +12,7 @@ tuulbox = "8.0.3"
 androidx-core = { module = "androidx.core:core-ktx", version = "1.17.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
-equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.2.2" }
+equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.2.3" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.2" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
