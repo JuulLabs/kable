@@ -1,7 +1,6 @@
 #[cfg(target_os = "windows")]
 use btleplug::api::BDAddr;
 #[cfg(target_os = "linux")]
-use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 #[cfg(target_os = "windows")]
 use std::str::FromStr;
@@ -35,7 +34,7 @@ impl Display for PeripheralId {
 impl PeripheralId {
     #[uniffi::constructor]
     fn new(value: String) -> Self {
-        PeripheralId {
+        Self {
             platform: serde_json::from_str(&value).unwrap(),
         }
     }
