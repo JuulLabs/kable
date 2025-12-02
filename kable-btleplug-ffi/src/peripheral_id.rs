@@ -1,6 +1,7 @@
 #[cfg(target_os = "windows")]
 use btleplug::api::BDAddr;
 #[cfg(target_os = "linux")]
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 #[cfg(target_os = "windows")]
 use std::str::FromStr;
