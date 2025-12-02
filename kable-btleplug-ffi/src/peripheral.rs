@@ -33,16 +33,26 @@ pub struct Peripheral {
 
 impl Peripheral {
     async fn get_platform(&self) -> Result<btleplug::platform::Peripheral> {
-        get_adapter()
-            .await
-            .peripheral(&self.id.platform)
-            .await
-            .map_err(Into::into)
+        let platform = self.cached_peripheral.lock().unwrap().clone();
+        if platform.is_none() {
+            match get_adapter()
+                .await
+                .peripheral(&self.id.platform)
+                .await
+                .map_err(Into::into)
+            {
+                Ok(peripheral) => *self.cached_peripheral.lock().unwrap() = Some(peripheral),
+                Err(err) => return Err(err),
+            }
+            return Ok(self.cached_peripheral.lock().unwrap().clone().unwrap());
+        }
+
+        Ok(platform.unwrap())
     }
 
     async fn platform_connect(
         &self,
-        platform: &btleplug::platform::Peripheral,
+        platform: btleplug::platform::Peripheral,
         cancellation_handle: Arc<CancellationHandle>,
     ) -> Result<()> {
         if platform.is_connected().await? {
@@ -129,18 +139,14 @@ impl Peripheral {
     }
 
     async fn properties(&self) -> Result<PeripheralProperties> {
-        let platform = self.cached_peripheral.lock().unwrap().clone().unwrap();
-        let platform = platform.properties().await?.unwrap();
+        let platform = self.get_platform().await?.properties().await?.unwrap();
         Ok(PeripheralProperties::new(self.id.clone(), platform))
     }
 
     async fn connect(&self, cancellation_handle: Arc<CancellationHandle>) -> bool {
         if let Ok(platform) = self.get_platform().await {
-            *self.cached_peripheral.lock().unwrap() = Some(platform);
-
-            let cached = self.cached_peripheral.lock().unwrap().clone().unwrap();
             return self
-                .platform_connect(&cached, cancellation_handle)
+                .platform_connect(platform, cancellation_handle)
                 .await
                 .is_ok();
         }
@@ -173,10 +179,7 @@ impl Peripheral {
         }
 
         if let Ok(platform) = self.get_platform().await {
-            *self.cached_peripheral.lock().unwrap() = Some(platform);
-
-            let cached = self.cached_peripheral.lock().unwrap().clone().unwrap();
-            self.platform_connect(&cached, cancellation_handle)
+            self.platform_connect(platform, cancellation_handle)
                 .await
                 .is_ok()
         } else {
@@ -192,18 +195,22 @@ impl Peripheral {
     }
 
     async fn discover_services(&self) -> Result<()> {
-        let platform = self.cached_peripheral.lock().unwrap().clone().unwrap();
-        platform.discover_services().await.map_err(Into::into)
+        self.get_platform()
+            .await?
+            .discover_services()
+            .await
+            .map_err(Into::into)
     }
 
     async fn services(&self) -> Result<Vec<Service>> {
-        let platform = self.cached_peripheral.lock().unwrap().clone().unwrap();
-        Ok(platform.services().into_iter().map(Into::into).collect())
+        self.get_platform()
+            .await
+            .map(|p| p.services().into_iter().map(Into::into).collect())
     }
 
     async fn read(&self, characteristic: Characteristic) -> Result<Vec<u8>> {
-        let platform = self.cached_peripheral.lock().unwrap().clone().unwrap();
-        platform
+        self.get_platform()
+            .await?
             .read(&characteristic.into())
             .await
             .map_err(Into::into)
@@ -215,40 +222,40 @@ impl Peripheral {
         data: Vec<u8>,
         write_type: WriteType,
     ) -> Result<()> {
-        let platform = self.cached_peripheral.lock().unwrap().clone().unwrap();
-        platform
+        self.get_platform()
+            .await?
             .write(&characteristic.into(), &data, write_type.into())
             .await
             .map_err(Into::into)
     }
 
     async fn read_descriptor(&self, descriptor: Descriptor) -> Result<Vec<u8>> {
-        let platform = self.cached_peripheral.lock().unwrap().clone().unwrap();
-        platform
+        self.get_platform()
+            .await?
             .read_descriptor(&descriptor.into())
             .await
             .map_err(Into::into)
     }
 
     async fn write_descriptor(&self, descriptor: Descriptor, data: Vec<u8>) -> Result<()> {
-        let platform = self.cached_peripheral.lock().unwrap().clone().unwrap();
-        platform
+        self.get_platform()
+            .await?
             .write_descriptor(&descriptor.into(), &data)
             .await
             .map_err(Into::into)
     }
 
     async fn subscribe(&self, characteristic: Characteristic) -> Result<()> {
-        let platform = self.cached_peripheral.lock().unwrap().clone().unwrap();
-        platform
+        self.get_platform()
+            .await?
             .subscribe(&characteristic.into())
             .await
             .map_err(Into::into)
     }
 
     async fn unsubscribe(&self, characteristic: Characteristic) -> Result<()> {
-        let platform = self.cached_peripheral.lock().unwrap().clone().unwrap();
-        platform
+        self.get_platform()
+            .await?
             .unsubscribe(&characteristic.into())
             .await
             .map_err(Into::into)
