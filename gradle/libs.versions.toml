@@ -14,7 +14,7 @@ androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.2.4" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
-khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.2" }
+khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.6.0" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
