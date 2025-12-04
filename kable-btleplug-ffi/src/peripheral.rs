@@ -108,6 +108,7 @@ impl Peripheral {
             cancellation: CancellationHandle::from_token(token.clone()),
             cached_peripheral: Arc::new(Mutex::new(None)),
         };
+        let cached_peripheral = peripheral.cached_peripheral.clone();
 
         std::thread::spawn(|| {
             let rt = tokio::runtime::Builder::new_current_thread()
@@ -127,7 +128,10 @@ impl Peripheral {
                             CentralEvent::DeviceConnected(connected) =>
                                 if connected == id.platform { callbacks.connected() }
                             CentralEvent::DeviceDisconnected(disconnected) =>
-                                if disconnected == id.platform { callbacks.disconnected() }
+                                if disconnected == id.platform {
+                                    *cached_peripheral.lock().unwrap() = None;
+                                    callbacks.disconnected()
+                                }
                             _ => {}
                         },
                     }
