@@ -7,7 +7,7 @@ import com.juul.khronicle.Log
 
 public object Kable : Key<Boolean>
 
-public object KhronicleLogEngine : LogEngine, HideFromStackTraceTag {
+public object KhronicleLogEngine : LogEngine {
     override fun verbose(throwable: Throwable?, tag: String, message: String) {
         Log.verbose(throwable, tag) { metadata ->
             metadata[Kable] = true
