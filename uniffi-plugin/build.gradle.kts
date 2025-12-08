@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     implementation(libs.kotlin.plugin)
+    implementation(libs.tomlkt)
 }
 
 gradlePlugin {
