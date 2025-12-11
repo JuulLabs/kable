@@ -2,7 +2,7 @@ public final class com/juul/kable/logs/khronicle/Kable : com/juul/khronicle/Key 
 	public static final field INSTANCE Lcom/juul/kable/logs/khronicle/Kable;
 }
 
-public final class com/juul/kable/logs/khronicle/KhronicleLogEngine : com/juul/kable/logs/LogEngine, com/juul/khronicle/HideFromStackTraceTag {
+public final class com/juul/kable/logs/khronicle/KhronicleLogEngine : com/juul/kable/logs/LogEngine {
 	public static final field INSTANCE Lcom/juul/kable/logs/khronicle/KhronicleLogEngine;
 	public fun assert (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
 	public fun debug (Ljava/lang/Throwable;Ljava/lang/String;Ljava/lang/String;)V
