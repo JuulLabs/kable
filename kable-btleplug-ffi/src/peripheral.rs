@@ -9,7 +9,7 @@ use crate::uuid::Uuid;
 use crate::write_type::WriteType;
 use crate::{Error, get_adapter};
 use btleplug::api::{Central, CentralEvent, Peripheral as _, ScanFilter};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::time::timeout;
 use tokio_stream::StreamExt;
@@ -28,15 +28,26 @@ pub struct Peripheral {
     id: Arc<PeripheralId>,
     callbacks: Arc<Box<dyn PeripheralCallbacks>>,
     cancellation: CancellationHandle,
+    cached_peripheral: Arc<Mutex<Option<btleplug::platform::Peripheral>>>,
 }
 
 impl Peripheral {
     async fn get_platform(&self) -> Result<btleplug::platform::Peripheral> {
-        get_adapter()
-            .await
-            .peripheral(&self.id.platform)
-            .await
-            .map_err(Into::into)
+        let platform = self.cached_peripheral.lock().unwrap().clone();
+        if platform.is_none() {
+            match get_adapter()
+                .await
+                .peripheral(&self.id.platform)
+                .await
+                .map_err(Into::into)
+            {
+                Ok(peripheral) => *self.cached_peripheral.lock().unwrap() = Some(peripheral),
+                Err(err) => return Err(err),
+            }
+            return Ok(self.cached_peripheral.lock().unwrap().clone().unwrap());
+        }
+
+        Ok(platform.unwrap())
     }
 
     async fn platform_connect(
@@ -95,7 +106,9 @@ impl Peripheral {
             id: id.clone(),
             callbacks: callbacks.clone(),
             cancellation: CancellationHandle::from_token(token.clone()),
+            cached_peripheral: Arc::new(Mutex::new(None)),
         };
+        let cached_peripheral = peripheral.cached_peripheral.clone();
 
         std::thread::spawn(|| {
             let rt = tokio::runtime::Builder::new_current_thread()
@@ -115,7 +128,10 @@ impl Peripheral {
                             CentralEvent::DeviceConnected(connected) =>
                                 if connected == id.platform { callbacks.connected() }
                             CentralEvent::DeviceDisconnected(disconnected) =>
-                                if disconnected == id.platform { callbacks.disconnected() }
+                                if disconnected == id.platform {
+                                    *cached_peripheral.lock().unwrap() = None;
+                                    callbacks.disconnected()
+                                }
                             _ => {}
                         },
                     }
