@@ -6,7 +6,7 @@ coroutines = "1.10.2"
 jna = "5.18.1"
 jvm-toolchain = "17"
 kotlin = "2.2.20"
-tuulbox = "8.0.3"
+tuulbox = "8.1.0"
 
 [libraries]
 androidx-core = { module = "androidx.core:core-ktx", version = "1.17.0" }
