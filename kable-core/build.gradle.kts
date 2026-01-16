@@ -20,10 +20,12 @@ kotlin {
     macosArm64()
     macosX64()
     jvm()
+    wasmJs().browser()
 
     sourceSets {
         all {
             languageSettings {
+                optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")
             }
         }
@@ -31,7 +33,6 @@ kotlin {
         commonMain.dependencies {
             api(libs.kotlinx.coroutines.core)
             api(libs.kotlinx.io)
-            implementation(libs.tuulbox.collections)
         }
 
         commonTest.dependencies {
@@ -59,7 +60,8 @@ kotlin {
             implementation(libs.robolectric)
         }
 
-        jsMain.dependencies {
+        webMain.dependencies {
+            api(libs.kotlinx.browser)
             api(libs.wrappers.web)
             api(project.dependencies.platform(libs.wrappers.bom))
         }
