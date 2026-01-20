@@ -2,15 +2,14 @@ package com.juul.kable
 
 import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.external.BluetoothDevice
-import com.juul.kable.external.iterable
 import js.array.component1
 import js.array.component2
 import js.iterable.iterator
+import org.khronos.webgl.DataView
 import kotlin.js.toInt
 import kotlin.js.toJsNumber
 import kotlin.js.toJsString
 import kotlin.js.toList
-import org.khronos.webgl.DataView
 import kotlin.uuid.Uuid
 
 internal class BluetoothAdvertisingEventWebBluetoothAdvertisement(

@@ -5,10 +5,10 @@ import com.juul.kable.external.BluetoothLEScanOptions
 import com.juul.kable.external.BluetoothManufacturerDataFilterInit
 import com.juul.kable.external.BluetoothServiceDataFilterInit
 import js.objects.unsafeJso
+import org.khronos.webgl.toInt8Array
 import kotlin.js.JsArray
 import kotlin.js.toJsArray
 import kotlin.uuid.Uuid
-import org.khronos.webgl.toInt8Array
 
 /** Convert list of public API type to Web Bluetooth (JavaScript) type. */
 internal fun List<FilterPredicate>.toBluetoothLEScanOptions(): BluetoothLEScanOptions = unsafeJso {

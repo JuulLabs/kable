@@ -1,6 +1,6 @@
 package com.juul.kable.external
 
-import org.w3c.dom.events.EventTarget
+import web.events.EventTarget
 import kotlin.js.Promise
 
 /**

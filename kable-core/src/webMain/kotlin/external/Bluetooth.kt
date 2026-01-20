@@ -1,8 +1,8 @@
 package com.juul.kable.external
 
+import web.events.EventTarget
 import kotlin.js.JsArray
 import kotlin.js.JsBoolean
-import org.w3c.dom.events.EventTarget
 import kotlin.js.Promise
 
 /** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth */

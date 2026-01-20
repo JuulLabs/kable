@@ -1,8 +1,8 @@
 package com.juul.kable.external
 
 import com.juul.kable.UUID
+import web.events.EventTarget
 import kotlin.js.JsArray
-import org.w3c.dom.events.EventTarget
 import kotlin.js.Promise
 
 /**

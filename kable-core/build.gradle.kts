@@ -62,6 +62,7 @@ kotlin {
 
         webMain.dependencies {
             api(libs.kotlinx.browser)
+            api(libs.wrappers.browser)
             api(libs.wrappers.web)
             api(project.dependencies.platform(libs.wrappers.bom))
         }

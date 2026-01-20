@@ -5,13 +5,15 @@ import com.juul.kable.Bluetooth.Availability.Unavailable
 import com.juul.kable.Reason.BluetoothUndefined
 import com.juul.kable.external.BluetoothAvailabilityChanged
 import com.juul.kable.interop.await
-import kotlin.js.unsafeCast
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
-import org.w3c.dom.events.Event
+import web.events.EventType
+import web.events.addEventListener
+import web.events.removeEventListener
+import kotlin.js.unsafeCast
 
 @Deprecated(
     message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
@@ -28,14 +30,14 @@ public actual enum class Reason {
     BluetoothUndefined,
 }
 
-private const val AVAILABILITY_CHANGED = "availabilitychanged"
+private val AVAILABILITY_CHANGED = EventType<BluetoothAvailabilityChanged>("availabilitychanged")
 
 internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
     bluetoothOrNull()?.let { bluetooth ->
         callbackFlow {
             // https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/onavailabilitychanged
-            val listener: (Event) -> Unit = { event ->
-                val isAvailable = event.unsafeCast<BluetoothAvailabilityChanged>().value
+            val listener: (BluetoothAvailabilityChanged) -> Unit = { event ->
+                val isAvailable = event.value
                 trySend(if (isAvailable) Available else Unavailable(reason = null))
             }
 

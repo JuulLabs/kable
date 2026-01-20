@@ -1,9 +1,9 @@
 package com.juul.kable.external
 
 import com.juul.kable.UUID
-import kotlin.js.JsArray
 import org.khronos.webgl.DataView
-import org.w3c.dom.events.EventTarget
+import web.events.EventTarget
+import kotlin.js.JsArray
 import kotlin.js.Promise
 
 /**

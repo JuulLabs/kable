@@ -1,10 +1,10 @@
 package com.juul.kable
 
+import com.juul.kable.interop.await
+import com.juul.kable.interop.jsonStringify
 import com.juul.kable.logs.Logger
 import js.errors.JsError
 import js.errors.TypeError
-import com.juul.kable.interop.await
-import com.juul.kable.interop.jsonStringify
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
 import web.errors.NotFoundError

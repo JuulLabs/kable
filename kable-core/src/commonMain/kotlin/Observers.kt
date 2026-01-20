@@ -5,6 +5,7 @@ import com.juul.kable.ObservationEvent.Error
 import com.juul.kable.logs.Logging
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.coroutineContext
 
 internal expect fun Peripheral.observationHandler(): Observation.Handler

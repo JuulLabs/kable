@@ -10,11 +10,11 @@ import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.external.string
 import com.juul.kable.interop.await
-import com.juul.kable.interop.EventListener
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.detail
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.async
@@ -27,14 +27,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.khronos.webgl.DataView
-import kotlin.coroutines.cancellation.CancellationException
+import org.khronos.webgl.toInt8Array
+import web.events.EventType
+import web.events.addEventListener
+import web.events.removeEventListener
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.js.unsafeCast
 import kotlin.time.Duration
-import org.khronos.webgl.toInt8Array
 
-private const val ADVERTISEMENT_RECEIVED = "advertisementreceived"
+private val ADVERTISEMENT_RECEIVED = EventType<BluetoothAdvertisingEvent>("advertisementreceived")
 private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
 
@@ -116,7 +117,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
 
     override suspend fun disconnect() {
         connectAction.cancelAndJoin(
-            CancellationException(NotConnectedException("Disconnect requested")),
+            CancellationException(null, NotConnectedException("Disconnect requested")),
         )
     }
 
@@ -163,8 +164,8 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     }
 
     private suspend fun receiveRssiEvent() = suspendCancellableCoroutine { continuation ->
-        val listener = EventListener { event ->
-            val rssi = event.unsafeCast<BluetoothAdvertisingEvent>().rssi
+        val listener = { event: BluetoothAdvertisingEvent ->
+            val rssi = event.rssi
             if (rssi != null) {
                 continuation.resume(rssi)
             } else {
@@ -176,14 +177,14 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
 
         logger.verbose {
             message = "addEventListener"
-            detail("event", ADVERTISEMENT_RECEIVED)
+            detail("event", ADVERTISEMENT_RECEIVED.toString())
         }
         bluetoothDevice.addEventListener(ADVERTISEMENT_RECEIVED, listener)
 
         continuation.invokeOnCancellation {
             logger.verbose {
                 message = "removeEventListener"
-                detail("event", ADVERTISEMENT_RECEIVED)
+                detail("event", ADVERTISEMENT_RECEIVED.toString())
             }
             bluetoothDevice.removeEventListener(ADVERTISEMENT_RECEIVED, listener)
         }

@@ -1,8 +1,8 @@
 package com.juul.kable
 
 import com.juul.kable.external.BluetoothDevice
-import js.errors.JsError
 import com.juul.kable.interop.await
+import js.errors.JsError
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
 import web.errors.SecurityError

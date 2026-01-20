@@ -5,6 +5,7 @@ package com.juul.kable
 
 import com.juul.kable.State.Disconnecting
 import com.juul.kable.WriteType.WithoutResponse
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.io.IOException
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
 
 internal typealias OnSubscriptionAction = suspend () -> Unit

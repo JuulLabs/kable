@@ -1,15 +1,12 @@
 package com.juul.kable
 
 import com.juul.kable.external.BluetoothAdvertisingEvent
+import com.juul.kable.interop.await
+import com.juul.kable.interop.jsonStringify
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import js.errors.JsError
 import js.errors.TypeError
-import com.juul.kable.interop.await
-import com.juul.kable.interop.jsonStringify
-import kotlin.js.JsException
-import kotlin.js.thrownValue
-import kotlin.js.unsafeCast
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.ensureActive
@@ -18,8 +15,14 @@ import kotlinx.coroutines.flow.callbackFlow
 import org.w3c.dom.events.Event
 import web.errors.DOMException
 import web.errors.SecurityError
+import web.events.EventType
+import web.events.addEventListener
+import web.events.removeEventListener
+import kotlin.js.JsException
+import kotlin.js.thrownValue
+import kotlin.js.unsafeCast
 
-private const val ADVERTISEMENT_RECEIVED_EVENT = "advertisementreceived"
+private val ADVERTISEMENT_RECEIVED_EVENT = EventType<BluetoothAdvertisingEvent>("advertisementreceived")
 
 /**
  * Only available on Chrome 79+ with "Experimental Web Platform features" enabled via:
@@ -66,9 +69,8 @@ internal class BluetoothWebBluetoothScanner(
         }
 
         logger.verbose { message = "Adding scan listener" }
-        val listener: (Event) -> Unit = {
-            val event = it.unsafeCast<BluetoothAdvertisingEvent>()
-            val advertisement = BluetoothAdvertisingEventWebBluetoothAdvertisement(event)
+        val listener: (BluetoothAdvertisingEvent) -> Unit = {
+            val advertisement = BluetoothAdvertisingEventWebBluetoothAdvertisement(it)
             trySend(advertisement).getOrElse {
                 logger.warn { message = "Unable to deliver advertisement event due to failure in flow or premature closing." }
             }

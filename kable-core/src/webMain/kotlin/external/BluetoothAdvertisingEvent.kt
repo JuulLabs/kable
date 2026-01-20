@@ -1,11 +1,11 @@
 package com.juul.kable.external
 
 import js.collections.JsMap
+import org.khronos.webgl.DataView
+import web.events.Event
 import kotlin.js.JsArray
 import kotlin.js.JsNumber
 import kotlin.js.JsString
-import org.khronos.webgl.DataView
-import org.w3c.dom.events.Event
 
 internal typealias BluetoothManufacturerDataMap = JsMap<JsNumber, DataView>
 

@@ -1,8 +1,8 @@
 package com.juul.kable.external
 
+import org.khronos.webgl.Int8Array
 import kotlin.js.JsAny
 import kotlin.js.JsArray
-import org.khronos.webgl.Int8Array
 
 /**
  * ```

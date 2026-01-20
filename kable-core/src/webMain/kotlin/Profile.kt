@@ -5,9 +5,9 @@ import com.juul.kable.external.BluetoothCharacteristicProperties
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import com.juul.kable.external.BluetoothRemoteGATTDescriptor
 import com.juul.kable.external.BluetoothRemoteGATTService
+import com.juul.kable.interop.await
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.detail
-import com.juul.kable.interop.await
 import kotlin.js.toList
 
 @Suppress("ACTUAL_WITHOUT_EXPECT") // https://youtrack.jetbrains.com/issue/KT-37316

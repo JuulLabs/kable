@@ -6,6 +6,7 @@ import com.juul.kable.coroutines.childSupervisor
 import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import com.juul.kable.external.BluetoothRemoteGATTServer
+import com.juul.kable.interop.await
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation
@@ -17,7 +18,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.ATOMIC
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
-import com.juul.kable.interop.await
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -32,8 +32,11 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.io.IOException
 import org.khronos.webgl.DataView
-import org.w3c.dom.events.Event
 import web.errors.DOMException
+import web.events.Event
+import web.events.EventType
+import web.events.addEventListener
+import web.events.removeEventListener
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.js.JsAny
@@ -46,8 +49,8 @@ import kotlin.time.Duration
 
 private typealias ObservationListener = (Event) -> Unit
 
-private const val GATT_SERVER_DISCONNECTED = "gattserverdisconnected"
-private const val CHARACTERISTIC_VALUE_CHANGED = "characteristicvaluechanged"
+private val GATT_SERVER_DISCONNECTED = EventType<Event>("gattserverdisconnected")
+private val CHARACTERISTIC_VALUE_CHANGED = EventType<Event>("characteristicvaluechanged")
 
 internal class Connection(
     parentContext: CoroutineContext,
@@ -73,7 +76,7 @@ internal class Connection(
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = bluetoothDevice.id)
 
     private val disconnectedListener: (Event) -> Unit = {
-        logger.debug { message = GATT_SERVER_DISCONNECTED }
+        logger.debug { message = GATT_SERVER_DISCONNECTED.toString() }
         state.value = Disconnected()
     }
 
@@ -127,7 +130,7 @@ internal class Connection(
             logger.verbose {
                 message = "addEventListener"
                 detail(characteristic)
-                detail("event", CHARACTERISTIC_VALUE_CHANGED)
+                detail("event", CHARACTERISTIC_VALUE_CHANGED.toString())
             }
             addEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
 
@@ -138,7 +141,7 @@ internal class Connection(
                 observationListeners.remove(platformCharacteristic)
 
                 coroutineContext.ensureActive()
-                throw when (e) {
+                throw when (e.thrownValue) {
                     is DOMException -> IOException("Failed to start notification", e)
                     else -> InternalError("Unexpected start notification failure", e)
                 }
@@ -242,7 +245,7 @@ internal class Connection(
         val target = event.target?.unsafeCast<BluetoothRemoteGATTCharacteristic>()
         val data = target?.value!!
         logger.debug {
-            message = CHARACTERISTIC_VALUE_CHANGED
+            message = CHARACTERISTIC_VALUE_CHANGED.toString()
             detail(this@createObservationListener)
             detail(data, Operation.Change)
         }
@@ -276,7 +279,7 @@ internal class Connection(
         logger.verbose {
             message = "removeEventListener"
             detail(this@removeCharacteristicValueChangedListener)
-            detail("event", CHARACTERISTIC_VALUE_CHANGED)
+            detail("event", CHARACTERISTIC_VALUE_CHANGED.toString())
         }
         removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
     }
