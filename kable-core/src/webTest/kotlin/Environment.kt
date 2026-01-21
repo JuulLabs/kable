@@ -1,9 +1,8 @@
 package com.juul.kable
 
-val isBrowser: Boolean
-    get() = js("typeof window !== 'undefined'")
-        .unsafeCast<Boolean>()
+import kotlin.js.JsBoolean
+import kotlin.js.js
 
-val isNode: Boolean
-    get() = js("typeof process !== 'undefined' && process.versions && process.versions.node")
-        .unsafeCast<Boolean>()
+val isBrowser: JsBoolean = js("typeof window !== 'undefined'")
+
+val isNode: JsBoolean = js("typeof process !== 'undefined' && process.versions && process.versions.node")

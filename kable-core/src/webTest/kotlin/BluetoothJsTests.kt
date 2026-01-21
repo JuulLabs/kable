@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.juul.kable.external.Bluetooth
+import kotlin.js.toBoolean
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
@@ -10,7 +11,7 @@ class BluetoothJsTests {
 
     @Test
     fun bluetoothOrThrow_browserUnitTest_returnsBluetooth() = runTest {
-        if (isBrowser) {
+        if (isBrowser.toBoolean()) {
             assertIs<Bluetooth>(bluetoothOrThrow())
         }
     }
@@ -18,7 +19,7 @@ class BluetoothJsTests {
     // In Node.js unit tests, bluetooth is unavailable.
     @Test
     fun bluetoothOrThrow_nodeJsUnitTest_throwsIllegalStateException() = runTest {
-        if (isNode) {
+        if (isNode.toBoolean()) {
             assertFailsWith<IllegalStateException> {
                 bluetoothOrThrow()
             }
