@@ -1,8 +1,8 @@
 package com.juul.kable
 
 import com.juul.kable.external.Bluetooth
-import kotlin.js.toBoolean
 import kotlinx.coroutines.test.runTest
+import kotlin.js.toBoolean
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
