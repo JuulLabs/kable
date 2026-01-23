@@ -7,7 +7,11 @@ import kotlin.js.js
 
 private val console: Console = js("console")
 
-// The actual console interface is far more flexible than this, but
+/**
+ * The actual console interface is far more flexible than this (effectively just a `vararg JsAny?`),
+ * but calling it like that requires calling `toJsString()` all over. This interface is narrowly
+ * typed to exactly fit our use case so the compiler can do the type conversions for us.
+ */
 private external interface Console : JsAny {
     fun debug(format: String, tag: String, message: String)
     fun debug(format: String, tag: String, message: String, error: JsErrorLike?)
