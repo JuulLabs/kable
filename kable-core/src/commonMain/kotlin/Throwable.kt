@@ -1,8 +1,8 @@
 package com.juul.kable
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * If the exception contains cause that differs from [CancellationException] returns it otherwise
