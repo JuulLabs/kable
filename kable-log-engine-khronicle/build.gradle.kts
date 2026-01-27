@@ -15,6 +15,7 @@ kotlin {
     macosArm64()
     macosX64()
     jvm()
+    wasmJs().browser()
 
     sourceSets {
         commonMain.dependencies {
