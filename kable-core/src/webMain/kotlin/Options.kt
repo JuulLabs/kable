@@ -4,7 +4,6 @@ import com.juul.kable.external.RequestDeviceOptions
 import com.juul.kable.interop.isEmpty
 import com.juul.kable.interop.isNotEmpty
 import js.objects.unsafeJso
-import kotlin.js.toJsArray
 import kotlin.uuid.Uuid
 
 /** https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice */

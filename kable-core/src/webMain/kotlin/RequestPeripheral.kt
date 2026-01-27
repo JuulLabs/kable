@@ -1,10 +1,9 @@
 package com.juul.kable
 
 import com.juul.kable.interop.await
-import com.juul.kable.interop.jsonStringify
 import com.juul.kable.logs.Logger
-import js.errors.JsError
 import js.errors.TypeError
+import js.json.stringify
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
 import web.errors.NotFoundError
@@ -72,7 +71,7 @@ public suspend fun requestPeripheral(
                 val logger = Logger(builder.logging, tag = "Kable/requestDevice", identifier = null)
                 logger.error {
                     detail("options", options.toString())
-                    detail("processed", jsonStringify(requestDeviceOptions))
+                    detail("processed", stringify(requestDeviceOptions))
                     message = e.toString()
                 }
                 throw InternalError("Type error when requesting device", e)

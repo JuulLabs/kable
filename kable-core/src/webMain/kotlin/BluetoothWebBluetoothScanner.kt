@@ -2,17 +2,15 @@ package com.juul.kable
 
 import com.juul.kable.external.BluetoothAdvertisingEvent
 import com.juul.kable.interop.await
-import com.juul.kable.interop.jsonStringify
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import js.errors.JsError
 import js.errors.TypeError
+import js.json.stringify
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import org.w3c.dom.events.Event
 import web.errors.DOMException
 import web.errors.SecurityError
 import web.events.EventType
@@ -20,7 +18,6 @@ import web.events.addEventListener
 import web.events.removeEventListener
 import kotlin.js.JsException
 import kotlin.js.thrownValue
-import kotlin.js.unsafeCast
 
 private val ADVERTISEMENT_RECEIVED_EVENT = EventType<BluetoothAdvertisingEvent>("advertisementreceived")
 
@@ -100,7 +97,7 @@ internal class BluetoothWebBluetoothScanner(
             // that we can fix any issues).
             logger.error {
                 detail("filters", filters.toString())
-                detail("options", jsonStringify(options))
+                detail("options", stringify(options))
                 message = e.toString()
             }
             throw InternalError("Failed to start scan", e)

@@ -3,7 +3,6 @@ package com.juul.kable.bluetooth
 import com.juul.kable.InternalError
 import com.juul.kable.bluetoothOrNull
 import com.juul.kable.interop.await
-import js.errors.JsError
 import js.errors.TypeError
 import kotlin.js.JsException
 import kotlin.js.thrownValue

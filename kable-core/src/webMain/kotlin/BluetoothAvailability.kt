@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.onStart
 import web.events.EventType
 import web.events.addEventListener
 import web.events.removeEventListener
-import kotlin.js.unsafeCast
 
 @Deprecated(
     message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
