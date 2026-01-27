@@ -8,7 +8,6 @@ import com.juul.kable.State.Disconnected
 import com.juul.kable.coroutines.childSupervisor
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +36,7 @@ import platform.CoreBluetooth.CBPeripheral
 import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.coroutineContext
 import kotlin.reflect.KClass
 import kotlin.time.Duration

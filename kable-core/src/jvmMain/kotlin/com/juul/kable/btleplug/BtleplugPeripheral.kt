@@ -30,7 +30,6 @@ import com.juul.kable.suspendUntil
 import com.juul.kable.unwrapCancellationException
 import jdk.internal.joptsimple.internal.Messages.message
 import jdk.internal.org.objectweb.asm.Type.getDescriptor
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 import com.juul.kable.btleplug.ffi.Uuid as FfiUuid
 
 private const val DEFAULT_ATT_MTU = 23
@@ -75,7 +75,7 @@ internal class BtleplugPeripheral(
         override fun disconnected() {
             logger.verbose { message = "Received disconnect" }
             runBlocking {
-                connectAction.cancelAndJoin(CancellationException(null, NotConnectedException("Disconnected")))
+                connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnected")))
             }
         }
 
@@ -182,7 +182,7 @@ internal class BtleplugPeripheral(
 
     override suspend fun disconnect() {
         logger.verbose { message = "Disconnect request" }
-        connectAction.cancelAndJoin(CancellationException(null, NotConnectedException("Disconnect requested")))
+        connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnect requested")))
     }
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =

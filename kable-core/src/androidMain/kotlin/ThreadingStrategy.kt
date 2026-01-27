@@ -5,11 +5,11 @@ import com.juul.kable.OnDemandThreadingStrategy.release
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeMark
@@ -72,7 +72,7 @@ public class PooledThreadingStrategy(
                     "PooledThreadStrategy must complete with an empty pool, but had ${pool.count()} threads in pool"
                 }
             }
-            throw CancellationException(null, e)
+            throw CancellationException(e)
         }
     }
 

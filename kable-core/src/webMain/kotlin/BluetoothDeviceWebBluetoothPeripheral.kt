@@ -116,9 +116,8 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
         connectAction.awaitConnect()
 
     override suspend fun disconnect() {
-        connectAction.cancelAndJoin(
-            CancellationException(null, NotConnectedException("Disconnect requested")),
-        )
+        val cause = NotConnectedException("Disconnect requested")
+        connectAction.cancelAndJoin(CancellationException(cause.toString(), cause))
     }
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
