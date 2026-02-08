@@ -51,8 +51,9 @@ private const val DISCOVER_SERVICES_RETRIES = 5
 private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
 
+@OptIn(KableInternalApi::class)
 internal class BluetoothDeviceAndroidPeripheral(
-    private val bluetoothDevice: BluetoothDevice,
+    private val _bluetoothDevice: BluetoothDevice,
     private val autoConnectPredicate: () -> Boolean,
     private val transport: Transport,
     private val phy: Phy,
@@ -61,7 +62,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
     private val disconnectTimeout: Duration,
-) : BasePeripheral(bluetoothDevice.toString()), AndroidPeripheral {
+) : BasePeripheral(_bluetoothDevice.toString()), AndroidPeripheral {
 
     init {
         onBluetoothDisabled { state ->
@@ -73,10 +74,16 @@ internal class BluetoothDeviceAndroidPeripheral(
         }
     }
 
+    override val bluetoothDevice: BluetoothDevice = _bluetoothDevice
+        get() {
+            displayInternalLogWarning(logging)
+            return field
+        }
+
     private val connectAction = scope.sharedRepeatableAction(::establishConnection)
 
-    override val identifier: String = bluetoothDevice.address
-    private val logger = Logger(logging, "Kable/Peripheral", bluetoothDevice.toString())
+    override val identifier: String = _bluetoothDevice.address
+    private val logger = Logger(logging, "Kable/Peripheral", _bluetoothDevice.toString())
 
     private val _state = MutableStateFlow<State>(Disconnected())
     override val state = _state.asStateFlow()
@@ -96,13 +103,13 @@ internal class BluetoothDeviceAndroidPeripheral(
             ?: throw NotConnectedException("Connection not established, current state: ${state.value}")
 
     override val type: Type
-        get() = typeFrom(bluetoothDevice.type)
+        get() = typeFrom(_bluetoothDevice.type)
 
-    override val address: String = requireNonZeroAddress(bluetoothDevice.address)
+    override val address: String = requireNonZeroAddress(_bluetoothDevice.address)
 
     @ExperimentalApi
     override val name: String?
-        get() = bluetoothDevice.name
+        get() = _bluetoothDevice.name
 
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
         checkBluetoothIsSupported()
@@ -112,7 +119,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         _state.value = State.Connecting.Bluetooth
 
         try {
-            connection.value = bluetoothDevice.connect(
+            connection.value = _bluetoothDevice.connect(
                 scope.coroutineContext,
                 applicationContext,
                 autoConnectPredicate(),
@@ -358,7 +365,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         scope.cancel("$this closed")
     }
 
-    override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
+    override fun toString(): String = "Peripheral(_bluetoothDevice=$_bluetoothDevice)"
 }
 
 private val WriteType.intValue: Int
