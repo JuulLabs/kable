@@ -1,11 +1,14 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION
+import android.bluetooth.BluetoothGatt.GATT_INSUFFICIENT_ENCRYPTION
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.os.Handler
 import com.juul.kable.State.Disconnected
 import com.juul.kable.android.GattStatus
 import com.juul.kable.coroutines.childSupervisor
+import com.juul.kable.external.GATT_AUTH_FAIL
 import com.juul.kable.gatt.Callback
 import com.juul.kable.gatt.Response
 import com.juul.kable.gatt.Response.OnServicesDiscovered
@@ -42,7 +45,15 @@ import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 
+internal class BondRequiredException(val status: GattStatus) : IllegalStateException()
+
 private val GattSuccess = GattStatus(GATT_SUCCESS)
+
+private val BondingStatuses = listOf(
+    GattStatus(GATT_AUTH_FAIL),
+    GattStatus(GATT_INSUFFICIENT_AUTHENTICATION),
+    GattStatus(GATT_INSUFFICIENT_ENCRYPTION),
+)
 
 /**
  * Represents a Bluetooth Low Energy connection. [Connection] should be initialized with the
@@ -178,7 +189,8 @@ internal class Connection(
                 coroutineContext.ensureActive()
                 throw e.unwrapCancellationException()
             }
-        }.also(::checkResponse)
+        }.also(::checkBondingStatus)
+            .also(::checkResponse)
 
         // `guard` should always enforce a 1:1 matching of request-to-response, but if an Android
         // `BluetoothGattCallback` method is called out-of-order then we'll cast to the wrong type.
@@ -269,6 +281,10 @@ internal class Connection(
     }
 
     private fun dispose(cause: Throwable) = connectionJob.completeExceptionally(cause)
+}
+
+private fun checkBondingStatus(response: Response) {
+    if (response.status in BondingStatuses) throw BondRequiredException(response.status)
 }
 
 private fun checkResponse(response: Response) {

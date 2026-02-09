@@ -13,12 +13,22 @@ public abstract interface class com/juul/kable/Advertisement {
 
 public abstract interface class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral {
 	public abstract fun getAddress ()Ljava/lang/String;
+	public abstract fun getBondState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getType ()Lcom/juul/kable/AndroidPeripheral$Type;
 	public abstract fun requestConnectionPriority (Lcom/juul/kable/AndroidPeripheral$Priority;)Z
 	public abstract fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun write (Lcom/juul/kable/Characteristic;[BLcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun write (Lcom/juul/kable/Descriptor;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/juul/kable/AndroidPeripheral$Bond : java/lang/Enum {
+	public static final field Bonded Lcom/juul/kable/AndroidPeripheral$Bond;
+	public static final field Bonding Lcom/juul/kable/AndroidPeripheral$Bond;
+	public static final field None Lcom/juul/kable/AndroidPeripheral$Bond;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/AndroidPeripheral$Bond;
+	public static fun values ()[Lcom/juul/kable/AndroidPeripheral$Bond;
 }
 
 public final class com/juul/kable/AndroidPeripheral$Priority : java/lang/Enum {
