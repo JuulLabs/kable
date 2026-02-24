@@ -1,0 +1,17 @@
+package com.juul.kable.external
+
+import com.juul.kable.UUID
+import org.khronos.webgl.DataView
+import web.events.EventTarget
+import kotlin.js.Promise
+
+/**
+ * https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTDescriptor
+ * https://webbluetoothcg.github.io/web-bluetooth/#bluetoothremotegattdescriptor
+ */
+internal external class BluetoothRemoteGATTDescriptor : EventTarget {
+    val uuid: UUID
+    val characteristic: BluetoothRemoteGATTCharacteristic
+    fun readValue(): Promise<DataView>
+    fun writeValue(value: BufferSource): Promise<Nothing?>
+}
