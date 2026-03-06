@@ -56,7 +56,7 @@ public interface Characteristic {
     public val characteristicUuid: Uuid
 
     @JvmInline
-    public value class Properties internal constructor(public val value: Int) {
+    public value class Properties @ExperimentalApi constructor(public val value: Int) {
         internal infix fun or(other: Properties): Properties = Properties(value or other.value)
         internal infix fun and(other: Properties): Properties = Properties(value and other.value)
         override fun toString(): String =
