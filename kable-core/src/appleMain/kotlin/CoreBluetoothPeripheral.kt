@@ -23,4 +23,7 @@ public interface CoreBluetoothPeripheral : Peripheral {
 
     @Throws(CancellationException::class, IOException::class)
     public suspend fun readAsNSData(characteristic: Characteristic): NSData
+
+    @Throws(CancellationException::class, IOException::class)
+    public suspend fun openL2CapChannel(psm: UShort): L2CapSocket
 }
