@@ -125,6 +125,9 @@ public abstract interface class com/juul/kable/DiscoveredService : com/juul/kabl
 public abstract interface annotation class com/juul/kable/ExperimentalApi : java/lang/annotation/Annotation {
 }
 
+public abstract interface annotation class com/juul/kable/ExperimentalKableApi : java/lang/annotation/Annotation {
+}
+
 public abstract class com/juul/kable/Filter {
 }
 
