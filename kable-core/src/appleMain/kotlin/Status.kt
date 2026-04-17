@@ -1,3 +1,5 @@
+@file:OptIn(UnsafeNumber::class)
+
 package com.juul.kable
 
 import com.juul.kable.State.Disconnected.Status.Cancelled
@@ -8,6 +10,7 @@ import com.juul.kable.State.Disconnected.Status.PeripheralDisconnected
 import com.juul.kable.State.Disconnected.Status.Timeout
 import com.juul.kable.State.Disconnected.Status.Unknown
 import com.juul.kable.State.Disconnected.Status.UnknownDevice
+import kotlinx.cinterop.UnsafeNumber
 import platform.CoreBluetooth.CBErrorConnectionFailed
 import platform.CoreBluetooth.CBErrorConnectionLimitReached
 import platform.CoreBluetooth.CBErrorConnectionTimeout

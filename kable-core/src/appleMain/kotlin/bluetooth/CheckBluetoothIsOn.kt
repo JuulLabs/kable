@@ -1,9 +1,12 @@
+@file:OptIn(UnsafeNumber::class)
+
 package com.juul.kable.bluetooth
 
 import com.juul.kable.CentralManager
 import com.juul.kable.InternalError
 import com.juul.kable.UnmetRequirementException
 import com.juul.kable.UnmetRequirementReason.BluetoothDisabled
+import kotlinx.cinterop.UnsafeNumber
 import platform.CoreBluetooth.CBManagerState
 import platform.CoreBluetooth.CBManagerStatePoweredOff
 import platform.CoreBluetooth.CBManagerStatePoweredOn
