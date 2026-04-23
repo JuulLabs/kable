@@ -8,7 +8,7 @@ public actual fun Peripheral(
     builderAction: PeripheralBuilderAction,
 ): Peripheral {
     advertisement as ScanResultAndroidAdvertisement
-    return Peripheral(advertisement.bluetoothDevice, builderAction)
+    return Peripheral(advertisement._bluetoothDevice, builderAction)
 }
 
 @ExperimentalApi // Experimental while evaluating if this API introduces any footguns.
