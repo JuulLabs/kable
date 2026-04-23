@@ -5,7 +5,7 @@ atomicfu = "0.32.1"
 coroutines = "1.10.2"
 jna = "5.18.1"
 jvm-toolchain = "17"
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 tuulbox = "8.1.0"
 
 [libraries]
