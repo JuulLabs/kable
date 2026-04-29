@@ -25,6 +25,7 @@ kotlin {
     sourceSets {
         all {
             languageSettings {
+                optIn("com.juul.kable.ExperimentalApi")
                 optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")
             }

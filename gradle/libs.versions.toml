@@ -1,7 +1,7 @@
 [versions]
 android-compile = "35"
 android-min = "21"
-atomicfu = "0.31.0"
+atomicfu = "0.32.1"
 coroutines = "1.10.2"
 jna = "5.18.1"
 jvm-toolchain = "17"
@@ -9,10 +9,10 @@ kotlin = "2.2.21"
 tuulbox = "8.1.0"
 
 [libraries]
-androidx-core = { module = "androidx.core:core-ktx", version = "1.17.0" }
+androidx-core = { module = "androidx.core:core-ktx", version = "1.18.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
-equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.3.1" }
+equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.6.0" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -34,7 +34,7 @@ wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 android-library = { id = "com.android.library", version = "8.12.2" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
-dokka = { id = "org.jetbrains.dokka", version = "2.1.0" }
+dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "5.2.0" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.34.0" }
