@@ -1,3 +1,5 @@
+@file:OptIn(UnsafeNumber::class)
+
 package com.juul.kable
 
 import com.juul.kable.Bluetooth.Availability.Available
@@ -7,6 +9,7 @@ import com.juul.kable.Reason.Resetting
 import com.juul.kable.Reason.Unauthorized
 import com.juul.kable.Reason.Unknown
 import com.juul.kable.Reason.Unsupported
+import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow

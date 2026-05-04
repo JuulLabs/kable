@@ -1,3 +1,5 @@
+@file:OptIn(UnsafeNumber::class)
+
 package com.juul.kable
 
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent
@@ -13,6 +15,7 @@ import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation.Write
 import com.juul.kable.logs.detail
+import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -306,7 +309,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
             is NSNumber -> when (updatedDescriptor.isUnsignedShortValue) {
                 true -> value.unsignedShortValue.toByteArray(LittleEndian)
-                false -> value.unsignedLongValue.toByteArray(LittleEndian)
+                false -> value.unsignedLongLongValue.toByteArray(LittleEndian)
             }.toNSData()
 
             // This case handles if CBUUIDL2CAPPSMCharacteristicString is `UInt16`, as it is unclear
