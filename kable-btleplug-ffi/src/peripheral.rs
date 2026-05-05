@@ -125,10 +125,12 @@ impl Peripheral {
                             break;
                         },
                         Some(event) = events.next() => match event {
-                            CentralEvent::DeviceConnected(connected) =>
-                                if connected == id.platform { callbacks.connected() }
-                            CentralEvent::DeviceDisconnected(disconnected) =>
-                                if disconnected == id.platform {
+                            CentralEvent::DeviceConnected(connected)
+                                if connected == id.platform => {
+                                    callbacks.connected()
+                                }
+                            CentralEvent::DeviceDisconnected(disconnected)
+                                if disconnected == id.platform => {
                                     *cached_peripheral.lock().unwrap() = None;
                                     callbacks.disconnected()
                                 }
@@ -174,9 +176,10 @@ impl Peripheral {
                 _ = peripheral_token.cancelled() => break,
                 _ = connect_token.cancelled() => break,
                 Some(event) = events.next() => match event {
-                    CentralEvent::DeviceConnected(_) | CentralEvent::DeviceUpdated(_) => {
-                        if adapter.peripheral(&self.id.platform).await.is_ok() { break; }
-                    },
+                    CentralEvent::DeviceConnected(_) | CentralEvent::DeviceUpdated(_)
+                        if adapter.peripheral(&self.id.platform).await.is_ok() => {
+                            break;
+                        },
                     _ => {}
                 }
             }
