@@ -7,7 +7,7 @@ compose = "1.8.2"
 jvm = "17"
 kable = "0.40.0"
 kotlin = "2.3.21"
-kotlinx-coroutines = "1.10.2"
+kotlinx-coroutines = "1.11.0"
 krayon = "0.21.0"
 voyager = "1.1.0-beta03"
 
