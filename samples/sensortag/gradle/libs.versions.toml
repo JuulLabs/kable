@@ -17,11 +17,11 @@ compose-activity = { module = "androidx.activity:activity-compose", version = "1
 compose-ui = { module = "androidx.compose.ui:ui", version = "1.9.5" }
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.8.0-0.6.x-compat" }
+datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.8.0" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 kable = { module = "com.juul.kable:kable-core", version.ref = "kable" }
 kable-permissions = { module = "com.juul.kable:kable-default-permissions", version.ref = "kable" }
-khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.5.2" }
+khronicle = { module = "com.juul.khronicle:khronicle-core", version = "1.1.0" }
 krayon-axis = { module = "com.juul.krayon:axis", version.ref = "krayon" }
 krayon-compose = { module = "com.juul.krayon:compose", version.ref = "krayon" }
 krayon-scale = { module = "com.juul.krayon:scale", version.ref = "krayon" }

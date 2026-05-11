@@ -9,11 +9,6 @@ import com.juul.kable.characteristicOf
 import com.juul.kable.logs.Logging.Level.Events
 import com.juul.kable.service
 import com.juul.khronicle.Log
-import kotlin.coroutines.coroutineContext
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.uuid.Uuid
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +19,13 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
+import kotlin.coroutines.coroutineContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.Uuid
+
+private const val TAG = "SensorTag"
 
 const val movementService16bitUuid = 0xAA80
 val movementServiceUuid = SensorTag.BaseUuid + movementService16bitUuid
@@ -109,15 +111,15 @@ class SensorTag(private val peripheral: Peripheral) {
         .map { it * GyroMultiplier }
 
     suspend fun connect() {
-        Log.info { "Connecting" }
+        Log.info(tag = TAG) { "Connecting" }
         try {
             peripheral.connect().launch { monitorRssi() }
             _battery.value = readBatteryLevel()
             _periodMillis.value = readGyroPeriod()
             enableGyro()
-            Log.info { "Connected" }
+            Log.info(tag = TAG) { "Connected" }
         } catch (e: IOException) {
-            Log.warn(e) { "Connection attempt failed" }
+            Log.warn(tag = TAG, throwable = e) { "Connection attempt failed" }
             peripheral.disconnect()
         }
     }
@@ -131,13 +133,13 @@ class SensorTag(private val peripheral: Peripheral) {
             while (coroutineContext.isActive) {
                 _rssi.value = peripheral.rssi()
 
-                Log.debug { "RSSI: ${_rssi.value}" }
+                Log.debug(tag = TAG) { "RSSI: ${_rssi.value}" }
                 delay(rssiInterval)
             }
         } catch (e: UnsupportedOperationException) {
             // As of Chrome 128, RSSI is not yet supported (even with
             // `chrome://flags/#enable-experimental-web-platform-features` flag enabled).
-            Log.warn(e) { "RSSI is not supported" }
+            Log.warn(tag = TAG, throwable = e) { "RSSI is not supported" }
         }
     }
 
@@ -148,9 +150,9 @@ class SensorTag(private val peripheral: Peripheral) {
         val value = period.inWholeMilliseconds / 10
         val data = byteArrayOf(value.toByte())
 
-        Log.verbose { "Writing gyro period of $period" }
+        Log.verbose(tag = TAG) { "Writing gyro period of $period" }
         peripheral.write(movementPeriodCharacteristic, data, WithResponse)
-        Log.info { "Writing gyro period complete" }
+        Log.info(tag = TAG) { "Writing gyro period complete" }
     }
 
     /** Period within the range 100-2550 ms. */
@@ -160,9 +162,9 @@ class SensorTag(private val peripheral: Peripheral) {
     }
 
     private suspend fun enableGyro() {
-        Log.info { "Enabling gyro" }
+        Log.info(tag = TAG) { "Enabling gyro" }
         peripheral.write(movementConfigCharacteristic, byteArrayOf(0x7F, 0x0), WithResponse)
-        Log.info { "Gyro enabled" }
+        Log.info(tag = TAG) { "Gyro enabled" }
     }
 
     private suspend fun disableGyro() {

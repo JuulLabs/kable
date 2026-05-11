@@ -12,10 +12,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.io.IOException
 
+private const val TAG = "App/Headless"
+
 suspend fun CoroutineScope.headlessApp() {
-    Log.info { "Searching for SensorTag..." }
+    Log.info(tag = TAG) { "Searching for SensorTag..." }
     val advertisement = SensorTag.scanner.advertisements.first()
-    Log.info { "Found $advertisement" }
+    Log.info(tag = TAG) { "Found $advertisement" }
 
     val sensorTag = Peripheral(advertisement) {
         logging {
@@ -24,26 +26,26 @@ suspend fun CoroutineScope.headlessApp() {
     }.let(::SensorTag)
 
     sensorTag.gyro.onEach { rotation ->
-        Log.info { rotation.toString() }
+        Log.info(tag = TAG) { rotation.toString() }
     }.launchIn(this)
 
-    Log.info { "Configuring auto connector" }
+    Log.info(tag = TAG) { "Configuring auto connector" }
     sensorTag.state.onEach { state ->
-        Log.info { "Received state: $state" }
+        Log.info(tag = TAG) { "Received state: $state" }
         if (state is Disconnected) {
             try {
-                Log.verbose { "Attempting connection" }
+                Log.verbose(tag = TAG) { "Attempting connection" }
                 sensorTag.connect()
             } catch (e: IOException) {
-                Log.error(e) { "Connect failed." }
+                Log.error(tag = TAG, throwable = e) { "Connect failed." }
                 throw e
             }
-            Log.verbose { "Waiting to reconnect" }
+            Log.verbose(tag = TAG) { "Waiting to reconnect" }
             delay(2.seconds) // Throttle reconnects so we don't hammer the system if connection immediately drops.
         }
     }.launchIn(this).apply {
         invokeOnCompletion { cause ->
-            Log.warn(cause) { "Auto connector complete" }
+            Log.warn(tag = TAG, throwable = cause) { "Auto connector complete" }
         }
     }
 }

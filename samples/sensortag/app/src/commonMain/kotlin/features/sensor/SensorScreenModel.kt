@@ -30,6 +30,8 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+private const val TAG = "SensorScreenModel"
+
 class SensorScreenModel(
     bluetoothRequirements: BluetoothRequirements,
 ) : ScreenModel {
@@ -70,7 +72,7 @@ class SensorScreenModel(
 
     init {
         onDisconnected {
-            Log.info { "Reconnecting..." }
+            Log.info(tag = TAG) { "Reconnecting..." }
             sensorTag.connect()
         }
     }
