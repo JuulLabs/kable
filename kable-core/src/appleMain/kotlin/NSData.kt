@@ -1,9 +1,8 @@
-@file:OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
+@file:OptIn(ExperimentalForeignApi::class)
 
 package com.juul.kable
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.allocArrayOf
 import kotlinx.cinterop.convert

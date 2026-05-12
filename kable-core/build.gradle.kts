@@ -31,6 +31,7 @@ kotlin {
                 optIn("com.juul.kable.ExperimentalApi")
                 optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")
+                optIn("kotlinx.cinterop.UnsafeNumber")
             }
         }
 

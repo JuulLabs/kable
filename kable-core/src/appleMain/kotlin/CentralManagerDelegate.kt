@@ -1,5 +1,3 @@
-@file:OptIn(UnsafeNumber::class)
-
 package com.juul.kable
 
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidConnect
@@ -7,7 +5,6 @@ import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidDisconnect
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent.DidFailToConnect
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
 import kotlinx.cinterop.ObjCSignatureOverride
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

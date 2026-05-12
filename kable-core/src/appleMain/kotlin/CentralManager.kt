@@ -1,10 +1,7 @@
-@file:OptIn(UnsafeNumber::class)
-
 package com.juul.kable
 
 import com.juul.kable.logs.Logging
 import kotlinx.atomicfu.atomic
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCentralManager

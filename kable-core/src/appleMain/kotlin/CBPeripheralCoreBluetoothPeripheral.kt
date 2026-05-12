@@ -1,5 +1,3 @@
-@file:OptIn(UnsafeNumber::class)
-
 package com.juul.kable
 
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent
@@ -15,7 +13,6 @@ import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation.Write
 import com.juul.kable.logs.detail
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel

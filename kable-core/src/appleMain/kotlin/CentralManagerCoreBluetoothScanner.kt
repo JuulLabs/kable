@@ -1,5 +1,3 @@
-@file:OptIn(UnsafeNumber::class)
-
 package com.juul.kable
 
 import com.juul.kable.CentralManagerDelegate.Response.DidDiscoverPeripheral
@@ -7,7 +5,6 @@ import com.juul.kable.Filter.Service
 import com.juul.kable.UnmetRequirementReason.BluetoothDisabled
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance

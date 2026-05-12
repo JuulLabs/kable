@@ -1,9 +1,6 @@
-@file:OptIn(UnsafeNumber::class)
-
 package com.juul.kable
 
 import com.juul.kable.Characteristic.Properties
-import kotlinx.cinterop.UnsafeNumber
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
 import platform.CoreBluetooth.CBService
