@@ -8,7 +8,12 @@ import kotlin.js.Promise
 import kotlin.js.toBoolean
 import kotlin.js.toDouble
 
-/** Wrapper around `kotlinx.coroutines.await` which exists in both js and wasm, but has no expect-actual. */
+/**
+ * Workaround for regression in kotlinx.coroutines that fails to propagate Promise failures from JS as `JsException` when running on WASM.
+ *
+ * Problematic line: https://github.com/Kotlin/kotlinx.coroutines/blob/1.11.0/kotlinx-coroutines-core/wasmJs/src/Promise.wasm.kt#L11
+ * Changed in: https://github.com/Kotlin/kotlinx.coroutines/pull/4563
+ */
 internal expect suspend fun <T : JsAny?> Promise<T>.await(): T
 
 /** Syntax sugar for [await] that makes using native Kotlin types a little less verbose. */
