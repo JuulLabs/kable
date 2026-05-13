@@ -14,13 +14,13 @@ androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
-khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.6.0" }
+khronicle = { module = "com.juul.khronicle:khronicle-core", version = "1.1.0" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version = "0.5.0" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.8.0" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.0" }
 mockk = { module = "io.mockk:mockk", version = "1.14.9" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }
 tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.5.0" }
