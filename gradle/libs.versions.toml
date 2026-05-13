@@ -5,14 +5,14 @@ atomicfu = "0.32.1"
 coroutines = "1.10.2"
 jna = "5.18.1"
 jvm-toolchain = "17"
-kotlin = "2.2.21"
+kotlin = "2.3.21"
 tuulbox = "8.1.0"
 
 [libraries]
 androidx-core = { module = "androidx.core:core-ktx", version = "1.18.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
-equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.4.1" }
+equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "0.6.0" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -20,7 +20,7 @@ kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version = 
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.8.0" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.8.2" }
 mockk = { module = "io.mockk:mockk", version = "1.14.9" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }
 tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.5.0" }
