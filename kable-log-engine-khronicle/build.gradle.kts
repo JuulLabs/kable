@@ -5,16 +5,27 @@ plugins {
     kotlin("multiplatform")
 }
 
+fun isRunningOnMacOs() = System.getProperty("os.name").orEmpty().lowercase().startsWith("mac")
+
 kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
-    iosArm64()
-    iosX64()
+    // Build fails on Linux ARM64 host (when building Rust bindings for JAR distribution), so we
+    // explicitly only include Native targets when running on MacOS.
+    // https://youtrack.jetbrains.com/issue/KT-36871
+    // https://youtrack.jetbrains.com/issue/KT-42445
+    if (isRunningOnMacOs()) {
+        iosArm64()
+        iosSimulatorArm64()
+        iosX64()
+        macosArm64()
+        macosX64()
+    }
+
     js().browser()
-    macosArm64()
-    macosX64()
     jvm()
+    wasmJs().browser()
 
     sourceSets {
         commonMain.dependencies {

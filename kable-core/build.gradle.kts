@@ -8,22 +8,34 @@ plugins {
     kotlin("multiplatform")
 }
 
+fun isRunningOnMacOs() = System.getProperty("os.name").orEmpty().lowercase().startsWith("mac")
+
 kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
+    // Build fails on Linux ARM64 host (when building Rust bindings for JAR distribution), so we
+    // explicitly only include Native targets when running on MacOS.
+    // https://youtrack.jetbrains.com/issue/KT-36871
+    // https://youtrack.jetbrains.com/issue/KT-42445
+    if (isRunningOnMacOs()) {
+        iosArm64()
+        iosSimulatorArm64()
+        iosX64()
+        macosArm64()
+        macosX64()
+    }
+
     androidTarget().publishLibraryVariants("debug", "release")
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
     js().browser()
-    macosArm64()
-    macosX64()
     jvm()
+    wasmJs().browser()
 
     sourceSets {
         all {
             languageSettings {
+                optIn("com.juul.kable.ExperimentalApi")
+                optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")
             }
         }
@@ -31,7 +43,6 @@ kotlin {
         commonMain.dependencies {
             api(libs.kotlinx.coroutines.core)
             api(libs.kotlinx.io)
-            implementation(libs.tuulbox.collections)
         }
 
         commonTest.dependencies {
@@ -59,7 +70,9 @@ kotlin {
             implementation(libs.robolectric)
         }
 
-        jsMain.dependencies {
+        webMain.dependencies {
+            api(libs.kotlinx.browser)
+            api(libs.wrappers.browser)
             api(libs.wrappers.web)
             api(project.dependencies.platform(libs.wrappers.bom))
         }
