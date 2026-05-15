@@ -2,7 +2,7 @@
 android-compile = "36"
 android-min = "21"
 atomicfu = "0.32.1"
-coroutines = "1.10.2"
+coroutines = "1.11.0"
 jna = "5.18.1"
 jvm-toolchain = "17"
 kotlin = "2.3.21"
