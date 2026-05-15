@@ -136,6 +136,9 @@ public interface AndroidPeripheral : Peripheral {
      */
     public suspend fun requestMtu(mtu: Int): Int
 
+    public suspend fun createInsecureL2capChannel(psm: Int): L2CapSocket
+    public suspend fun createL2capChannel(psm: Int): L2CapSocket
+
     /**
      * @see Peripheral.write
      * @throws NotConnectedException if invoked without an established [connection][connect].
