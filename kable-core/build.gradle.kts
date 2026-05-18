@@ -24,6 +24,9 @@ kotlin {
         iosX64()
         macosArm64()
         macosX64()
+        watchosArm64()
+        watchosSimulatorArm64()
+        watchosDeviceArm64()
     }
 
     androidTarget().publishLibraryVariants("debug", "release")
@@ -37,6 +40,7 @@ kotlin {
                 optIn("com.juul.kable.ExperimentalApi")
                 optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")
+                optIn("kotlinx.cinterop.UnsafeNumber")
             }
         }
 
