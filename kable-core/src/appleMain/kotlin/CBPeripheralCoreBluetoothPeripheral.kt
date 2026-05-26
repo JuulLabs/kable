@@ -306,7 +306,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
             is NSNumber -> when (updatedDescriptor.isUnsignedShortValue) {
                 true -> value.unsignedShortValue.toByteArray(LittleEndian)
-                false -> value.unsignedLongValue.toByteArray(LittleEndian)
+                false -> value.unsignedLongLongValue.toByteArray(LittleEndian)
             }.toNSData()
 
             // This case handles if CBUUIDL2CAPPSMCharacteristicString is `UInt16`, as it is unclear
