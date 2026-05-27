@@ -4,7 +4,7 @@ import com.juul.kable.external.Bluetooth
 import kotlin.js.js
 
 private fun isBluetoothSupported(): Boolean =
-    js("typeof window !== 'undefined' && typeof window.navigator !== 'undefined' && window.navigator.bluetooth")
+    js("typeof window !== 'undefined' && typeof window.navigator !== 'undefined' && window.navigator.bluetooth !== 'undefined'")
 
 private fun jsBluetooth(): Bluetooth = js("window.navigator.bluetooth")
 
