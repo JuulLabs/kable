@@ -8,7 +8,7 @@ import kotlin.js.JsException
 import kotlin.js.thrownValue
 
 internal actual suspend fun isSupported(): Boolean {
-    val bluetooth = bluetoothOrNull ?: return false
+    val bluetooth = bluetoothOrNull() ?: return false
     val promise = try {
         bluetooth.getAvailability()
     } catch (e: JsException) {
