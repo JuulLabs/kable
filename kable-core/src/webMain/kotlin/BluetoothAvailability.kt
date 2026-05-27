@@ -32,7 +32,7 @@ public actual enum class Reason {
 private val AVAILABILITY_CHANGED = EventType<BluetoothAvailabilityChanged>("availabilitychanged")
 
 internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> =
-    bluetoothOrNull()?.let { bluetooth ->
+    bluetoothOrNull?.let { bluetooth ->
         callbackFlow {
             // https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/onavailabilitychanged
             val listener: (BluetoothAvailabilityChanged) -> Unit = { event ->
