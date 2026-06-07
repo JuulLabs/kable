@@ -1,3 +1,5 @@
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
 plugins {
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
