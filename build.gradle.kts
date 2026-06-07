@@ -8,6 +8,7 @@ buildscript {
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.android.kmp.library) apply false
     alias(libs.plugins.kotlinter) apply false
     alias(libs.plugins.maven.publish) apply false
     alias(libs.plugins.atomicfu) apply false

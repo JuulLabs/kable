@@ -2,7 +2,7 @@
 
 plugins {
     alias(libs.plugins.atomicfu)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kmp.library)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
     alias(libs.plugins.kotlinter)
