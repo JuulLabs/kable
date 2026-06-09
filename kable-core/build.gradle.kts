@@ -19,7 +19,7 @@ kotlin {
         compileSdk = libs.versions.android.compile.get().toInt()
         minSdk = libs.versions.android.min.get().toInt()
         namespace = "com.juul.kable"
-        withHostTest()
+        withHostTest { }
 
         lint {
             abortOnError = true
