@@ -18,11 +18,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v6
-      - run: ./gradlew jsBrowserDistribution
+      - run: ./gradlew wasmJsBrowserDistribution
       - run: >
           tar
           --dereference --hard-dereference
-          --directory app/build/dist/js/productionExecutable
+          --directory app/build/dist/wasmJs/productionExecutable
           -cvf '${{ runner.temp }}/artifact.tar'
           --exclude=.git
           --exclude=.github

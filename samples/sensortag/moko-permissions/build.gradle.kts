@@ -14,6 +14,7 @@ kotlin {
     jvm()
     macosX64()
     macosArm64()
+    wasmJs().browser()
 
     applyDefaultHierarchyTemplate()
 
@@ -24,6 +25,7 @@ kotlin {
         macosMain.get().dependsOn(nopMain)
         jsMain.get().dependsOn(nopMain)
         jvmMain.get().dependsOn(nopMain)
+        wasmJsMain.get().dependsOn(nopMain)
 
         commonMain.dependencies {
             implementation(libs.coroutines)

@@ -32,20 +32,28 @@ The iOS project is generated via:
 
 In Xcode, configure signing, then run.
 
-## JavaScript
+## Web
 
-![JavaScript browser app screen recording](artwork/javascript.gif)
+> [!IMPORTANT]
+> Web Bluetooth is only available on supported browsers, see
+> [Web Bluetooth API: Browser compatibility] for a list of supported browsers.
+
+### Web Assembly
 
 A live demo can be viewed [here](https://juullabs.github.io/sensortag), or to build and launch the
 demo within a browser window on your local machine, run:
 
 ```shell
-./gradlew jsBrowserDevelopmentRun
+./gradlew wasmJsBrowserDevelopmentRun
 ```
 
-> [!IMPORTANT]
-> Web Bluetooth is only available on supported browsers, see
-> [Web Bluetooth API: Browser compatibility] for a list of supported browsers.
+### JavaScript
+
+![JavaScript browser app screen recording](artwork/javascript.gif)
+
+```shell
+./gradlew jsBrowserDevelopmentRun
+```
 
 ## MacOS
 

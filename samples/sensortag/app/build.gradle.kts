@@ -28,6 +28,15 @@ kotlin {
         }
         binaries.executable()
     }
+    wasmJs {
+        outputModuleName = "sample"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "sample.js"
+            }
+        }
+        binaries.executable()
+    }
 
     jvm()
 
@@ -56,6 +65,7 @@ kotlin {
         iosMain.get().dependsOn(composeMain)
         jsMain.get().dependsOn(composeMain)
         jvmMain.get().dependsOn(composeMain)
+        wasmJsMain.get().dependsOn(composeMain)
 
         val notJsMain by creating {
             dependsOn(commonMain.get())
