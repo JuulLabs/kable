@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.juul.kable.SharedRepeatableAction.State
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.CancellationException
@@ -9,7 +8,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.job
-import kotlinx.coroutines.sync.withLock
 
 internal fun <T> CoroutineScope.sharedRepeatableAction(
     action: suspend (scope: CoroutineScope) -> T,
