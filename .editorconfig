@@ -4,6 +4,7 @@ ij_kotlin_allow_trailing_comma_on_call_site = true
 
 ktlint_standard_backing-property-naming = disabled
 ktlint_standard_blank-line-before-declaration = disabled
+ktlint_standard_blank-line-between-when-conditions = disabled
 ktlint_standard_chain-method-continuation = disabled
 ktlint_standard_class-signature = disabled
 ktlint_standard_comment-wrapping = disabled
@@ -18,6 +19,7 @@ ktlint_standard_property-wrapping = disabled
 ktlint_standard_statement-wrapping = disabled
 ktlint_standard_value-argument-comment = disabled
 ktlint_standard_value-parameter-comment = disabled
+ktlint_standard_when-entry-bracing = disabled
 
 # `string-template-indent` is disabled because it depends on `multiline-expression-wrapping`.
 ktlint_standard_multiline-expression-wrapping = disabled
