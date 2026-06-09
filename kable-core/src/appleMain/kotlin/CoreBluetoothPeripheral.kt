@@ -2,10 +2,14 @@ package com.juul.kable
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.io.IOException
+import platform.CoreBluetooth.CBPeripheral
 import platform.Foundation.NSData
 import kotlin.coroutines.cancellation.CancellationException
 
 public interface CoreBluetoothPeripheral : Peripheral {
+
+    @KableInternalApi
+    public val cbPeripheral: CBPeripheral
 
     @Throws(CancellationException::class, IOException::class)
     public suspend fun write(descriptor: Descriptor, data: NSData)

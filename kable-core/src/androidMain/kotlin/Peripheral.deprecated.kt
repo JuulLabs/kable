@@ -15,7 +15,7 @@ public actual fun CoroutineScope.peripheral(
     builderAction: PeripheralBuilderAction,
 ): Peripheral {
     advertisement as ScanResultAndroidAdvertisement
-    return peripheral(advertisement.bluetoothDevice, builderAction)
+    return peripheral(advertisement._bluetoothDevice, builderAction)
 }
 
 @Deprecated(
