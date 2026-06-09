@@ -1,7 +1,6 @@
 @file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 
 plugins {
-    alias(libs.plugins.atomicfu)
     alias(libs.plugins.android.kmp.library)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
@@ -61,6 +60,7 @@ kotlin {
         all {
             languageSettings {
                 optIn("com.juul.kable.ExperimentalApi")
+                optIn("kotlin.concurrent.atomics.ExperimentalAtomicApi")
                 optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")
                 optIn("kotlinx.cinterop.UnsafeNumber")
@@ -70,6 +70,7 @@ kotlin {
         commonMain.dependencies {
             api(libs.kotlinx.coroutines.core)
             api(libs.kotlinx.io)
+            implementation(libs.atomicfu)
         }
 
         commonTest.dependencies {
@@ -83,11 +84,6 @@ kotlin {
             api(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.core)
             implementation(libs.androidx.startup)
-
-            // Workaround for AtomicFU plugin not automatically adding JVM dependency for Android.
-            // https://github.com/Kotlin/kotlinx-atomicfu/issues/145
-            implementation(libs.atomicfu)
-
             implementation(libs.tuulbox.coroutines)
         }
 
