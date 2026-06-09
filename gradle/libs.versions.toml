@@ -1,4 +1,5 @@
 [versions]
+agp = "9.2.1"
 android-compile = "37"
 android-min = "21"
 coroutines = "1.11.0"
@@ -30,7 +31,8 @@ wrappers-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser" }
 wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 
 [plugins]
-android-library = { id = "com.android.library", version = "8.13.2" }
+android-kmp-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }
 dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
