@@ -2,21 +2,22 @@ package com.juul.kable
 
 import com.juul.kable.OnDemandThreadingStrategy.acquire
 import com.juul.kable.OnDemandThreadingStrategy.release
-import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
-private val threadNumber = atomic(0)
-private fun generateThreadName() = "Kable#${threadNumber.incrementAndGet()}"
+private val threadNumber = AtomicInt(0)
+private fun generateThreadName() = "Kable#${threadNumber.incrementAndFetch()}"
 
 public interface ThreadingStrategy {
     public fun acquire(): Threading

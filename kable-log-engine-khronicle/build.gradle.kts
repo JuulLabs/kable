@@ -1,7 +1,9 @@
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
 plugins {
-    id("com.vanniktech.maven.publish")
-    id("org.jetbrains.dokka")
-    id("org.jmailen.kotlinter")
+    alias(libs.plugins.maven.publish)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlinter)
     kotlin("multiplatform")
 }
 
