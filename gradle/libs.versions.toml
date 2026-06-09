@@ -1,11 +1,11 @@
 [versions]
 android-compile = "36"
 android-min = "21"
-atomicfu = "0.32.1"
+atomicfu = "0.33.0"
 coroutines = "1.11.0"
 jna = "5.19.0"
 jvm-toolchain = "17"
-kotlin = "2.3.21"
+kotlin = "2.4.0"
 tuulbox = "8.1.0"
 
 [libraries]
@@ -21,12 +21,12 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.0" }
-mockk = { module = "io.mockk:mockk", version = "1.14.9" }
+mockk = { module = "io.mockk:mockk", version = "1.14.11" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }
 tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.5.0" }
 tuulbox-collections = { module = "com.juul.tuulbox:collections", version.ref = "tuulbox" }
 tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2025.12.6" }
+wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2026.6.3" }
 wrappers-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser" }
 wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 
