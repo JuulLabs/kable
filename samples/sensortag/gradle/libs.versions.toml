@@ -9,7 +9,7 @@ kable = "0.43.1"
 kotlin = "2.4.0"
 kotlinx-coroutines = "1.11.0"
 krayon = "0.24.0"
-voyager = "1.1.0-beta03"
+voyager = "2.2.21-1.10.3"
 
 [libraries]
 androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version = "2.10.0" }
