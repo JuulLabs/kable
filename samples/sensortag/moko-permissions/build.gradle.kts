@@ -11,12 +11,10 @@ kotlin {
         compileSdk = libs.versions.android.compile.get().toInt()
         minSdk = libs.versions.android.min.get().toInt()
     }
-    iosX64()
     iosArm64()
     iosSimulatorArm64()
     js().browser()
     jvm()
-    macosX64()
     macosArm64()
     wasmJs().browser()
 
