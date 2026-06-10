@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
@@ -9,7 +9,11 @@ plugins {
 kotlin {
     jvmToolchain(libs.versions.jvm.get().toInt())
 
-    androidTarget()
+    android {
+        namespace = "com.juul.sensortag"
+        compileSdk = libs.versions.android.compile.get().toInt()
+        minSdk = libs.versions.android.min.get().toInt()
+    }
     iosArm64 {
         binaries.framework {
             baseName = "ComposeApp"
@@ -108,39 +112,6 @@ kotlin {
             implementation(libs.androidx.lifecycle)
         }
     }
-}
-
-android {
-    namespace = "com.juul.sensortag"
-    compileSdk = libs.versions.android.compile.get().toInt()
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
-    defaultConfig {
-        applicationId = "com.juul.sensortag.android"
-        minSdk = libs.versions.android.min.get().toInt()
-        targetSdk = libs.versions.android.target.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildFeatures.compose = true
-
-    // Provides `java.time` for kotlinx.datetime on API < 26.
-    // https://github.com/Kotlin/kotlinx-datetime?tab=readme-ov-file#using-in-your-projects
-    compileOptions.isCoreLibraryDesugaringEnabled = true
-}
-
-dependencies {
-    // Provides `java.time` for kotlinx.datetime on Android API < 26.
-    // https://github.com/Kotlin/kotlinx-datetime?tab=readme-ov-file#using-in-your-projects
-    coreLibraryDesugaring(libs.desugar)
 }
 
 compose {

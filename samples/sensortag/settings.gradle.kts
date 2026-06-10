@@ -14,12 +14,13 @@ plugins {
 }
 
 include(
-    "app",
+    "android",
     "bluetooth",
     "ios",
     "moko-permissions",
     "moko-permissions-bluetooth",
     "moko-permissions-compose",
+    "shared",
 )
 
 // Configure sibling composite projects (`../<project>`) by adding `composite.<project>=true` to `local.properties`.

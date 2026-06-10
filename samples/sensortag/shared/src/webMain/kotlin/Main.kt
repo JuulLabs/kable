@@ -1,5 +1,4 @@
 import androidx.compose.ui.ExperimentalComposeUiApi
-import com.juul.sensortag.App
 import com.juul.sensortag.configureLogging
 
 @OptIn(ExperimentalComposeUiApi::class)

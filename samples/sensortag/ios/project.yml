@@ -30,4 +30,4 @@ targets:
       - path: Resources
         buildPhase: resources
     dependencies:
-      - framework: ../app/build/bin/iosArm64/debugFramework/ComposeApp.framework
+      - framework: ../shared/build/bin/iosArm64/debugFramework/ComposeApp.framework

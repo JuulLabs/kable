@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
@@ -9,7 +9,11 @@ kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.get().toInt())
 
-    androidTarget()
+    android {
+        namespace = "com.juul.sensortag.bluetooth"
+        compileSdk = libs.versions.android.compile.get().toInt()
+        minSdk = libs.versions.android.min.get().toInt()
+    }
     iosArm64()
     js().browser()
     jvm()
@@ -29,11 +33,4 @@ kotlin {
             implementation(libs.tuulbox.coroutines)
         }
     }
-}
-
-android {
-    namespace = "com.juul.sensortag.bluetooth"
-    compileSdk = libs.versions.android.compile.get().toInt()
-    defaultConfig.minSdk = libs.versions.android.min.get().toInt()
-    buildFeatures.compose = true
 }

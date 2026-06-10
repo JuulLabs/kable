@@ -24,7 +24,7 @@ jobs:
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v6
       - run: brew install xcodegen
-      - run: ./gradlew generateXcodeProject
+      - run: ./gradlew :ios:generateXcodeProject
       - run: >
           xcodebuild
           -project SensorTag.xcodeproj

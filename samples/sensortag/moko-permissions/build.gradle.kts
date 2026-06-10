@@ -1,12 +1,16 @@
 plugins {
-    id("com.android.library")
-    kotlin("multiplatform")
+    alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 kotlin {
     jvmToolchain(libs.versions.jvm.get().toInt())
 
-    androidTarget()
+    android {
+        namespace = "dev.icerock.moko.permissions"
+        compileSdk = libs.versions.android.compile.get().toInt()
+        minSdk = libs.versions.android.min.get().toInt()
+    }
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -36,10 +40,4 @@ kotlin {
             implementation(libs.androidx.lifecycle)
         }
     }
-}
-
-android {
-    namespace = "dev.icerock.moko.permissions"
-    compileSdk = libs.versions.android.compile.get().toInt()
-    defaultConfig.minSdk = libs.versions.android.min.get().toInt()
 }

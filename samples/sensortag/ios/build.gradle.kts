@@ -10,7 +10,7 @@ tasks.register<Delete>("clean") {
 tasks.register<Exec>("generateXcodeProject") {
     group = "Project Setup"
     description = "Use xcodegen to create an Xcode project"
-    dependsOn(tasks.getByPath(":app:linkDebugFrameworkIosArm64"))
+    dependsOn(tasks.getByPath(":shared:linkDebugFrameworkIosArm64"))
     val paths = listOf(
         "/usr/local/bin/xcodegen",
         "/opt/homebrew/bin/xcodegen",
