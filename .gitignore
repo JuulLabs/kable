@@ -1,7 +1,10 @@
+*.xcodeproj/
 .DS_Store
 .gradle
 .idea
 .kotlin/
+.sdkmanrc
 build/
-local.properties
+Info.plist
 kable-btleplug-ffi/target/
+local.properties

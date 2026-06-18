@@ -6,8 +6,9 @@ plugins {
     alias(libs.plugins.serialization)
 }
 
+@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
-    jvmToolchain(libs.versions.jvm.get().toInt())
+    jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
     android {
         namespace = "com.juul.sensortag"
@@ -20,7 +21,7 @@ kotlin {
             binaryOption("bundleId", "com.juul.sensortag.ios")
             binaryOption("bundleShortVersionString", "0.0.1")
             binaryOption("bundleVersion", "1")
-            export(libs.coroutines)
+            export(libs.kotlinx.coroutines)
         }
     }
     js {
@@ -74,7 +75,7 @@ kotlin {
         jvmMain.get().dependsOn(notJsMain)
 
         commonMain.dependencies {
-            api(libs.coroutines)
+            api(libs.kotlinx.coroutines)
             implementation(compose.foundation)
             implementation(compose.material)
             implementation(compose.materialIconsExtended)
@@ -100,7 +101,7 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation(libs.coroutines.swing)
+            implementation(libs.kotlinx.coroutines.swing)
         }
 
         notJsMain.dependencies {
