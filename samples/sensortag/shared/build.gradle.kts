@@ -53,7 +53,7 @@ kotlin {
 
     sourceSets {
         all {
-            languageSettings.optIn("com.juul.kable.ExperimentalApi")
+            languageSettings.optIn("com.juul.kable.ExperimentalKableApi")
             languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
         }
 
