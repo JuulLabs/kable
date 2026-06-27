@@ -51,7 +51,6 @@ import com.juul.kable.btleplug.ffi.Uuid as FfiUuid
 private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
 
-@OptIn(ExperimentalApi::class)
 internal class BtleplugPeripheral(
     override val identifier: Identifier,
     private val onServicesDiscovered: ServicesDiscoveredAction,
@@ -93,7 +92,7 @@ internal class BtleplugPeripheral(
 
     internal val ffi = com.juul.kable.btleplug.ffi.Peripheral(identifier.ffi, callbacks)
 
-    private val observers = Observers<ByteArray>(this, logging) { cause ->
+    private val observers = Observers<ByteArray>(this, logging, false) { cause ->
         logger.error(cause) { message = "Exception in observers" }
     }
 

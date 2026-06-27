@@ -55,6 +55,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
     private val disconnectTimeout: Duration,
+    private val forceCharacteristicEqualityByUuid: Boolean,
 ) : BasePeripheral(cbPeripheral.identifier.toUuid()), CoreBluetoothPeripheral {
 
     private val central = CentralManager.Default
@@ -79,13 +80,25 @@ internal class CBPeripheralCoreBluetoothPeripheral(
                 message = "Bluetooth powered off"
                 detail("state", state)
             }
-            disconnect()
+
+            // When bluetooth is turned off from Control Center, the system does not provide
+            // disconnected events to the peripheral delegate, so we assume (explicitly set) the
+            // state as `Disconnected`.
+            // See https://github.com/JuulLabs/kable/issues/959 for more details.
+            _state.value = State.Disconnected()
+
+            disconnect("Bluetooth powered off")
         }
     }
 
     private val connectAction = scope.sharedRepeatableAction(::establishConnection)
 
-    private val observers = Observers<NSData>(this, logging, exceptionHandler = observationExceptionHandler)
+    private val observers = Observers<NSData>(
+        this,
+        logging,
+        forceCharacteristicEqualityByUuid,
+        exceptionHandler = observationExceptionHandler,
+    )
     private val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
 
     private val _services = MutableStateFlow<List<PlatformDiscoveredService>?>(null)
@@ -143,8 +156,12 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         connectAction.awaitConnect()
 
     override suspend fun disconnect() {
+        disconnect("Disconnect requested")
+    }
+
+    private suspend fun disconnect(message: String) {
         connectAction.cancelAndJoin(
-            CancellationException(NotConnectedException("Disconnect requested")),
+            CancellationException(NotConnectedException(message)),
         )
     }
 
@@ -223,7 +240,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             observers
                 .characteristicChanges
                 .onSubscription { central.readValue(cbPeripheral, platformCharacteristic) }
-                .first { event -> event.isAssociatedWith(characteristic) }
+                .first { event -> event.isAssociatedWith(characteristic, forceCharacteristicEqualityByUuid) }
         }
 
         return when (event) {
@@ -289,7 +306,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
             is NSNumber -> when (updatedDescriptor.isUnsignedShortValue) {
                 true -> value.unsignedShortValue.toByteArray(LittleEndian)
-                false -> value.unsignedLongValue.toByteArray(LittleEndian)
+                false -> value.unsignedLongLongValue.toByteArray(LittleEndian)
             }.toNSData()
 
             // This case handles if CBUUIDL2CAPPSMCharacteristicString is `UInt16`, as it is unclear

@@ -1,7 +1,6 @@
 package com.juul.kable
 
 import com.juul.kable.logs.Logging
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import platform.CoreBluetooth.CBCentralManager
@@ -9,6 +8,7 @@ import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBCharacteristicWriteType
 import platform.CoreBluetooth.CBPeripheral
 import platform.Foundation.NSData
+import kotlin.concurrent.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.uuid.Uuid
@@ -35,7 +35,7 @@ public class CentralManager internal constructor(
 
     public companion object {
 
-        private val configuration = atomic<Configuration?>(null)
+        private val configuration = AtomicReference<Configuration?>(null)
         private val lazyDefault = lazy { CentralManager(configuration.value?.toOptions()) }
         internal val Default by lazyDefault
 

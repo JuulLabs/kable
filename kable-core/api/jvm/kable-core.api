@@ -52,6 +52,7 @@ public abstract interface class com/juul/kable/Characteristic {
 
 public final class com/juul/kable/Characteristic$Properties {
 	public static final synthetic fun box-impl (I)Lcom/juul/kable/Characteristic$Properties;
+	public static fun constructor-impl (I)I
 	public fun equals (Ljava/lang/Object;)Z
 	public static fun equals-impl (ILjava/lang/Object;)Z
 	public static final fun equals-impl0 (II)Z
@@ -267,10 +268,12 @@ public final class com/juul/kable/Peripheral$DefaultImpls {
 
 public final class com/juul/kable/PeripheralBuilder {
 	public final fun getDisconnectTimeout-UwyO8pc ()J
+	public final fun getForceCharacteristicEqualityByUuid ()Z
 	public final fun logging (Lkotlin/jvm/functions/Function1;)V
 	public final fun observationExceptionHandler (Lkotlin/jvm/functions/Function3;)V
 	public final fun onServicesDiscovered (Lkotlin/jvm/functions/Function2;)V
 	public final fun setDisconnectTimeout-LRDsOJo (J)V
+	public final fun setForceCharacteristicEqualityByUuid (Z)V
 }
 
 public final class com/juul/kable/PeripheralKt {

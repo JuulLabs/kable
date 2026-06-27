@@ -18,14 +18,18 @@ internal sealed class ObservationEvent<out T> {
     object Disconnected : ObservationEvent<Nothing>()
 }
 
-internal fun <T> ObservationEvent<T>.isAssociatedWith(characteristic: Characteristic): Boolean {
+internal fun <T> ObservationEvent<T>.isAssociatedWith(
+    characteristic: Characteristic,
+    forceCharacteristicEqualityByUuid: Boolean,
+): Boolean {
     val eventCharacteristic = this.characteristic
     return when {
         // `characteristic` is null for Disconnected, which applies to all characteristics.
         eventCharacteristic == null -> true
 
-        eventCharacteristic is DiscoveredCharacteristic && characteristic is DiscoveredCharacteristic ->
-            eventCharacteristic == characteristic
+        !forceCharacteristicEqualityByUuid &&
+            eventCharacteristic is DiscoveredCharacteristic &&
+            characteristic is DiscoveredCharacteristic -> eventCharacteristic == characteristic
 
         else ->
             eventCharacteristic.characteristicUuid == characteristic.characteristicUuid &&

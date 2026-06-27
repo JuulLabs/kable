@@ -21,7 +21,7 @@ public fun Peripheral(
 public fun Peripheral(
     identifier: Identifier,
     builderAction: PeripheralBuilderAction = {},
-): Peripheral = Peripheral(getBluetoothAdapter().getRemoteDevice(identifier), builderAction)
+): Peripheral = Peripheral(getBluetoothAdapter().getRemoteDevice(identifier.uppercase()), builderAction)
 
 public fun Peripheral(
     bluetoothDevice: BluetoothDevice,
