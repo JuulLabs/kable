@@ -15,6 +15,7 @@ import com.juul.kable.logs.Logging.DataProcessor.Operation.Write
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 import kotlinx.io.IOException
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse
@@ -46,6 +48,7 @@ import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.dataUsingEncoding
 import platform.darwin.UInt16
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse as CBWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse as CBWithoutResponse
 
@@ -57,6 +60,8 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val disconnectTimeout: Duration,
     private val forceCharacteristicEqualityByUuid: Boolean,
 ) : BasePeripheral(cbPeripheral.identifier.toUuid()), CoreBluetoothPeripheral {
+
+    private val writeWithoutResponseTimeout = 2.seconds
 
     private val central = CentralManager.Default
 
@@ -213,7 +218,15 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             }
             WithoutResponse -> connectionOrThrow().guard.withLock {
                 if (!canSendWriteWithoutResponse.updateAndGet { cbPeripheral.canSendWriteWithoutResponse }) {
-                    canSendWriteWithoutResponse.first { it }
+                    try {
+                        withTimeout(writeWithoutResponseTimeout) {
+                            canSendWriteWithoutResponse.first { it }
+                        }
+                    } catch (e: TimeoutCancellationException) {
+                        logger.warn {
+                            message = "Timed out waiting for canSendWriteWithoutResponse, proceeding with write attempt"
+                        }
+                    }
                 }
                 central.writeValue(cbPeripheral, data, platformCharacteristic, CBWithoutResponse)
             }
