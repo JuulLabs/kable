@@ -1,10 +1,10 @@
 name: CI
 on:
   pull_request:
-  # Trigger on merges to `main` to allow `gradle/gradle-build-action` runs to write their caches.
-  # https://github.com/gradle/gradle-build-action#using-the-caches-read-only
   push:
     branches:
+      # Trigger on merges to `main` to allow `gradle/actions/setup-gradle` to write its caches.
+      # https://github.com/gradle/actions/blob/main/docs/setup-gradle.md#using-the-cache-read-only
       - main
 
 jobs:
@@ -24,8 +24,8 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
       - uses: gradle/actions/setup-gradle@v6
       - run: ./gradlew :kable-core:compileKotlinJvm
       - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com *.jar
@@ -50,8 +50,8 @@ jobs:
           merge-multiple: true
       - uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
       - uses: gradle/actions/setup-gradle@v6
 
       - run: ./gradlew assemble -PsuppressWarnings=true

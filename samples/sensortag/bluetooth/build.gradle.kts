@@ -5,9 +5,10 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
 
+@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
     explicitApi()
-    jvmToolchain(libs.versions.jvm.get().toInt())
+    jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
     android {
         namespace = "com.juul.sensortag.bluetooth"
@@ -22,7 +23,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(libs.coroutines)
+            api(libs.kotlinx.coroutines)
             api(projects.mokoPermissionsBluetooth)
             api(projects.mokoPermissionsCompose)
         }

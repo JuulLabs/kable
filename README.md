@@ -659,7 +659,7 @@ limitations under the License.
 [Bluetooth permissions]: https://developer.android.com/develop/connectivity/bluetooth/bt-permissions
 [Coroutine scope]: https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
-[SensorTag sample app]: https://github.com/JuulLabs/sensortag
+[SensorTag sample app]: samples/sensortag
 [`Advertisement`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-advertisement/index.html
 [`Characteristic`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-characteristic/index.html
 [`Connected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-connected/index.html
