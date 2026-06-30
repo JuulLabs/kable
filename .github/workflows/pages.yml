@@ -11,22 +11,37 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
       - uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: true
-          validate-wrappers: true
 
       - run: ./gradlew dokkaGenerate
       - run: >
           tar
+          --verbose
           --dereference --hard-dereference
           --directory build/dokkaHtmlMultiModule
-          -cvf '${{ runner.temp }}/artifact.tar'
+          --create --file '${{ runner.temp }}/artifact.tar'
           --exclude=.git
           --exclude=.github
           .
+
+      - run: ./gradlew :shared:wasmJsBrowserDistribution
+        working-directory: samples/sensortag
+
+      - run: >
+          tar
+          --verbose
+          --dereference --hard-dereference
+          --directory shared/build/dist/wasmJs/productionExecutable
+          --transform 's|^|sensortag/|'
+          --append --file '${{ runner.temp }}/artifact.tar'
+          --exclude=.git
+          --exclude=.github
+          .
+        working-directory: samples/sensortag
 
       - uses: actions/upload-artifact@v7
         with:
