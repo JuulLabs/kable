@@ -2,10 +2,9 @@
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: [
     'config:recommended',
+    ':disableDependencyDashboard',
+    ':disableRateLimiting',
   ],
-  prHourlyLimit: 0,
-  prConcurrentLimit: 0,
-  dependencyDashboard: false,
   customManagers: [
     // Update the JDK version in .sdkmanrc with the latest Temurin release.
     {
