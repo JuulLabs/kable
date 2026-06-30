@@ -20,6 +20,8 @@ public interface AndroidPeripheral : Peripheral {
 
     public enum class Priority { Low, Balanced, High }
 
+    public enum class Bond { None, Bonding, Bonded }
+
     public enum class Type {
 
         /** https://developer.android.com/reference/android/bluetooth/BluetoothDevice#DEVICE_TYPE_CLASSIC */
@@ -160,4 +162,6 @@ public interface AndroidPeripheral : Peripheral {
      * is negotiated.
      */
     public val mtu: StateFlow<Int?>
+
+    public val bondState: StateFlow<Bond>
 }
