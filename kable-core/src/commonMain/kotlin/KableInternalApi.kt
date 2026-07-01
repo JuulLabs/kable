@@ -1,31 +1,17 @@
 package com.juul.kable
 
-import com.juul.kable.logs.Logger
-import com.juul.kable.logs.Logging
+import kotlin.RequiresOptIn.Level.ERROR
+import kotlin.annotation.AnnotationRetention.BINARY
+import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.annotation.AnnotationTarget.PROPERTY
 
 /**
- * ¡¡¡Use At Your Own Risk!!!
- *
- * Marks declarations that are internal to Kable. These declarations are exposed so that users of
- * the library can do more advanced or as of yet unimplemented things. Usage of these declarations
- * can break the usage of Kable and therefore bugs related to the usage of these declarations should
- * not be brought up to the Kable maintainers.
+ * Marks declarations that are internal to Kable. Use at your own risk, as misuse of these APIs is
+ * likely to break Kable's internal machinery. These APIs may be removed in a future release.
  */
 @MustBeDocumented
-@Retention(AnnotationRetention.BINARY)
-@RequiresOptIn(level = RequiresOptIn.Level.ERROR)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FUNCTION)
+@RequiresOptIn(message = "This declaration is internal, use at your own risk.", level = ERROR)
+@Retention(BINARY)
+@Target(CLASS, PROPERTY, FUNCTION)
 public annotation class KableInternalApi
-
-private var hasDisplayedInternalLogWarning = false
-
-internal fun displayInternalLogWarning(logging: Logging?) {
-    if (!hasDisplayedInternalLogWarning && logging != null) {
-        val logger = Logger(logging, "Kable/InternalApi", null)
-        logger.warn {
-            message =
-                "You are using an internal API. Make sure you know what you are doing. Incorrect usage could break internal Kable state. Bugs related to internal API usage will be deprioritized by the Kable maintainers."
-        }
-        hasDisplayedInternalLogWarning = true
-    }
-}

@@ -51,23 +51,20 @@ import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse as CBWithoutR
 
 @OptIn(KableInternalApi::class)
 internal class CBPeripheralCoreBluetoothPeripheral(
-    private val _cbPeripheral: CBPeripheral,
+
+    @KableInternalApi
+    override val cbPeripheral: CBPeripheral,
+
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
     private val logging: Logging,
     private val disconnectTimeout: Duration,
     private val forceCharacteristicEqualityByUuid: Boolean,
-) : BasePeripheral(_cbPeripheral.identifier.toUuid()), CoreBluetoothPeripheral {
-
-    override val cbPeripheral: CBPeripheral = _cbPeripheral
-        get() {
-            displayInternalLogWarning(logging)
-            return field
-        }
+) : BasePeripheral(cbPeripheral.identifier.toUuid()), CoreBluetoothPeripheral {
 
     private val central = CentralManager.Default
 
-    override val identifier: Identifier = _cbPeripheral.identifier.toUuid()
+    override val identifier: Identifier = cbPeripheral.identifier.toUuid()
     private val logger = Logger(logging, identifier = identifier.toString())
 
     private val _state = MutableStateFlow<State>(State.Disconnected())
@@ -107,7 +104,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         exceptionHandler = observationExceptionHandler,
     )
     private val canSendWriteWithoutResponse =
-        MutableStateFlow(_cbPeripheral.canSendWriteWithoutResponse)
+        MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
 
     private val _services = MutableStateFlow<List<PlatformDiscoveredService>?>(null)
     override val services = _services.asStateFlow()
@@ -120,7 +117,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
 
     @ExperimentalApi
     override val name: String?
-        get() = _cbPeripheral.name
+        get() = cbPeripheral.name
 
     private suspend fun establishConnection(scope: CoroutineScope): CoroutineScope {
         central.checkBluetoothIsOn()
@@ -131,7 +128,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         try {
             connection.value = central.connectPeripheral(
                 scope.coroutineContext,
-                _cbPeripheral,
+                cbPeripheral,
                 createPeripheralDelegate(),
                 _state,
                 _services,
@@ -178,13 +175,13 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             WithResponse -> CBCharacteristicWriteWithResponse
             WithoutResponse -> CBCharacteristicWriteWithoutResponse
         }
-        return _cbPeripheral.maximumWriteValueLengthForType(type).toInt()
+        return cbPeripheral.maximumWriteValueLengthForType(type).toInt()
     }
 
     @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.
     @Throws(CancellationException::class, IOException::class)
     override suspend fun rssi(): Int = connectionOrThrow().execute<DidReadRssi> {
-        _cbPeripheral.readRSSI()
+        cbPeripheral.readRSSI()
     }.rssi.intValue
 
     private suspend fun discoverServices() {
@@ -217,14 +214,14 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         val platformCharacteristic = servicesOrThrow().obtain(characteristic, writeType.properties)
         when (writeType) {
             WithResponse -> connectionOrThrow().execute<DidWriteValueForCharacteristic> {
-                _cbPeripheral.writeValue(data, platformCharacteristic, CBWithResponse)
+                cbPeripheral.writeValue(data, platformCharacteristic, CBWithResponse)
             }
 
             WithoutResponse -> connectionOrThrow().guard.withLock {
-                if (!canSendWriteWithoutResponse.updateAndGet { _cbPeripheral.canSendWriteWithoutResponse }) {
+                if (!canSendWriteWithoutResponse.updateAndGet { cbPeripheral.canSendWriteWithoutResponse }) {
                     canSendWriteWithoutResponse.first { it }
                 }
-                central.writeValue(_cbPeripheral, data, platformCharacteristic, CBWithoutResponse)
+                central.writeValue(cbPeripheral, data, platformCharacteristic, CBWithoutResponse)
             }
         }
     }
@@ -248,7 +245,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         val event = connectionOrThrow().guard.withLock {
             observers
                 .characteristicChanges
-                .onSubscription { central.readValue(_cbPeripheral, platformCharacteristic) }
+                .onSubscription { central.readValue(cbPeripheral, platformCharacteristic) }
                 .first { event ->
                     event.isAssociatedWith(
                         characteristic,
@@ -375,7 +372,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private fun onStateChanged(action: (State) -> Unit) {
         central.delegate
             .connectionEvents
-            .filter { event -> event.identifier == _cbPeripheral.identifier }
+            .filter { event -> event.identifier == cbPeripheral.identifier }
             .map(ConnectionEvent::toState)
             .onEach(action)
             .launchIn(scope)
@@ -392,22 +389,22 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         canSendWriteWithoutResponse,
         observers.characteristicChanges,
         logging,
-        _cbPeripheral.identifier.UUIDString,
+        cbPeripheral.identifier.UUIDString,
     )
 
     override fun close() {
         scope.cancel("$this closed")
     }
 
-    override fun toString(): String = "Peripheral(cbPeripheral=$_cbPeripheral)"
+    override fun toString(): String = "Peripheral(cbPeripheral=$cbPeripheral)"
 }
 
 private val CBDescriptor.isUnsignedShortValue: Boolean
     get() = UUID.UUIDString.let {
         it == CBUUIDCharacteristicExtendedPropertiesString ||
-                it == CBUUIDClientCharacteristicConfigurationString ||
-                it == CBUUIDServerCharacteristicConfigurationString ||
-                it == CBUUIDL2CAPPSMCharacteristicString
+            it == CBUUIDClientCharacteristicConfigurationString ||
+            it == CBUUIDServerCharacteristicConfigurationString ||
+            it == CBUUIDL2CAPPSMCharacteristicString
     }
 
 private val Any?.type: String?

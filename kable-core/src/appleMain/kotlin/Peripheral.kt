@@ -7,7 +7,7 @@ public actual fun Peripheral(
     builderAction: PeripheralBuilderAction,
 ): Peripheral {
     advertisement as CBPeripheralCoreBluetoothAdvertisement
-    return Peripheral(advertisement._cbPeripheral, builderAction)
+    return Peripheral(advertisement.cbPeripheral, builderAction)
 }
 
 @Suppress("FunctionName") // Builder function.

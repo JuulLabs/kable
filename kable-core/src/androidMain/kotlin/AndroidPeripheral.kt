@@ -163,7 +163,8 @@ public interface AndroidPeripheral : Peripheral {
     public val mtu: StateFlow<Int?>
 
     /**
-     * Underlying [BluetoothDevice] that the [AndroidPeripheral] represents.
+     * This is an internal API and may be removed from a future release. If you are using it, please
+     * open an issue and report your use case.
      */
     @KableInternalApi
     public val bluetoothDevice: BluetoothDevice

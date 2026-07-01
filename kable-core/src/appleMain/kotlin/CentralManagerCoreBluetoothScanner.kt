@@ -77,7 +77,7 @@ internal class CentralManagerCoreBluetoothScanner(
                 )
             }
             .map { (cbPeripheral, rssi, advertisementData) ->
-                CBPeripheralCoreBluetoothAdvertisement(rssi.intValue, advertisementData, cbPeripheral, logging)
+                CBPeripheralCoreBluetoothAdvertisement(rssi.intValue, advertisementData, cbPeripheral)
             }
 }
 
