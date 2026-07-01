@@ -35,7 +35,7 @@ impl Display for PeripheralId {
 impl PeripheralId {
     #[uniffi::constructor]
     fn new(value: String) -> Self {
-        PeripheralId {
+        Self {
             platform: serde_json::from_str(&value).unwrap(),
         }
     }

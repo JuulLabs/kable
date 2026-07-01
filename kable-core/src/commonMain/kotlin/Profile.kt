@@ -56,19 +56,19 @@ public interface Characteristic {
     public val characteristicUuid: Uuid
 
     @JvmInline
-    public value class Properties internal constructor(public val value: Int) {
+    @Suppress("ktlint:standard:annotation")
+    public value class Properties @ExperimentalApi constructor(public val value: Int) {
         internal infix fun or(other: Properties): Properties = Properties(value or other.value)
         internal infix fun and(other: Properties): Properties = Properties(value and other.value)
-        override fun toString(): String =
-            mutableListOf<String>().apply {
-                if (broadcast) add("broadcast")
-                if (read) add("read")
-                if (writeWithoutResponse) add("writeWithoutResponse")
-                if (write) add("write")
-                if (notify) add("notify")
-                if (indicate) add("indicate")
-                if (signedWrite) add("signedWrite")
-            }.joinToString()
+        override fun toString(): String = buildList {
+            if (broadcast) add("broadcast")
+            if (read) add("read")
+            if (writeWithoutResponse) add("writeWithoutResponse")
+            if (write) add("write")
+            if (notify) add("notify")
+            if (indicate) add("indicate")
+            if (signedWrite) add("signedWrite")
+        }.joinToString()
     }
 }
 

@@ -1,37 +1,74 @@
 plugins {
-    alias(libs.plugins.atomicfu)
-    id("com.android.library")
-    id("com.vanniktech.maven.publish")
+    alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.maven.publish)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlinter)
     id("kotlin-parcelize")
-    id("org.jetbrains.dokka")
-    id("org.jmailen.kotlinter")
     kotlin("multiplatform")
 }
 
+fun isRunningOnMacOs() = System.getProperty("os.name").orEmpty().lowercase().startsWith("mac")
+
+@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
-    androidTarget().publishLibraryVariants("debug", "release")
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
+    android {
+        compileSdk = libs.versions.android.compile.get().toInt()
+        minSdk = libs.versions.android.min.get().toInt()
+        namespace = "com.juul.kable"
+        withHostTest { }
+
+        lint {
+            abortOnError = true
+            warningsAsErrors = true
+
+            disable += "AndroidGradlePluginVersion"
+            disable += "GradleDependency"
+
+            // Calls to many functions on `BluetoothDevice`, `BluetoothGatt`, etc require `BLUETOOTH_CONNECT`
+            // permission, which has been specified in the `AndroidManifest.xml`; rather than needing to annotate a
+            // number of classes, we disable the "missing permission" lint check. Caution must be taken during later
+            // Android version bumps to make sure we aren't missing any newly introduced permission requirements.
+            disable += "MissingPermission"
+        }
+    }
+
+    // Build fails on Linux ARM64 host (when building Rust bindings for JAR distribution), so we
+    // explicitly only include Native targets when running on MacOS.
+    // https://youtrack.jetbrains.com/issue/KT-36871
+    // https://youtrack.jetbrains.com/issue/KT-42445
+    if (isRunningOnMacOs()) {
+        iosArm64()
+        iosSimulatorArm64()
+        iosX64()
+        macosArm64()
+        macosX64()
+        watchosArm64()
+        watchosSimulatorArm64()
+        watchosDeviceArm64()
+    }
+
     js().browser()
-    macosArm64()
-    macosX64()
     jvm()
+    wasmJs().browser()
 
     sourceSets {
         all {
             languageSettings {
+                optIn("com.juul.kable.ExperimentalApi")
+                optIn("kotlin.concurrent.atomics.ExperimentalAtomicApi")
+                optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")
+                optIn("kotlinx.cinterop.UnsafeNumber")
             }
         }
 
         commonMain.dependencies {
-            api(libs.kotlinx.coroutines.core)
+            api(libs.kotlinx.coroutines)
             api(libs.kotlinx.io)
-            implementation(libs.tuulbox.collections)
+            implementation(libs.atomicfu)
         }
 
         commonTest.dependencies {
@@ -45,21 +82,18 @@ kotlin {
             api(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.core)
             implementation(libs.androidx.startup)
-
-            // Workaround for AtomicFU plugin not automatically adding JVM dependency for Android.
-            // https://github.com/Kotlin/kotlinx-atomicfu/issues/145
-            implementation(libs.atomicfu)
-
             implementation(libs.tuulbox.coroutines)
         }
 
-        androidUnitTest.dependencies {
+        named("androidHostTest").dependencies {
             implementation(libs.equalsverifier)
             implementation(libs.mockk)
             implementation(libs.robolectric)
         }
 
-        jsMain.dependencies {
+        webMain.dependencies {
+            api(libs.kotlinx.browser)
+            api(libs.wrappers.browser)
             api(libs.wrappers.web)
             api(project.dependencies.platform(libs.wrappers.bom))
         }
@@ -67,27 +101,6 @@ kotlin {
         jvmMain.dependencies {
             implementation(project(":kable-btleplug-ffi"))
         }
-    }
-}
-
-android {
-    compileSdk = libs.versions.android.compile.get().toInt()
-    defaultConfig.minSdk = libs.versions.android.min.get().toInt()
-
-    namespace = "com.juul.kable"
-
-    lint {
-        abortOnError = true
-        warningsAsErrors = true
-
-        disable += "AndroidGradlePluginVersion"
-        disable += "GradleDependency"
-
-        // Calls to many functions on `BluetoothDevice`, `BluetoothGatt`, etc require `BLUETOOTH_CONNECT` permission,
-        // which has been specified in the `AndroidManifest.xml`; rather than needing to annotate a number of classes,
-        // we disable the "missing permission" lint check. Caution must be taken during later Android version bumps to
-        // make sure we aren't missing any newly introduced permission requirements.
-        disable += "MissingPermission"
     }
 }
 

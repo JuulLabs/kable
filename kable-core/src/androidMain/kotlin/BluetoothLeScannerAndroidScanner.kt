@@ -75,7 +75,11 @@ internal class BluetoothLeScannerAndroidScanner(
             }
 
             override fun onBatchScanResults(results: MutableList<ScanResult>) {
-                results.forEach(::sendResult)
+                // for-each loop to avoid accidental use of java.lang.Iterable.forEach which
+                // requires API 24.
+                for (result in results) {
+                    sendResult(result)
+                }
             }
 
             override fun onScanFailed(errorCode: Int) {
@@ -153,7 +157,8 @@ internal fun List<FilterPredicate>.toScanFilters(): ScanFilters =
     } else if (count() == 1) {
         val nativeFilters = mutableMapOf<KClass<*>, Filter>()
         val flowFilters = mutableListOf<Filter>()
-        single().filters.forEach { filter ->
+        // for-each loop to avoid accidental use of java.lang.Iterable.forEach which requires API 24.
+        for (filter in single().filters) {
             if (filter.canFilterNatively && filter::class !in nativeFilters) {
                 nativeFilters[filter::class] = filter
             } else {
@@ -179,7 +184,8 @@ private val FilterPredicate.supportsNativeScanFiltering: Boolean
         var address = 0
         var manufacturerData = 0
         var serviceData = 0
-        filters.forEach { filter ->
+        // for-each loop to avoid accidental use of java.lang.Iterable.forEach which requires API 24.
+        for (filter in filters) {
             when (filter) {
                 is Service -> if (++service > 1) return false
                 is Name.Exact -> if (++nameExact > 1) return false

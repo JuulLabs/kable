@@ -7,17 +7,21 @@ import com.juul.kable.uniffi.plugin.UniffiTarget
 import com.juul.kable.uniffi.plugin.cargoBuild
 import com.juul.kable.uniffi.plugin.uniffiBindgenProject
 import com.juul.kable.uniffi.plugin.uniffiOutputDirectory
+import net.peanuuutz.tomlkt.Toml
+import net.peanuuutz.tomlkt.TomlLiteral
+import net.peanuuutz.tomlkt.TomlTable
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.register
+import java.io.File
 
-private const val CARGO_TOML = """
+private const val CARGO_TOML_FMT = """
 [package]
 name = "uniffi-bindgen"
 edition = "2024"
 
 [dependencies]
-uniffi = { version = "0.29.1", features = ["bindgen", "cli", "tokio"] }
+uniffi = { version = "%s", features = ["bindgen", "cli", "tokio"] }
 """
 
 private const val UNIFFI_TOML_FMT = """
@@ -47,6 +51,8 @@ internal fun TaskContainer.registerUniffiBindgenTasks(accessor: UniffiKotlinExte
     register("generateUniffiBindgenCargoProject") {
         group = UNIFFI_TASK_GROUP
 
+        val inputCargoToml = project.file("Cargo.toml")
+        inputs.file(inputCargoToml)
         inputs.property("packageName", accessor.packageName)
         outputs.file(project.uniffiBindgenProject.resolve("Cargo.toml"))
         outputs.file(project.uniffiBindgenProject.resolve("uniffi.toml"))
@@ -58,7 +64,7 @@ internal fun TaskContainer.registerUniffiBindgenTasks(accessor: UniffiKotlinExte
                 .mkdirs()
             project.uniffiBindgenProject
                 .resolve("Cargo.toml")
-                .writeText(CARGO_TOML.trimIndent())
+                .writeText(CARGO_TOML_FMT.format(readUniffiVersion(inputCargoToml)).trimIndent())
             project.uniffiBindgenProject
                 .resolve("uniffi.toml")
                 .writeText(UNIFFI_TOML_FMT.format(accessor.packageName).trimIndent())
@@ -91,5 +97,15 @@ internal fun TaskContainer.registerUniffiBindgenTasks(accessor: UniffiKotlinExte
             val file = directory.list().orEmpty().single { it.matches(UniffiOs.current.library) }
             args("--library", directory.resolve(file).absolutePath)
         }
+    }
+}
+
+private fun readUniffiVersion(cargoFile: File): String {
+    val toml = Toml.parseToTomlTable(cargoFile.readText())
+    val dependenciesTable = toml["dependencies"] as TomlTable
+    return when (val uniffiEntry = dependenciesTable["uniffi"]) {
+        is TomlTable -> (uniffiEntry["version"] as TomlLiteral).content
+        is TomlLiteral -> uniffiEntry.content
+        else -> error("Unexpected TOML entry: $uniffiEntry")
     }
 }
