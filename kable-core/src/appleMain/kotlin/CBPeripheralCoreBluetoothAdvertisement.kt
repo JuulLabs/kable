@@ -50,8 +50,7 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
         get() = (data[CBAdvertisementDataTxPowerLevelKey] as? NSNumber)?.intValue
 
     override val uuids: List<Uuid>
-        get() = (data[CBAdvertisementDataServiceUUIDsKey] as? List<CBUUID>)?.map { it.toUuid() }
-            ?: emptyList()
+        get() = (data[CBAdvertisementDataServiceUUIDsKey] as? List<CBUUID>)?.map { it.toUuid() } ?: emptyList()
 
     override fun serviceData(uuid: Uuid): ByteArray? =
         serviceDataAsNSData(uuid)?.toByteArray()

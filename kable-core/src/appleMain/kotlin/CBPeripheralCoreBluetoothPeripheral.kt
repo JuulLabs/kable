@@ -49,7 +49,6 @@ import kotlin.time.Duration
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse as CBWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse as CBWithoutResponse
 
-@OptIn(KableInternalApi::class)
 internal class CBPeripheralCoreBluetoothPeripheral(
 
     @KableInternalApi
@@ -103,8 +102,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         forceCharacteristicEqualityByUuid,
         exceptionHandler = observationExceptionHandler,
     )
-    private val canSendWriteWithoutResponse =
-        MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
+    private val canSendWriteWithoutResponse = MutableStateFlow(cbPeripheral.canSendWriteWithoutResponse)
 
     private val _services = MutableStateFlow<List<PlatformDiscoveredService>?>(null)
     override val services = _services.asStateFlow()
@@ -216,7 +214,6 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             WithResponse -> connectionOrThrow().execute<DidWriteValueForCharacteristic> {
                 cbPeripheral.writeValue(data, platformCharacteristic, CBWithResponse)
             }
-
             WithoutResponse -> connectionOrThrow().guard.withLock {
                 if (!canSendWriteWithoutResponse.updateAndGet { cbPeripheral.canSendWriteWithoutResponse }) {
                     canSendWriteWithoutResponse.first { it }
@@ -246,12 +243,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
             observers
                 .characteristicChanges
                 .onSubscription { central.readValue(cbPeripheral, platformCharacteristic) }
-                .first { event ->
-                    event.isAssociatedWith(
-                        characteristic,
-                        forceCharacteristicEqualityByUuid,
-                    )
-                }
+                .first { event -> event.isAssociatedWith(characteristic, forceCharacteristicEqualityByUuid) }
         }
 
         return when (event) {

@@ -361,7 +361,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         scope.cancel("$this closed")
     }
 
-    override fun toString(): String = "Peripheral(_bluetoothDevice=$bluetoothDevice)"
+    override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
 }
 
 private val WriteType.intValue: Int
