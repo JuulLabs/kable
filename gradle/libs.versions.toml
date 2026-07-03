@@ -18,7 +18,7 @@ androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version =
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version = "0.33.0" }
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.13.0" }
-compose-ui = { module = "androidx.compose.ui:ui", version = "1.11.2" }
+compose-ui = { module = "androidx.compose.ui:ui", version = "1.11.3" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.8.0-0.6.x-compat" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5" }
@@ -32,7 +32,7 @@ kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core",
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.0" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.1" }
 krayon-axis = { module = "com.juul.krayon:axis", version.ref = "krayon" }
 krayon-compose = { module = "com.juul.krayon:compose", version.ref = "krayon" }
 krayon-scale = { module = "com.juul.krayon:scale", version.ref = "krayon" }
@@ -46,7 +46,7 @@ tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tu
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2026.6.7" }
+wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2026.7.0" }
 wrappers-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser" }
 wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 

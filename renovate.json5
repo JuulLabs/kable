@@ -1,0 +1,26 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    ':disableDependencyDashboard',
+    ':disableRateLimiting',
+  ],
+  customManagers: [
+    // Update the JDK version in .sdkmanrc with the latest Temurin release.
+    {
+      customType: 'regex',
+      fileMatch: [
+        '^\\.sdkmanrc$',
+      ],
+      // The "-tem" (Temurin) vendor suffix is kept outside the capture group so
+      // it is preserved on update; Renovate does not understand SDKMAN! suffixes.
+      matchStrings: [
+        'java=(?<currentValue>.*)-tem\\n',
+      ],
+      datasourceTemplate: 'java-version',
+      depNameTemplate: 'java',
+      // Strip the "+build" suffix the Temurin API returns; SDKMAN! omits it.
+      extractVersionTemplate: '^(?<version>[^+]+)',
+    },
+  ],
+}

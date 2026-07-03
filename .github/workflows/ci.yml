@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version-file: .sdkmanrc
       - uses: gradle/actions/setup-gradle@v6
       - run: ./gradlew :kable-core:compileKotlinJvm
       - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com *.jar
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version-file: .sdkmanrc
       - uses: gradle/actions/setup-gradle@v6
 
       - run: ./gradlew assemble -PsuppressWarnings=true

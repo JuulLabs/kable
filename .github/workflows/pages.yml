@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version-file: .sdkmanrc
       - uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: true
