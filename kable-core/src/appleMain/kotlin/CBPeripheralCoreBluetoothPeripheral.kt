@@ -113,7 +113,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         connection.value
             ?: throw NotConnectedException("Connection not established, current state: ${state.value}")
 
-    @ExperimentalApi
+    @ExperimentalKableApi
     override val name: String?
         get() = cbPeripheral.name
 
@@ -176,7 +176,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         return cbPeripheral.maximumWriteValueLengthForType(type).toInt()
     }
 
-    @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.
+    @ExperimentalKableApi // Experimental until Web Bluetooth advertisements APIs are stable.
     @Throws(CancellationException::class, IOException::class)
     override suspend fun rssi(): Int = connectionOrThrow().execute<DidReadRssi> {
         cbPeripheral.readRSSI()

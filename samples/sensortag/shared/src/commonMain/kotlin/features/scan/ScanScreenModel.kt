@@ -4,7 +4,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.core.screen.Screen
 import com.juul.kable.Bluetooth
-import com.juul.kable.ExperimentalApi
+import com.juul.kable.ExperimentalKableApi
 import com.juul.kable.Peripheral
 import com.juul.kable.PlatformAdvertisement
 import com.juul.kable.logs.Logging.Level.Data
@@ -95,7 +95,7 @@ class ScanScreenModel(
 
     init {
         screenModelScope.launch {
-            @OptIn(ExperimentalApi::class)
+            @OptIn(ExperimentalKableApi::class)
             isBluetoothSupported.value = Bluetooth.isSupported()
         }
     }
