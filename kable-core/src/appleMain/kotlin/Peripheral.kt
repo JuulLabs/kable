@@ -33,5 +33,6 @@ public fun Peripheral(
         builder.logging,
         builder.disconnectTimeout,
         builder.forceCharacteristicEqualityByUuid,
+        builder.writeWithoutResponseTimeout,
     )
 }
