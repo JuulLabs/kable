@@ -48,7 +48,6 @@ import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.dataUsingEncoding
 import platform.darwin.UInt16
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import platform.CoreBluetooth.CBCharacteristicWriteWithResponse as CBWithResponse
 import platform.CoreBluetooth.CBCharacteristicWriteWithoutResponse as CBWithoutResponse
 
@@ -59,9 +58,8 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private val logging: Logging,
     private val disconnectTimeout: Duration,
     private val forceCharacteristicEqualityByUuid: Boolean,
+    private val writeWithoutResponseTimeout: Duration,
 ) : BasePeripheral(cbPeripheral.identifier.toUuid()), CoreBluetoothPeripheral {
-
-    private val writeWithoutResponseTimeout = 30.milliseconds
 
     private val central = CentralManager.Default
 
