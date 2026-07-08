@@ -18,7 +18,7 @@ androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version =
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version = "0.33.0" }
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.13.0" }
-compose-ui = { module = "androidx.compose.ui:ui", version = "1.11.3" }
+compose-ui = { module = "androidx.compose.ui:ui", version = "1.11.4" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.8.0-0.6.x-compat" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5" }
@@ -72,6 +72,6 @@ compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinter = { id = "org.jmailen.kotlinter", version = "5.5.0" }
+kotlinter = { id = "org.jmailen.kotlinter", version = "5.6.0" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
