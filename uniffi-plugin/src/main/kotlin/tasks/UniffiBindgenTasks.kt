@@ -25,7 +25,7 @@ uniffi = { version = "%s", features = ["bindgen", "cli", "tokio"] }
 """
 
 private const val UNIFFI_TOML_FMT = """
-[bindings.kotlin]
+[defaults.bindings.kotlin]
 package_name = "%s"
 """
 
