@@ -77,6 +77,6 @@ public object Bluetooth {
      *
      * This function is idempotent.
      */
-    @ExperimentalApi // Due to the inability to query Bluetooth support w/o showing a dialog on Apple, this function may be removed.
+    @ExperimentalKableApi // Due to the inability to query Bluetooth support w/o showing a dialog on Apple, this function may be removed.
     public suspend fun isSupported(): Boolean = isBluetoothSupported()
 }

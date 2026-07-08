@@ -100,7 +100,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     override val address: String = requireNonZeroAddress(bluetoothDevice.address)
 
-    @ExperimentalApi
+    @ExperimentalKableApi
     override val name: String?
         get() = bluetoothDevice.name
 
@@ -171,7 +171,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
         (mtu.value ?: DEFAULT_ATT_MTU) - ATT_MTU_HEADER_SIZE
 
-    @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.
+    @ExperimentalKableApi // Experimental until Web Bluetooth advertisements APIs are stable.
     override suspend fun rssi(): Int =
         connectionOrThrow().execute<OnReadRemoteRssi> {
             readRemoteRssiOrThrow()
