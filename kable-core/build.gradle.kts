@@ -58,7 +58,7 @@ kotlin {
         all {
             languageSettings {
                 optIn("com.juul.kable.ExperimentalKableApi")
-                optIn("com.juul.kable.KableInternalApi")
+                optIn("com.juul.kable.InternalKableApi")
                 optIn("kotlin.concurrent.atomics.ExperimentalAtomicApi")
                 optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")

@@ -199,7 +199,7 @@ public final class com/juul/kable/IdentifierKt {
 public final class com/juul/kable/InternalError : java/lang/Error {
 }
 
-public abstract interface annotation class com/juul/kable/KableInternalApi : java/lang/annotation/Annotation {
+public abstract interface annotation class com/juul/kable/InternalKableApi : java/lang/annotation/Annotation {
 }
 
 public final class com/juul/kable/LazyCharacteristic : com/juul/kable/Characteristic {

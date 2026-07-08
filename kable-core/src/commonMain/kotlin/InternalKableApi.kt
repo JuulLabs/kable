@@ -14,4 +14,4 @@ import kotlin.annotation.AnnotationTarget.PROPERTY
 @RequiresOptIn(message = "This declaration is internal, use at your own risk.", level = ERROR)
 @Retention(BINARY)
 @Target(CLASS, PROPERTY, FUNCTION)
-public annotation class KableInternalApi
+public annotation class InternalKableApi
