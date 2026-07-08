@@ -1,11 +1,11 @@
 package com.juul.kable
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-
+@Deprecated(
+    message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
+        "Will be removed in a future release. " +
+        "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+    level = DeprecationLevel.ERROR,
+)
 public actual enum class Reason {
     // Not implemented.
 }
-
-// This is not a proper implementation, but this property is deprecated, so...
-internal actual val bluetoothAvailability: Flow<Bluetooth.Availability> = flowOf(Bluetooth.Availability.Available)
