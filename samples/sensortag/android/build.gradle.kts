@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.juul.sensortag.android"
-        minSdk = libs.versions.android.min.get().toInt()
+        minSdk = 23
         targetSdk = libs.versions.android.target.get().toInt()
         versionCode = 1
         versionName = "1.0"

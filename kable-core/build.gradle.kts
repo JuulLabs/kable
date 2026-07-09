@@ -1,7 +1,5 @@
-@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-
 plugins {
-    alias(libs.plugins.android.kmp.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
     alias(libs.plugins.kotlinter)
@@ -11,6 +9,7 @@ plugins {
 
 fun isRunningOnMacOs() = System.getProperty("os.name").orEmpty().lowercase().startsWith("mac")
 
+@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
@@ -58,7 +57,8 @@ kotlin {
     sourceSets {
         all {
             languageSettings {
-                optIn("com.juul.kable.ExperimentalApi")
+                optIn("com.juul.kable.ExperimentalKableApi")
+                optIn("com.juul.kable.InternalKableApi")
                 optIn("kotlin.concurrent.atomics.ExperimentalAtomicApi")
                 optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")
@@ -67,7 +67,7 @@ kotlin {
         }
 
         commonMain.dependencies {
-            api(libs.kotlinx.coroutines.core)
+            api(libs.kotlinx.coroutines)
             api(libs.kotlinx.io)
             implementation(libs.atomicfu)
         }

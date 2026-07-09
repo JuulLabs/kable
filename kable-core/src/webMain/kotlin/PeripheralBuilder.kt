@@ -56,6 +56,8 @@ public actual class PeripheralBuilder internal actual constructor() {
 
     public actual var forceCharacteristicEqualityByUuid: Boolean = false
 
+    public actual var writeWithoutResponseTimeout: Duration = defaultWriteWithoutResponseTimeout
+
     internal fun build(bluetoothDevice: BluetoothDevice) =
         BluetoothDeviceWebBluetoothPeripheral(
             bluetoothDevice,

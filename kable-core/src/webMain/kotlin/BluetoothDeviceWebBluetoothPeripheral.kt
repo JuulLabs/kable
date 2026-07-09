@@ -64,7 +64,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     override val services = _services.asStateFlow()
     private fun servicesOrThrow() = services.value ?: error("Services have not been discovered")
 
-    @ExperimentalApi
+    @ExperimentalKableApi
     override val name: String? get() = bluetoothDevice.name
 
     private val observers = Observers<DataView>(this, logging, false, observationExceptionHandler)
@@ -137,7 +137,7 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
      *
      * @throws UnsupportedOperationException If feature is not enabled and/or supported.
      */
-    @ExperimentalApi
+    @ExperimentalKableApi
     override suspend fun rssi(): Int {
         if (!isWatchingAdvertisementsSupported) {
             throw UnsupportedOperationException("RSSI not supported")

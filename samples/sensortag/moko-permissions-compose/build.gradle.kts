@@ -9,8 +9,9 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
 
+@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
-    jvmToolchain(libs.versions.jvm.get().toInt())
+    jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
     android {
         namespace = "dev.icerock.moko.permissions.compose"

@@ -115,7 +115,7 @@ public interface Peripheral : AutoCloseable {
      * This API is experimental as it may be changed to a [StateFlow] in the future (to notify of
      * name changes on Apple platform).
      */
-    @ExperimentalApi
+    @ExperimentalKableApi
     public val name: String?
 
     /**
@@ -185,7 +185,7 @@ public interface Peripheral : AutoCloseable {
      * @throws NotConnectedException if invoked without an established [connection][connect].
      * @throws UnsupportedOperationException on JavaScript.
      */
-    @ExperimentalApi
+    @ExperimentalKableApi
     @Throws(CancellationException::class, IOException::class)
     public suspend fun rssi(): Int
 

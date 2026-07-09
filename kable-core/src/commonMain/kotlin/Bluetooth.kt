@@ -45,6 +45,7 @@ public object Bluetooth {
             message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
                 "Will be removed in a future release. " +
                 "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+            level = DeprecationLevel.ERROR,
         )
         public data object Available : Availability()
 
@@ -52,6 +53,7 @@ public object Bluetooth {
             message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
                 "Will be removed in a future release. " +
                 "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+            level = DeprecationLevel.ERROR,
         )
         public data class Unavailable(val reason: Reason?) : Availability()
     }
@@ -60,8 +62,10 @@ public object Bluetooth {
         message = "`Bluetooth.availability` has inconsistent behavior across platforms. " +
             "Will be removed in a future release. " +
             "See https://github.com/JuulLabs/kable/issues/737 for more details.",
+        level = DeprecationLevel.ERROR,
     )
-    public val availability: Flow<Availability> = bluetoothAvailability
+    public val availability: Flow<Availability>
+        get() = error("Deprecated")
 
     /**
      * Checks if Bluetooth Low Energy is supported on the system. Being supported (a return of
@@ -73,8 +77,6 @@ public object Bluetooth {
      *
      * This function is idempotent.
      */
-    @ExperimentalApi // Due to the inability to query Bluetooth support w/o showing a dialog on Apple, this function may be removed.
+    @ExperimentalKableApi // Due to the inability to query Bluetooth support w/o showing a dialog on Apple, this function may be removed.
     public suspend fun isSupported(): Boolean = isBluetoothSupported()
 }
-
-internal expect val bluetoothAvailability: Flow<Bluetooth.Availability>

@@ -7,8 +7,9 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
 
+@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
-    jvmToolchain(libs.versions.jvm.get().toInt())
+    jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
     android {
         namespace = "dev.icerock.moko.permissions.bluetooth"
@@ -35,7 +36,7 @@ kotlin {
 
         commonMain.dependencies {
             api(projects.mokoPermissions)
-            implementation(libs.coroutines)
+            implementation(libs.kotlinx.coroutines)
         }
     }
 }

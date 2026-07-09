@@ -9,7 +9,7 @@ kotlin {
 
     dependencies {
         api(libs.jna)
-        api(libs.kotlinx.coroutines.core)
+        api(libs.kotlinx.coroutines)
     }
 }
 

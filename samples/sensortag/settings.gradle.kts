@@ -13,6 +13,8 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
+includeBuild("../..")
+
 include(
     "android",
     "bluetooth",
@@ -22,22 +24,3 @@ include(
     "moko-permissions-compose",
     "shared",
 )
-
-// Configure sibling composite projects (`../<project>`) by adding `composite.<project>=true` to `local.properties`.
-java.util.Properties()
-    .apply {
-        rootProject.projectDir
-            .resolve("local.properties")
-            .normalize()
-            .takeIf(File::exists)
-            ?.let { java.io.FileInputStream(it) }
-            ?.use(::load)
-    }
-    .run {
-        stringPropertyNames()
-            .filter { it.startsWith("composite.") && getProperty(it).toBoolean() }
-            .map { it.substringAfter('.') }
-            .onEach { logger.lifecycle("Including '$it' as a composite build") }
-            .map { "../$it" }
-            .forEach(::includeBuild)
-    }
