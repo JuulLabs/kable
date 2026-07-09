@@ -16,7 +16,7 @@ import kotlin.uuid.Uuid
 internal class CBPeripheralCoreBluetoothAdvertisement(
     override val rssi: Int,
     private val data: Map<String, Any>,
-    @KableInternalApi override val cbPeripheral: CBPeripheral,
+    @InternalKableApi override val cbPeripheral: CBPeripheral,
 ) : PlatformAdvertisement {
 
     override val identifier: Identifier

@@ -21,7 +21,7 @@ internal class ScanResultAndroidAdvertisement(
     private val scanResult: ScanResult,
 ) : PlatformAdvertisement {
 
-    @KableInternalApi
+    @InternalKableApi
     override val bluetoothDevice: BluetoothDevice
         get() = scanResult.device
 

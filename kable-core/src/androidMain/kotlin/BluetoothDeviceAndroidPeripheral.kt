@@ -52,7 +52,7 @@ private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
 
 internal class BluetoothDeviceAndroidPeripheral(
-    @KableInternalApi override val bluetoothDevice: BluetoothDevice,
+    @InternalKableApi override val bluetoothDevice: BluetoothDevice,
     private val autoConnectPredicate: () -> Boolean,
     private val transport: Transport,
     private val phy: Phy,
