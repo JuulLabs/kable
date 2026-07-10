@@ -83,6 +83,7 @@ kotlin {
             api(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.core)
             implementation(libs.androidx.startup)
+            implementation(libs.kotlin.parcelize.runtime)
             implementation(libs.tuulbox.coroutines)
         }
 
