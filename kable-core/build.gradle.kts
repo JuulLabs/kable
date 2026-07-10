@@ -33,6 +33,11 @@ kotlin {
             // Android version bumps to make sure we aren't missing any newly introduced permission requirements.
             disable += "MissingPermission"
         }
+
+        optimization {
+            consumerKeepRules.file("consumer-rules.pro")
+            consumerKeepRules.publish = true
+        }
     }
 
     // Build fails on Linux ARM64 host (when building Rust bindings for JAR distribution), so we
