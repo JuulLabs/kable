@@ -68,10 +68,6 @@ public actual class ServicesDiscoveredPeripheral internal constructor(
     ) {
         peripheral.write(descriptor, data)
     }
-
-    public suspend fun requestMtu(
-        mtu: Int,
-    ): Int = peripheral.requestMtu(mtu)
 }
 
 public actual class PeripheralBuilder internal actual constructor() {
@@ -113,6 +109,24 @@ public actual class PeripheralBuilder internal actual constructor() {
 
     /** Preferred PHY for connections to remote LE device. */
     public var phy: Phy = Phy.Le1M
+
+    /**
+     * ATT MTU to request when establishing a connection (`null` means no MTU change request will
+     * be made). The request is made after connecting, but prior to performing service discovery.
+     *
+     * The peripheral may negotiate an MTU different than the requested [mtu]; the negotiated MTU
+     * is available via [AndroidPeripheral.mtu].
+     *
+     * Must be in the range 23..517 (per `MIN_MTU` and `MAX_MTU` defined in Android's
+     * [BluetoothDevice](https://cs.android.com/android/platform/superproject/main/+/main:packages/modules/Bluetooth/framework/java/android/bluetooth/BluetoothDevice.java)).
+     */
+    public var mtu: Int? = null
+        set(value) {
+            require(value == null || value in 23..517) {
+                "MTU must be in the range 23..517, was $value"
+            }
+            field = value
+        }
 
     public var threadingStrategy: ThreadingStrategy = OnDemandThreadingStrategy
 

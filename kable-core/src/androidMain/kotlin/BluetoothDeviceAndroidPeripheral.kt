@@ -56,6 +56,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val autoConnectPredicate: () -> Boolean,
     private val transport: Transport,
     private val phy: Phy,
+    private val desiredMtu: Int?,
     private val threadingStrategy: ThreadingStrategy,
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
@@ -128,6 +129,7 @@ internal class BluetoothDeviceAndroidPeripheral(
             )
 
             suspendUntil<State.Connecting.Services>()
+            if (desiredMtu != null) requestMtu(desiredMtu)
             discoverServices()
             configureCharacteristicObservations()
         } catch (e: Exception) {
@@ -184,12 +186,12 @@ internal class BluetoothDeviceAndroidPeripheral(
         }
     }
 
-    override suspend fun requestMtu(mtu: Int): Int {
+    private suspend fun requestMtu(mtu: Int) {
         logger.debug {
             message = "requestMtu"
             detail("mtu", mtu)
         }
-        return connectionOrThrow().requestMtu(mtu)
+        connectionOrThrow().requestMtu(mtu)
     }
 
     override suspend fun write(

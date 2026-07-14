@@ -127,17 +127,6 @@ public interface AndroidPeripheral : Peripheral {
     public fun requestConnectionPriority(priority: Priority): Boolean
 
     /**
-     * Requests that the current connection's MTU be changed. Suspends until the MTU changes, or failure occurs. The
-     * negotiated MTU value is returned, which may not be [mtu] value requested if the remote peripheral negotiated an
-     * alternate MTU.
-     *
-     * @throws NotConnectedException if invoked without an established [connection][Peripheral.connect].
-     * @throws GattRequestRejectedException if Android was unable to fulfill the MTU change request.
-     * @throws GattStatusException if MTU change request failed.
-     */
-    public suspend fun requestMtu(mtu: Int): Int
-
-    /**
      * @see Peripheral.write
      * @throws NotConnectedException if invoked without an established [connection][connect].
      * @throws GattWriteException if underlying [BluetoothGatt] write operation call fails.
@@ -157,8 +146,8 @@ public interface AndroidPeripheral : Peripheral {
 
     /**
      * [StateFlow] of the most recently negotiated MTU. The MTU will change upon a successful request to change the MTU
-     * (via [requestMtu]), or if the peripheral initiates an MTU change. [StateFlow]'s `value` will be `null` until MTU
-     * is negotiated.
+     * (as configured via the [PeripheralBuilder.mtu] property), or if the peripheral initiates an MTU change.
+     * [StateFlow]'s `value` will be `null` until MTU is negotiated.
      */
     public val mtu: StateFlow<Int?>
 

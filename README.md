@@ -300,11 +300,9 @@ On Android targets, additional configuration options are available (all configur
 ```kotlin
 val peripheral = Peripheral(advertisement) {
     autoConnectIf { false } // default
-    onServicesDiscovered {
-        requestMtu(...)
-    }
     transport = Transport.Le // default
     phy = Phy.Le1M // default
+    mtu = 512 // default: `null` (no MTU change request will be made)
 }
 ```
 

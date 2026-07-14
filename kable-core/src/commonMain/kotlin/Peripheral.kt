@@ -167,7 +167,8 @@ public interface Peripheral : AutoCloseable {
     /**
      * Return the current ATT MTU size, minus the size of the ATT headers (3 bytes).
      *
-     * On Android, this will be the default (23 - 3) unless you called [requestMtu] when connecting.
+     * On Android, this will be the default (23 - 3) unless an alternative MTU was negotiated (an
+     * MTU change request can be configured via the `mtu` property of the [PeripheralBuilder]).
      * For iOS, this is automatically negotiated, and can also vary depending on the writeType.
      * On JavaScript, this will return the default (23 - 3) every time as there is no ATT MTU property available.
      */

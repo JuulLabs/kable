@@ -33,6 +33,7 @@ public fun Peripheral(
         builder.autoConnectPredicate,
         builder.transport,
         builder.phy,
+        builder.mtu,
         builder.threadingStrategy,
         builder.observationExceptionHandler,
         builder.onServicesDiscovered,
