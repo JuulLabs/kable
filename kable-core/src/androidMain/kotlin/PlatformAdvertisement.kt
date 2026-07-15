@@ -2,7 +2,9 @@ package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
 import android.os.Parcelable
+import kotlinx.serialization.Serializable
 
+@Serializable(with = PlatformAdvertisementSerializer::class)
 public actual interface PlatformAdvertisement : Advertisement, Parcelable {
 
     public enum class BondState {

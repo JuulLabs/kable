@@ -67,6 +67,21 @@ internal class CBPeripheralCoreBluetoothAdvertisement(
     override val manufacturerDataAsNSData: NSData?
         get() = data[CBAdvertisementDataManufacturerDataKey] as? NSData
 
+    internal fun capture(): AdvertisementCapture = AdvertisementCapture(
+        name = name,
+        peripheralName = peripheralName,
+        identifier = identifier.toString(),
+        isConnectable = isConnectable,
+        rssi = rssi,
+        txPower = txPower,
+        uuids = uuids,
+        serviceData = (data[CBAdvertisementDataServiceDataKey] as? Map<CBUUID, NSData>)
+            ?.entries
+            ?.associate { (uuid, data) -> uuid.toUuid() to data.toByteArray() }
+            .orEmpty(),
+        manufacturerData = manufacturerData?.let { mapOf(it.code to it.data) }.orEmpty(),
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CBPeripheralCoreBluetoothAdvertisement) return false

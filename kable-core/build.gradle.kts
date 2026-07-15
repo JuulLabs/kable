@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
     alias(libs.plugins.kotlinter)
+    alias(libs.plugins.serialization)
     id("kotlin-parcelize")
     kotlin("multiplatform")
 }
@@ -69,6 +70,7 @@ kotlin {
         commonMain.dependencies {
             api(libs.kotlinx.coroutines)
             api(libs.kotlinx.io)
+            api(libs.serialization)
             implementation(libs.atomicfu)
         }
 
@@ -77,6 +79,7 @@ kotlin {
             implementation(kotlin("test"))
             implementation(libs.khronicle)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.serialization.json)
         }
 
         androidMain.dependencies {

@@ -1,9 +1,11 @@
 package com.juul.kable
 
+import kotlinx.serialization.Serializable
 import platform.CoreBluetooth.CBPeripheral
 import platform.Foundation.NSData
 import kotlin.uuid.Uuid
 
+@Serializable(with = PlatformAdvertisementSerializer::class)
 public actual interface PlatformAdvertisement : Advertisement {
     public fun serviceDataAsNSData(uuid: Uuid): NSData?
     public val manufacturerDataAsNSData: NSData?

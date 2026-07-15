@@ -1,4 +1,5 @@
 public abstract interface class com/juul/kable/Advertisement {
+	public static final field Companion Lcom/juul/kable/Advertisement$Companion;
 	public abstract fun getIdentifier ()Lcom/juul/kable/Identifier;
 	public abstract fun getManufacturerData ()Lcom/juul/kable/ManufacturerData;
 	public abstract fun getName ()Ljava/lang/String;
@@ -9,6 +10,19 @@ public abstract interface class com/juul/kable/Advertisement {
 	public abstract fun isConnectable ()Ljava/lang/Boolean;
 	public abstract fun manufacturerData (I)[B
 	public abstract fun serviceData (Lkotlin/uuid/Uuid;)[B
+}
+
+public final class com/juul/kable/Advertisement$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/juul/kable/AdvertisementSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lcom/juul/kable/AdvertisementSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/juul/kable/Advertisement;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/juul/kable/Advertisement;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
 public final class com/juul/kable/Bluetooth {
@@ -297,6 +311,20 @@ public final class com/juul/kable/Peripheral_deprecatedKt {
 }
 
 public abstract interface class com/juul/kable/PlatformAdvertisement : com/juul/kable/Advertisement {
+	public static final field Companion Lcom/juul/kable/PlatformAdvertisement$Companion;
+}
+
+public final class com/juul/kable/PlatformAdvertisement$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/juul/kable/PlatformAdvertisementSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lcom/juul/kable/PlatformAdvertisementSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/juul/kable/PlatformAdvertisement;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/juul/kable/PlatformAdvertisement;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
 public final class com/juul/kable/ProfileKt {

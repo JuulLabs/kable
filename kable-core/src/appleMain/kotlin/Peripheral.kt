@@ -6,7 +6,7 @@ public actual fun Peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
 ): Peripheral {
-    advertisement as CBPeripheralCoreBluetoothAdvertisement
+    advertisement as PlatformAdvertisement
     return Peripheral(advertisement.cbPeripheral, builderAction)
 }
 

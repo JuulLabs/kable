@@ -1,14 +1,13 @@
 package com.juul.kable
 
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothDevice.BOND_BONDED
-import android.bluetooth.BluetoothDevice.BOND_BONDING
-import android.bluetooth.BluetoothDevice.BOND_NONE
 import android.bluetooth.le.ScanRecord
 import android.bluetooth.le.ScanResult
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.ParcelUuid
+import android.util.SparseArray
+import androidx.core.util.forEach
 import androidx.core.util.isNotEmpty
 import com.juul.kable.PlatformAdvertisement.BondState
 import kotlinx.parcelize.Parcelize
@@ -51,12 +50,7 @@ internal class ScanResultAndroidAdvertisement(
         get() = bluetoothDevice.address
 
     override val bondState: BondState
-        get() = when (bluetoothDevice.bondState) {
-            BOND_NONE -> BondState.None
-            BOND_BONDING -> BondState.Bonding
-            BOND_BONDED -> BondState.Bonded
-            else -> error("Unknown bond state: ${bluetoothDevice.bondState}")
-        }
+        get() = bluetoothDevice.toBondState()
 
     /** Returns raw bytes of the underlying scan record. */
     override val bytes: ByteArray?
@@ -88,6 +82,22 @@ internal class ScanResultAndroidAdvertisement(
             )
         }
 
+    internal fun capture(): AdvertisementCapture = AdvertisementCapture(
+        name = name,
+        peripheralName = peripheralName,
+        identifier = address,
+        isConnectable = isConnectable,
+        rssi = rssi,
+        txPower = txPower,
+        uuids = uuids,
+        serviceData = serviceData
+            ?.entries
+            ?.associate { (uuid, data) -> uuid.uuid.toKotlinUuid() to data }
+            .orEmpty(),
+        manufacturerData = scanResult.scanRecord?.manufacturerSpecificData?.toMap().orEmpty(),
+        bytes = bytes,
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ScanResultAndroidAdvertisement) return false
@@ -99,3 +109,6 @@ internal class ScanResultAndroidAdvertisement(
     override fun toString(): String =
         "Advertisement(address=$address, name=$name, rssi=$rssi, txPower=$txPower)"
 }
+
+private fun SparseArray<ByteArray>.toMap(): Map<Int, ByteArray> =
+    buildMap { this@toMap.forEach { key, value -> put(key, value) } }

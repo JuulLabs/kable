@@ -1,5 +1,6 @@
 package com.juul.kable.btleplug
 
+import com.juul.kable.AdvertisementCapture
 import com.juul.kable.Identifier
 import com.juul.kable.ManufacturerData
 import com.juul.kable.PlatformAdvertisement
@@ -45,4 +46,17 @@ internal data class BtleplugAdvertisement(
 
     override fun manufacturerData(companyIdentifierCode: Int): ByteArray? =
         manufacturerDataMap[companyIdentifierCode.toUShort()]?.toByteArray()
+
+    internal fun capture(): AdvertisementCapture = AdvertisementCapture(
+        name = name,
+        peripheralName = peripheralName,
+        identifier = identifier.toString(),
+        isConnectable = isConnectable,
+        rssi = rssi,
+        txPower = txPower,
+        uuids = uuids,
+        serviceData = serviceData.mapValues { (_, data) -> data.toByteArray() },
+        manufacturerData = manufacturerDataMap.entries
+            .associate { (code, data) -> code.toInt() to data.toByteArray() },
+    )
 }

@@ -1,7 +1,14 @@
 package com.juul.kable
 
+import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
+/**
+ * [Advertisement] is serializable (e.g. usable as a Compose Navigation argument): serialization
+ * captures a snapshot of the advertisement data, and deserialization restores an advertisement
+ * holding the captured data. See [AdvertisementSerializer] for caveats.
+ */
+@Serializable(with = AdvertisementSerializer::class)
 public interface Advertisement {
 
     /**

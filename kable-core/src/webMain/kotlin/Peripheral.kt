@@ -14,7 +14,12 @@ public actual fun Peripheral(
     advertisement: Advertisement,
     builderAction: PeripheralBuilderAction,
 ): Peripheral {
-    advertisement as BluetoothAdvertisingEventWebBluetoothAdvertisement
+    require(advertisement is BluetoothAdvertisingEventWebBluetoothAdvertisement) {
+        "Unable to create Peripheral from ${advertisement::class.simpleName}. " +
+            "On JavaScript, a Peripheral can only be created from an Advertisement that was " +
+            "obtained from a Scanner (e.g. deserialized advertisements are not supported); " +
+            "use the `Peripheral(Identifier)` builder function instead."
+    }
     return Peripheral(advertisement.bluetoothDevice, builderAction)
 }
 

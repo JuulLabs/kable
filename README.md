@@ -159,6 +159,26 @@ val scanner = Scanner {
 _Scanning for nearby peripherals is supported, but only available on Chrome 79+ with "Experimental Web Platform
 features" enabled via:_ `chrome://flags/#enable-experimental-web-platform-features`
 
+### Serialization
+
+[`Advertisement`] objects are serializable (via [kotlinx.serialization]), allowing them to be used (for example) as
+navigation arguments with Compose Navigation:
+
+```kotlin
+@Serializable
+data class PeripheralDetails(val advertisement: Advertisement)
+```
+
+Serialization captures a snapshot of the advertisement data at the time of serialization; deserialization restores an
+[`Advertisement`] holding the previously captured data (deserialized advertisements are **not** "live"). Serialized
+advertisements are only guaranteed to deserialize on the same platform they were serialized on (the `identifier`
+property is a platform specific value that is not portable across platforms).
+
+> [!NOTE]
+> _On JavaScript, a [`Peripheral`] cannot be created from a deserialized [`Advertisement`] (Web Bluetooth requires a
+> `BluetoothDevice` object, which cannot be synchronously retrieved); use the `Peripheral(Identifier)` builder function
+> instead._
+
 ## Peripheral
 
 Once an [`Advertisement`] is obtained, it can be converted to a [`Peripheral`] via the `Peripheral` builder function:
@@ -660,6 +680,7 @@ limitations under the License.
 [Coroutine scope]: https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
 [SensorTag sample app]: samples/sensortag
+[kotlinx.serialization]: https://github.com/Kotlin/kotlinx.serialization
 [`Advertisement`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-advertisement/index.html
 [`Characteristic`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-characteristic/index.html
 [`Connected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-connected/index.html

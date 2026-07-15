@@ -1,4 +1,5 @@
 public abstract interface class com/juul/kable/Advertisement {
+	public static final field Companion Lcom/juul/kable/Advertisement$Companion;
 	public abstract fun getIdentifier ()Ljava/lang/String;
 	public abstract fun getManufacturerData ()Lcom/juul/kable/ManufacturerData;
 	public abstract fun getName ()Ljava/lang/String;
@@ -9,6 +10,19 @@ public abstract interface class com/juul/kable/Advertisement {
 	public abstract fun isConnectable ()Ljava/lang/Boolean;
 	public abstract fun manufacturerData (I)[B
 	public abstract fun serviceData (Lkotlin/uuid/Uuid;)[B
+}
+
+public final class com/juul/kable/Advertisement$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/juul/kable/AdvertisementSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lcom/juul/kable/AdvertisementSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/juul/kable/Advertisement;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/juul/kable/Advertisement;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
 public abstract interface class com/juul/kable/AndroidPeripheral : com/juul/kable/Peripheral {
@@ -372,6 +386,7 @@ public final class com/juul/kable/Phy : java/lang/Enum {
 }
 
 public abstract interface class com/juul/kable/PlatformAdvertisement : android/os/Parcelable, com/juul/kable/Advertisement {
+	public static final field Companion Lcom/juul/kable/PlatformAdvertisement$Companion;
 	public abstract fun getAddress ()Ljava/lang/String;
 	public abstract fun getBondState ()Lcom/juul/kable/PlatformAdvertisement$BondState;
 	public abstract fun getBytes ()[B
@@ -384,6 +399,19 @@ public final class com/juul/kable/PlatformAdvertisement$BondState : java/lang/En
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/juul/kable/PlatformAdvertisement$BondState;
 	public static fun values ()[Lcom/juul/kable/PlatformAdvertisement$BondState;
+}
+
+public final class com/juul/kable/PlatformAdvertisement$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/juul/kable/PlatformAdvertisementSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lcom/juul/kable/PlatformAdvertisementSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/juul/kable/PlatformAdvertisement;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/juul/kable/PlatformAdvertisement;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
 public final class com/juul/kable/PooledThreadingStrategy : com/juul/kable/ThreadingStrategy {

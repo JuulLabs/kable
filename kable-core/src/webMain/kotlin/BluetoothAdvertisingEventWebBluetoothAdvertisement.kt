@@ -57,6 +57,20 @@ internal class BluetoothAdvertisingEventWebBluetoothAdvertisement(
             ManufacturerData(key.toInt(), value.buffer.toByteArray())
         }
 
+    internal fun capture(): AdvertisementCapture = AdvertisementCapture(
+        name = name,
+        peripheralName = peripheralName,
+        identifier = identifier,
+        isConnectable = isConnectable,
+        rssi = rssi,
+        txPower = txPower,
+        uuids = uuids,
+        serviceData = Iterable { advertisement.serviceData.entries().iterator() }
+            .associate { (uuid, data) -> uuid.toString().toUuid() to data.buffer.toByteArray() },
+        manufacturerData = Iterable { advertisement.manufacturerData.entries().iterator() }
+            .associate { (code, data) -> code.toInt() to data.buffer.toByteArray() },
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
