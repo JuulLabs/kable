@@ -20,6 +20,13 @@ kotlin {
         namespace = "com.juul.kable"
         withHostTest { }
 
+        // AGP 9 defaults `minCompileSdk` to this library's `compileSdk`, which forces consumers
+        // onto the same (or newer) compile SDK. Relax it to Kable's minimum supported Android
+        // version. https://github.com/JuulLabs/kable/issues/1206
+        aarMetadata {
+            minCompileSdk = libs.versions.android.min.get().toInt()
+        }
+
         lint {
             abortOnError = true
             warningsAsErrors = true
