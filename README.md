@@ -513,10 +513,10 @@ peripheral.write(descriptor, byteArrayOf(1, 2, 3))
 
 When writing to a characteristic, a [`WriteType`] may be specified. The available write types are:
 
-| [`WriteType`]                       | Speed  | Reliability                                                    | Characteristic property   |
-|-------------------------------------|--------|----------------------------------------------------------------|---------------------------|
-| [`WithResponse`]                    | Slower | Peripheral acknowledges that the write was received            | [`write`][property-write] |
-| [`WithoutResponse`] _(default)_     | Faster | No acknowledgement (delivery is not guaranteed)                | [`writeWithoutResponse`]  |
+| [`WriteType`]                   | Speed  | Reliability                                         |
+|---------------------------------|--------|-----------------------------------------------------|
+| [`WithResponse`]                | Slower | Peripheral acknowledges that the write was received |
+| [`WithoutResponse`] _(default)_ | Faster | No acknowledgement (delivery is not guaranteed)     |
 
 ```kotlin
 peripheral.write(characteristic, byteArrayOf(1, 2, 3), WriteType.WithResponse)
@@ -726,4 +726,3 @@ limitations under the License.
 [badge-watchos]: http://img.shields.io/badge/platform-watchos-C0C0C0.svg?style=flat
 [badge-windows]: http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat
 [connection-state]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/index.html
-[property-write]: https://juullabs.github.io/kable/kable-core/com.juul.kable/write.html
