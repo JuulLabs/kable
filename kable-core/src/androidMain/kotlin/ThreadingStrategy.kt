@@ -41,7 +41,7 @@ public object OnDemandThreadingStrategy : ThreadingStrategy {
  * A [ThreadingStrategy] that pools unused ["threads"][Threading] until [evictAfter] time has
  * elapsed.
  *
- * In most circumstances, only a a single [PooledThreadingStrategy] instance should be created per
+ * In most circumstances, only a single [PooledThreadingStrategy] instance should be created per
  * application run, as it holds the "shared" pool of unused ["threads"][Threading].
  *
  * Useful for when [Peripheral] connections are quickly being spun down and up again — as they can
@@ -80,11 +80,12 @@ public class PooledThreadingStrategy(
     public fun cancel(): Unit = job.cancel()
 
     override fun acquire(): Threading = guard.withLock {
-        // `removeAt(0)` is used (rather than `removeFirst()` or `removeFirstOrNull()`) to
-        // guarantee that no call in Kable can resolve to `java.util.List.removeFirst()`, which is
-        // only available on Android 15 (API 35) or higher and causes a `NoSuchMethodError` on
-        // earlier Android versions when compiled against `compileSdk` 35+.
-        // https://github.com/JuulLabs/kable/issues/1129
+        // `java.util.List.removeFirst()` is only available on Android 15 (API 35) or higher and
+        // causes a `NoSuchMethodError` on earlier Android versions when compiled against
+        // `compileSdk` 35+. Google Play flagged Kable's usage of `removeFirst` or `removeLast` (in
+        // `BluetoothGattKt`) but the only seemingly similar usage was `removeFirstOrNull` (which
+        // should be safe). We avoid the usage of `removeFirstOrNull` in hopes of not being
+        // erroneously flagged. https://github.com/JuulLabs/kable/issues/1129
         if (pool.isEmpty()) null else pool.removeAt(0).second
     } ?: Threading(generateThreadName())
 
