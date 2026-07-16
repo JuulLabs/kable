@@ -28,6 +28,8 @@ public object Bluetooth {
 
         public operator fun plus(shortUuid: Int): Uuid = plus(shortUuid.toLong())
 
+        public operator fun plus(shortUuid: UInt): Uuid = plus(shortUuid.toLong())
+
         /** @param shortUuid 32-bits (or less) short UUID (if larger than 32-bits, will be truncated to 32-bits). */
         public operator fun plus(shortUuid: Long): Uuid =
             Uuid.fromLongs(mostSignificantBits + (shortUuid and 0xFFFF_FFFF shl 32), leastSignificantBits)
