@@ -131,7 +131,7 @@ public data class LazyDescriptor(
 @Deprecated(
     """
     Use `characteristicOf` that accepts `Uuid` arguments.
-    Example: `characteristicOf(Uuid.service("battery_service"), Uuid.characteristic("battery_level"))`,
+    Example: `characteristicOf(Bluetooth.BaseUuid + AssignedNumbers.Services.BATTERY, Bluetooth.BaseUuid + AssignedNumbers.Characteristics.BATTERY_LEVEL)`,
     """,
     replaceWith = ReplaceWith("characteristicOf(Uuid.parse(service), Uuid.parse(characteristic))"),
     level = DeprecationLevel.ERROR,

@@ -296,6 +296,10 @@ private val BluetoothDescriptors by lazy {
 }
 
 /** Gets a service [Uuid] from a known service [name]. */
+@Deprecated(
+    message = "Use `AssignedNumbers.Services` constants instead. " +
+        "Example: `Bluetooth.BaseUuid + AssignedNumbers.Services.HEART_RATE`",
+)
 @ExperimentalKableApi
 public fun Uuid.Companion.service(name: String): Uuid =
     BluetoothServices[name]
@@ -303,6 +307,10 @@ public fun Uuid.Companion.service(name: String): Uuid =
         ?: throw NoSuchElementException("Unknown Bluetooth service name: $name")
 
 /** Gets a characteristic [Uuid] from a known characteristic [name]. */
+@Deprecated(
+    message = "Use `AssignedNumbers.Characteristics` constants instead. " +
+        "Example: `Bluetooth.BaseUuid + AssignedNumbers.Characteristics.HEART_RATE_MEASUREMENT`",
+)
 @ExperimentalKableApi
 public fun Uuid.Companion.characteristic(name: String): Uuid =
     BluetoothCharacteristics[name]
@@ -310,6 +318,10 @@ public fun Uuid.Companion.characteristic(name: String): Uuid =
         ?: throw NoSuchElementException("Unknown Bluetooth characteristic name: $name")
 
 /** Gets a descriptor [Uuid] from a known descriptor [name]. */
+@Deprecated(
+    message = "Use `AssignedNumbers.Descriptors` constants instead. " +
+        "Example: `Bluetooth.BaseUuid + AssignedNumbers.Descriptors.CLIENT_CHARACTERISTIC_CONFIGURATION`",
+)
 @ExperimentalKableApi
 public fun Uuid.Companion.descriptor(name: String): Uuid =
     BluetoothDescriptors[name]

@@ -1,13 +1,12 @@
 package com.juul.sensortag
 
+import com.juul.kable.AssignedNumbers
 import com.juul.kable.Bluetooth
 import com.juul.kable.Peripheral
 import com.juul.kable.Scanner
 import com.juul.kable.WriteType.WithResponse
-import com.juul.kable.characteristic
 import com.juul.kable.characteristicOf
 import com.juul.kable.logs.Logging.Level.Events
-import com.juul.kable.service
 import com.juul.khronicle.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -43,8 +42,8 @@ private val movementPeriodCharacteristic = characteristicOf(
     characteristic = SensorTag.BaseUuid + 0xAA83
 )
 val batteryCharacteristic = characteristicOf(
-    service = Uuid.service("battery_service"),
-    characteristic = Uuid.characteristic("battery_level"),
+    service = Bluetooth.BaseUuid + AssignedNumbers.Services.BATTERY,
+    characteristic = Bluetooth.BaseUuid + AssignedNumbers.Characteristics.BATTERY_LEVEL,
 )
 
 private val rssiInterval = 5.seconds
