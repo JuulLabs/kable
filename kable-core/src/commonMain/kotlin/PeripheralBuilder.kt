@@ -3,6 +3,7 @@ package com.juul.kable
 import com.juul.kable.logs.LoggingBuilder
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 public expect class ServicesDiscoveredPeripheral {
@@ -35,6 +36,7 @@ internal typealias ServicesDiscoveredAction = suspend ServicesDiscoveredPeripher
 internal typealias ObservationExceptionHandler = suspend ObservationExceptionPeripheral.(cause: Exception) -> Unit
 
 internal val defaultDisconnectTimeout = 5.seconds
+internal val defaultWriteWithoutResponseTimeout = 30.milliseconds
 
 public expect class PeripheralBuilder internal constructor() {
     public fun logging(init: LoggingBuilder)
@@ -91,4 +93,18 @@ public expect class PeripheralBuilder internal constructor() {
      */
     @ObsoleteKableApi // Will be removed after https://github.com/JuulLabs/kable/issues/1016 is fixed.
     public var forceCharacteristicEqualityByUuid: Boolean
+
+    /**
+     * Amount of time to wait for `peripheralIsReady(toSendWriteWithoutResponse:)` before
+     * proceeding with the write.
+     *
+     * On some iOS versions/chipsets, the callback may be delayed or never fired, causing the
+     * write pipeline to stall indefinitely. When the timeout expires, a warning is logged and the
+     * write proceeds.
+     *
+     * Set to a large duration to effectively disable the timeout.
+     *
+     * Only applicable on Apple.
+     */
+    public var writeWithoutResponseTimeout: Duration
 }

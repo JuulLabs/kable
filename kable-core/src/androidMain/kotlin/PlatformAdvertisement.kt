@@ -19,6 +19,6 @@ public actual interface PlatformAdvertisement : Advertisement, Parcelable {
      * This is an internal API and may be removed from a future release. If you are using it, please
      * open an issue and report your use case.
      */
-    @KableInternalApi
+    @InternalKableApi
     public val bluetoothDevice: BluetoothDevice
 }

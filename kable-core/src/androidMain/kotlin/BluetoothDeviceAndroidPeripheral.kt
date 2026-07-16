@@ -52,7 +52,7 @@ private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
 
 internal class BluetoothDeviceAndroidPeripheral(
-    @KableInternalApi override val bluetoothDevice: BluetoothDevice,
+    @InternalKableApi override val bluetoothDevice: BluetoothDevice,
     private val autoConnectPredicate: () -> Boolean,
     private val transport: Transport,
     private val phy: Phy,
@@ -100,7 +100,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     override val address: String = requireNonZeroAddress(bluetoothDevice.address)
 
-    @ExperimentalApi
+    @ExperimentalKableApi
     override val name: String?
         get() = bluetoothDevice.name
 
@@ -171,7 +171,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
         (mtu.value ?: DEFAULT_ATT_MTU) - ATT_MTU_HEADER_SIZE
 
-    @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.
+    @ExperimentalKableApi // Experimental until Web Bluetooth advertisements APIs are stable.
     override suspend fun rssi(): Int =
         connectionOrThrow().execute<OnReadRemoteRssi> {
             readRemoteRssiOrThrow()

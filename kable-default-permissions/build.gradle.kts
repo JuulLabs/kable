@@ -5,6 +5,9 @@ plugins {
 
 android {
     compileSdk = libs.versions.android.compile.get().toInt()
-    defaultConfig.minSdk = libs.versions.android.min.get().toInt()
+    defaultConfig {
+        minSdk = libs.versions.android.min.get().toInt()
+        aarMetadata.minCompileSdk = libs.versions.android.min.get().toInt()
+    }
     namespace = "com.juul.kable.permissions"
 }

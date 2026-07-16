@@ -17,6 +17,10 @@ kotlin {
     android {
         compileSdk = libs.versions.android.compile.get().toInt()
         minSdk = libs.versions.android.min.get().toInt()
+        aarMetadata {
+            minCompileSdk = libs.versions.android.min.get().toInt()
+        }
+
         namespace = "com.juul.kable"
         withHostTest { }
 
@@ -57,8 +61,8 @@ kotlin {
     sourceSets {
         all {
             languageSettings {
-                optIn("com.juul.kable.ExperimentalApi")
-                optIn("com.juul.kable.KableInternalApi")
+                optIn("com.juul.kable.ExperimentalKableApi")
+                optIn("com.juul.kable.InternalKableApi")
                 optIn("kotlin.concurrent.atomics.ExperimentalAtomicApi")
                 optIn("kotlin.js.ExperimentalWasmJsInterop")
                 optIn("kotlin.uuid.ExperimentalUuidApi")
@@ -83,6 +87,7 @@ kotlin {
             api(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.core)
             implementation(libs.androidx.startup)
+            implementation(libs.kotlin.parcelize.runtime)
             implementation(libs.tuulbox.coroutines)
         }
 
