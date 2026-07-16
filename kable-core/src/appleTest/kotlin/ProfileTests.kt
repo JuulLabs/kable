@@ -103,5 +103,5 @@ private fun cbService(
     type = CBUUID.UUIDWithString(uuid.toString()),
     primary = true,
 ).apply {
-    this.characteristics = characteristics
+    setCharacteristics(characteristics)
 }
