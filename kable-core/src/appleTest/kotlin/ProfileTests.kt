@@ -90,18 +90,18 @@ class ProfileTests {
 }
 
 private fun cbCharacteristic(uuid: Uuid) = CBMutableCharacteristic(
-    type = CBUUID.UUIDWithString(uuid.toString()),
-    properties = CBCharacteristicPropertyRead,
-    value = null,
-    permissions = CBAttributePermissionsReadable,
+    CBUUID.UUIDWithString(uuid.toString()),
+    CBCharacteristicPropertyRead,
+    null,
+    CBAttributePermissionsReadable,
 )
 
 private fun cbService(
     uuid: Uuid,
     characteristics: List<CBMutableCharacteristic>,
 ) = CBMutableService(
-    type = CBUUID.UUIDWithString(uuid.toString()),
-    primary = true,
+    CBUUID.UUIDWithString(uuid.toString()),
+    true,
 ).apply {
     setCharacteristics(characteristics)
 }
