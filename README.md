@@ -30,18 +30,19 @@ val heartRateServiceUuid = Bluetooth.BaseUuid + uuid16bit
 println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 ```
 
-Bluetooth SIG assigned numbers are available as Kotlin constants (under the [`AssignedNumbers`]
-object, provided by the optional `com.juul.kable:bluetooth-sig-assigned-numbers` artifact),
-organized into the following categories:
+Bluetooth SIG assigned numbers are available as Kotlin constants (in the `org.bluetooth` package,
+provided by the optional `com.juul.kable:bluetooth-sig-assigned-numbers` artifact). Constant names
+exactly match the IDs defined in the Bluetooth SIG assigned numbers YAML files, organized into the
+following categories:
 
-- `AssignedNumbers.Services`
-- `AssignedNumbers.Characteristics`
-- `AssignedNumbers.Descriptors`
+- `org.bluetooth.service`
+- `org.bluetooth.characteristic`
+- `org.bluetooth.descriptor`
 
 For example:
 
 ```kotlin
-val heartRateServiceUuid = Bluetooth.BaseUuid + AssignedNumbers.Services.HEART_RATE
+val heartRateServiceUuid = Bluetooth.BaseUuid + org.bluetooth.service.heart_rate
 println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 ```
 
@@ -50,13 +51,13 @@ println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 
 Additional example shorthand notations:
 
-| Shorthand                                                        | Canonical UUID                         |
-|------------------------------------------------------------------|----------------------------------------|
-| `Bluetooth.BaseUuid + 0x180D`                                    | `0000180D-0000-1000-8000-00805F9B34FB` |
-| `Bluetooth.BaseUuid + 0x12345678`                                | `12345678-0000-1000-8000-00805F9B34FB` |
-| `Bluetooth.BaseUuid + AssignedNumbers.Services.BLOOD_PRESSURE`   | `00001810-0000-1000-8000-00805F9B34FB` |
-| `Bluetooth.BaseUuid + AssignedNumbers.Characteristics.ALTITUDE`  | `00002AB3-0000-1000-8000-00805F9B34FB` |
-| `Bluetooth.BaseUuid + AssignedNumbers.Descriptors.VALID_RANGE`   | `00002906-0000-1000-8000-00805F9B34FB` |
+| Shorthand                                                       | Canonical UUID                         |
+|-----------------------------------------------------------------|----------------------------------------|
+| `Bluetooth.BaseUuid + 0x180D`                                   | `0000180D-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + 0x12345678`                               | `12345678-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + org.bluetooth.service.blood_pressure`     | `00001810-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + org.bluetooth.characteristic.altitude`    | `00002AB3-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + org.bluetooth.descriptor.valid_range`     | `00002906-0000-1000-8000-00805F9B34FB` |
 
 ## Scanning
 
@@ -458,7 +459,7 @@ In the above example, to lazily access "Descriptor D3":
 val descriptor = descriptorOf(
     service = Bluetooth.BaseUuid + 0x1815,
     characteristic = Bluetooth.BaseUuid + 0x2A56,
-    descriptor = Bluetooth.BaseUuid + AssignedNumbers.Descriptors.CLIENT_CHARACTERISTIC_CONFIGURATION,
+    descriptor = Bluetooth.BaseUuid + org.bluetooth.descriptor.gatt.client_characteristic_configuration,
 )
 ```
 
@@ -489,7 +490,7 @@ val descriptor = services
 >   .characteristics
 >   .first { it.characteristicUuid == Bluetooth.BaseUuid + 0x2A56 }
 >   .descriptors
->   .first { it.descriptorUuid == Bluetooth.BaseUuid + AssignedNumbers.Descriptors.CLIENT_CHARACTERISTIC_CONFIGURATION }
+>   .first { it.descriptorUuid == Bluetooth.BaseUuid + org.bluetooth.descriptor.gatt.client_characteristic_configuration }
 > ```
 
 > [!TIP]
@@ -663,7 +664,6 @@ limitations under the License.
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
 [SensorTag sample app]: samples/sensortag
 [`Advertisement`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-advertisement/index.html
-[`AssignedNumbers`]: https://juullabs.github.io/kable/bluetooth-sig-assigned-numbers/com.juul.kable/-assigned-numbers/index.html
 [`Characteristic`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-characteristic/index.html
 [`Connected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-connected/index.html
 [`CoroutineScope.peripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/peripheral.html

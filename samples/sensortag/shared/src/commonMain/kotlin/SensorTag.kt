@@ -1,6 +1,5 @@
 package com.juul.sensortag
 
-import com.juul.kable.AssignedNumbers
 import com.juul.kable.Bluetooth
 import com.juul.kable.Peripheral
 import com.juul.kable.Scanner
@@ -42,8 +41,8 @@ private val movementPeriodCharacteristic = characteristicOf(
     characteristic = SensorTag.BaseUuid + 0xAA83
 )
 val batteryCharacteristic = characteristicOf(
-    service = Bluetooth.BaseUuid + AssignedNumbers.Services.BATTERY,
-    characteristic = Bluetooth.BaseUuid + AssignedNumbers.Characteristics.BATTERY_LEVEL,
+    service = Bluetooth.BaseUuid + org.bluetooth.service.battery_service,
+    characteristic = Bluetooth.BaseUuid + org.bluetooth.characteristic.battery_level,
 )
 
 private val rssiInterval = 5.seconds
