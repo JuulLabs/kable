@@ -10,11 +10,12 @@ public class OptionsBuilder internal constructor() {
      * Filters to apply when requesting devices. If predicates are non-empty, then only devices
      * that match at least one of the predicates will appear in the `requestDevice` picker.
      *
-     * Filtering on Service Data is not supported because it is not implemented:
-     * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md
-     *
-     * Filtering on Manufacturer Data is supported and a good explanation can be found here:
+     * Filtering on Manufacturer Data and Service Data is passed through to the browser, and a good
+     * explanation can be found here:
      * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md
+     *
+     * Service Data filtering is subject to browser support; implementation status is tracked at:
+     * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md
      */
     public fun filters(builder: FiltersBuilder.() -> Unit) {
         filters = FiltersBuilder().apply(builder).build()
