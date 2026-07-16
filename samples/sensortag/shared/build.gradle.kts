@@ -85,6 +85,7 @@ kotlin {
             implementation(libs.bundles.voyager)
             implementation(libs.datetime)
             implementation(libs.kable)
+            implementation(libs.kable.assigned.numbers)
             implementation(libs.khronicle)
             implementation(libs.serialization)
             implementation(projects.bluetooth)

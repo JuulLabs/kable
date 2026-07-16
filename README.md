@@ -31,7 +31,8 @@ println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 ```
 
 Bluetooth SIG assigned numbers are available as Kotlin constants (under the [`AssignedNumbers`]
-object), organized into the following categories:
+object, provided by the optional `com.juul.kable:bluetooth-sig-assigned-numbers` artifact),
+organized into the following categories:
 
 - `AssignedNumbers.Services`
 - `AssignedNumbers.Characteristics`
@@ -45,7 +46,7 @@ println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 ```
 
 > [!NOTE]
-> List of assigned numbers can be found in [`AssignedNumbers.kt`](https://github.com/JuulLabs/kable/blob/main/kable-core/src/commonMain/kotlin/AssignedNumbers.kt).
+> List of assigned numbers can be found in [`AssignedNumbers.kt`](https://github.com/JuulLabs/kable/blob/main/bluetooth-sig-assigned-numbers/src/commonMain/kotlin/AssignedNumbers.kt).
 
 Additional example shorthand notations:
 
@@ -623,6 +624,7 @@ kotlin {
         commonMain.dependencies {
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
             implementation("com.juul.kable:kable-core:${kableVersion}")
+            implementation("com.juul.kable:bluetooth-sig-assigned-numbers:${kableVersion}") // Optional
         }
 
         androidMain.dependencies {
@@ -661,7 +663,7 @@ limitations under the License.
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
 [SensorTag sample app]: samples/sensortag
 [`Advertisement`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-advertisement/index.html
-[`AssignedNumbers`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-assigned-numbers/index.html
+[`AssignedNumbers`]: https://juullabs.github.io/kable/bluetooth-sig-assigned-numbers/com.juul.kable/-assigned-numbers/index.html
 [`Characteristic`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-characteristic/index.html
 [`Connected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-connected/index.html
 [`CoroutineScope.peripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/peripheral.html

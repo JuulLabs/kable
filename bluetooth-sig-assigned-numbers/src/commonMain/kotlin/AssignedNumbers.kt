@@ -7,8 +7,8 @@ package com.juul.kable
 /**
  * Bluetooth SIG assigned numbers, as Kotlin constants.
  *
- * Combine with [Bluetooth.BaseUuid] to produce a full 128-bit [Uuid][kotlin.uuid.Uuid], for
- * example:
+ * Combine with `Bluetooth.BaseUuid` (from `kable-core`) to produce a full 128-bit
+ * [Uuid][kotlin.uuid.Uuid], for example:
  *
  * ```
  * val heartRateServiceUuid = Bluetooth.BaseUuid + AssignedNumbers.Services.HEART_RATE
@@ -19,7 +19,6 @@ package com.juul.kable
  *
  * Last update: 2025-05-05 (UTC+0)
  */
-@ExperimentalKableApi
 public object AssignedNumbers {
     /**
      * https://bitbucket.org/bluetooth-SIG/public/src/main/assigned_numbers/uuids/service_uuids.yaml

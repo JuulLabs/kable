@@ -297,7 +297,8 @@ private val BluetoothDescriptors by lazy {
 
 /** Gets a service [Uuid] from a known service [name]. */
 @Deprecated(
-    message = "Use `AssignedNumbers.Services` constants instead. " +
+    message = "Use `AssignedNumbers.Services` constants (from the " +
+        "`com.juul.kable:bluetooth-sig-assigned-numbers` artifact) instead. " +
         "Example: `Bluetooth.BaseUuid + AssignedNumbers.Services.HEART_RATE`",
 )
 @ExperimentalKableApi
@@ -308,7 +309,8 @@ public fun Uuid.Companion.service(name: String): Uuid =
 
 /** Gets a characteristic [Uuid] from a known characteristic [name]. */
 @Deprecated(
-    message = "Use `AssignedNumbers.Characteristics` constants instead. " +
+    message = "Use `AssignedNumbers.Characteristics` constants (from the " +
+        "`com.juul.kable:bluetooth-sig-assigned-numbers` artifact) instead. " +
         "Example: `Bluetooth.BaseUuid + AssignedNumbers.Characteristics.HEART_RATE_MEASUREMENT`",
 )
 @ExperimentalKableApi
@@ -319,7 +321,8 @@ public fun Uuid.Companion.characteristic(name: String): Uuid =
 
 /** Gets a descriptor [Uuid] from a known descriptor [name]. */
 @Deprecated(
-    message = "Use `AssignedNumbers.Descriptors` constants instead. " +
+    message = "Use `AssignedNumbers.Descriptors` constants (from the " +
+        "`com.juul.kable:bluetooth-sig-assigned-numbers` artifact) instead. " +
         "Example: `Bluetooth.BaseUuid + AssignedNumbers.Descriptors.CLIENT_CHARACTERISTIC_CONFIGURATION`",
 )
 @ExperimentalKableApi
