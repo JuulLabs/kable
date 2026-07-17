@@ -66,6 +66,7 @@ voyager = [
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-bcv-bridge = { id = "io.github.tjokinen.android-bcv-bridge", version = "0.1.0" } # Workaround for https://github.com/Kotlin/binary-compatibility-validator/issues/312
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }
