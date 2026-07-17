@@ -637,6 +637,26 @@ android {
 }
 ```
 
+# Development
+
+The Java version used to build this project is managed via [SDKMAN!], as declared in the
+[`.sdkmanrc`](.sdkmanrc) file. With SDKMAN! installed, the appropriate JDK can be installed and
+activated from the repository root by running:
+
+```shell
+sdk env install
+sdk env
+```
+
+Gradle is configured (via [`jvmToolchain`]) to compile against the JDK version declared in
+`.sdkmanrc`, but [automatic downloading of JDKs] by Gradle is disabled; the JDK is expected to be
+provisioned via SDKMAN! (or another locally installed JDK of the same version, which Gradle will
+auto-detect).
+
+> [!TIP]
+> Enabling the `sdkman_auto_env` setting in `~/.sdkman/etc/config` will switch to the correct Java
+> version automatically whenever you `cd` into the repository.
+
 # License
 
 ```
@@ -659,7 +679,10 @@ limitations under the License.
 [Bluetooth permissions]: https://developer.android.com/develop/connectivity/bluetooth/bt-permissions
 [Coroutine scope]: https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
+[SDKMAN!]: https://sdkman.io/
 [SensorTag sample app]: samples/sensortag
+[`jvmToolchain`]: https://kotlinlang.org/docs/gradle-configure-project.html#gradle-java-toolchains-support
+[automatic downloading of JDKs]: https://docs.gradle.org/current/userguide/toolchains.html#sub:disable_auto_provision
 [`Advertisement`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-advertisement/index.html
 [`Characteristic`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-characteristic/index.html
 [`Connected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-connected/index.html
