@@ -639,9 +639,9 @@ android {
 
 # Development
 
-The Java version used to build this project is managed via [SDKMAN!], as declared in the
-[`.sdkmanrc`] file. With [SDKMAN!] installed, the appropriate JDK can be installed and
-activated from the repository root by running:
+The Java version used to build this project can optionally be managed via [SDKMAN!], as
+declared in the [`.sdkmanrc`] file. With [SDKMAN!] installed, the appropriate JDK can be
+installed and activated from the repository root by running:
 
 ```shell
 sdk env install
@@ -651,6 +651,10 @@ sdk env
 > [!TIP]
 > Have [SDKMAN!] automatically use the SDK defined in [`.sdkmanrc`] when changing directories by
 > running `sdk config` then setting `sdkman_auto_env=true`.
+
+> [!NOTE]
+> If not using [SDKMAN!], be sure the JDK version specified in [`.sdkmanrc`] is installed, as Gradle
+> toolchain automatic downloading is disabled for this project.
 
 # License
 
