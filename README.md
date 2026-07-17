@@ -637,7 +637,7 @@ android {
 }
 ```
 
-# Development
+## Development
 
 The Java version used to build this project can optionally be managed via [SDKMAN!], as
 declared in the [`.sdkmanrc`] file. With [SDKMAN!] installed, the appropriate JDK can be
