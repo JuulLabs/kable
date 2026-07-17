@@ -42,7 +42,6 @@ public final class com/juul/kable/Bluetooth$BaseUuid {
 	public static final field INSTANCE Lcom/juul/kable/Bluetooth$BaseUuid;
 	public final fun plus (I)Lkotlin/uuid/Uuid;
 	public final fun plus (J)Lkotlin/uuid/Uuid;
-	public final fun plus-WZ4Q5Ns (I)Lkotlin/uuid/Uuid;
 	public fun toString ()Ljava/lang/String;
 }
 
