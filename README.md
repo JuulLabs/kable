@@ -654,7 +654,7 @@ sdk env
 
 > [!NOTE]
 > If not using [SDKMAN!], be sure the JDK version specified in [`.sdkmanrc`] is installed, as Gradle
-> toolchain automatic downloading is disabled for this project.
+> [toolchain automatic downloading is disabled] for this project.
 
 # License
 
@@ -728,3 +728,4 @@ limitations under the License.
 [badge-watchos]: http://img.shields.io/badge/platform-watchos-C0C0C0.svg?style=flat
 [badge-windows]: http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat
 [connection-state]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/index.html
+[toolchain automatic downloading is disabled]: https://docs.gradle.org/current/userguide/toolchains.html#sub:disable_auto_provision
