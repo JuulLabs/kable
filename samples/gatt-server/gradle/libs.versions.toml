@@ -1,0 +1,15 @@
+[versions]
+agp = "9.3.0"
+android-compile = "37"
+android-target = "33"
+kotlin = "2.4.10"
+
+[libraries]
+compose-activity = { module = "androidx.activity:activity-compose", version = "1.13.0" }
+compose-material3 = { module = "androidx.compose.material3:material3", version = "1.4.0" }
+kable-server = { module = "com.juul.kable:kable-server" }
+lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.11.0" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
