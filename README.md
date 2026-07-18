@@ -596,7 +596,7 @@ Kable provides the `com.juul.kable:kable-server` module for acting as a Bluetoot
 | Platform   | Supported | Notes                                                                          |
 |------------|:---------:|--------------------------------------------------------------------------------|
 | Android    |     ✓     |                                                                                |
-| Apple      |     ✓     | Advertising limited to local name and service UUIDs. Dynamic descriptors are not supported. |
+| Apple      |     ✓     | iOS and macOS only (Core Bluetooth peripheral role is unavailable on watchOS). Advertising limited to local name and service UUIDs. Dynamic descriptors are not supported. |
 | JavaScript |           | _Web Bluetooth does not support the peripheral role._                          |
 | JVM        |           |                                                                                |
 

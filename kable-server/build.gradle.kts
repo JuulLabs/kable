@@ -37,8 +37,10 @@ kotlin {
         }
     }
 
-    // Peripheral role is not supported on JS (Web Bluetooth is client-only) nor JVM (btleplug is
-    // central-only), so (unlike `kable-core`) neither target is configured for `kable-server`.
+    // Peripheral role is not supported on JS (Web Bluetooth is client-only), JVM (btleplug is
+    // central-only), nor watchOS (Core Bluetooth peripheral role is unavailable, per
+    // https://developer.apple.com/documentation/corebluetooth/cbperipheralmanager), so (unlike
+    // `kable-core`) none of those targets are configured for `kable-server`.
     //
     // Build fails on Linux ARM64 host (when building Rust bindings for JAR distribution), so we
     // explicitly only include Native targets when running on MacOS.
@@ -50,9 +52,6 @@ kotlin {
         iosX64()
         macosArm64()
         macosX64()
-        watchosArm64()
-        watchosSimulatorArm64()
-        watchosDeviceArm64()
     }
 
     sourceSets {
