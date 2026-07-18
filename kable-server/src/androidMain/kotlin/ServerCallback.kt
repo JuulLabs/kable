@@ -82,6 +82,11 @@ internal class ServerCallback(
                 central = central(device),
                 attribute = characteristic.attributeKey,
                 offset = offset,
+                // `respond` is invoked with the value already sliced at the requested offset (by
+                // the `RequestDispatcher`), matching the `sendResponse` contract: the stack does
+                // not slice `value` (the `offset` argument only identifies the partial-read
+                // response), so the payload passed to `sendResponse` must be the portion of the
+                // attribute value starting at `offset`.
                 respond = { value -> sendResponse(device, requestId, GATT_SUCCESS, offset, value) },
                 fail = { error -> sendResponse(device, requestId, error.code, offset, null) },
             ),
@@ -117,6 +122,7 @@ internal class ServerCallback(
                 central = central(device),
                 attribute = descriptor.attributeKey,
                 offset = offset,
+                // See `onCharacteristicReadRequest` (above) regarding offset/slicing handling.
                 respond = { value -> sendResponse(device, requestId, GATT_SUCCESS, offset, value) },
                 fail = { error -> sendResponse(device, requestId, error.code, offset, null) },
             ),

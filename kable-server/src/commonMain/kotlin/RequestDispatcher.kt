@@ -157,26 +157,43 @@ internal class RequestDispatcher(
         }
     }
 
+    private class AssembledWrite(
+        val attribute: AttributeKey,
+        val handler: WriteHandler,
+        val value: ByteArray,
+    )
+
     private fun onExecuteWrite(request: InboundRequest.ExecuteWrite) {
         val queue = preparedWrites.remove(request.central.identifier).orEmpty()
         if (!request.commit || queue.isEmpty()) {
             request.respond()
             return
         }
+
+        // Assembly (and writability) of the entire transaction is validated before any handler is
+        // invoked, so that validation failures are reported without partially applying the
+        // transaction. (A handler failure mid-transaction can still result in a partially applied
+        // transaction — reported as failed — as handler side effects cannot be rolled back.)
+        val writes = mutableListOf<AssembledWrite>()
+        // Preserves the order in which attributes were first written to.
+        for ((attribute, fragments) in queue.groupBy(PreparedWrite::attribute)) {
+            val value = assemble(fragments)
+            if (value == null) {
+                request.fail(AttError.InvalidOffset)
+                return
+            }
+            val handler = writeHandlerOrNull(attribute)
+            if (handler == null) {
+                request.fail(AttError.WriteNotPermitted)
+                return
+            }
+            writes += AssembledWrite(attribute, handler, value)
+        }
+
         scope.launch {
-            // Preserves the order in which attributes were first written to.
-            for ((attribute, fragments) in queue.groupBy(PreparedWrite::attribute)) {
-                val value = assemble(fragments)
-                if (value == null) {
-                    request.fail(AttError.InvalidOffset)
-                    return@launch
-                }
-                val handler = writeHandlerOrNull(attribute)
-                if (handler == null) {
-                    request.fail(AttError.WriteNotPermitted)
-                    return@launch
-                }
-                val delivered = serveWrite(request.central, attribute, handler, value, respond = null, fail = request.fail)
+            for (write in writes) {
+                val delivered =
+                    serveWrite(request.central, write.attribute, write.handler, write.value, respond = null, fail = request.fail)
                 if (!delivered) return@launch
             }
             request.respond()

@@ -261,6 +261,44 @@ class GattServerTests {
     }
 
     @Test
+    fun preparedWrites_whenTransactionFailsValidation_doNotInvokeAnyHandler() = runTest {
+        val engine = FakeServerEngine()
+        val written = CompletableDeferred<ByteArray>()
+        val otherWritten = CompletableDeferred<ByteArray>()
+        val server = server(engine) {
+            service(serviceUuid) {
+                characteristic(characteristicUuid) {
+                    onWrite { value -> written.complete(value) }
+                }
+                characteristic(otherCharacteristicUuid) {
+                    onWrite { value -> otherWritten.complete(value) }
+                }
+            }
+        }
+        server.start()
+        val central = FakeCentral(1)
+        val otherCharacteristicKey = AttributeKey.Characteristic(serviceUuid, otherCharacteristicUuid)
+
+        // Valid fragment for first characteristic, non-contiguous (gap at offset 0) fragment for
+        // second characteristic: the whole transaction must fail without invoking any handler
+        // (i.e. the valid first write must not be applied).
+        val (write1, reply1) = writeRequest(central, characteristicKey, byteArrayOf(1), offset = 0, prepared = true)
+        val (write2, reply2) = writeRequest(central, otherCharacteristicKey, byteArrayOf(2), offset = 2, prepared = true)
+        engine.requests.send(write1)
+        engine.requests.send(write2)
+        assertIs<Reply.Success>(await { reply1.await() })
+        assertIs<Reply.Success>(await { reply2.await() })
+
+        val (execute, executeReply) = executeWrite(central, commit = true)
+        engine.requests.send(execute)
+
+        assertEquals(AttError.InvalidOffset, assertIs<Reply.Failure>(await { executeReply.await() }).error)
+        assertFalse(written.isCompleted, "No write handler should be invoked when the transaction fails validation")
+        assertFalse(otherWritten.isCompleted, "No write handler should be invoked when the transaction fails validation")
+        server.stop()
+    }
+
+    @Test
     fun preparedWrites_whenAborted_doNotInvokeHandler() = runTest {
         val engine = FakeServerEngine()
         val written = CompletableDeferred<ByteArray>()

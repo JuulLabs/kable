@@ -17,7 +17,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -83,6 +85,9 @@ class ServerViewModel : ViewModel() {
     fun toggleAdvertising() {
         val job = advertiseJob
         if (job != null) {
+            // Cleared eagerly (before the cancelled coroutine winds down) so that a quick re-toggle
+            // starts a new advertisement (rather than hitting this "stop" branch again).
+            advertiseJob = null
             job.cancel() // Cancelling the `advertise` coroutine stops advertising.
             return
         }
@@ -98,7 +103,10 @@ class ServerViewModel : ViewModel() {
                 Log.w(TAG, "Failed to advertise", e)
             } finally {
                 _advertising.value = false
-                advertiseJob = null
+                // Clear only if still the active advertisement (a quick stop-then-start may have
+                // already started a new one). `viewModelScope` is main-thread confined, so reads
+                // and writes of `advertiseJob` are not racy.
+                if (advertiseJob === coroutineContext.job) advertiseJob = null
             }
         }
     }

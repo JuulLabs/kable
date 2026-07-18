@@ -171,6 +171,10 @@ internal class PeripheralManagerDelegate(
         } else {
             // Long (or multi-attribute) write transaction: queue fragments then (atomically)
             // commit, with the (single) response tied to the commit.
+            //
+            // Note: fragments and commit are enqueued together (within this single callback), so
+            // queued fragments can never be left dangling (Core Bluetooth assembles prepared-write
+            // queues itself and only delivers complete — never aborted — transactions to the app).
             requests.forEach { request ->
                 val attribute = request.characteristic.attributeKeyOrNull()
                 if (attribute == null) {
