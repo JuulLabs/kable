@@ -28,7 +28,9 @@ import platform.CoreBluetooth.CBMutableService
 private val characteristicUserDescriptionUuid = Bluetooth.BaseUuid + 0x2901
 private val characteristicPresentationFormatUuid = Bluetooth.BaseUuid + 0x2904
 
-internal fun ServerService.toCBMutableService(logger: Logger): Pair<CBMutableService, Map<AttributeKey.Characteristic, CBMutableCharacteristic>> {
+internal fun ServerService.toCBMutableService(
+    logger: Logger,
+): Pair<CBMutableService, Map<AttributeKey.Characteristic, CBMutableCharacteristic>> {
     val registry = mutableMapOf<AttributeKey.Characteristic, CBMutableCharacteristic>()
     val service = CBMutableService(uuid.toCBUUID(), primary)
     service.setCharacteristics(
