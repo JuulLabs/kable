@@ -290,13 +290,15 @@ internal class RequestDispatcher(
         val subscriptionKey = SubscriptionKey(central.identifier, key)
         if (subscriptionKey in subscriptions) return
         logger.debug { "Central ${central.identifier} subscribed to ${characteristic.characteristicUuid}" }
+        val subscribedCentral = central
         val job = scope.launch {
             try {
                 coroutineScope {
-                    val subscriptionScope = object : SubscriptionScope, CoroutineScope by this {
-                        override val central: Central get() = central
+                    val delegate = this
+                    val subscriptionScope = object : SubscriptionScope, CoroutineScope by delegate {
+                        override val central: Central get() = subscribedCentral
                         override suspend fun send(value: ByteArray) {
-                            engine.notify(central, characteristic, value)
+                            engine.notify(subscribedCentral, characteristic, value)
                         }
                     }
                     handler.action(subscriptionScope)
