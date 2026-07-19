@@ -15,6 +15,8 @@ public abstract interface class com/juul/kable/AndroidPeripheral : com/juul/kabl
 	public abstract fun getAddress ()Ljava/lang/String;
 	public abstract fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getType ()Lcom/juul/kable/AndroidPeripheral$Type;
+	public abstract fun openInsecureL2CapChannel (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun openL2CapChannel (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun requestConnectionPriority (Lcom/juul/kable/AndroidPeripheral$Priority;)Z
 	public abstract fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun write (Lcom/juul/kable/Characteristic;[BLcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -246,6 +248,20 @@ public final class com/juul/kable/KableInitializer : androidx/startup/Initialize
 	public fun create (Landroid/content/Context;)Lcom/juul/kable/Kable;
 	public synthetic fun create (Landroid/content/Context;)Ljava/lang/Object;
 	public fun dependencies ()Ljava/util/List;
+}
+
+public final class com/juul/kable/L2CapException : java/io/IOException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;J)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCode ()J
+}
+
+public abstract interface class com/juul/kable/L2CapSocket {
+	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getHasReachedEof ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun isConnected ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun read ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun write ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/juul/kable/LazyCharacteristic : com/juul/kable/Characteristic {
