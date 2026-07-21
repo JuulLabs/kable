@@ -302,7 +302,7 @@ val peripheral = Peripheral(advertisement) {
     autoConnectIf { false } // default
     transport = Transport.Le // default
     phy = Phy.Le1M // default
-    mtu = 512 // default: `null` (no MTU change request will be made)
+    mtu = 517 // default
 }
 ```
 
