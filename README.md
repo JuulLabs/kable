@@ -583,6 +583,118 @@ CentralManager.configure {
 The `CentralManager` is initialized on first use (e.g. scanning or creating a peripheral), attempts to `configure` it
 after initialization will result in an `IllegalStateException` being thrown.
 
+## GATT Server (Peripheral Role)
+
+> [!WARNING]
+> The `kable-server` module is experimental: its API may change (or it may be removed) in a future
+> release.
+
+In addition to the central role (scanning and connecting to remote peripherals, described above),
+Kable provides the `com.juul.kable:kable-server` module for acting as a Bluetooth Low Energy
+**peripheral**: hosting a GATT server and advertising it to remote centrals.
+
+| Platform   | Supported | Notes                                                                          |
+|------------|:---------:|--------------------------------------------------------------------------------|
+| Android    |     ✓     |                                                                                |
+| Apple      |     ✓     | iOS and macOS only (Core Bluetooth peripheral role is unavailable on watchOS). Advertising limited to local name and service UUIDs. Dynamic descriptors are not supported. |
+| JavaScript |           | _Web Bluetooth does not support the peripheral role._                          |
+| JVM        |           |                                                                                |
+
+A [`GattServer`] is created via the `GattServer` builder function, whereas the GATT profile
+(services, characteristics and descriptors) — and the behavior of its characteristics and
+descriptors — is declared via the builder DSL:
+
+```kotlin
+val server = GattServer {
+    service(Uuid.service("heart_rate")) {
+        characteristic(Uuid.characteristic("heart_rate_measurement")) {
+            onSubscription {
+                while (true) {
+                    send(measureHeartRate())
+                    delay(1.seconds)
+                }
+            }
+        }
+
+        characteristic(Uuid.characteristic("body_sensor_location")) {
+            value = byteArrayOf(0x01) // Static (read-only) value.
+        }
+    }
+
+    service(customServiceUuid) {
+        characteristic(customCharacteristicUuid) {
+            onRead { byteArrayOf(/* ... */) }
+            onWrite { value -> process(value) }
+            descriptor(Uuid.descriptor("gatt.characteristic_user_description")) {
+                value = "Config".encodeToByteArray()
+            }
+        }
+    }
+}
+```
+
+The properties of each characteristic are inferred from the behavior declared for it:
+
+| Declaration      | Characteristic property               |
+|------------------|---------------------------------------|
+| `value`          | `read`                                |
+| `onRead`         | `read`                                |
+| `onWrite`        | `write` and/or `writeWithoutResponse` |
+| `onSubscription` | `notify` or `indicate`                |
+
+Kable takes care of the underlying GATT minutiae: read offsets ("long reads") are served from the
+value returned from `onRead`, long ("prepared") writes are assembled before being handed to
+`onWrite`, and subscriptions (including the Client Characteristic Configuration descriptor) are
+managed for you — an `onSubscription` action is launched (in a dedicated coroutine, per subscribed
+central) when a central subscribes, and cancelled when the central unsubscribes (or disconnects).
+Requests may be rejected by throwing `GattErrorException` from `onRead`/`onWrite` handlers.
+
+The declared profile is published via `start`, and advertised via `advertise`:
+
+```kotlin
+server.start()
+server.advertise {
+    name = "Example"
+    services = listOf(Uuid.service("heart_rate"))
+}
+```
+
+Advertising remains active while `advertise` is suspended: to stop advertising, cancel the
+coroutine that invoked `advertise` (advertising is also stopped when the server is stopped).
+
+> [!NOTE]
+> Advertising is on a "best effort" basis, and advertisement data is limited in size (e.g. 28 bytes
+> on Apple while the app is in the foreground; on Apple, while the app is in the background, the
+> local name is not advertised and service UUIDs are placed in a special "overflow" area). On
+> Android, the advertised `name` is always the Bluetooth adapter's name (change it via
+> `BluetoothAdapter.setName`, if desired). Additional (Android only) advertisement parameters (e.g.
+> `manufacturerData`, `serviceData`, `timeout`, `txPower`) are available in the `advertise` DSL on
+> Android.
+
+Notifications (or indications, per the `onSubscription` configuration) can also be pushed outside
+of an `onSubscription` action (e.g. in response to application events) via `notify`:
+
+```kotlin
+server.notify(
+    characteristic = characteristicOf(serviceUuid, characteristicUuid),
+    value = byteArrayOf(1, 2, 3),
+)
+```
+
+Connected centrals are available via the `centrals` property, and per-characteristic subscribers
+via `subscribers`. When no longer needed, the server should be stopped (via `stop`) and disposed
+(via `close`).
+
+### Server Permissions
+
+As with the central role, `kable-server` does not declare any permissions; it is expected that the
+consuming app declares (and requests) any necessary permissions:
+
+- **Android (API 31+):** [`BLUETOOTH_ADVERTISE`] (for `advertise`) and [`BLUETOOTH_CONNECT`] (for
+  hosting the GATT server) — both are runtime permissions.
+- **Android (API 30 and below):** `BLUETOOTH` and `BLUETOOTH_ADMIN`.
+- **Apple:** [`NSBluetoothAlwaysUsageDescription`] must be present in the app's `Info.plist`.
+
 ## Setup
 
 ### Android Permissions
@@ -623,6 +735,7 @@ kotlin {
         commonMain.dependencies {
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
             implementation("com.juul.kable:kable-core:${kableVersion}")
+            implementation("com.juul.kable:kable-server:${kableVersion}") // Optional (peripheral role support)
         }
 
         androidMain.dependencies {
@@ -668,6 +781,10 @@ limitations under the License.
 [`Disconnected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-disconnected/index.html
 [`Disconnecting`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-disconnecting/index.html
 [`Filter`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-filter/index.html
+[`GattServer`]: https://juullabs.github.io/kable/kable-server/com.juul.kable.server/-gatt-server/index.html
+[`BLUETOOTH_ADVERTISE`]: https://developer.android.com/reference/android/Manifest.permission#BLUETOOTH_ADVERTISE
+[`BLUETOOTH_CONNECT`]: https://developer.android.com/reference/android/Manifest.permission#BLUETOOTH_CONNECT
+[`NSBluetoothAlwaysUsageDescription`]: https://developer.apple.com/documentation/bundleresources/information-property-list/nsbluetoothalwaysusagedescription
 [`Flow`]: https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/
 [`Int`]: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/
 [`Long`]: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/

@@ -24,6 +24,7 @@ dokka {
 dependencies {
     dokka(project(":kable-core"))
     dokka(project(":kable-log-engine-khronicle"))
+    dokka(project(":kable-server"))
 }
 
 apiValidation {

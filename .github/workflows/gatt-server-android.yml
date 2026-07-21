@@ -1,0 +1,22 @@
+name: GATT Server / Android
+on:
+  pull_request:
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+defaults:
+  run:
+    working-directory: samples/gatt-server
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          java-version-file: .sdkmanrc
+      - uses: gradle/actions/setup-gradle@v6
+      - run: ./gradlew :app:assemble
+      - run: ./gradlew :app:check
