@@ -168,12 +168,19 @@ public interface Peripheral : AutoCloseable {
     public val services: StateFlow<List<DiscoveredService>?>
 
     /**
-     * Return the current ATT MTU size, minus the size of the ATT headers (3 bytes).
+     * The maximum amount of data, in bytes, you can send in a single write operation.
      *
-     * On Android, this will be the default (23 - 3) unless an alternative MTU was negotiated (an
-     * MTU change request can be configured via the `mtu` property of the [PeripheralBuilder]).
-     * For iOS, this is automatically negotiated, and can also vary depending on the writeType.
-     * On JavaScript, this will return the default (23 - 3) every time as there is no ATT MTU property available.
+     * This value is based on the MTU size minus the ATT header size (3 bytes).
+     *
+     * On Android, by default an MTU of `517` will be requested unless configured otherwise (via
+     * the `mtu` property of the [PeripheralBuilder]). On Android 13+, the max usable write length
+     * is capped at `512` bytes.
+     *
+     * For Core Bluetooth, this is automatically negotiated and can also vary depending on the
+     * [writeType].
+     *
+     * On JavaScript, this will always return the default (23 - 3) every time as there is no ATT MTU
+     * property available.
      */
     public suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int
 

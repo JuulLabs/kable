@@ -1,7 +1,6 @@
 package com.juul.kable
 
 import android.Manifest.permission.BLUETOOTH_CONNECT
-import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter.STATE_OFF
 import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
 import android.bluetooth.BluetoothDevice
@@ -17,6 +16,7 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+import android.os.Build
 import androidx.annotation.RequiresPermission
 import com.juul.kable.AndroidPeripheral.Priority
 import com.juul.kable.AndroidPeripheral.Type
@@ -53,6 +53,11 @@ private const val DISCOVER_SERVICES_RETRIES = 5
 
 private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
+private const val MAX_ATTRIBUTE_LENGTH_API_21 = 600 // Per RxAndroidBle (Android API 21-32).
+private const val MAX_ATTRIBUTE_LENGTH_API_33 = 512
+
+private val MAX_ATTRIBUTE_LENGTH = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+    MAX_ATTRIBUTE_LENGTH_API_33 else MAX_ATTRIBUTE_LENGTH_API_21
 
 internal class BluetoothDeviceAndroidPeripheral(
     @InternalKableApi override val bluetoothDevice: BluetoothDevice,
@@ -174,7 +179,7 @@ internal class BluetoothDeviceAndroidPeripheral(
     }
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
-        (mtu.value ?: DEFAULT_ATT_MTU) - ATT_MTU_HEADER_SIZE
+        ((mtu.value ?: DEFAULT_ATT_MTU) - ATT_MTU_HEADER_SIZE).coerceAtMost(MAX_ATTRIBUTE_LENGTH)
 
     @ExperimentalKableApi // Experimental until Web Bluetooth advertisements APIs are stable.
     override suspend fun rssi(): Int =
