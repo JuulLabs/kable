@@ -128,6 +128,9 @@ public interface Peripheral : AutoCloseable {
      * meaning any failures in launched coroutines will not fail other launched coroutines nor cause
      * a disconnect.
      *
+     * On Android, requires `Manifest.permission.BLUETOOTH_CONNECT` permission if [Peripheral] was
+     * configured with a non-`null` MTU.
+     *
      * @throws IllegalStateException when a connection request could not be made (e.g. bluetooth not supported).
      * @throws NotConnectedException if unable to establish connection (e.g. connection lost while discovering services).
      * @throws IOException (Android) if request failed due to Binder remote-invocation error.

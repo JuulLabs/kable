@@ -1,5 +1,7 @@
 package com.juul.kable
 
+import android.Manifest.permission.BLUETOOTH_CONNECT
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter.STATE_OFF
 import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
 import android.bluetooth.BluetoothDevice
@@ -15,6 +17,7 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+import androidx.annotation.RequiresPermission
 import com.juul.kable.AndroidPeripheral.Priority
 import com.juul.kable.AndroidPeripheral.Type
 import com.juul.kable.State.Disconnected
@@ -186,6 +189,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         }
     }
 
+    @RequiresPermission(BLUETOOTH_CONNECT)
     private suspend fun requestMtu(mtu: Int) {
         logger.debug {
             message = "requestMtu"

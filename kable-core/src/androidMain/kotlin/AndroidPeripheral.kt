@@ -145,9 +145,10 @@ public interface AndroidPeripheral : Peripheral {
     override suspend fun write(descriptor: Descriptor, data: ByteArray)
 
     /**
-     * [StateFlow] of the most recently negotiated MTU. The MTU will change upon a successful request to change the MTU
-     * (as configured via the [PeripheralBuilder.mtu] property), or if the peripheral initiates an MTU change.
-     * [StateFlow]'s `value` will be `null` until MTU is negotiated.
+     * [StateFlow] of the most recently negotiated MTU. The MTU will change upon a successful
+     * request to change the MTU (as configured via the [PeripheralBuilder.mtu] property), or if the
+     * peripheral initiates an MTU change. [StateFlow]'s `value` will be `null` until MTU is
+     * negotiated.
      */
     public val mtu: StateFlow<Int?>
 

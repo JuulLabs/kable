@@ -114,13 +114,17 @@ public actual class PeripheralBuilder internal actual constructor() {
      * ATT MTU to request when establishing a connection (`null` means no MTU change request will
      * be made). The request is made after connecting, but prior to performing service discovery.
      *
-     * The peripheral may negotiate an MTU different than the requested [mtu]; the negotiated MTU
+     * Note that starting from Android 14, if [mtu] is non-`null` then an MTU of `517` is requested
+     * regardless of what value [mtu] is configured to:
+     * https://developer.android.com/about/versions/14/behavior-changes-all#mtu-set-to-517
+     *
+     * The peripheral may negotiate an MTU different from the requested [mtu]; the negotiated MTU
      * is available via [AndroidPeripheral.mtu].
      *
      * Must be in the range 23..517 (per `MIN_MTU` and `MAX_MTU` defined in Android's
      * [BluetoothDevice](https://cs.android.com/android/platform/superproject/main/+/main:packages/modules/Bluetooth/framework/java/android/bluetooth/BluetoothDevice.java)).
      */
-    public var mtu: Int? = null
+    public var mtu: Int? = 517
         set(value) {
             require(value == null || value in 23..517) {
                 "MTU must be in the range 23..517, was $value"
