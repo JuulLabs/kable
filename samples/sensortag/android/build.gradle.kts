@@ -3,6 +3,10 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+kotlin {
+    jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
+}
+
 android {
     namespace = "com.juul.sensortag.android"
     compileSdk = libs.versions.android.compile.get().toInt()

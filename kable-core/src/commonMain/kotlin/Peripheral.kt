@@ -6,7 +6,6 @@ package com.juul.kable
 import com.juul.kable.State.Disconnecting
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
+import kotlin.uuid.Uuid
 
 internal typealias OnSubscriptionAction = suspend () -> Unit
 
@@ -158,7 +158,7 @@ public interface Peripheral : AutoCloseable {
      * type, so no guarantees are provided on the validity of the objects beyond a connection. If a
      * reconnect occurs, it is recommended to retrieve the desired object from [services] again. Any
      * references to objects obtained from this tree should be cleared upon [disconnect] or disposal
-     * (when [Peripheral] is [cancelled][Peripheral.cancel]).
+     * (when [Peripheral] is [cancelled][close]).
      *
      * @return [discovered services][DiscoveredService], or `null` until services have been discovered.
      */
@@ -167,7 +167,7 @@ public interface Peripheral : AutoCloseable {
     /**
      * Return the current ATT MTU size, minus the size of the ATT headers (3 bytes).
      *
-     * On Android, this will be the default (23 - 3) unless you called [requestMtu] when connecting.
+     * On Android, this will be the default (23 - 3) unless you called `requestMtu` when connecting.
      * For iOS, this is automatically negotiated, and can also vary depending on the writeType.
      * On JavaScript, this will return the default (23 - 3) every time as there is no ATT MTU property available.
      */
