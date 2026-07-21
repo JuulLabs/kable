@@ -296,6 +296,11 @@ private val BluetoothDescriptors by lazy {
 }
 
 /** Gets a service [Uuid] from a known service [name]. */
+@Deprecated(
+    message = "Use `org.bluetooth.service` constants (from the " +
+        "`com.juul.kable:bluetooth-sig-assigned-numbers` artifact) instead. " +
+        "Example: `Bluetooth.BaseUuid + org.bluetooth.service.heart_rate`",
+)
 @ExperimentalKableApi
 public fun Uuid.Companion.service(name: String): Uuid =
     BluetoothServices[name]
@@ -303,6 +308,11 @@ public fun Uuid.Companion.service(name: String): Uuid =
         ?: throw NoSuchElementException("Unknown Bluetooth service name: $name")
 
 /** Gets a characteristic [Uuid] from a known characteristic [name]. */
+@Deprecated(
+    message = "Use `org.bluetooth.characteristic` constants (from the " +
+        "`com.juul.kable:bluetooth-sig-assigned-numbers` artifact) instead. " +
+        "Example: `Bluetooth.BaseUuid + org.bluetooth.characteristic.heart_rate_measurement`",
+)
 @ExperimentalKableApi
 public fun Uuid.Companion.characteristic(name: String): Uuid =
     BluetoothCharacteristics[name]
@@ -310,6 +320,11 @@ public fun Uuid.Companion.characteristic(name: String): Uuid =
         ?: throw NoSuchElementException("Unknown Bluetooth characteristic name: $name")
 
 /** Gets a descriptor [Uuid] from a known descriptor [name]. */
+@Deprecated(
+    message = "Use `org.bluetooth.descriptor` constants (from the " +
+        "`com.juul.kable:bluetooth-sig-assigned-numbers` artifact) instead. " +
+        "Example: `Bluetooth.BaseUuid + org.bluetooth.descriptor.gatt.client_characteristic_configuration`",
+)
 @ExperimentalKableApi
 public fun Uuid.Companion.descriptor(name: String): Uuid =
     BluetoothDescriptors[name]

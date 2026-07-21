@@ -12,6 +12,7 @@ pluginManagement {
 includeBuild("samples/sensortag")
 
 include(
+    "bluetooth-sig-assigned-numbers",
     "kable-btleplug-ffi",
     "kable-core",
     "kable-default-permissions",

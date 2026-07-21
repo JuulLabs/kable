@@ -30,32 +30,34 @@ val heartRateServiceUuid = Bluetooth.BaseUuid + uuid16bit
 println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 ```
 
-Web Bluetooth named UUIDs may also be used to acquire [`Uuid`]s via the following [`Uuid`] extension
-functions:
+Bluetooth SIG assigned numbers are available as Kotlin constants (in the `org.bluetooth` package,
+provided by the optional `com.juul.kable:bluetooth-sig-assigned-numbers` artifact). Constant names
+exactly match the IDs defined in the Bluetooth SIG assigned numbers YAML files, organized into the
+following categories:
 
-- `Uuid.service(name: String)`
-- `Uuid.characteristic(name: String)`
-- `Uuid.descriptor(name: String)`
+- `org.bluetooth.service`
+- `org.bluetooth.characteristic`
+- `org.bluetooth.descriptor`
 
 For example:
 
 ```kotlin
-val heartRateServiceUuid = Uuid.service("heart_rate")
+val heartRateServiceUuid = Bluetooth.BaseUuid + org.bluetooth.service.heart_rate
 println(heartRateServiceUuid) // Output: 0000180d-0000-1000-8000-00805f9b34fb
 ```
 
 > [!NOTE]
-> List of known UUID names can be found in [`Uuid.kt`](https://github.com/JuulLabs/kable/blob/main/kable-core/src/commonMain/kotlin/Uuid.kt).
+> List of assigned numbers can be found in [`AssignedNumbers.kt`](https://github.com/JuulLabs/kable/blob/main/bluetooth-sig-assigned-numbers/src/commonMain/kotlin/AssignedNumbers.kt).
 
 Additional example shorthand notations:
 
-| Shorthand                         | Canonical UUID                         |
-|-----------------------------------|----------------------------------------|
-| `Bluetooth.BaseUuid + 0x180D`     | `0000180D-0000-1000-8000-00805F9B34FB` |
-| `Bluetooth.BaseUuid + 0x12345678` | `12345678-0000-1000-8000-00805F9B34FB` |
-| `Uuid.service("blood_pressure")`  | `00001810-0000-1000-8000-00805F9B34FB` |
-| `Uuid.characteristic("altitude")` | `00002AB3-0000-1000-8000-00805F9B34FB` |
-| `Uuid.descriptor("valid_range")`  | `00002906-0000-1000-8000-00805F9B34FB` |
+| Shorthand                                                       | Canonical UUID                         |
+|-----------------------------------------------------------------|----------------------------------------|
+| `Bluetooth.BaseUuid + 0x180D`                                   | `0000180D-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + 0x12345678`                               | `12345678-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + org.bluetooth.service.blood_pressure`     | `00001810-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + org.bluetooth.characteristic.altitude`    | `00002AB3-0000-1000-8000-00805F9B34FB` |
+| `Bluetooth.BaseUuid + org.bluetooth.descriptor.valid_range`     | `00002906-0000-1000-8000-00805F9B34FB` |
 
 ## Scanning
 
@@ -439,7 +441,7 @@ For example, a peripheral might have the following structure:
         - Descriptor D1
         - Descriptor D2
     - Characteristic C2 (`0x2a56` or `00002a56-0000-1000-8000-00805f9b34fb`)
-        - Descriptor D3 (`gatt.client_characteristic_configuration` or `00002902-0000-1000-8000-00805f9b34fb`)
+        - Descriptor D3 (`0x2902` or `00002902-0000-1000-8000-00805f9b34fb`)
 - Service S2
     - Characteristic C3
 
@@ -457,7 +459,7 @@ In the above example, to lazily access "Descriptor D3":
 val descriptor = descriptorOf(
     service = Bluetooth.BaseUuid + 0x1815,
     characteristic = Bluetooth.BaseUuid + 0x2A56,
-    descriptor = Uuid.descriptor("gatt.client_characteristic_configuration"),
+    descriptor = Bluetooth.BaseUuid + org.bluetooth.descriptor.gatt.client_characteristic_configuration,
 )
 ```
 
@@ -488,7 +490,7 @@ val descriptor = services
 >   .characteristics
 >   .first { it.characteristicUuid == Bluetooth.BaseUuid + 0x2A56 }
 >   .descriptors
->   .first { it.descriptorUuid == Uuid.descriptor("gatt.client_characteristic_configuration") }
+>   .first { it.descriptorUuid == Bluetooth.BaseUuid + org.bluetooth.descriptor.gatt.client_characteristic_configuration }
 > ```
 
 > [!TIP]
@@ -623,6 +625,7 @@ kotlin {
         commonMain.dependencies {
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
             implementation("com.juul.kable:kable-core:${kableVersion}")
+            implementation("com.juul.kable:bluetooth-sig-assigned-numbers:${kableVersion}") // Optional
         }
 
         androidMain.dependencies {

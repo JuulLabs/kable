@@ -22,6 +22,7 @@ dokka {
 }
 
 dependencies {
+    dokka(project(":bluetooth-sig-assigned-numbers"))
     dokka(project(":kable-core"))
     dokka(project(":kable-log-engine-khronicle"))
 }

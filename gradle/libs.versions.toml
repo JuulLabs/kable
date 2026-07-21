@@ -24,6 +24,7 @@ desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 kable = { module = "com.juul.kable:kable-core" }
+kable-assigned-numbers = { module = "com.juul.kable:bluetooth-sig-assigned-numbers" }
 kable-permissions = { module = "com.juul.kable:kable-default-permissions" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "1.1.0" }
 kotlin-parcelize-runtime = { module = "org.jetbrains.kotlin:kotlin-parcelize-runtime", version.ref = "kotlin" }
