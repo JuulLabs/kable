@@ -177,6 +177,12 @@ class FiltersTests {
                 // F
                 name = Exact("charlie")
             }
+            match {
+                // G
+                serviceData = listOf(
+                    Filter.ServiceData(TEST_UUID_1, byteArrayOf(2)),
+                )
+            }
         }.build()
         assertFalse(
             actual = filters.matches(services = listOf(TEST_UUID_1, TEST_UUID_2)),
@@ -197,6 +203,14 @@ class FiltersTests {
         assertTrue(
             actual = filters.matches(manufacturerData = ManufacturerData(37, byteArrayOf(2))),
             message = "Expect true because we match manufacturer data in predicate C",
+        )
+        assertTrue(
+            actual = filters.matches(serviceData = mapOf(TEST_UUID_1 to byteArrayOf(2))),
+            message = "Expect true because we match service data in predicate G",
+        )
+        assertFalse(
+            actual = filters.matches(serviceData = mapOf(TEST_UUID_2 to byteArrayOf(2))),
+            message = "Expect false because service data in predicate G requires a matching service uuid",
         )
     }
 }
