@@ -23,7 +23,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -208,7 +207,7 @@ internal class Connection(
             }
             connectionScope.async { callback.onMtuChanged.receive() }.await()
         } catch (e: CancellationException) {
-            currentCoroutineContext().ensureActive()
+            coroutineContext.ensureActive()
             throw e.unwrapCancellationException()
         }
     }.also(::checkResponse).mtu
