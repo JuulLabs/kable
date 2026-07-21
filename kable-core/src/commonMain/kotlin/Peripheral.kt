@@ -332,6 +332,6 @@ internal suspend inline fun <reified T : State> Peripheral.suspendUntilOrThrow()
         "Peripheral.suspendUntilOrThrow() throws on State.Disconnected, not intended for use with that State."
     }
     state
-        .onEach { if (it is State.Disconnected) throw NotConnectedException() }
+        .onEach { if (it is State.Disconnected) throw NotConnectedException(status = it.status) }
         .first { it is T }
 }
