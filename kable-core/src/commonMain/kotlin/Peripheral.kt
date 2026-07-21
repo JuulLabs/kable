@@ -6,7 +6,6 @@ package com.juul.kable
 import com.juul.kable.State.Disconnecting
 import com.juul.kable.WriteType.WithoutResponse
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.JvmName
+import kotlin.uuid.Uuid
 
 internal typealias OnSubscriptionAction = suspend () -> Unit
 
@@ -161,7 +161,7 @@ public interface Peripheral : AutoCloseable {
      * type, so no guarantees are provided on the validity of the objects beyond a connection. If a
      * reconnect occurs, it is recommended to retrieve the desired object from [services] again. Any
      * references to objects obtained from this tree should be cleared upon [disconnect] or disposal
-     * (when [Peripheral] is [cancelled][Peripheral.cancel]).
+     * (when [Peripheral] is [cancelled][close]).
      *
      * @return [discovered services][DiscoveredService], or `null` until services have been discovered.
      */

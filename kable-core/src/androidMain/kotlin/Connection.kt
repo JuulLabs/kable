@@ -55,9 +55,9 @@ private val GattSuccess = GattStatus(GATT_SUCCESS)
  * To disconnect: simply call [disconnect] ([Connection] will be implicitly [closed][close] at the
  * end of the [disconnect] sequence).
  *
- * If [scope], or parent [CoroutineContext] is cancelled prior to [disconnecting][disconnect], then
- * [Connection] will be abruptly [closed][close] (upon completion of [job]) without a prior
- * [disconnect] sequence.
+ * If [connectionScope], or parent [CoroutineContext] is canceled prior to
+ * [disconnecting][disconnect], then [Connection] will be abruptly [closed][close] (upon completion
+ * of [job]) without a prior [disconnect] sequence.
  */
 internal class Connection(
     parentContext: CoroutineContext,
