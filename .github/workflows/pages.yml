@@ -21,7 +21,7 @@ jobs:
           tar
           --verbose
           --dereference --hard-dereference
-          --directory build/dokkaHtmlMultiModule
+          --directory build/dokka/html
           --create --file '${{ runner.temp }}/artifact.tar'
           --exclude=.git
           --exclude=.github
