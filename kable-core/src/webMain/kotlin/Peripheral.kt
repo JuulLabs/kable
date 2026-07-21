@@ -2,10 +2,10 @@ package com.juul.kable
 
 import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.interop.await
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
 import web.errors.SecurityError
-import kotlin.coroutines.coroutineContext
 import kotlin.js.JsException
 import kotlin.js.thrownValue
 import kotlin.js.toList
@@ -27,7 +27,7 @@ public suspend fun Peripheral(
     val devices = try {
         bluetooth.getDevices().await().toList()
     } catch (e: JsException) {
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         val thrownValue = e.thrownValue
         throw when {
             // The Web Bluetooth API can only be used in a secure context.
