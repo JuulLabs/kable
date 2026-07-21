@@ -328,6 +328,27 @@ Per [answer](https://stackoverflow.com/a/50273724) to "What exactly does Android
 > dedicate more radio time to listen for connectable advertisements for the remote device, i.e. the connection will be
 > established faster.
 
+> [!IMPORTANT]
+> `autoConnect` only influences how a connection is _established_ (as described above); it does **not** enable
+> automatic **re**connection.
+>
+> While Android documentation (and the answer quoted above) describe `autoConnect` connections as being automatically
+> re-established by the system after a disconnect (until `disconnect()` or `close()` is called), Kable closes the
+> underlying [`BluetoothGatt`] as soon as a disconnect occurs, so Android's system-level reconnect behavior never takes
+> effect. In other words: Kable never automatically reconnects, regardless of the `autoConnectIf` setting.
+>
+> To implement automatic reconnection, monitor the [`state`] [`Flow`] and call [`connect`] when [`Disconnected`] state
+> is observed, for example:
+>
+> ```kotlin
+> peripheral.state.onEach { state ->
+>     if (state is State.Disconnected) {
+>         peripheral.connect()
+>         delay(2.seconds) // Throttle reconnects so we don't hammer the system if connection immediately drops.
+>     }
+> }.launchIn(scope)
+> ```
+
 One possible strategy for a fast initial connection attempt that falls back to lower battery usage connection attempts is:
 
 ```kotlin
@@ -682,6 +703,7 @@ limitations under the License.
 [SensorTag sample app]: samples/sensortag
 [`.sdkmanrc`]: .sdkmanrc
 [`Advertisement`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-advertisement/index.html
+[`BluetoothGatt`]: https://developer.android.com/reference/android/bluetooth/BluetoothGatt
 [`Characteristic`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-characteristic/index.html
 [`Connected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-connected/index.html
 [`CoroutineScope.peripheral`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/peripheral.html
