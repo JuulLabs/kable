@@ -56,8 +56,11 @@ private const val ATT_MTU_HEADER_SIZE = 3
 private const val MAX_ATTRIBUTE_LENGTH_API_21 = 600 // Per RxAndroidBle (Android API 21-32).
 private const val MAX_ATTRIBUTE_LENGTH_API_33 = 512
 
-private val MAX_ATTRIBUTE_LENGTH = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-    MAX_ATTRIBUTE_LENGTH_API_33 else MAX_ATTRIBUTE_LENGTH_API_21
+private val MAX_ATTRIBUTE_LENGTH = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    MAX_ATTRIBUTE_LENGTH_API_33
+} else {
+    MAX_ATTRIBUTE_LENGTH_API_21
+}
 
 internal class BluetoothDeviceAndroidPeripheral(
     @InternalKableApi override val bluetoothDevice: BluetoothDevice,
