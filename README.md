@@ -509,6 +509,42 @@ peripheral.write(descriptor, byteArrayOf(1, 2, 3))
 > [!NOTE]
 > _The [`read`] and [`write`] functions throw [`NotConnectedException`] until a connection is established._
 
+### L2CAP
+
+In addition to GATT, a connected peripheral can open an L2CAP connection-oriented channel (CoC) on a PSM
+(protocol/service multiplexer). Unlike GATT's message-based characteristics, a channel is a bidirectional
+byte stream, so callers are responsible for framing their own protocol. L2CAP is available on Android and
+Apple platforms (it has no Web Bluetooth equivalent), so a channel is opened from the platform-specific
+peripheral.
+
+On Android (requires API level 29 or higher):
+
+```kotlin
+val socket = (peripheral as AndroidPeripheral).openL2CapChannel(psm = 0x0080)
+// or `openInsecureL2CapChannel(...)` for a channel without authentication/encryption
+```
+
+On Apple platforms:
+
+```kotlin
+val socket = (peripheral as CoreBluetoothPeripheral).openL2CapChannel(psm = 0x0080)
+```
+
+The returned `L2CapSocket` is already open. Read into a caller-provided buffer, and write whole packets:
+
+```kotlin
+val buffer = ByteArray(1024)
+val count = socket.read(buffer) // suspends until data arrives; returns -1 at end-of-stream
+
+socket.write(byteArrayOf(1, 2, 3))
+
+socket.close()
+```
+
+> [!NOTE]
+> _Opening a channel throws `L2CapException` on failure. `read` should be called from a single coroutine
+> at a time; `write` may run concurrently with it._
+
 ### Observation
 
 Bluetooth Low Energy provides the capability of subscribing to characteristic changes by means of notifications and/or

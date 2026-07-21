@@ -15,6 +15,9 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+import android.bluetooth.BluetoothSocket
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.juul.kable.AndroidPeripheral.Priority
 import com.juul.kable.AndroidPeripheral.Type
 import com.juul.kable.State.Disconnected
@@ -34,6 +37,7 @@ import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation
 import com.juul.kable.logs.detail
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +45,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 
@@ -190,6 +196,46 @@ internal class BluetoothDeviceAndroidPeripheral(
             detail("mtu", mtu)
         }
         return connectionOrThrow().requestMtu(mtu)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override suspend fun openL2CapChannel(psm: Int): L2CapSocket {
+        connectionOrThrow()
+        return connectL2CapSocket { bluetoothDevice.createL2capChannel(psm) }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override suspend fun openInsecureL2CapChannel(psm: Int): L2CapSocket {
+        connectionOrThrow()
+        return connectL2CapSocket { bluetoothDevice.createInsecureL2capChannel(psm) }
+    }
+
+    private suspend fun connectL2CapSocket(createSocket: () -> BluetoothSocket): L2CapSocket {
+        val socket = try {
+            createSocket()
+        } catch (e: IOException) {
+            throw e.toL2CapException()
+        }
+        try {
+            withContext(Dispatchers.IO) { socket.connect() }
+        } catch (e: CancellationException) {
+            socket.closeOrLog()
+            throw e
+        } catch (e: IOException) {
+            socket.closeOrLog()
+            throw e.toL2CapException()
+        }
+        return AndroidL2CapSocket(socket, logging)
+    }
+
+    // BluetoothSocket.close() aborts an in-progress connect, so a failed or cancelled open never leaks
+    // the socket (connect() is a blocking call that a cancelled coroutine cannot interrupt).
+    private fun BluetoothSocket.closeOrLog() {
+        try {
+            close()
+        } catch (e: IOException) {
+            logger.warn(e) { message = "Failed to close L2CAP socket" }
+        }
     }
 
     override suspend fun write(
