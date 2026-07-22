@@ -3,6 +3,7 @@ package com.juul.kable
 import com.juul.kable.Filter.Name.Exact
 import com.juul.kable.Filter.Name.Prefix
 import kotlin.experimental.and
+import kotlin.text.HexFormat.Companion.UpperCase
 import kotlin.uuid.Uuid
 
 /**
@@ -126,7 +127,7 @@ public sealed class Filter {
         }
 
         override fun toString(): String =
-            "ManufacturerData(id=$id, data=${data?.toHexString()}, dataMask=${dataMask?.toHexString()})"
+            "ManufacturerData(id=$id, data=${data?.toHexString(UpperCase)}, dataMask=${dataMask?.toHexString()})"
     }
 
     /**
