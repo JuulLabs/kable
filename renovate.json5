@@ -24,11 +24,12 @@
     },
   ],
   packageRules: [
-    // Pin androidx.core (core-ktx) to 1.16.0. Newer releases (1.17.0+) bump the
-    // required Android Gradle plugin version, which would force consumers onto
-    // AGP 9. See https://github.com/JuulLabs/kable/issues/1206.
+    // Pin `androidx.core:core[-ktx]` to 1.16.0. Newer releases (1.17.0+) bump the required Android
+    // Gradle plugin version, which would force consumers onto AGP 9.
+    // See https://github.com/JuulLabs/kable/issues/1206.
     {
       matchPackageNames: [
+        'androidx.core:core',
         'androidx.core:core-ktx',
       ],
       allowedVersions: '1.16.0',
