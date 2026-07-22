@@ -13,7 +13,7 @@ tuulbox = "8.1.0"
 voyager = "2.2.21-1.10.3"
 
 [libraries]
-androidx-core = { module = "androidx.core:core-ktx", version = "1.19.0" }
+androidx-core = { module = "androidx.core:core-ktx", version = "1.16.0" }
 androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version = "2.11.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version = "0.33.0" }
