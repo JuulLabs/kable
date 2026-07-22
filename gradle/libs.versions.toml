@@ -43,7 +43,6 @@ mockk = { module = "io.mockk:mockk", version = "1.14.11" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }
 serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version = "1.11.0" }
 tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.5.0" }
-tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }

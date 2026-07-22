@@ -30,7 +30,6 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.compose.activity)
-            implementation(libs.tuulbox.coroutines)
         }
     }
 }
