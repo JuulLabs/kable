@@ -21,6 +21,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -37,7 +38,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.coroutines.coroutineContext
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
@@ -166,7 +166,7 @@ internal class Connection(
                         }
                     }
                 }
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 throw e.unwrapCancellationException()
             }
 
@@ -175,7 +175,7 @@ internal class Connection(
                     callback.onResponse.receive()
                 }.await()
             } catch (e: CancellationException) {
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 throw e.unwrapCancellationException()
             }
         }.also(::checkResponse)
@@ -204,7 +204,7 @@ internal class Connection(
             }
             connectionScope.async { callback.onMtuChanged.receive() }.await()
         } catch (e: CancellationException) {
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
             throw e.unwrapCancellationException()
         }
     }.also(::checkResponse).mtu

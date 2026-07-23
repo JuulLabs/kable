@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineStart.ATOMIC
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,6 @@ import web.events.EventType
 import web.events.addEventListener
 import web.events.removeEventListener
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 import kotlin.js.JsAny
 import kotlin.js.JsException
 import kotlin.js.Promise
@@ -139,7 +139,7 @@ internal class Connection(
                 removeCharacteristicValueChangedListener(listener)
                 observationListeners.remove(platformCharacteristic)
 
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 throw when (e.thrownValue) {
                     is DOMException -> IOException("Failed to start notification", e)
                     else -> InternalError("Unexpected start notification failure", e)
@@ -160,7 +160,7 @@ internal class Connection(
             try {
                 execute { stopNotifications() }
             } catch (e: JsException) {
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 when (e.thrownValue) {
                     // DOMException: Failed to execute 'stopNotifications' on 'BluetoothRemoteGATTCharacteristic':
                     // Characteristic with UUID [...] is no longer valid. Remember to retrieve the characteristic
