@@ -1,7 +1,5 @@
 package com.juul.kable.logs
 
-import com.juul.kable.toHexString
-
 public val Hex: Logging.DataProcessor = Hex()
 
 public class HexBuilder internal constructor() {
@@ -15,7 +13,13 @@ public class HexBuilder internal constructor() {
 
 public fun Hex(init: HexBuilder.() -> Unit = {}): Logging.DataProcessor {
     val config = HexBuilder().apply(init)
+    val format = HexFormat {
+        upperCase = !config.lowerCase
+        bytes {
+            byteSeparator = config.separator
+        }
+    }
     return Logging.DataProcessor { data, _, _, _, _ ->
-        data.toHexString(separator = config.separator, lowerCase = config.lowerCase)
+        data.toHexString(format)
     }
 }
