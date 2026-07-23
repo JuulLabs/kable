@@ -128,6 +128,9 @@ public interface Peripheral : AutoCloseable {
      * meaning any failures in launched coroutines will not fail other launched coroutines nor cause
      * a disconnect.
      *
+     * On Android, requires `Manifest.permission.BLUETOOTH_CONNECT` permission if [Peripheral] was
+     * configured with a non-`null` MTU.
+     *
      * @throws IllegalStateException when a connection request could not be made (e.g. bluetooth not supported).
      * @throws NotConnectedException if unable to establish connection (e.g. connection lost while discovering services).
      * @throws IOException (Android) if request failed due to Binder remote-invocation error.
@@ -165,11 +168,19 @@ public interface Peripheral : AutoCloseable {
     public val services: StateFlow<List<DiscoveredService>?>
 
     /**
-     * Return the current ATT MTU size, minus the size of the ATT headers (3 bytes).
+     * The maximum amount of data, in bytes, you can send in a single write operation.
      *
-     * On Android, this will be the default (23 - 3) unless you called `requestMtu` when connecting.
-     * For iOS, this is automatically negotiated, and can also vary depending on the writeType.
-     * On JavaScript, this will return the default (23 - 3) every time as there is no ATT MTU property available.
+     * This value is based on the MTU size minus the ATT header size (3 bytes).
+     *
+     * On Android, by default an MTU of `517` will be requested unless configured otherwise (via
+     * the `mtu` property of the [PeripheralBuilder]). On Android 13+, the max usable write length
+     * is capped at `512` bytes.
+     *
+     * For Core Bluetooth, this is automatically negotiated and can also vary depending on the
+     * [writeType].
+     *
+     * On JavaScript, this will always return the default (23 - 3) every time as there is no ATT MTU
+     * property available.
      */
     public suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int
 
