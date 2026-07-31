@@ -10,7 +10,10 @@ import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation.Change
 import com.juul.kable.logs.detail
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.cinterop.ObjCSignatureOverride
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
@@ -93,6 +96,39 @@ internal class PeripheralDelegate(
     val response: ReceiveChannel<Response> = _response
 
     val onServiceChanged = Channel<OnServiceChanged>(CONFLATED)
+
+    // Single-flight state for an in-progress `openL2CAPChannel`. CoreBluetooth's `didOpenL2CAPChannel`
+    // callback carries no PSM (and none at all on failure), so it cannot be correlated to a specific
+    // request; the caller (Connection.openL2CapChannel) instead holds a mutex so only one open is ever
+    // outstanding, and this single slot delivers that open's result. The lock guards the slot against the
+    // caller thread and the CoreBluetooth callback thread racing.
+    internal data class L2CapOpenResult(
+        val channel: CBL2CAPChannel?,
+        val error: NSError?,
+    )
+
+    private val l2CapOpenLock = SynchronizedObject()
+    private var pendingL2CapOpen: CompletableDeferred<L2CapOpenResult>? = null
+
+    internal fun beginL2CapOpen(): CompletableDeferred<L2CapOpenResult> =
+        synchronized(l2CapOpenLock) {
+            check(pendingL2CapOpen == null) { "An L2CAP open is already in progress" }
+            CompletableDeferred<L2CapOpenResult>().also { pendingL2CapOpen = it }
+        }
+
+    internal fun cancelL2CapOpen(pending: CompletableDeferred<L2CapOpenResult>, cause: Throwable) {
+        val cleared = synchronized(l2CapOpenLock) {
+            (pendingL2CapOpen === pending).also { if (it) pendingL2CapOpen = null }
+        }
+        if (cleared) pending.completeExceptionally(cause)
+    }
+
+    private fun completeL2CapOpen(result: L2CapOpenResult): Boolean {
+        val pending = synchronized(l2CapOpenLock) {
+            pendingL2CapOpen.also { pendingL2CapOpen = null }
+        }
+        return pending?.complete(result) == true
+    }
 
     private val logger = Logger(logging, tag = "Kable/Delegate", identifier = identifier)
 
@@ -317,13 +353,35 @@ internal class PeripheralDelegate(
         logger.debug(error) {
             message = "didOpenL2CAPChannel"
         }
-        // todo
+        val delivered = completeL2CapOpen(L2CapOpenResult(didOpenL2CAPChannel, error))
+        if (!delivered) {
+            // No waiter — the opening caller was already cancelled/disconnected. A channel handed over now
+            // has no owner, so tear it down rather than leak it (its streams would otherwise stay open).
+            didOpenL2CAPChannel?.let { AppleL2CapSocket(it).abandon() }
+            logger.warn { message = "Discarded unexpected didOpenL2CAPChannel callback" }
+            return
+        }
+        if (error == null && didOpenL2CAPChannel != null) {
+            logger.info {
+                message = "L2CAP channel open. Peer: ${didOpenL2CAPChannel.peer?.identifier}"
+            }
+        }
     }
 
     fun close(cause: Throwable?) {
+        // Fail an L2CAP open still in flight when the peripheral disconnects, otherwise its caller stays
+        // suspended forever — CoreBluetooth never delivers didOpenL2CAPChannel for a dropped connection.
+        cancelL2CapOpenInFlight(NotConnectedException(cause = cause))
         _response.close(NotConnectedException(cause = cause))
         characteristicChanges.emitBlocking(ObservationEvent.Disconnected)
         canSendWriteWithoutResponse.value = true
+    }
+
+    private fun cancelL2CapOpenInFlight(cause: Throwable) {
+        val pending = synchronized(l2CapOpenLock) {
+            pendingL2CapOpen.also { pendingL2CapOpen = null }
+        }
+        pending?.completeExceptionally(cause)
     }
 }
 
