@@ -17,6 +17,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -37,7 +38,6 @@ import platform.CoreBluetooth.CBService
 import platform.CoreBluetooth.CBUUID
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.coroutines.coroutineContext
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 
@@ -147,7 +147,7 @@ internal class Connection(
                         }
                     }
                 }
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 throw e.unwrapCancellationException()
             }
 
@@ -156,7 +156,7 @@ internal class Connection(
                     delegate.response.receive()
                 }.await()
             } catch (e: CancellationException) {
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 throw e.unwrapCancellationException()
             }
         }.also(::checkResponse)
