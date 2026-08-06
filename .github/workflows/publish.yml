@@ -11,11 +11,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner:
-          - macos-15-intel
-          - ubuntu-24.04-arm
-          - ubuntu-latest
-          - windows-latest
+        include:
+          - runner: macos-15-intel
+          - runner: windows-latest
+
+          # Linux dynamic libraries are built with `cross` (in Docker containers) to link against
+          # an older glibc than provided by the GitHub runners, for compatibility with older Linux
+          # distributions (e.g. Raspberry Pi OS).
+          # https://github.com/JuulLabs/kable/issues/990
+          - runner: ubuntu-latest
+            cargo: cross
+            target: x86_64-unknown-linux-gnu
+          - runner: ubuntu-latest
+            cargo: cross
+            target: aarch64-unknown-linux-gnu
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
@@ -23,13 +32,18 @@ jobs:
         with:
           java-version-file: .sdkmanrc
       - uses: gradle/actions/setup-gradle@v6
+      - if: matrix.cargo == 'cross'
+        run: cargo install cross --git https://github.com/cross-rs/cross
       - run: ./gradlew :kable-btleplug-ffi:assemble
+        env:
+          UNIFFI_CARGO: ${{ matrix.cargo }}
+          UNIFFI_TARGET: ${{ matrix.target }}
       - run: unzip kable-btleplug-ffi.jar && rm -rf META-INF com *.jar
         working-directory: kable-btleplug-ffi/build/libs
         shell: bash
       - uses: actions/upload-artifact@v7
         with:
-          name: kable-btleplug-ffi-${{ matrix.runner }}
+          name: kable-btleplug-ffi-${{ matrix.target || matrix.runner }}
           path: kable-btleplug-ffi/build/libs/
           if-no-files-found: error
           retention-days: 1
