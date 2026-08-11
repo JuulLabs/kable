@@ -1,4 +1,5 @@
 plugins {
+    alias(libs.plugins.android.bcv.bridge)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
