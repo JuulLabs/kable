@@ -54,7 +54,7 @@ import kotlin.native.runtime.NativeRuntimeApi
 //     before the first write, so gating on it alone would deadlock the first outbound packet.
 // EOF/error sign conventions are the inverse of L2CapSocket's (NSInputStream: 0 = EOF, -1 = error),
 // normalised where the channel is closed. A read error closes the channel with a cause (drained, then
-// read() rethrows); EOF closes it without one (drained, then read() returns -1).
+// read() rethrows); EOF closes it without one (drained, then read() returns null).
 private const val READ_CHUNK_SIZE = 8192
 
 // The run loop wakes on stream events for reads; this bounds how long a queued *write* waits when the
@@ -85,11 +85,19 @@ internal class AppleL2CapSocket(
     private val _isConnected = MutableStateFlow(true)
     override val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
-    private val _hasReachedEof = MutableStateFlow(false)
-    override val hasReachedEof: StateFlow<Boolean> = _hasReachedEof.asStateFlow()
+    // Chunks read on the run-loop thread, drained by the single reader coroutine in read(). A chunk
+    // orphaned by a cancelled read() (cancellation can win after the chunk left the channel) is stashed
+    // in undelivered, which the next read() drains first.
+    private val incoming = Channel<ByteArray>(
+        capacity = Channel.UNLIMITED,
+        onUndeliveredElement = { chunk ->
+            lock.lock()
+            undelivered = chunk
+            lock.unlock()
+        },
+    )
 
-    // Chunks read on the run-loop thread, drained by the single reader coroutine in read().
-    private val incoming = Channel<ByteArray>(Channel.UNLIMITED)
+    private var undelivered: ByteArray? = null // Guarded by lock.
 
     private class PendingWrite(val packet: ByteArray, val done: CompletableDeferred<Unit>)
 
@@ -246,14 +254,13 @@ internal class AppleL2CapSocket(
         }
     }
 
-    // EOF: reader drains buffered chunks then read() returns -1. Writes can no longer complete, so fail
+    // EOF: reader drains buffered chunks then read() returns null. Writes can no longer complete, so fail
     // any in flight. Idempotent — End and a 0-length read can both arrive.
     private fun onEnd() {
         if (terminal != null) return
-        // EOF is not an error for reads (the channel closes without a cause so read() returns -1), but
+        // EOF is not an error for reads (the channel closes without a cause so read() returns null), but
         // it still ends the run loop and must fail any in-flight write against the now-dead channel.
         terminal = L2CapException("L2CAP stream reached end of file", code = 0L)
-        _hasReachedEof.value = true
         _isConnected.value = false
         incoming.close()
         failAllWrites(terminal!!)
@@ -303,36 +310,19 @@ internal class AppleL2CapSocket(
         if (!incoming.isClosedForSend) incoming.close()
     }
 
-    // Reader-owned and unguarded: read() assumes the single reader coroutine its contract promises.
-    private var leftover: ByteArray? = null
-    private var leftoverOffset = 0
-
-    override suspend fun read(buffer: ByteArray): Int {
-        if (buffer.isEmpty()) return 0
-        leftover?.let { chunk ->
-            val count = minOf(buffer.size, chunk.size - leftoverOffset)
-            chunk.copyInto(buffer, destinationOffset = 0, startIndex = leftoverOffset, endIndex = leftoverOffset + count)
-            leftoverOffset += count
-            if (leftoverOffset >= chunk.size) {
-                leftover = null
-                leftoverOffset = 0
-            }
-            return count
-        }
+    override suspend fun read(): ByteArray? {
+        lock.lock()
+        val stashed = undelivered
+        undelivered = null
+        lock.unlock()
+        if (stashed != null) return stashed
         val result = incoming.receiveCatching()
         if (result.isClosed) {
             // Cause is non-null only for a read error; a clean EOF closes the channel without one.
             result.exceptionOrNull()?.let { throw it }
-            return -1
+            return null
         }
-        val chunk = result.getOrThrow()
-        val count = minOf(buffer.size, chunk.size)
-        chunk.copyInto(buffer, destinationOffset = 0, startIndex = 0, endIndex = count)
-        if (count < chunk.size) {
-            leftover = chunk
-            leftoverOffset = count
-        }
-        return count
+        return result.getOrThrow()
     }
 
     override suspend fun write(packet: ByteArray) {

@@ -1,6 +1,8 @@
 package com.juul.kable
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -12,7 +14,8 @@ import kotlin.coroutines.cancellation.CancellationException
  * on Apple platforms. The returned socket is already open and ready for I/O.
  *
  * Unlike GATT's message-based characteristics, an L2CAP channel is a bidirectional byte stream: it
- * imposes no message boundaries, so callers are responsible for framing their own protocol.
+ * imposes no message boundaries, so callers are responsible for framing their own protocol. In
+ * particular, the chunks returned by [read] are arbitrary runs of bytes — their sizes carry no meaning.
  *
  * [read] is expected to be called from a single coroutine at a time; [write] may be called concurrently
  * with [read].
@@ -26,21 +29,16 @@ public interface L2CapSocket {
     public val isConnected: StateFlow<Boolean>
 
     /**
-     * Whether the read side has reached end-of-stream. Once `true`, [read] returns `-1` and no further
-     * data will arrive.
-     */
-    public val hasReachedEof: StateFlow<Boolean>
-
-    /**
-     * Reads bytes from the channel into [buffer]. Suspends until at least one byte is available,
-     * end-of-stream is reached, or an error occurs.
+     * Reads the next chunk of bytes from the channel. Suspends until at least one byte is available,
+     * end-of-stream is reached, or an error occurs. The returned array is freshly allocated and owned by
+     * the caller. Cancelling a read does not lose data: a chunk already being read is returned by the
+     * next call.
      *
-     * @return the number of bytes read into [buffer] (at least `1`), `0` if [buffer] is empty, or `-1`
-     * once end-of-stream has been reached.
+     * @return the next chunk (at least one byte), or `null` once end-of-stream has been reached.
      * @throws L2CapException if the channel fails while reading.
      */
     @Throws(CancellationException::class, IOException::class)
-    public suspend fun read(buffer: ByteArray): Int
+    public suspend fun read(): ByteArray?
 
     /**
      * Writes the entirety of [packet] to the channel, suspending until it has all been handed off to the
@@ -54,4 +52,12 @@ public interface L2CapSocket {
     /** Closes the channel and releases its resources, suspending until teardown is complete. */
     @Throws(CancellationException::class, IOException::class)
     public suspend fun close()
+}
+
+/**
+ * The channel's incoming bytes as a cold [Flow] of chunks, completing at end-of-stream. Collection
+ * calls [read], so collect from at most one coroutine and do not call [read] while collecting.
+ */
+public fun L2CapSocket.incoming(): Flow<ByteArray> = flow {
+    while (true) emit(read() ?: break)
 }

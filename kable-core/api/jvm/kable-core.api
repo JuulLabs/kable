@@ -210,10 +210,13 @@ public final class com/juul/kable/L2CapException : java/io/IOException {
 
 public abstract interface class com/juul/kable/L2CapSocket {
 	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getHasReachedEof ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isConnected ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun read ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun read (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun write ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/juul/kable/L2CapSocketKt {
+	public static final fun incoming (Lcom/juul/kable/L2CapSocket;)Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class com/juul/kable/LazyCharacteristic : com/juul/kable/Characteristic {
