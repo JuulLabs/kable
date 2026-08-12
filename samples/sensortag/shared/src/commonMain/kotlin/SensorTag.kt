@@ -9,6 +9,7 @@ import com.juul.kable.characteristicOf
 import com.juul.kable.logs.Logging.Level.Events
 import com.juul.kable.service
 import com.juul.khronicle.Log
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
-import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -130,7 +130,7 @@ class SensorTag(private val peripheral: Peripheral) {
 
     private suspend fun monitorRssi() {
         try {
-            while (coroutineContext.isActive) {
+            while (currentCoroutineContext().isActive) {
                 _rssi.value = peripheral.rssi()
 
                 Log.debug(tag = TAG) { "RSSI: ${_rssi.value}" }

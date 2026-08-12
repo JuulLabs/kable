@@ -6,6 +6,7 @@ import com.juul.kable.logs.Logging
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.coroutines.coroutineContext
 
 internal expect fun Peripheral.observationHandler(): Observation.Handler
 
@@ -94,7 +94,7 @@ internal class Observers<T>(
                         observation.onCompletion(onSubscription)
                     }
                 } catch (e: Exception) {
-                    coroutineContext.ensureActive()
+                    currentCoroutineContext().ensureActive()
                     exceptionHandler(ObservationExceptionPeripheral(peripheral), e)
                 }
             }
@@ -108,7 +108,7 @@ internal class Observers<T>(
             try {
                 observation.onConnected()
             } catch (e: Exception) {
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 throw IOException("Failed to observe characteristic during connection attempt", e)
             }
         }
