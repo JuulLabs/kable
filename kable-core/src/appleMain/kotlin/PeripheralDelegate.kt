@@ -321,7 +321,8 @@ internal class PeripheralDelegate(
     }
 
     fun close(cause: Throwable?) {
-        _response.close(NotConnectedException(cause = cause))
+        val status = (cause as? NotConnectedException)?.status
+        _response.close(NotConnectedException(cause = cause, status = status))
         characteristicChanges.emitBlocking(ObservationEvent.Disconnected)
         canSendWriteWithoutResponse.value = true
     }
