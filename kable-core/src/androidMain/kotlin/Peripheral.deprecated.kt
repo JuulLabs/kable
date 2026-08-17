@@ -33,6 +33,7 @@ public fun CoroutineScope.peripheral(
         builder.autoConnectPredicate,
         builder.transport,
         builder.phy,
+        builder.mtu,
         builder.threadingStrategy,
         builder.observationExceptionHandler,
         builder.onServicesDiscovered,
