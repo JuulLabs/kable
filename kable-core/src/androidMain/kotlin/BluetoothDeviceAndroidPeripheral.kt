@@ -214,7 +214,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         val socket = try {
             createSocket()
         } catch (e: IOException) {
-            throw e.toL2CapException()
+            throw e.wrapInL2CapException()
         }
         try {
             withContext(Dispatchers.IO) { socket.connect() }
@@ -223,13 +223,11 @@ internal class BluetoothDeviceAndroidPeripheral(
             throw e
         } catch (e: IOException) {
             socket.closeOrLog()
-            throw e.toL2CapException()
+            throw e.wrapInL2CapException()
         }
-        return AndroidL2CapSocket(socket, logging)
+        return AndroidL2CapSocket(socket, scope, logging)
     }
 
-    // BluetoothSocket.close() aborts an in-progress connect, so a failed or cancelled open never leaks
-    // the socket (connect() is a blocking call that a cancelled coroutine cannot interrupt).
     private fun BluetoothSocket.closeOrLog() {
         try {
             close()

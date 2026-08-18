@@ -171,11 +171,9 @@ internal class Connection(
             )
     }
 
-    // Not routed through `execute`: CoreBluetooth's `didOpenL2CAPChannel` carries no PSM, so it cannot be
-    // correlated to a request — the only safe model is one open at a time. `guard` provides that (shared
-    // with every other operation), and unlike `execute` this holds the guard until the callback is
-    // consumed even when the caller is cancelled, so a late channel is always torn down here rather than
-    // leaking or being misdelivered to the next open.
+    // `didOpenL2CAPChannel` carries no PSM, so only one open can be in flight at a time. The guard is
+    // held until the callback arrives, even if the caller is cancelled, so a late channel is closed
+    // here rather than delivered to the next open.
     internal suspend fun openL2CapChannel(psm: UShort): L2CapSocket = guard.withLock {
         val pending = delegate.beginL2CapOpen()
         var executed = false
@@ -186,7 +184,7 @@ internal class Connection(
             }
         } catch (e: CancellationException) {
             if (executed) {
-                abandonL2CapChannelWhenDelivered(pending)
+                disposeL2CapChannelWhenDelivered(pending)
             } else {
                 delegate.cancelL2CapOpen(pending, e.unwrapCancellationException())
             }
@@ -203,37 +201,28 @@ internal class Connection(
             throw e
         }
 
-        // Cancelled while awaiting the (uncancellable) callback: the channel arrived but has no owner.
-        // abandon(), not close(): close()'s deterministic collection is futile here, because this very
-        // frame still pins the channel (via `pending`/`result`) until it dies — the channel can only be
-        // collected after this function has thrown, which abandon()'s teardown-then-GC.schedule() allows.
         if (!coroutineContext.isActive) {
-            result.channel?.let { AppleL2CapSocket(it).abandon() }
+            result.channel?.let { AppleL2CapSocket(it).dispose() }
             coroutineContext.ensureActive()
         }
 
         buildL2CapSocket(result)
     }
 
-    private suspend fun abandonL2CapChannelWhenDelivered(
+    private suspend fun disposeL2CapChannelWhenDelivered(
         pending: CompletableDeferred<PeripheralDelegate.L2CapOpenResult>,
     ) {
-        // abandon(), not close(): the caller's frame keeps `pending` (and through it the channel)
-        // reachable until the open throws, so a collection forced here cannot release the channel —
-        // abandon() tears down and GC.schedule()s, letting the release happen once the frame is gone.
         val result = withContext(NonCancellable) { runCatching { pending.await() }.getOrNull() }
-        result?.channel?.let { AppleL2CapSocket(it).abandon() }
+        result?.channel?.let { AppleL2CapSocket(it).dispose() }
     }
 
     private fun buildL2CapSocket(result: PeripheralDelegate.L2CapOpenResult): L2CapSocket {
         result.error?.let { error ->
-            // A failure should carry no channel, but abandon one if CoreBluetooth ever delivers both.
-            result.channel?.let { AppleL2CapSocket(it).abandon() }
-            // NSError.code is a 32-bit NSInteger on watchosArm64, so widen explicitly.
+            result.channel?.let { AppleL2CapSocket(it).dispose() }
             throw L2CapException(error.description, code = error.code.toLong())
         }
         val channel = result.channel
-            ?: throw L2CapException("couldn't open L2CAP channel", code = 0)
+            ?: throw L2CapException("couldn't open L2CAP channel")
         return AppleL2CapSocket(channel)
     }
 

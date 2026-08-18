@@ -97,11 +97,6 @@ internal class PeripheralDelegate(
 
     val onServiceChanged = Channel<OnServiceChanged>(CONFLATED)
 
-    // Single-flight state for an in-progress `openL2CAPChannel`. CoreBluetooth's `didOpenL2CAPChannel`
-    // callback carries no PSM (and none at all on failure), so it cannot be correlated to a specific
-    // request; the caller (Connection.openL2CapChannel) instead holds a mutex so only one open is ever
-    // outstanding, and this single slot delivers that open's result. The lock guards the slot against the
-    // caller thread and the CoreBluetooth callback thread racing.
     internal data class L2CapOpenResult(
         val channel: CBL2CAPChannel?,
         val error: NSError?,
@@ -355,9 +350,7 @@ internal class PeripheralDelegate(
         }
         val delivered = completeL2CapOpen(L2CapOpenResult(didOpenL2CAPChannel, error))
         if (!delivered) {
-            // No waiter — the opening caller was already cancelled/disconnected. A channel handed over now
-            // has no owner, so tear it down rather than leak it (its streams would otherwise stay open).
-            didOpenL2CAPChannel?.let { AppleL2CapSocket(it).abandon() }
+            didOpenL2CAPChannel?.let { AppleL2CapSocket(it).dispose() }
             logger.warn { message = "Discarded unexpected didOpenL2CAPChannel callback" }
             return
         }
@@ -369,8 +362,6 @@ internal class PeripheralDelegate(
     }
 
     fun close(cause: Throwable?) {
-        // Fail an L2CAP open still in flight when the peripheral disconnects, otherwise its caller stays
-        // suspended forever — CoreBluetooth never delivers didOpenL2CAPChannel for a dropped connection.
         cancelL2CapOpenInFlight(NotConnectedException(cause = cause))
         _response.close(NotConnectedException(cause = cause))
         characteristicChanges.emitBlocking(ObservationEvent.Disconnected)

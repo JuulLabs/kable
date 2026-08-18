@@ -2,13 +2,13 @@ package com.juul.kable
 
 import kotlinx.io.IOException
 
-/** Represents a failure while opening or communicating over an [L2CapSocket]. */
+/** A failure while opening or communicating over an [L2CapSocket]. */
 public class L2CapException(
     message: String? = null,
     cause: Throwable? = null,
     /**
-     * Platform error code associated with the failure: `BluetoothSocketException.errorCode` on Android
-     * (API 34+), `NSError.code` on Apple platforms, or `0` when no code is available.
+     * Platform error code, if any: `BluetoothSocketException.errorCode` on Android (API 34+) or
+     * `NSError.code` on Apple platforms.
      */
-    public val code: Long,
+    public val code: Long? = null,
 ) : IOException(message, cause)

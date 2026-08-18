@@ -6,10 +6,11 @@ import android.os.Build
 import com.juul.kable.logs.Logging
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -25,14 +26,8 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
-// Scriptable stand-in for BluetoothSocket's InputStream: read(bytes) blocks until the test feeds
-// data, end-of-stream, or a failure — mirroring the non-interruptible blocking read of the real
-// socket. [readEntered] lets a test wait until a read is genuinely in flight, and [readsStarted]
-// counts reads handed to the "OS" so tests can pin how far the socket drained.
 private class ScriptedInputStream : InputStream() {
 
     private sealed interface Outcome {
@@ -62,7 +57,6 @@ private class ScriptedInputStream : InputStream() {
     }
 
     override fun close() {
-        // The real stream makes a blocked read throw once the socket closes underneath it.
         outcomes.put(Outcome.Failure(IOException("Socket closed")))
     }
 
@@ -81,7 +75,7 @@ class AndroidL2CapSocketTests {
 
     private val input = ScriptedInputStream()
 
-    private fun socket(): AndroidL2CapSocket {
+    private fun TestScope.socket(): AndroidL2CapSocket {
         val bluetoothSocket = mockk<BluetoothSocket> {
             every { remoteDevice } returns mockk<BluetoothDevice> {
                 every { address } returns "00:11:22:AA:BB:CC"
@@ -92,83 +86,71 @@ class AndroidL2CapSocketTests {
             every { outputStream } returns mockk<OutputStream>()
             every { close() } answers { input.close() }
         }
-        return AndroidL2CapSocket(bluetoothSocket, Logging())
+        return AndroidL2CapSocket(bluetoothSocket, backgroundScope, Logging())
     }
 
-    // The contract under test: cancelling read() never loses data. The blocking read a cancelled
-    // read() leaves in flight is awaited by the next read() — not abandoned, and not doubled up
-    // with a second OS read.
     @Test
-    fun cancelledRead_dataIsReturnedByNextRead() = runBlocking {
+    fun incoming_deliversChunksThenCompletesAtEndOfStream() = runTest(timeout = 5.seconds) {
         val socket = socket()
-        // UNDISPATCHED so the reader reaches its suspension point before this thread — the only
-        // one in runBlocking — blocks in awaitReadInFlight.
-        val reader = launch(start = UNDISPATCHED) { socket.read() }
-        input.awaitReadInFlight()
-        reader.cancel()
-        reader.join()
+        input.feed(byteArrayOf(1, 2))
+        input.feed(byteArrayOf(3))
+        input.endOfStream()
 
-        val sent = byteArrayOf(4, 5, 6)
-        input.feed(sent)
-        assertContentEquals(sent, withTimeout(5.seconds) { socket.read() })
-        assertEquals(1, input.readsStarted.get(), "Expected the pending read to be reused")
+        val chunks = socket.incoming.toList()
+        assertEquals(2, chunks.size)
+        assertContentEquals(byteArrayOf(1, 2, 3), chunks.reduce(ByteArray::plus))
+        assertFalse(socket.isConnected.value)
         socket.close()
     }
 
-    // A slow consumer must throttle the peer via L2CAP flow control: the socket reads from the OS
-    // only on demand, never draining ahead of read() calls.
     @Test
-    fun read_doesNotDrainAheadOfConsumer() = runBlocking {
+    fun incoming_collectedAgain_continuesWhereItLeftOff() = runTest(timeout = 5.seconds) {
         val socket = socket()
         input.feed(byteArrayOf(1))
         input.feed(byteArrayOf(2))
 
-        assertContentEquals(byteArrayOf(1), withTimeout(5.seconds) { socket.read() })
-        assertEquals(1, input.readsStarted.get(), "Read ahead of the consumer")
-
-        assertContentEquals(byteArrayOf(2), withTimeout(5.seconds) { socket.read() })
-        assertEquals(2, input.readsStarted.get())
+        assertContentEquals(byteArrayOf(1), socket.incoming.first())
+        assertContentEquals(byteArrayOf(2), socket.incoming.first())
         socket.close()
     }
 
     @Test
-    fun read_afterEndOfStream_returnsNullAndStaysNull() = runBlocking {
+    fun socket_doesNotReadAheadOfCollector() = runTest(timeout = 5.seconds) {
         val socket = socket()
-        input.feed(byteArrayOf(7))
-        input.endOfStream()
+        input.feed(byteArrayOf(1))
+        input.feed(byteArrayOf(2))
+        input.awaitReadInFlight()
 
-        assertContentEquals(byteArrayOf(7), withTimeout(5.seconds) { socket.read() })
-        assertNull(withTimeout(5.seconds) { socket.read() })
-        assertFalse(socket.isConnected.value)
-        // End-of-stream is terminal: no further OS reads on a dead socket.
-        assertNull(withTimeout(5.seconds) { socket.read() })
-        assertEquals(2, input.readsStarted.get())
+        assertEquals(1, input.readsStarted.get())
+        assertContentEquals(byteArrayOf(1), socket.incoming.first())
         socket.close()
     }
 
     @Test
-    fun readFailure_throwsAndSubsequentReadsObserveSameFailure() = runBlocking {
+    fun incoming_failure_throwsL2CapException() = runTest(timeout = 5.seconds) {
         val socket = socket()
         input.failWith(IOException("peer vanished"))
 
-        assertFailsWith<L2CapException> { withTimeout(5.seconds) { socket.read() } }
+        assertFailsWith<L2CapException> { socket.incoming.toList() }
         assertFalse(socket.isConnected.value)
-        // Failure is terminal: rethrown without starting another read on a dead socket.
-        assertFailsWith<L2CapException> { withTimeout(5.seconds) { socket.read() } }
-        assertEquals(1, input.readsStarted.get())
         socket.close()
     }
 
     @Test
-    fun close_whileReadBlocked_completesReadWithNull() = runBlocking {
+    fun close_whileReadBlocked_completesIncoming() = runTest(timeout = 5.seconds) {
         val socket = socket()
-        val reader = launch(start = UNDISPATCHED) {
-            assertNull(socket.read())
-        }
+        val collector = launch { socket.incoming.toList() }
         input.awaitReadInFlight()
-        withTimeout(5.seconds) { socket.close() }
-        withTimeout(5.seconds) { reader.join() }
-        assertTrue(reader.isCompleted)
+
+        socket.close()
+        collector.join()
         assertFalse(socket.isConnected.value)
+    }
+
+    @Test
+    fun write_emptyPacket_throwsIllegalArgumentException() = runTest(timeout = 5.seconds) {
+        val socket = socket()
+        assertFailsWith<IllegalArgumentException> { socket.write(byteArrayOf()) }
+        socket.close()
     }
 }

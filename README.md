@@ -548,27 +548,21 @@ On Apple platforms:
 val socket = (peripheral as CoreBluetoothPeripheral).openL2CapChannel(psm = 0x0080)
 ```
 
-The returned `L2CapSocket` is already open. Read chunks of incoming bytes, and write whole packets:
+The returned `L2CapSocket` is already open. Incoming bytes arrive as a `Flow` of chunks that completes at
+end of stream, and packets are written whole:
 
 ```kotlin
-val chunk = socket.read() // suspends until data arrives; returns null at end-of-stream
+socket.incoming.collect { chunk ->
+    // Process chunk.
+}
 
 socket.write(byteArrayOf(1, 2, 3))
 
 socket.close()
 ```
 
-Incoming data is also available as a cold `Flow`, which completes at end-of-stream:
-
-```kotlin
-socket.incoming().collect { chunk ->
-    // Process chunk.
-}
-```
-
 > [!NOTE]
-> _Opening a channel throws `L2CapException` on failure. `read` should be called from a single coroutine
-> at a time; `write` may run concurrently with it._
+> _A failure while opening, reading or writing throws `L2CapException`._
 
 ### Observation
 
