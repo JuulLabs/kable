@@ -17,7 +17,7 @@ androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version =
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version = "0.33.0" }
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.13.0" }
-compose-ui = { module = "androidx.compose.ui:ui", version = "1.11.4" }
+compose-ui = { module = "androidx.compose.ui:ui", version = "1.12.0" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.8.0-0.6.x-compat" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5" }
@@ -65,6 +65,7 @@ voyager = [
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-bcv-bridge = { id = "io.github.tjokinen.android-bcv-bridge", version = "0.2.0" } # Workaround for https://github.com/Kotlin/binary-compatibility-validator/issues/312
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }
