@@ -20,10 +20,12 @@ import com.juul.kable.scan.message
 import com.juul.kable.scan.requirements.checkLocationServicesEnabled
 import com.juul.kable.scan.requirements.checkScanPermissions
 import com.juul.kable.scan.requirements.requireBluetoothLeScanner
+import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
-import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 import kotlin.reflect.KClass
@@ -59,12 +61,12 @@ internal class BluetoothLeScannerAndroidScanner(
         logger.verbose { message = "Checking permissions for scanning" }
         checkScanPermissions()
 
+        // `trySend` is used (rather than `trySendBlocking`) because scan callbacks are invoked
+        // from a binder thread (on some phones, the main thread), where blocking can trigger an
+        // ANR. See https://github.com/JuulLabs/kable/issues/654 for more details.
         fun sendResult(scanResult: ScanResult) {
             val advertisement = ScanResultAndroidAdvertisement(scanResult)
-            when {
-                preConflate -> trySend(advertisement)
-                else -> trySendBlocking(advertisement)
-            }.onFailure {
+            trySend(advertisement).onFailure {
                 logger.warn { message = "Unable to deliver scan result due to failure in flow or premature closing." }
             }
         }
@@ -115,7 +117,13 @@ internal class BluetoothLeScannerAndroidScanner(
                 logger.warn(e) { message = "Failed to stop scan. " }
             }
         }
-    }.filter { advertisement ->
+    }.buffer(
+        // When pre-conflating, the default (BUFFERED) capacity is used, whereas scan results that
+        // arrive while the buffer is full are dropped (via failed `trySend`). Otherwise, an
+        // UNLIMITED capacity ensures no scan results are dropped, while never blocking the
+        // (Android provided) thread that scan callbacks are invoked from.
+        capacity = if (preConflate) BUFFERED else UNLIMITED,
+    ).filter { advertisement ->
         if (scanFilters.flow.isEmpty()) {
             true
         } else {
