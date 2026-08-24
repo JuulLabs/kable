@@ -34,5 +34,15 @@
       ],
       allowedVersions: '1.16.0',
     },
+    // Pin `uniffi` to the version used by `gobley-uniffi-bindgen` (which generates the
+    // Kotlin/Native bindings for the mingwX64 target). These must be updated in lockstep:
+    // the `uniffi` version in `kable-btleplug-ffi/Cargo.toml` must match the `uniffi_bindgen`
+    // dependency of the `gobley` version referenced in `gradle/libs.versions.toml`.
+    {
+      matchPackageNames: [
+        'uniffi',
+      ],
+      allowedVersions: '0.29.4',
+    },
   ],
 }
