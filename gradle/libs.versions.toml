@@ -20,7 +20,7 @@ compose-activity = { module = "androidx.activity:activity-compose", version = "1
 compose-ui = { module = "androidx.compose.ui:ui", version = "1.12.0" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.8.0-0.6.x-compat" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
-equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5" }
+equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5.1" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 kable = { module = "com.juul.kable:kable-core" }
 kable-permissions = { module = "com.juul.kable:kable-default-permissions" }
