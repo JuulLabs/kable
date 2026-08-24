@@ -7,13 +7,9 @@ import com.juul.kable.logs.LogEngine
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.Format.Compact
 import com.juul.kable.logs.Logging.Level.Data
-import com.juul.khronicle.ConsoleLogger
-import com.juul.khronicle.Log
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -30,16 +26,6 @@ class ObservationTest {
 
     private val logging = Logging().apply {
         level = Data
-    }
-
-    @BeforeTest
-    fun setup() {
-        Log.dispatcher.install(ConsoleLogger)
-    }
-
-    @AfterTest
-    fun tearDown() {
-        Log.dispatcher.clear()
     }
 
     @Test
