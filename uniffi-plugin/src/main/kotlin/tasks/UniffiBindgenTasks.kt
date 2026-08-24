@@ -24,11 +24,8 @@ edition = "2024"
 uniffi = { version = "%s", features = ["bindgen", "cli", "tokio"] }
 """
 
-// `[bindings.kotlin]` (rather than `[defaults.bindings.kotlin]`) is the configuration format of
-// uniffi 0.29 (which the `kable-btleplug-ffi` crate is pinned to, for gobley-uniffi-bindgen
-// compatibility).
 private const val UNIFFI_TOML_FMT = """
-[bindings.kotlin]
+[defaults.bindings.kotlin]
 package_name = "%s"
 """
 
