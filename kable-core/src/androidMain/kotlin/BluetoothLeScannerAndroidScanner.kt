@@ -20,7 +20,7 @@ import com.juul.kable.scan.message
 import com.juul.kable.scan.requirements.checkLocationServicesEnabled
 import com.juul.kable.scan.requirements.checkScanPermissions
 import com.juul.kable.scan.requirements.requireBluetoothLeScanner
-import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
+import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
@@ -44,7 +44,7 @@ internal data class ScanFilters(
 internal class BluetoothLeScannerAndroidScanner(
     filters: List<FilterPredicate>,
     private val scanSettings: ScanSettings,
-    private val preConflate: Boolean,
+    private val bufferCapacity: Int,
     logging: Logging,
 ) : PlatformScanner {
 
@@ -101,13 +101,13 @@ internal class BluetoothLeScannerAndroidScanner(
         checkBluetoothIsOn()
 
         logger.info {
-            message = logMessage("Starting", preConflate, scanFilters)
+            message = logMessage("Starting", bufferCapacity, scanFilters)
         }
         scanner.startScan(scanFilters.native, scanSettings, callback)
 
         awaitClose {
             logger.info {
-                message = logMessage("Stopping", preConflate, scanFilters)
+                message = logMessage("Stopping", bufferCapacity, scanFilters)
             }
             // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException`
             // means BLE has been disabled.
@@ -118,11 +118,16 @@ internal class BluetoothLeScannerAndroidScanner(
             }
         }
     }.buffer(
-        // When pre-conflating, the default (BUFFERED) capacity is used, whereas scan results that
-        // arrive while the buffer is full are dropped (via failed `trySend`). Otherwise, an
-        // UNLIMITED capacity ensures no scan results are dropped, while never blocking the
-        // (Android provided) thread that scan callbacks are invoked from.
-        capacity = if (preConflate) BUFFERED else UNLIMITED,
+        // Scan results are delivered via (non-blocking) `trySend`, so this buffer — rather than
+        // backpressure on the thread that scan callbacks are invoked from — is what absorbs a slow
+        // collector. `DROP_OLDEST` keeps `trySend` from failing at a finite capacity; it is
+        // ignored at an UNLIMITED capacity, which never overflows and so never drops.
+        //
+        // Must stay adjacent to the `callbackFlow` (i.e. ahead of `filter`) to fuse into its
+        // channel. Applied after an intervening operator it creates a second channel instead,
+        // leaving the callback channel at the default capacity, where `trySend` drops again.
+        capacity = bufferCapacity,
+        onBufferOverflow = DROP_OLDEST,
     ).filter { advertisement ->
         if (scanFilters.flow.isEmpty()) {
             true
@@ -140,14 +145,16 @@ internal class BluetoothLeScannerAndroidScanner(
 
 private fun logMessage(
     prefix: String,
-    preConflate: Boolean,
+    bufferCapacity: Int,
     scanFilters: ScanFilters,
 ) = buildString {
     append(prefix)
     append(' ')
     append("scan ")
-    if (preConflate) {
-        append("pre-conflated ")
+    if (bufferCapacity != UNLIMITED) {
+        append("buffering up to ")
+        append(bufferCapacity)
+        append(" advertisement(s) ")
     }
     if (scanFilters.native.isEmpty() && scanFilters.flow.isEmpty()) {
         append("without filters")
