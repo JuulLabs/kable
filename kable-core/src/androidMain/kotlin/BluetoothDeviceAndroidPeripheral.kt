@@ -15,6 +15,8 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.juul.kable.AndroidPeripheral.Priority
 import com.juul.kable.AndroidPeripheral.Type
 import com.juul.kable.State.Disconnected
@@ -190,6 +192,20 @@ internal class BluetoothDeviceAndroidPeripheral(
             detail("mtu", mtu)
         }
         return connectionOrThrow().requestMtu(mtu)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override suspend fun createInsecureL2capChannel(psm: Int): L2CapSocket {
+        val socket = bluetoothDevice.createInsecureL2capChannel(psm)
+        socket.connect()
+        return AndroidL2CapSocket(socket)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override suspend fun createL2capChannel(psm: Int): L2CapSocket {
+        val socket = bluetoothDevice.createL2capChannel(psm)
+        socket.connect()
+        return AndroidL2CapSocket(socket)
     }
 
     override suspend fun write(
