@@ -53,7 +53,7 @@ impl Display for PeripheralId {
 impl PeripheralId {
     #[uniffi::constructor]
     fn new(value: String) -> Self {
-        Self {
+        PeripheralId {
             platform: BDAddr::from_str(&value).unwrap().into(),
         }
     }
@@ -62,7 +62,7 @@ impl PeripheralId {
 #[cfg(target_os = "windows")]
 impl Display for PeripheralId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.platform)
+        write!(f, "{}", self.platform.to_string())
     }
 }
 
