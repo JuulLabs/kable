@@ -392,6 +392,11 @@ internal class CBPeripheralCoreBluetoothPeripheral(
         cbPeripheral.identifier.UUIDString,
     )
 
+    override suspend fun openL2CapChannel(psm: Int): L2CapSocket {
+        require(psm in 0..UShort.MAX_VALUE.toInt()) { "psm $psm is outside the valid range 0..65535" }
+        return connectionOrThrow().openL2CapChannel(psm.toUShort())
+    }
+
     override fun close() {
         scope.cancel("$this closed")
     }
