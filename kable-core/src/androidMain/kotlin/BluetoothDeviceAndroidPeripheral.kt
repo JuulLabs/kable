@@ -91,9 +91,13 @@ internal class BluetoothDeviceAndroidPeripheral(
     private val observers = Observers<ByteArray>(this, logging, false, observationExceptionHandler)
 
     private val connection = MutableStateFlow<Connection?>(null)
-    private fun connectionOrThrow() =
-        connection.value
-            ?: throw NotConnectedException("Connection not established, current state: ${state.value}")
+    private fun connectionOrThrow() = connection.value ?: run {
+        val currentState = state.value
+        throw NotConnectedException(
+            "Connection not established, current state: $currentState",
+            status = (currentState as? Disconnected)?.status,
+        )
+    }
 
     override val type: Type
         get() = typeFrom(bluetoothDevice.type)
