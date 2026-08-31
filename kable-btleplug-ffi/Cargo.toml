@@ -3,7 +3,7 @@ name = "btleplug-ffi"
 edition = "2024"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 anyhow = "1.0.98"
