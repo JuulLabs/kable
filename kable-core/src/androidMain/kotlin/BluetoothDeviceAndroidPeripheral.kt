@@ -207,7 +207,7 @@ internal class BluetoothDeviceAndroidPeripheral(
         val platformCharacteristic = servicesOrThrow().obtain(characteristic, writeType.properties)
         connectionOrThrow().execute<OnCharacteristicWrite> {
             writeCharacteristicOrThrow(platformCharacteristic, data, writeType.intValue)
-        }
+        }.discard()
     }
 
     override suspend fun read(
@@ -243,7 +243,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
         connectionOrThrow().execute<OnDescriptorWrite> {
             writeDescriptorOrThrow(platformDescriptor, data)
-        }
+        }.discard()
     }
 
     override suspend fun read(
@@ -360,6 +360,12 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     override fun toString(): String = "Peripheral(bluetoothDevice=$bluetoothDevice)"
 }
+
+// Workaround for https://github.com/JuulLabs/kable/issues/1267
+// (upstream issue: https://youtrack.jetbrains.com/issue/KT-72710 — fixed in Kotlin 2.4.0-Beta1).
+// Older compilers can resume a Unit-returning suspend function's caller with its tail call's non-Unit result.
+// Keep this non-inline to force conversion to Unit after resumption; trailing Unit or return Unit is insufficient.
+private fun Any?.discard(): Unit = Unit
 
 private val WriteType.intValue: Int
     get() = when (this) {
