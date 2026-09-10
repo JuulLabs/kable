@@ -17,6 +17,7 @@ import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.io.IOException
 import platform.CoreBluetooth.CBCharacteristic
 import platform.CoreBluetooth.CBDescriptor
@@ -34,6 +35,7 @@ import platform.darwin.NSObject
 internal class PeripheralDelegate(
     private val canSendWriteWithoutResponse: MutableStateFlow<Boolean>,
     private val characteristicChanges: MutableSharedFlow<ObservationEvent<NSData>>,
+    private val services: StateFlow<List<PlatformDiscoveredService>?>,
     logging: Logging,
     internal val identifier: String,
 ) : NSObject(), CBPeripheralDelegateProtocol {
@@ -176,7 +178,7 @@ internal class PeripheralDelegate(
             detail(didUpdateValueForCharacteristic.value, Change)
         }
 
-        val characteristic = PlatformDiscoveredCharacteristic(didUpdateValueForCharacteristic)
+        val characteristic = didUpdateValueForCharacteristic.toKableCharacteristic()
         val change = if (error == null) {
             // Assumption: `value == null` and `error == null` are mutually exclusive.
             // i.e. When `error == null` then `CBCharacteristic`'s `value` is non-null.
@@ -319,6 +321,27 @@ internal class PeripheralDelegate(
         }
         // todo
     }
+
+    /**
+     * Resolves (by object reference) the [PlatformDiscoveredCharacteristic] (from the most
+     * recently discovered [services]) that wraps this [CBCharacteristic].
+     *
+     * Core Bluetooth (unlike Android) does not provide an "instance id" for characteristics, so
+     * characteristics are tracked by reference (against the characteristics found during service
+     * discovery) to support multiple characteristics with the same UUID.
+     *
+     * Falls back to a [LazyCharacteristic] (associated by UUID only) if this [CBCharacteristic] is
+     * not found in the discovered services (e.g. when a change event is received while a service
+     * re-discovery is in-flight).
+     */
+    private fun CBCharacteristic.toKableCharacteristic(): Characteristic =
+        services.value?.findCharacteristic(this)
+            ?: toLazyCharacteristic().also {
+                logger.warn {
+                    message = "Unable to find discovered characteristic, falling back to UUID based association"
+                    detail(this@toKableCharacteristic)
+                }
+            }
 
     fun close(cause: Throwable?) {
         _response.close(NotConnectedException(cause = cause))
