@@ -8,6 +8,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 import com.juul.kable.Filter.ManufacturerData as ManufacturerDataFilter
+import com.juul.kable.Filter.ServiceData as ServiceDataFilter
 
 class FilterPredicateTests {
 
@@ -355,6 +356,230 @@ class FilterPredicateTests {
                     code = 1,
                     data = byteArrayOf(0x12, 0x34),
                 ),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsExactMatch_isTrue() {
+        val predicate = ServiceDataFilter(TEST_UUID_1, byteArrayOf(2)).toPredicate()
+        assertTrue(predicate.matches(serviceData = mapOf(TEST_UUID_1 to byteArrayOf(2))))
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsUuidMisMatch_isFalse() {
+        val predicate = ServiceDataFilter(TEST_UUID_1, byteArrayOf(2)).toPredicate()
+        assertFalse(predicate.matches(serviceData = mapOf(TEST_UUID_2 to byteArrayOf(2))))
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsNothing_isFalse() {
+        val predicate = ServiceDataFilter(TEST_UUID_1, byteArrayOf(2)).toPredicate()
+        assertFalse(predicate.matches())
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsEmptyData_isFalse() {
+        val predicate = ServiceDataFilter(TEST_UUID_1, byteArrayOf(2)).toPredicate()
+        assertFalse(predicate.matches(serviceData = mapOf(TEST_UUID_1 to byteArrayOf())))
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsDataMisMatchWithoutMask_isFalse() {
+        val predicate = ServiceDataFilter(TEST_UUID_1, byteArrayOf(2)).toPredicate()
+        assertFalse(predicate.matches(serviceData = mapOf(TEST_UUID_1 to byteArrayOf(3))))
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsDataMatchWithMask_isTrue() {
+        // Mask to match against only the single bit
+        val predicate = ServiceDataFilter(TEST_UUID_1, byteArrayOf(2), byteArrayOf(2)).toPredicate()
+        assertTrue(predicate.matches(serviceData = mapOf(TEST_UUID_1 to byteArrayOf(3))))
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsDataWithLengthLongerThanFilterDataThatMatches_isTrue() {
+        val predicate = ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = byteArrayOf(0x03),
+            dataMask = byteArrayOf(0xFF.toByte()),
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                serviceData = mapOf(TEST_UUID_1 to byteArrayOf(0x03, 0x00, 0x00)),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsDataWithLengthLongerThanFilterDataThatDoesNotMatch_isFalse() {
+        val predicate = ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = byteArrayOf(0x02),
+            dataMask = byteArrayOf(0x0F.toByte()),
+        ).toPredicate()
+
+        assertFalse(
+            predicate.matches(
+                serviceData = mapOf(TEST_UUID_1 to byteArrayOf(0x03, 0x00, 0x00)),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsDataWithLengthShorterThanFilterDataButMatchesMaskPortion_isTrue() {
+        val predicate = ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = byteArrayOf(0x03, 0x00, 0x00, 0x00),
+            dataMask = byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0x00.toByte()),
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                serviceData = mapOf(TEST_UUID_1 to byteArrayOf(0x03, 0x00, 0x00)),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_serviceDataFilterVsDataWithLengthShorterThanFilterData_isFalse() {
+        val predicate = ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = byteArrayOf(0x03, 0x00, 0x00, 0x00),
+            dataMask = byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()),
+        ).toPredicate()
+
+        assertFalse(
+            predicate.matches(
+                serviceData = mapOf(TEST_UUID_1 to byteArrayOf(0x03, 0x00, 0x00)),
+            ),
+        )
+    }
+
+    @Test
+    fun serviceDataFilter_nullDataWithNullDataMask_isAllowed() {
+        ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = null,
+            dataMask = null,
+        )
+    }
+
+    @Test
+    fun serviceDataFilter_nullDataWithEmptyDataMask_throwsIllegalArgumentException() {
+        assertFailsWith<IllegalArgumentException> {
+            ServiceDataFilter(
+                uuid = TEST_UUID_1,
+                data = null,
+                dataMask = byteArrayOf(),
+            )
+        }
+    }
+
+    @Test
+    fun serviceDataFilter_nullDataWithNonNullDataMask_throwsIllegalArgumentException() {
+        assertFailsWith<IllegalArgumentException> {
+            ServiceDataFilter(
+                uuid = TEST_UUID_1,
+                data = null,
+                dataMask = byteArrayOf(0xFF.toByte(), 0xFF.toByte()),
+            )
+        }
+    }
+
+    @Test
+    fun serviceDataFilter_emptyData_throwsIllegalArgumentException() {
+        assertFailsWith<IllegalArgumentException> {
+            ServiceDataFilter(
+                uuid = TEST_UUID_1,
+                data = byteArrayOf(),
+            )
+        }
+    }
+
+    @Test
+    fun serviceDataFilter_dataAndDataMaskOfDifferentLengths_throwsIllegalArgumentException() {
+        assertFailsWith<IllegalArgumentException> {
+            ServiceDataFilter(
+                uuid = TEST_UUID_1,
+                data = byteArrayOf(0x01, 0x02),
+                dataMask = byteArrayOf(0xFF.toByte()),
+            )
+        }
+    }
+
+    @Test
+    fun matches_serviceDataFilterWithNullDataVsEmptyData_isTrue() {
+        val predicate = ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = null,
+            dataMask = null,
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                serviceData = mapOf(TEST_UUID_1 to byteArrayOf()),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_serviceDataFilterWithNullDataVsData_isTrue() {
+        val predicate = ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = null,
+            dataMask = null,
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                serviceData = mapOf(TEST_UUID_1 to byteArrayOf(0xFF.toByte(), 0xFF.toByte())),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_serviceDataFilterWithNullDataVsUuidMisMatch_isFalse() {
+        val predicate = ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = null,
+            dataMask = null,
+        ).toPredicate()
+
+        assertFalse(
+            predicate.matches(
+                serviceData = mapOf(TEST_UUID_2 to byteArrayOf(0xFF.toByte(), 0xFF.toByte())),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_serviceDataFilterWithoutDataMaskVsData_isTrue() {
+        val predicate = ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = byteArrayOf(0xFF.toByte(), 0xFF.toByte()),
+            dataMask = null,
+        ).toPredicate()
+
+        assertTrue(
+            predicate.matches(
+                serviceData = mapOf(TEST_UUID_1 to byteArrayOf(0xFF.toByte(), 0xFF.toByte())),
+            ),
+        )
+    }
+
+    @Test
+    fun matches_serviceDataFilterWithoutDataMaskVsDifferentData_isFalse() {
+        val predicate = ServiceDataFilter(
+            uuid = TEST_UUID_1,
+            data = byteArrayOf(0xF0.toByte(), 0x0D.toByte()),
+            dataMask = null,
+        ).toPredicate()
+
+        assertFalse(
+            predicate.matches(
+                serviceData = mapOf(TEST_UUID_1 to byteArrayOf(0x12, 0x34)),
             ),
         )
     }
