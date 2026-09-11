@@ -45,6 +45,7 @@ import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import com.juul.kable.btleplug.ffi.Uuid as FfiUuid
 
+private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
 
 internal class BtleplugPeripheral(
@@ -181,8 +182,14 @@ internal class BtleplugPeripheral(
     }
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
-        withContext(Dispatchers.IO) {
-            ffi.mtu().toInt() - ATT_MTU_HEADER_SIZE
+        try {
+            withContext(Dispatchers.IO) {
+                ffi.mtu().toInt() - ATT_MTU_HEADER_SIZE
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
         }
 
     @ExperimentalKableApi
