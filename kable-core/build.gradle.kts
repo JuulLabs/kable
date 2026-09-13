@@ -9,6 +9,7 @@ plugins {
 }
 
 fun isRunningOnMacOs() = System.getProperty("os.name").orEmpty().lowercase().startsWith("mac")
+fun isRunningOnWindows() = System.getProperty("os.name").orEmpty().lowercase().startsWith("windows")
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
@@ -59,6 +60,13 @@ kotlin {
     jvm()
     wasmJs().browser()
 
+    // Windows (mingwX64) support is backed by the same Rust (btleplug) bindings as the JVM
+    // target, but built for `x86_64-pc-windows-gnu` and consumed via cinterop. Building the Rust
+    // library requires a mingw-w64 toolchain, which is readily available on Windows hosts only.
+    if (isRunningOnWindows()) {
+        mingwX64()
+    }
+
     sourceSets {
         all {
             languageSettings {
@@ -80,7 +88,6 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("reflect")) // For `assertIs`.
             implementation(kotlin("test"))
-            implementation(libs.khronicle)
             implementation(libs.kotlinx.coroutines.test)
         }
 
@@ -105,8 +112,26 @@ kotlin {
             api(project.dependencies.platform(libs.wrappers.bom))
         }
 
-        jvmMain.dependencies {
-            implementation(project(":kable-btleplug-ffi"))
+        // Sources shared between targets backed by the Rust (btleplug) bindings. Shared via
+        // `srcDir` (rather than an intermediate source set) because the bindings are provided by
+        // a different module per target (JNA-based on JVM, cinterop-based on mingwX64), which
+        // metadata compilation of an intermediate source set would be unable to resolve.
+        val btleplugMain = layout.projectDirectory.dir("src/btleplugMain/kotlin")
+
+        jvmMain {
+            kotlin.srcDir(btleplugMain)
+            dependencies {
+                implementation(project(":kable-btleplug-ffi"))
+            }
+        }
+
+        if (isRunningOnWindows()) {
+            named("mingwX64Main") {
+                kotlin.srcDir(btleplugMain)
+                dependencies {
+                    implementation(project(":kable-btleplug-ffi-native"))
+                }
+            }
         }
     }
 }
@@ -114,5 +139,14 @@ kotlin {
 dokka {
     pluginsConfiguration.html {
         footerMessage.set("(c) JUUL Labs, Inc.")
+    }
+
+    // Dokka does not support the same source root belonging to multiple source sets
+    // (https://github.com/Kotlin/dokka/issues/3701). The `btleplugMain` sources are documented
+    // via the `jvm` source set, so suppress the `mingwX64` source set (which shares them).
+    if (isRunningOnWindows()) {
+        dokkaSourceSets.named("mingwX64Main") {
+            suppress.set(true)
+        }
     }
 }
