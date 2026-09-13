@@ -181,8 +181,14 @@ internal class BtleplugPeripheral(
         connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnect requested")))
     }
 
-    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
-        DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int {
+        // btleplug learns the MTU during service discovery, so it is only meaningful while connected.
+        val mtu = when (state.value) {
+            is Connecting.Observes, is State.Connected -> withContext(Dispatchers.IO) { ffi.mtu().toInt() }
+            else -> DEFAULT_ATT_MTU
+        }
+        return mtu - ATT_MTU_HEADER_SIZE
+    }
 
     @ExperimentalKableApi
     override suspend fun rssi(): Int = withContext(Dispatchers.IO) {
