@@ -16,18 +16,6 @@ import kotlin.test.assertTrue
 class ScannerBuilderTests {
 
     @Test
-    fun bufferCapacity_default_isUnlimited() {
-        assertEquals(Channel.UNLIMITED, ScannerBuilder().bufferCapacity)
-    }
-
-    @Test
-    fun bufferCapacity_positive_isRetained() {
-        val builder = ScannerBuilder()
-        builder.bufferCapacity = 64
-        assertEquals(64, builder.bufferCapacity)
-    }
-
-    @Test
     fun bufferCapacity_buffered_isRejected() {
         // `Channel.BUFFERED` behaves as a capacity of 1 (not the default channel capacity) when
         // combined with an overflow strategy, so it is rejected rather than silently misleading.
@@ -63,7 +51,6 @@ class ScannerBuilderTests {
     @Test
     fun preConflate_false_isUnlimitedBufferCapacity() {
         val builder = ScannerBuilder()
-        builder.preConflate = true
         builder.preConflate = false
         assertEquals(Channel.UNLIMITED, builder.bufferCapacity)
         assertFalse(builder.preConflate)

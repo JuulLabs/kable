@@ -61,11 +61,11 @@ internal class BluetoothLeScannerAndroidScanner(
         logger.verbose { message = "Checking permissions for scanning" }
         checkScanPermissions()
 
-        // `trySend` is used (rather than `trySendBlocking`) because scan callbacks are invoked
-        // from a binder thread (on some phones, the main thread), where blocking can trigger an
-        // ANR. See https://github.com/JuulLabs/kable/issues/654 for more details.
         fun sendResult(scanResult: ScanResult) {
             val advertisement = ScanResultAndroidAdvertisement(scanResult)
+            // `trySend` is used (rather than `trySendBlocking`) because scan callbacks are invoked
+            // from a binder thread (on some phones, the main thread), where blocking can trigger an
+            // ANR. See https://github.com/JuulLabs/kable/issues/654 for more details.
             trySend(advertisement).onFailure {
                 logger.warn { message = "Unable to deliver scan result due to failure in flow or premature closing." }
             }
@@ -118,11 +118,6 @@ internal class BluetoothLeScannerAndroidScanner(
             }
         }
     }.buffer(
-        // Scan results are delivered via (non-blocking) `trySend`, so this buffer — rather than
-        // backpressure on the thread that scan callbacks are invoked from — is what absorbs a slow
-        // collector. `DROP_OLDEST` keeps `trySend` from failing at a finite capacity; it is
-        // ignored at an UNLIMITED capacity, which never overflows and so never drops.
-        //
         // Must stay adjacent to the `callbackFlow` (i.e. ahead of `filter`) to fuse into its
         // channel. Applied after an intervening operator it creates a second channel instead,
         // leaving the callback channel at the default capacity, where `trySend` drops again.
