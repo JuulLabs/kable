@@ -138,6 +138,28 @@ public interface AndroidPeripheral : Peripheral {
     public suspend fun requestMtu(mtu: Int): Int
 
     /**
+     * Opens a secure (authenticated and encrypted) L2CAP channel to the peripheral on the given [psm],
+     * suspending until the channel is connected. The returned [L2CapSocket] is already connected.
+     *
+     * Requires [API level 29][Build.VERSION_CODES.Q] or higher.
+     *
+     * @see android.bluetooth.BluetoothDevice.createL2capChannel
+     * @throws L2CapException if the channel could not be opened.
+     */
+    public suspend fun openL2CapChannel(psm: Int): L2CapSocket
+
+    /**
+     * Opens an insecure (no authentication or encryption) L2CAP channel to the peripheral on the given
+     * [psm], suspending until the channel is connected. The returned [L2CapSocket] is already connected.
+     *
+     * Requires [API level 29][Build.VERSION_CODES.Q] or higher.
+     *
+     * @see android.bluetooth.BluetoothDevice.createInsecureL2capChannel
+     * @throws L2CapException if the channel could not be opened.
+     */
+    public suspend fun openInsecureL2CapChannel(psm: Int): L2CapSocket
+
+    /**
      * @see Peripheral.write
      * @throws NotConnectedException if invoked without an established [connection][connect].
      * @throws GattWriteException if underlying [BluetoothGatt] write operation call fails.

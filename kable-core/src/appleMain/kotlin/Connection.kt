@@ -8,6 +8,7 @@ import com.juul.kable.State.Disconnected
 import com.juul.kable.coroutines.childSupervisor
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -167,6 +169,61 @@ internal class Connection(
             ?: throw InternalError(
                 "Expected response type ${type.simpleName} but received ${response::class.simpleName}",
             )
+    }
+
+    // `didOpenL2CAPChannel` carries no PSM, so only one open can be in flight at a time. The guard is
+    // held until the callback arrives, even if the caller is cancelled, so a late channel is closed
+    // here rather than delivered to the next open.
+    internal suspend fun openL2CapChannel(psm: UShort): L2CapSocket = guard.withLock {
+        val pending = delegate.beginL2CapOpen()
+        var executed = false
+        try {
+            withContext(dispatcher) {
+                peripheral.openL2CAPChannel(psm)
+                executed = true
+            }
+        } catch (e: CancellationException) {
+            if (executed) {
+                disposeL2CapChannelWhenDelivered(pending)
+            } else {
+                delegate.cancelL2CapOpen(pending, e.unwrapCancellationException())
+            }
+            throw e.unwrapCancellationException()
+        } catch (e: Throwable) {
+            delegate.cancelL2CapOpen(pending, e)
+            throw e
+        }
+
+        val result = try {
+            withContext(NonCancellable) { pending.await() }
+        } catch (e: Throwable) {
+            coroutineContext.ensureActive()
+            throw e
+        }
+
+        if (!coroutineContext.isActive) {
+            result.channel?.let { AppleL2CapSocket(it).dispose() }
+            coroutineContext.ensureActive()
+        }
+
+        buildL2CapSocket(result)
+    }
+
+    private suspend fun disposeL2CapChannelWhenDelivered(
+        pending: CompletableDeferred<PeripheralDelegate.L2CapOpenResult>,
+    ) {
+        val result = withContext(NonCancellable) { runCatching { pending.await() }.getOrNull() }
+        result?.channel?.let { AppleL2CapSocket(it).dispose() }
+    }
+
+    private fun buildL2CapSocket(result: PeripheralDelegate.L2CapOpenResult): L2CapSocket {
+        result.error?.let { error ->
+            result.channel?.let { AppleL2CapSocket(it).dispose() }
+            throw L2CapException(error.description, code = error.code.toLong())
+        }
+        val channel = result.channel
+            ?: throw L2CapException("couldn't open L2CAP channel")
+        return AppleL2CapSocket(channel)
     }
 
     private suspend fun disconnect() {
