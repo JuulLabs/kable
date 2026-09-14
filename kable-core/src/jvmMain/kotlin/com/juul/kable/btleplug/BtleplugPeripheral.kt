@@ -182,7 +182,15 @@ internal class BtleplugPeripheral(
     }
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
-        DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
+        try {
+            withContext(Dispatchers.IO) {
+                ffi.mtu().toInt() - ATT_MTU_HEADER_SIZE
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
+        }
 
     @ExperimentalKableApi
     override suspend fun rssi(): Int = withContext(Dispatchers.IO) {
