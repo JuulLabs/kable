@@ -22,6 +22,7 @@ import com.juul.kable.btleplug.ffi.CancellationHandle
 import com.juul.kable.btleplug.ffi.PeripheralCallbacks
 import com.juul.kable.btleplug.ffi.isAdapterOn
 import com.juul.kable.coroutines.childSupervisor
+import com.juul.kable.isAtLeast
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.sharedRepeatableAction
@@ -43,6 +44,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
+import com.juul.kable.btleplug.ffi.Exception as FfiException
 import com.juul.kable.btleplug.ffi.Uuid as FfiUuid
 
 private const val DEFAULT_ATT_MTU = 23
@@ -181,8 +183,21 @@ internal class BtleplugPeripheral(
         connectAction.cancelAndJoin(CancellationException(NotConnectedException("Disconnect requested")))
     }
 
-    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
-        DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int {
+        // btleplug reports the default until service discovery has run, so the query is forwarded for
+        // the whole life of a connection. A disconnect racing the query drops the ffi handle before
+        // `state` moves, which surfaces as an error folded into the default.
+        val mtu = if (state.value.isAtLeast<Connecting.Services>()) {
+            try {
+                withContext(Dispatchers.IO) { ffi.mtu().toInt() }
+            } catch (e: FfiException) {
+                DEFAULT_ATT_MTU
+            }
+        } else {
+            DEFAULT_ATT_MTU
+        }
+        return mtu - ATT_MTU_HEADER_SIZE
+    }
 
     @ExperimentalKableApi
     override suspend fun rssi(): Int = withContext(Dispatchers.IO) {
