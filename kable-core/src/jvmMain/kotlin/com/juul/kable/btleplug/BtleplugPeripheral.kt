@@ -184,9 +184,9 @@ internal class BtleplugPeripheral(
     }
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int {
-        // btleplug reports the default until service discovery has run, so the query is forwarded for
-        // the whole life of a connection. A disconnect racing the query drops the ffi handle before
-        // `state` moves, which surfaces as an error folded into the default.
+        // btleplug only knows the negotiated MTU once services are discovered, so it is queried from
+        // `Connecting.Services` on rather than cached. A disconnect racing the query drops the ffi handle
+        // before `state` moves, which surfaces as an error folded into the default.
         val mtu = if (state.value.isAtLeast<Connecting.Services>()) {
             try {
                 withContext(Dispatchers.IO) { ffi.mtu().toInt() }
