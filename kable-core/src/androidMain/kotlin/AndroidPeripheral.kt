@@ -21,6 +21,9 @@ public interface AndroidPeripheral : Peripheral {
 
     public enum class Priority { Low, Balanced, High }
 
+    /** https://developer.android.com/reference/android/bluetooth/BluetoothDevice#getBondState() */
+    public enum class Bond { None, Bonding, Bonded }
+
     public enum class Type {
 
         /** https://developer.android.com/reference/android/bluetooth/BluetoothDevice#DEVICE_TYPE_CLASSIC */
@@ -161,6 +164,44 @@ public interface AndroidPeripheral : Peripheral {
      * is negotiated.
      */
     public val mtu: StateFlow<Int?>
+
+    /**
+     * [StateFlow] of this peripheral's bond state, updated from `ACTION_BOND_STATE_CHANGED` broadcasts. Bonding is
+     * independent of the connection, so this is available whether or not the peripheral is connected.
+     *
+     * The broadcast receiver is registered on first access and lives until the peripheral is [closed][close].
+     */
+    @ExperimentalKableApi
+    @get:RequiresPermission(
+        anyOf = ["android.permission.BLUETOOTH", "android.permission.BLUETOOTH_CONNECT"],
+    )
+    public val bondState: StateFlow<Bond>
+
+    /**
+     * Bonds with this peripheral, suspending until bonding settles. Returns [Bond.Bonded] on success (immediately, if
+     * already bonded) or [Bond.None] if bonding failed or was rejected. Joins a bond already in progress rather than
+     * starting another.
+     *
+     * Does not time out: a pairing prompt waits on the user. Wrap in `withTimeout` to bound it.
+     */
+    @ExperimentalKableApi
+    @RequiresPermission(
+        anyOf = ["android.permission.BLUETOOTH_ADMIN", "android.permission.BLUETOOTH_CONNECT"],
+    )
+    public suspend fun bond(): Bond
+
+    /**
+     * Removes the bond with this peripheral, as "Forget" in system settings does. Returns `true` if removal was
+     * started; observe [bondState] for completion.
+     *
+     * Invokes the hidden `BluetoothDevice.removeBond()` via reflection, so may stop working on a future Android
+     * release, in which case `false` is returned.
+     */
+    @ExperimentalKableApi
+    @RequiresPermission(
+        anyOf = ["android.permission.BLUETOOTH_ADMIN", "android.permission.BLUETOOTH_CONNECT"],
+    )
+    public fun removeBond(): Boolean
 
     /**
      * This is an internal API and may be removed from a future release. If you are using it, please
