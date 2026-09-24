@@ -34,6 +34,8 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -182,7 +184,15 @@ internal class BtleplugPeripheral(
     }
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
-        DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
+        try {
+            withContext(Dispatchers.IO) {
+                ffi.mtu().toInt() - ATT_MTU_HEADER_SIZE
+            }
+        } catch (e: Exception) {
+            currentCoroutineContext().ensureActive()
+            logger.warn(e) { message = "Failed to get MTU, using default" }
+            DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
+        }
 
     @ExperimentalKableApi
     override suspend fun rssi(): Int = withContext(Dispatchers.IO) {
