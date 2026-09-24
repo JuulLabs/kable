@@ -131,8 +131,8 @@ public interface AndroidPeripheral : Peripheral {
      * services from the remote device instead of the cache. Useful when a peripheral changes its attribute table
      * (e.g. after a firmware update) without the stack noticing.
      *
-     * Services already discovered for the current connection are unaffected: [disconnect] and [connect] afterwards
-     * for the fresh attribute table to be discovered.
+     * Services already discovered for the current connection are unaffected: [disconnect] and [connect] again to
+     * discover the fresh attribute table.
      *
      * Invokes the hidden `BluetoothGatt.refresh()` via reflection, so may stop working on a future Android release.
      *
