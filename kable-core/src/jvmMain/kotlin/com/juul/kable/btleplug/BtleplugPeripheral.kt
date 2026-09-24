@@ -191,9 +191,11 @@ internal class BtleplugPeripheral(
             try {
                 withContext(Dispatchers.IO) { ffi.mtu().toInt() }
             } catch (e: FfiException) {
+                logger.warn(e) { message = "Unable to query MTU, falling back to default of $DEFAULT_ATT_MTU" }
                 DEFAULT_ATT_MTU
             }
         } else {
+            logger.warn { message = "Not connected, falling back to default MTU of $DEFAULT_ATT_MTU" }
             DEFAULT_ATT_MTU
         }
         return mtu - ATT_MTU_HEADER_SIZE

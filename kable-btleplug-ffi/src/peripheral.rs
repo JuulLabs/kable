@@ -217,7 +217,9 @@ impl Peripheral {
 
     /// Negotiated ATT MTU, or the default (23) until services have been discovered.
     async fn mtu(&self) -> Result<u16> {
-        self.get_platform().await.map(|p| p.mtu())
+        self.get_platform()
+            .await
+            .map(|p| p.mtu())
     }
 
     async fn read(&self, characteristic: Characteristic) -> Result<Vec<u8>> {
