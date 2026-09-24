@@ -127,6 +127,23 @@ public interface AndroidPeripheral : Peripheral {
     public fun requestConnectionPriority(priority: Priority): Boolean
 
     /**
+     * Clears Android's cached GATT database for this peripheral, so that the next service discovery reads the
+     * services from the remote device instead of the cache. Useful when a peripheral changes its attribute table
+     * (e.g. after a firmware update) without the stack noticing.
+     *
+     * Services already discovered for the current connection are unaffected: [disconnect] and [connect] afterwards
+     * for the fresh attribute table to be discovered.
+     *
+     * Invokes the hidden `BluetoothGatt.refresh()` via reflection, so may stop working on a future Android release.
+     *
+     * @return `true` if the cache refresh was requested, `false` if the platform declined it or the hidden API was
+     * unavailable.
+     * @throws NotConnectedException if invoked without an established [connection][connect].
+     */
+    @ExperimentalKableApi
+    public fun refreshGattCache(): Boolean
+
+    /**
      * Requests that the current connection's MTU be changed. Suspends until the MTU changes, or failure occurs. The
      * negotiated MTU value is returned, which may not be [mtu] value requested if the remote peripheral negotiated an
      * alternate MTU.
