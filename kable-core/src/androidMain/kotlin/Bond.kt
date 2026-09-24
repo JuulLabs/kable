@@ -26,8 +26,8 @@ import kotlinx.coroutines.flow.mapNotNull
 
 private val bondStateChanged = IntentFilter(ACTION_BOND_STATE_CHANGED)
 
-// Exported: the Bluetooth process sends this protected broadcast, and below API 33 `RECEIVER_NOT_EXPORTED` guards the
-// receiver with an app-signature permission that sender does not hold.
+// Exported is safe: only the system can send this protected broadcast. Below API 33 `ContextCompat` implements
+// `RECEIVER_NOT_EXPORTED` by requiring the sender to hold this app's `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`.
 private const val BOND_RECEIVER_FLAGS = RECEIVER_EXPORTED
 
 internal fun BluetoothDevice.bondStates(): Flow<Bond> =
