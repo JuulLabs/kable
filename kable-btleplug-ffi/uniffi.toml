@@ -1,0 +1,4 @@
+# Configuration of the Kotlin/Native bindings generated (by `kable-btleplug-ffi-native`) via
+# https://github.com/UbiqueInnovation/uniffi-kotlin-multiplatform-bindings. The JVM (JNA) bindings
+# are configured separately (see `uniffi-plugin`), which passes an explicit `--config`.
+package_name = "com.juul.kable.btleplug.ffi"
