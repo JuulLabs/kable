@@ -2,8 +2,6 @@ package com.juul.kable.uniffi.plugin.tasks
 
 import com.juul.kable.uniffi.plugin.UNIFFI_TASK_GROUP
 import com.juul.kable.uniffi.plugin.UniffiKotlinExtensionAccessor
-import com.juul.kable.uniffi.plugin.UniffiOs
-import com.juul.kable.uniffi.plugin.UniffiTarget
 import com.juul.kable.uniffi.plugin.cargoBuild
 import com.juul.kable.uniffi.plugin.uniffiBindgenProject
 import com.juul.kable.uniffi.plugin.uniffiOutputDirectory
@@ -82,7 +80,7 @@ internal fun TaskContainer.registerUniffiBindgenTasks(accessor: UniffiKotlinExte
 
         inputs.property("optimized", accessor.optimized)
 
-        inputs.cargoBuild(UniffiTarget.current, accessor.optimized)
+        inputs.cargoBuild(accessor.target, accessor.optimized)
         inputs.dir(project.uniffiBindgenProject)
         outputs.dir(project.uniffiOutputDirectory)
 
@@ -93,8 +91,9 @@ internal fun TaskContainer.registerUniffiBindgenTasks(accessor: UniffiKotlinExte
         args("--out-dir", project.uniffiOutputDirectory.absolutePath)
         args("--no-format")
         doFirst {
-            val directory = project.file(UniffiTarget.current.buildDirectory(accessor.optimized))
-            val file = directory.list().orEmpty().single { it.matches(UniffiOs.current.library) }
+            val target = accessor.target
+            val directory = project.file(target.buildDirectory(accessor.optimized))
+            val file = directory.list().orEmpty().single { it.matches(target.os.library) }
             args("--library", directory.resolve(file).absolutePath)
         }
     }
