@@ -162,6 +162,70 @@ class ScanFiltersTests {
     }
 
     @Test
+    fun toScanFilters_filterPredicateWithDataFilters_allNativeFilters() {
+        val serviceUuid = Bluetooth.BaseUuid + 1
+        val serviceDataUuid = Bluetooth.BaseUuid + 2
+        val serviceData = byteArrayOf(0x01, 0x02)
+        val serviceDataMask = byteArrayOf(0xFF.toByte(), 0x0F)
+        val manufacturerId = 37
+        val manufacturerData = byteArrayOf(0x03)
+
+        val filterPredicates = listOf(
+            FilterPredicate(
+                listOf(
+                    Filter.Service(serviceUuid),
+                    Filter.ServiceData(serviceDataUuid, serviceData, serviceDataMask),
+                    Filter.ManufacturerData(manufacturerId, manufacturerData),
+                ),
+            ),
+        )
+
+        assertEquals(
+            expected = ScanFilters(
+                native = listOf(
+                    ScanFilter.Builder().apply {
+                        setServiceUuid(ParcelUuid(serviceUuid.toJavaUuid()))
+                        setServiceData(ParcelUuid(serviceDataUuid.toJavaUuid()), serviceData, serviceDataMask)
+                        setManufacturerData(manufacturerId, manufacturerData)
+                    }.build(),
+                ),
+                flow = emptyList(),
+            ),
+            actual = filterPredicates.toScanFilters(),
+        )
+    }
+
+    @Test
+    fun toScanFilters_singleFilterPredicateWithServiceDataAndNamePrefixFilters_overlaysNativeAndFlowFilters() {
+        val serviceDataUuid = Bluetooth.BaseUuid + 1
+        val serviceData = byteArrayOf(0x01)
+        val namePrefix = "prefix"
+
+        val filterPredicates = listOf(
+            FilterPredicate(
+                listOf(
+                    Filter.ServiceData(serviceDataUuid, serviceData),
+                    Filter.Name.Prefix(namePrefix),
+                ),
+            ),
+        )
+
+        assertEquals(
+            expected = ScanFilters(
+                native = listOf(
+                    ScanFilter.Builder().apply {
+                        setServiceData(ParcelUuid(serviceDataUuid.toJavaUuid()), serviceData)
+                    }.build(),
+                ),
+                flow = listOf(
+                    FilterPredicate(listOf(Filter.Name.Prefix(namePrefix))),
+                ),
+            ),
+            actual = filterPredicates.toScanFilters(),
+        )
+    }
+
+    @Test
     fun toScanFilters_multipleFilterPredicates_allFlowFilters() {
         val serviceUuid1 = Bluetooth.BaseUuid + 1
         val namePrefix1 = "prefix1"
