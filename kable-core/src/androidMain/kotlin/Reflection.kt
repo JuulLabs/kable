@@ -37,6 +37,13 @@ internal fun BluetoothDevice.connectGattWithReflection(
     }
 }
 
+/** Invokes the hidden `BluetoothDevice.removeBond()`. */
+internal fun BluetoothDevice.removeBondWithReflection(): Boolean = try {
+    invoke("removeBond") as? Boolean ?: false
+} catch (e: ReflectiveOperationException) {
+    false
+}
+
 private fun Any.invoke(method: String): Any? =
     javaClass.getDeclaredMethod(method).apply { isAccessible = true }.invoke(this)
 
