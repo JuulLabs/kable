@@ -36,7 +36,7 @@ uniffi {
 
 // On Windows, `cargo install` produces `uniffi-bindgen-kotlin-multiplatform.exe`, but the plugin
 // resolves the installed binary without the `.exe` extension. Provide the binary under the name
-// the plugin expects. https://github.com/UbiqueInnovation/uniffi-kotlin-multiplatform-bindings/issues
+// the plugin expects.
 if (isRunningOnWindows()) {
     val bindgenBinDirectory = layout.buildDirectory.dir("uniffi/bindgen/bin")
     val fixBindgenExeName = tasks.register<Copy>("fixBindgenExeName") {
