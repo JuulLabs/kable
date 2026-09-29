@@ -215,6 +215,12 @@ impl Peripheral {
             .map(|p| p.services().into_iter().map(Into::into).collect())
     }
 
+    async fn mtu(&self) -> Result<u16> {
+        self.get_platform()
+            .await
+            .map(|p| p.mtu())
+    }
+
     async fn read(&self, characteristic: Characteristic) -> Result<Vec<u8>> {
         self.get_platform()
             .await?
