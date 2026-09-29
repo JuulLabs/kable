@@ -31,4 +31,18 @@ public interface CoreBluetoothPeripheral : Peripheral {
 
     @Throws(CancellationException::class, IOException::class)
     public suspend fun readAsNSData(characteristic: Characteristic): NSData
+
+    /**
+     * Opens an L2CAP channel to the peripheral on the given [psm], suspending until CoreBluetooth
+     * reports the channel open. The returned [L2CapSocket] is already connected.
+     *
+     * Reopening a [psm] shortly after its previous socket was closed can fail with an [L2CapException]
+     * ("L2CAP PSM already connected") while CoreBluetooth is still tearing the old channel down.
+     * Callers may retry.
+     *
+     * @see platform.CoreBluetooth.CBPeripheral.openL2CAPChannel
+     * @throws L2CapException if the channel could not be opened.
+     */
+    @Throws(CancellationException::class, IOException::class)
+    public suspend fun openL2CapChannel(psm: Int): L2CapSocket
 }

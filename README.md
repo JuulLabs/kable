@@ -527,6 +527,43 @@ When a write type is not specified, [`WithoutResponse`] is used.
 > [!NOTE]
 > _Write type only applies to characteristic writes (descriptor writes are always acknowledged by the peripheral)._
 
+### L2CAP
+
+In addition to GATT, a connected peripheral can open an L2CAP connection-oriented channel (CoC) on a PSM
+(protocol/service multiplexer). Unlike GATT's message-based characteristics, a channel is a bidirectional
+byte stream, so callers are responsible for framing their own protocol. L2CAP is available on Android and
+Apple platforms (it has no Web Bluetooth equivalent), so a channel is opened from the platform-specific
+peripheral.
+
+On Android (requires API level 29 or higher):
+
+```kotlin
+val socket = (peripheral as AndroidPeripheral).openL2CapChannel(psm = 0x0080)
+// or `openInsecureL2CapChannel(...)` for a channel without authentication/encryption
+```
+
+On Apple platforms:
+
+```kotlin
+val socket = (peripheral as CoreBluetoothPeripheral).openL2CapChannel(psm = 0x0080)
+```
+
+The returned `L2CapSocket` is already open. Incoming bytes arrive as a `Flow` of chunks that completes at
+end of stream, and packets are written whole:
+
+```kotlin
+socket.incoming.collect { chunk ->
+    // Process chunk.
+}
+
+socket.write(byteArrayOf(1, 2, 3))
+
+socket.close()
+```
+
+> [!NOTE]
+> _A failure while opening, reading or writing throws `L2CapException`._
+
 ### Observation
 
 Bluetooth Low Energy provides the capability of subscribing to characteristic changes by means of notifications and/or
