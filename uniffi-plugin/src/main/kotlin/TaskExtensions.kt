@@ -14,6 +14,7 @@ fun TaskInputs.rustSources() {
     // Optional
     files(
         "Cargo.lock",
+        "Cross.toml",
         "rust-toolchain.toml",
         "rustfmt.toml",
     )
