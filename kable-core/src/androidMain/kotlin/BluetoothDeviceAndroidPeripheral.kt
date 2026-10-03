@@ -15,6 +15,7 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+import com.juul.kable.AndroidPeripheral.Bond
 import com.juul.kable.AndroidPeripheral.Priority
 import com.juul.kable.AndroidPeripheral.Type
 import com.juul.kable.State.Disconnected
@@ -37,10 +38,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 
@@ -166,6 +170,39 @@ internal class BluetoothDeviceAndroidPeripheral(
         return connectionOrThrow()
             .gatt
             .requestConnectionPriority(priority.intValue)
+    }
+
+    @ExperimentalKableApi
+    override val bondState: StateFlow<Bond> by lazy {
+        bluetoothDevice.bondStates()
+            .onEach { state ->
+                logger.debug {
+                    message = "Bond state"
+                    detail("state", state.name)
+                }
+            }
+            .stateIn(scope, SharingStarted.Eagerly, Bond(bluetoothDevice.bondState) ?: Bond.None)
+    }
+
+    @ExperimentalKableApi
+    override suspend fun bond(): Bond {
+        logger.debug { message = "bond" }
+        return bluetoothDevice.createBondAndAwait().also { result ->
+            logger.debug {
+                message = "bond"
+                detail("result", result.name)
+            }
+        }
+    }
+
+    @ExperimentalKableApi
+    override fun removeBond(): Boolean {
+        val removed = bluetoothDevice.removeBondWithReflection()
+        logger.debug {
+            message = "removeBond"
+            detail("removed", removed.toString())
+        }
+        return removed
     }
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
