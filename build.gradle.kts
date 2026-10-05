@@ -24,6 +24,9 @@ dependencies {
 apiValidation {
     ignoredProjects.add("kable-btleplug-ffi")
     ignoredProjects.add("kable-default-permissions")
+    if (System.getProperty("os.name").orEmpty().lowercase().startsWith("windows")) {
+        ignoredProjects.add("kable-btleplug-ffi-native")
+    }
 }
 
 allprojects {

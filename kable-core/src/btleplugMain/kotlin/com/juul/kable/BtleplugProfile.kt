@@ -1,5 +1,3 @@
-@file:JvmName("JvmProfileKt")
-
 package com.juul.kable
 
 import com.juul.kable.btleplug.BtleplugCharacteristic
