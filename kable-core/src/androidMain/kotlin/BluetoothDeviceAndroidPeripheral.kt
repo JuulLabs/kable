@@ -15,9 +15,7 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-import android.bluetooth.BluetoothSocket
 import android.os.Build
-import androidx.annotation.RequiresApi
 import com.juul.kable.AndroidPeripheral.Priority
 import com.juul.kable.AndroidPeripheral.Type
 import com.juul.kable.State.Disconnected
@@ -45,8 +43,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 
@@ -198,42 +196,29 @@ internal class BluetoothDeviceAndroidPeripheral(
         return connectionOrThrow().requestMtu(mtu)
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun openL2CapChannel(psm: Int): L2CapSocket {
-        connectionOrThrow()
-        return connectL2CapSocket { bluetoothDevice.createL2capChannel(psm) }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override suspend fun openInsecureL2CapChannel(psm: Int): L2CapSocket {
-        connectionOrThrow()
-        return connectL2CapSocket { bluetoothDevice.createInsecureL2capChannel(psm) }
-    }
-
-    private suspend fun connectL2CapSocket(createSocket: () -> BluetoothSocket): L2CapSocket {
-        val socket = try {
-            createSocket()
-        } catch (e: IOException) {
-            throw e.wrapInL2CapException()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            throw UnsupportedOperationException("L2CAP requires API level 29 or higher")
         }
+        require(psm in 0..UShort.MAX_VALUE.toInt()) { "PSM of $psm is outside the valid range 0..65535" }
+        logger.debug {
+            message = "openL2CapChannel"
+            detail("psm", psm)
+        }
+
+        val connection = connectionOrThrow()
+        val socket = bluetoothDevice.createInsecureL2capChannel(psm)
         try {
             withContext(Dispatchers.IO) { socket.connect() }
-        } catch (e: CancellationException) {
-            socket.closeOrLog()
+            // `connect` does not need the GATT connection, so it can succeed after it has been lost.
+            if (!connection.taskScope.isActive) {
+                throw NotConnectedException("Connection lost while opening L2CAP channel")
+            }
+        } catch (e: Exception) {
+            socket.close()
             throw e
-        } catch (e: IOException) {
-            socket.closeOrLog()
-            throw e.wrapInL2CapException()
         }
-        return AndroidL2CapSocket(socket, scope, logging)
-    }
-
-    private fun BluetoothSocket.closeOrLog() {
-        try {
-            close()
-        } catch (e: IOException) {
-            logger.warn(e) { message = "Failed to close L2CAP socket" }
-        }
+        return AndroidL2CapSocket(socket, connection.taskScope, logging)
     }
 
     override suspend fun write(

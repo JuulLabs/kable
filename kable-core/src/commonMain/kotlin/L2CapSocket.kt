@@ -1,38 +1,43 @@
 package com.juul.kable
 
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * A connection-oriented L2CAP channel (CoC) to a connected [Peripheral], opened with
- * [AndroidPeripheral.openL2CapChannel], [AndroidPeripheral.openInsecureL2CapChannel] or
- * [CoreBluetoothPeripheral.openL2CapChannel].
+ * An L2CAP connection-oriented channel, opened with [Peripheral.openL2CapChannel].
  *
- * A channel is a byte stream with no message boundaries, so callers must frame their own protocol.
+ * A channel is a byte stream: data may arrive in chunks of any size, regardless of how the peer
+ * wrote it, so protocols must do their own framing.
  */
 public interface L2CapSocket {
 
-    /** Whether the channel is open. Becomes `false` once [closed][close], at end of stream, or on failure. */
+    /**
+     * `true` until the channel is [closed][close] (by either side) or the connection to the
+     * peripheral ends.
+     */
     public val isConnected: StateFlow<Boolean>
 
     /**
-     * Bytes received over the channel, in chunks of arbitrary size. Completes at end of stream and
-     * throws [L2CapException] if the channel fails. Each chunk is delivered to a single collector.
+     * Data received over the channel. Every collector receives every chunk.
+     *
+     * Chunks received before the first collector subscribes are delivered to it; after that, chunks
+     * received while there are no collectors are dropped. Chunks are buffered without bound for slow
+     * collectors. Never completes, use [isConnected] to detect when the channel closes.
      */
-    public val incoming: Flow<ByteArray>
+    public val incoming: SharedFlow<ByteArray>
 
     /**
-     * Writes all of [packet] to the channel.
+     * Writes all of [packet], suspending until it has been written.
      *
      * @throws IllegalArgumentException if [packet] is empty.
-     * @throws L2CapException if the channel is closed or fails while writing.
+     * @throws IOException if the channel is closed or fails.
      */
     @Throws(CancellationException::class, IOException::class)
     public suspend fun write(packet: ByteArray)
 
-    /** Closes the channel, suspending until it is fully torn down. */
+    /** Closes the channel, suspending until it is closed. */
     @Throws(CancellationException::class, IOException::class)
     public suspend fun close()
 }

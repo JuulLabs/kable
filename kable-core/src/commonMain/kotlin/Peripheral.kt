@@ -303,6 +303,21 @@ public interface Peripheral : AutoCloseable {
         characteristic: Characteristic,
         onSubscription: OnSubscriptionAction = {},
     ): Flow<ByteArray>
+
+    /**
+     * Opens an L2CAP connection-oriented channel on [psm], suspending until the channel is open.
+     * The returned [L2CapSocket] is closed when the [connection][connect] ends.
+     *
+     * Security requirements (pairing and encryption) are set by the peripheral. On Android, the
+     * channel is opened with `BluetoothDevice.createInsecureL2capChannel`, so Android does not add
+     * requirements of its own (matching Apple, where the app cannot set them).
+     *
+     * @throws NotConnectedException if invoked without an established [connection][connect].
+     * @throws IOException if the channel could not be opened.
+     * @throws UnsupportedOperationException on JavaScript, JVM, and Android prior to API level 29.
+     */
+    @Throws(CancellationException::class, IOException::class)
+    public suspend fun openL2CapChannel(psm: Int): L2CapSocket
 }
 
 internal typealias PeripheralBuilderAction = PeripheralBuilder.() -> Unit
