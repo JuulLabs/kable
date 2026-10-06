@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
+import com.juul.kable.PeripheralDelegate.Response.DidOpenL2CAPChannel
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
@@ -10,10 +11,7 @@ import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.logs.Logging.DataProcessor.Operation.Change
 import com.juul.kable.logs.detail
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.cinterop.ObjCSignatureOverride
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
@@ -86,6 +84,12 @@ internal class PeripheralDelegate(
             val rssi: NSNumber,
             override val error: NSError?,
         ) : Response()
+
+        data class DidOpenL2CAPChannel(
+            override val peripheralIdentifier: NSUUID,
+            val channel: CBL2CAPChannel?,
+            override val error: NSError?,
+        ) : Response()
     }
 
     data class OnServiceChanged(
@@ -96,34 +100,6 @@ internal class PeripheralDelegate(
     val response: ReceiveChannel<Response> = _response
 
     val onServiceChanged = Channel<OnServiceChanged>(CONFLATED)
-
-    internal data class L2CapOpenResult(
-        val channel: CBL2CAPChannel?,
-        val error: NSError?,
-    )
-
-    private val l2CapOpenLock = SynchronizedObject()
-    private var pendingL2CapOpen: CompletableDeferred<L2CapOpenResult>? = null
-
-    internal fun beginL2CapOpen(): CompletableDeferred<L2CapOpenResult> =
-        synchronized(l2CapOpenLock) {
-            check(pendingL2CapOpen == null) { "An L2CAP open is already in progress" }
-            CompletableDeferred<L2CapOpenResult>().also { pendingL2CapOpen = it }
-        }
-
-    internal fun cancelL2CapOpen(pending: CompletableDeferred<L2CapOpenResult>, cause: Throwable) {
-        val cleared = synchronized(l2CapOpenLock) {
-            (pendingL2CapOpen === pending).also { if (it) pendingL2CapOpen = null }
-        }
-        if (cleared) pending.completeExceptionally(cause)
-    }
-
-    private fun completeL2CapOpen(result: L2CapOpenResult): Boolean {
-        val pending = synchronized(l2CapOpenLock) {
-            pendingL2CapOpen.also { pendingL2CapOpen = null }
-        }
-        return pending?.complete(result) == true
-    }
 
     private val logger = Logger(logging, tag = "Kable/Delegate", identifier = identifier)
 
@@ -348,31 +324,13 @@ internal class PeripheralDelegate(
         logger.debug(error) {
             message = "didOpenL2CAPChannel"
         }
-        val delivered = completeL2CapOpen(L2CapOpenResult(didOpenL2CAPChannel, error))
-        if (!delivered) {
-            didOpenL2CAPChannel?.let { AppleL2CapSocket(it).dispose() }
-            logger.warn { message = "Discarded unexpected didOpenL2CAPChannel callback" }
-            return
-        }
-        if (error == null && didOpenL2CAPChannel != null) {
-            logger.info {
-                message = "L2CAP channel open. Peer: ${didOpenL2CAPChannel.peer?.identifier}"
-            }
-        }
+        _response.sendBlocking(DidOpenL2CAPChannel(peripheral.identifier, didOpenL2CAPChannel, error))
     }
 
     fun close(cause: Throwable?) {
-        cancelL2CapOpenInFlight(NotConnectedException(cause = cause))
         _response.close(NotConnectedException(cause = cause))
         characteristicChanges.emitBlocking(ObservationEvent.Disconnected)
         canSendWriteWithoutResponse.value = true
-    }
-
-    private fun cancelL2CapOpenInFlight(cause: Throwable) {
-        val pending = synchronized(l2CapOpenLock) {
-            pendingL2CapOpen.also { pendingL2CapOpen = null }
-        }
-        pending?.completeExceptionally(cause)
     }
 }
 

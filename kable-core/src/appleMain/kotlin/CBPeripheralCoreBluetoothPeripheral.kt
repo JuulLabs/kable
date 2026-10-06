@@ -2,6 +2,7 @@ package com.juul.kable
 
 import com.juul.kable.CentralManagerDelegate.ConnectionEvent
 import com.juul.kable.Endianness.LittleEndian
+import com.juul.kable.PeripheralDelegate.Response.DidOpenL2CAPChannel
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
@@ -393,8 +394,12 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     )
 
     override suspend fun openL2CapChannel(psm: Int): L2CapSocket {
-        require(psm in 0..UShort.MAX_VALUE.toInt()) { "psm $psm is outside the valid range 0..65535" }
-        return connectionOrThrow().openL2CapChannel(psm.toUShort())
+        require(psm in 0..UShort.MAX_VALUE.toInt()) { "PSM of $psm is outside the valid range 0..65535" }
+        val connection = connectionOrThrow()
+        val channel = connection.execute<DidOpenL2CAPChannel> {
+            cbPeripheral.openL2CAPChannel(psm.toUShort())
+        }.channel ?: throw IOException("Failed to open L2CAP channel")
+        return AppleL2CapSocket(channel, connection.taskScope, logging)
     }
 
     override fun close() {
