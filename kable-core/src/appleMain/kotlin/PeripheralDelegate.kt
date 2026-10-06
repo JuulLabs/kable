@@ -29,6 +29,9 @@ import platform.Foundation.NSError
 import platform.Foundation.NSNumber
 import platform.Foundation.NSUUID
 import platform.darwin.NSObject
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 // https://developer.apple.com/documentation/corebluetooth/cbperipheraldelegate
 internal class PeripheralDelegate(
@@ -93,6 +96,8 @@ internal class PeripheralDelegate(
     val response: ReceiveChannel<Response> = _response
 
     val onServiceChanged = Channel<OnServiceChanged>(CONFLATED)
+
+    internal lateinit var awaitingL2CapOpen: Continuation<L2CapSocket>
 
     private val logger = Logger(logging, tag = "Kable/Delegate", identifier = identifier)
 
@@ -317,7 +322,26 @@ internal class PeripheralDelegate(
         logger.debug(error) {
             message = "didOpenL2CAPChannel"
         }
-        // todo
+        if (error != null) {
+            awaitingL2CapOpen.resumeWithException(
+                L2CapException(
+                    error.description,
+                    code = error.code,
+                ),
+            )
+        } else if (didOpenL2CAPChannel == null) {
+            awaitingL2CapOpen.resumeWithException(
+                L2CapException(
+                    "couldn't open L2CAPChannel",
+                    code = 0,
+                ),
+            )
+        } else {
+            logger.info {
+                message = "L2CAP channel open. Peer: ${didOpenL2CAPChannel.peer?.identifier}"
+            }
+            awaitingL2CapOpen.resume(AppleL2CapSocket(didOpenL2CAPChannel))
+        }
     }
 
     fun close(cause: Throwable?) {
