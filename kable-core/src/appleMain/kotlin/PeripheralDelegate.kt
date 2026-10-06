@@ -1,6 +1,7 @@
 package com.juul.kable
 
 import com.juul.kable.PeripheralDelegate.Response.DidDiscoverServices
+import com.juul.kable.PeripheralDelegate.Response.DidOpenL2CAPChannel
 import com.juul.kable.PeripheralDelegate.Response.DidReadRssi
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateNotificationStateForCharacteristic
 import com.juul.kable.PeripheralDelegate.Response.DidUpdateValueForDescriptor
@@ -81,6 +82,12 @@ internal class PeripheralDelegate(
         data class DidReadRssi(
             override val peripheralIdentifier: NSUUID,
             val rssi: NSNumber,
+            override val error: NSError?,
+        ) : Response()
+
+        data class DidOpenL2CAPChannel(
+            override val peripheralIdentifier: NSUUID,
+            val channel: CBL2CAPChannel?,
             override val error: NSError?,
         ) : Response()
     }
@@ -317,7 +324,7 @@ internal class PeripheralDelegate(
         logger.debug(error) {
             message = "didOpenL2CAPChannel"
         }
-        // todo
+        _response.sendBlocking(DidOpenL2CAPChannel(peripheral.identifier, didOpenL2CAPChannel, error))
     }
 
     fun close(cause: Throwable?) {

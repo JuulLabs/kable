@@ -527,6 +527,29 @@ When a write type is not specified, [`WithoutResponse`] is used.
 > [!NOTE]
 > _Write type only applies to characteristic writes (descriptor writes are always acknowledged by the peripheral)._
 
+### L2CAP
+
+A connected peripheral can open an L2CAP connection-oriented channel on a PSM (protocol/service multiplexer).
+Unlike characteristics, a channel is a byte stream, so protocols must do their own framing. L2CAP is available on
+Android (API level 29 or higher) and Apple platforms.
+
+```kotlin
+val scope = peripheral.connect()
+val socket = peripheral.openL2CapChannel(psm = 0x0080)
+
+scope.launch {
+    socket.incoming.collect { chunk ->
+        // Process chunk.
+    }
+}
+
+socket.write(byteArrayOf(1, 2, 3))
+socket.close()
+```
+
+The socket is closed when the connection to the peripheral ends. `incoming` never completes; use `isConnected` to
+detect when the channel has closed.
+
 ### Observation
 
 Bluetooth Low Energy provides the capability of subscribing to characteristic changes by means of notifications and/or
