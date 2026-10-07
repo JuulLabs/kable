@@ -1,8 +1,10 @@
 package com.juul.kable
 
+import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.os.Handler
+import androidx.annotation.RequiresPermission
 import com.juul.kable.State.Disconnected
 import com.juul.kable.android.GattStatus
 import com.juul.kable.coroutines.childSupervisor
@@ -197,6 +199,7 @@ internal class Connection(
      * @throws GattRequestRejectedException if underlying `BluetoothGatt` method call returns `false`.
      * @throws GattStatusException if response has a non-`GATT_SUCCESS` status.
      */
+    @RequiresPermission(BLUETOOTH_CONNECT)
     suspend fun requestMtu(mtu: Int): Int = guard.withLock {
         try {
             withContext(dispatcher) {
