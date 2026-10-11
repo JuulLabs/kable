@@ -388,6 +388,7 @@ internal class CBPeripheralCoreBluetoothPeripheral(
     private fun createPeripheralDelegate() = PeripheralDelegate(
         canSendWriteWithoutResponse,
         observers.characteristicChanges,
+        _services,
         logging,
         cbPeripheral.identifier.UUIDString,
     )
