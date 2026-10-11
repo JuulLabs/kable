@@ -113,7 +113,7 @@ internal class Callback(
         }
 
         if (newState == STATE_DISCONNECTING || newState == STATE_DISCONNECTED) {
-            onResponse.close(NotConnectedException())
+            onResponse.close(NotConnectedException(status = status.disconnectedConnectionStatus))
         }
     }
 
