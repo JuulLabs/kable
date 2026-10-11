@@ -179,8 +179,8 @@ public interface AndroidPeripheral : Peripheral {
 
     /**
      * Bonds with this peripheral, suspending until bonding settles. Returns [Bond.Bonded] on success (immediately, if
-     * already bonded) or [Bond.None] if bonding failed or was rejected. Joins a bond already in progress rather than
-     * starting another.
+     * already bonded) or [Bond.None] if bonding failed or was rejected, including a request the Bluetooth stack drops
+     * without broadcasting a state change. Joins a bond already in progress rather than starting another.
      *
      * Does not time out: a pairing prompt waits on the user. Wrap in `withTimeout` to bound it.
      */
@@ -194,8 +194,8 @@ public interface AndroidPeripheral : Peripheral {
      * Removes the bond with this peripheral, as "Forget" in system settings does. Returns `true` if removal was
      * started; observe [bondState] for completion.
      *
-     * Invokes the hidden `BluetoothDevice.removeBond()` via reflection, so may stop working on a future Android
-     * release, in which case `false` is returned.
+     * Invokes `BluetoothDevice.removeBond()`, a `@SystemApi` outside the public SDK, via reflection. Returns `false`
+     * if the method cannot be reached; a [SecurityException] from the call is rethrown.
      */
     @ExperimentalKableApi
     @RequiresPermission(
