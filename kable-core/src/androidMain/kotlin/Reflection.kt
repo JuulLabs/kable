@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.content.Context
+import java.lang.reflect.InvocationTargetException
 
 /**
  * Workaround for
@@ -35,6 +36,16 @@ internal fun BluetoothDevice.connectGattWithReflection(
     } catch (e: IllegalArgumentException) {
         null
     }
+}
+
+/** Invokes `BluetoothDevice.removeBond()`, a `@SystemApi` absent from the public SDK stubs. */
+internal fun BluetoothDevice.removeBondWithReflection(): Boolean = try {
+    invoke("removeBond") as? Boolean ?: false
+} catch (e: InvocationTargetException) {
+    (e.targetException as? SecurityException)?.let { throw it }
+    false
+} catch (e: ReflectiveOperationException) {
+    false
 }
 
 private fun Any.invoke(method: String): Any? =
