@@ -2,7 +2,6 @@ package com.juul.kable.uniffi.plugin.tasks
 
 import com.juul.kable.uniffi.plugin.KOTLIN_SOURCE_SET
 import com.juul.kable.uniffi.plugin.UniffiKotlinExtensionAccessor
-import com.juul.kable.uniffi.plugin.UniffiTarget
 import com.juul.kable.uniffi.plugin.cargoBuild
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskContainer
@@ -19,7 +18,7 @@ internal fun TaskContainer.registerCopyDynamicLibraryResourcesTask(accessor: Uni
             .resolve("resources")
             .resolve(KOTLIN_SOURCE_SET)
 
-        val target = UniffiTarget.current
+        val target = accessor.target
         inputs.cargoBuild(target, accessor.optimized)
         from(target.buildDirectory(accessor.optimized)) {
             include { it.name.matches(target.os.library) }
