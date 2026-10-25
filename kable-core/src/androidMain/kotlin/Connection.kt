@@ -94,7 +94,7 @@ internal class Connection(
                 message = "Disconnect detected"
                 detail("state", state)
             }
-            dispose(NotConnectedException("Disconnect detected"))
+            dispose(NotConnectedException("Disconnect detected", status = it.status))
         }
     }
 
