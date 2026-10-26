@@ -22,6 +22,7 @@ import com.juul.kable.btleplug.ffi.CancellationHandle
 import com.juul.kable.btleplug.ffi.PeripheralCallbacks
 import com.juul.kable.btleplug.ffi.isAdapterOn
 import com.juul.kable.coroutines.childSupervisor
+import com.juul.kable.ioDispatcher
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
 import com.juul.kable.sharedRepeatableAction
@@ -29,7 +30,6 @@ import com.juul.kable.suspendUntil
 import com.juul.kable.unwrapCancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
@@ -111,7 +111,7 @@ internal class BtleplugPeripheral(
         )
 
     private suspend fun getCharacteristic(service: FfiUuid, characteristic: FfiUuid) =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             ffi.services()
                 .single { it.uuid == service }
                 .characteristics
@@ -119,7 +119,7 @@ internal class BtleplugPeripheral(
         }
 
     private suspend fun getDescriptor(service: FfiUuid, characteristic: FfiUuid, descriptor: FfiUuid) =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             getCharacteristic(service, characteristic)
                 .descriptors
                 .single { it.uuid == descriptor }
@@ -185,20 +185,20 @@ internal class BtleplugPeripheral(
         DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
 
     @ExperimentalKableApi
-    override suspend fun rssi(): Int = withContext(Dispatchers.IO) {
+    override suspend fun rssi(): Int = withContext(ioDispatcher) {
         ffi.properties().rssi?.toInt() ?: Int.MIN_VALUE
     }
 
     override suspend fun read(characteristic: Characteristic): ByteArray {
         logger.verbose { message = "Reading from $characteristic" }
-        return withContext(Dispatchers.IO) {
+        return withContext(ioDispatcher) {
             ffi.read(getCharacteristic(characteristic))
         }
     }
 
     override suspend fun read(descriptor: Descriptor): ByteArray {
         logger.verbose { message = "Reading from $descriptor" }
-        return withContext(Dispatchers.IO) {
+        return withContext(ioDispatcher) {
             ffi.readDescriptor(
                 getDescriptor(
                     descriptor.serviceUuid.toString(),
@@ -211,14 +211,14 @@ internal class BtleplugPeripheral(
 
     override suspend fun write(characteristic: Characteristic, data: ByteArray, writeType: WriteType) {
         logger.verbose { message = "Writing to $characteristic, type=$writeType data=${data.size} bytes" }
-        return withContext(Dispatchers.IO) {
+        return withContext(ioDispatcher) {
             ffi.write(getCharacteristic(characteristic), data, writeType.ffi())
         }
     }
 
     override suspend fun write(descriptor: Descriptor, data: ByteArray) {
         logger.verbose { message = "Writing to $descriptor, data=${data.size} bytes" }
-        return withContext(Dispatchers.IO) {
+        return withContext(ioDispatcher) {
             ffi.writeDescriptor(
                 getDescriptor(
                     descriptor.serviceUuid.toString(),
