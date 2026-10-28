@@ -146,6 +146,17 @@ class BondTests {
     }
 
     @Test
+    fun bond_createBondThrows_rethrowsAndUnregisters() = runTest {
+        val device = mockk<BluetoothDevice> {
+            every { bondState } returns BOND_NONE
+            every { createBond() } throws SecurityException("BLUETOOTH_CONNECT")
+        }
+
+        assertFailsWith<SecurityException> { device.createBondAndAwait() }
+        assertEquals(0, bondReceiverCount())
+    }
+
+    @Test
     fun bondFromState_unknownState_isNull() {
         assertNull(Bond(ERROR))
     }
