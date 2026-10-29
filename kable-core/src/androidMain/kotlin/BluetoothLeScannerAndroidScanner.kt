@@ -4,7 +4,11 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import android.bluetooth.le.ScanSettings.CALLBACK_TYPE_FIRST_MATCH
+import android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_POWER
+import android.bluetooth.le.ScanSettings.SCAN_MODE_OPPORTUNISTIC
 import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.M
 import android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM
 import android.os.ParcelUuid
 import com.juul.kable.Filter.Address
@@ -24,11 +28,14 @@ import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
@@ -105,16 +112,45 @@ internal class BluetoothLeScannerAndroidScanner(
         }
         scanner.startScan(scanFilters.native, scanSettings, callback)
 
+        // The stop/start pair has no suspension point, so a racing close is observed under the lock
+        // between them; otherwise the new scan would outlive the flow.
+        val lock = Any()
+        var closed = false
+        val restart = if (isDemotedWhenLongRunning()) {
+            launch {
+                while (true) {
+                    delay(SCAN_RESTART_INTERVAL)
+                    synchronized(lock) {
+                        if (closed) return@launch
+                        logger.debug { message = "Restarting scan ahead of the platform scan timeout" }
+                        try {
+                            scanner.stopScan(callback)
+                            scanner.startScan(scanFilters.native, scanSettings, callback)
+                        } catch (e: IllegalStateException) {
+                            close(e)
+                            return@launch
+                        }
+                    }
+                }
+            }
+        } else {
+            null
+        }
+
         awaitClose {
+            restart?.cancel()
             logger.info {
                 message = logMessage("Stopping", bufferCapacity, scanFilters)
             }
-            // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException`
-            // means BLE has been disabled.
-            try {
-                scanner.stopScan(callback)
-            } catch (e: IllegalStateException) {
-                logger.warn(e) { message = "Failed to stop scan. " }
+            synchronized(lock) {
+                closed = true
+                // Can't check BLE state here, only Bluetooth, but should assume `IllegalStateException`
+                // means BLE has been disabled.
+                try {
+                    scanner.stopScan(callback)
+                } catch (e: IllegalStateException) {
+                    logger.warn(e) { message = "Failed to stop scan. " }
+                }
             }
         }
     }.buffer(
@@ -136,7 +172,19 @@ internal class BluetoothLeScannerAndroidScanner(
             )
         }
     }
+
+    // Once a scan outlives the platform scan timeout, Android moves an unfiltered scan to opportunistic
+    // and caps a filtered one at LOW_POWER; restarting registers a fresh client with a fresh timeout.
+    private fun isDemotedWhenLongRunning(): Boolean = when {
+        scanSettings.reportDelayMillis > 0 -> false // Batch scans have no timeout.
+        SDK_INT >= M && scanSettings.scanMode == SCAN_MODE_OPPORTUNISTIC -> false
+        SDK_INT >= M && (scanSettings.callbackType and CALLBACK_TYPE_FIRST_MATCH) != 0 -> false
+        else -> scanFilters.native.isEmpty() || scanSettings.scanMode != SCAN_MODE_LOW_POWER
+    }
 }
+
+/** Restart cadence for long-running scans, under the shortest platform scan timeout seen (5 minutes, on Pixel). */
+internal val SCAN_RESTART_INTERVAL = 3.minutes
 
 private fun logMessage(
     prefix: String,
