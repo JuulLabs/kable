@@ -170,6 +170,8 @@ public interface Peripheral : AutoCloseable {
      * On Android, this will be the default (23 - 3) unless you called `requestMtu` when connecting.
      * For iOS, this is automatically negotiated, and can also vary depending on the writeType.
      * On JavaScript, this will return the default (23 - 3) every time as there is no ATT MTU property available.
+     * On JVM, this is automatically negotiated and known once services have been discovered; the default (23 - 3)
+     * is returned until then.
      */
     public suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int
 
