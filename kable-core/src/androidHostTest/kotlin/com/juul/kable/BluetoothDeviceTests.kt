@@ -67,6 +67,7 @@ class BluetoothDeviceTests {
                 logging = Logging(),
                 threadingStrategy = threadingStrategy,
                 disconnectTimeout = 1.seconds,
+                onServicesChanged = {},
             )
         }
 
