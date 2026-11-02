@@ -16,6 +16,7 @@ public abstract interface class com/juul/kable/AndroidPeripheral : com/juul/kabl
 	public abstract fun getBluetoothDevice ()Landroid/bluetooth/BluetoothDevice;
 	public abstract fun getMtu ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getType ()Lcom/juul/kable/AndroidPeripheral$Type;
+	public abstract fun refreshGattCache ()Z
 	public abstract fun requestConnectionPriority (Lcom/juul/kable/AndroidPeripheral$Priority;)Z
 	public abstract fun requestMtu (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun write (Lcom/juul/kable/Characteristic;[BLcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
