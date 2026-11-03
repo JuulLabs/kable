@@ -6,6 +6,7 @@ import com.juul.kable.Descriptor
 import com.juul.kable.DiscoveredService
 import com.juul.kable.ExperimentalKableApi
 import com.juul.kable.Identifier
+import com.juul.kable.L2CapSocket
 import com.juul.kable.NotConnectedException
 import com.juul.kable.ObservationEvent.CharacteristicChange
 import com.juul.kable.Observers
@@ -183,6 +184,9 @@ internal class BtleplugPeripheral(
 
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
         DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
+
+    override suspend fun openL2CapChannel(psm: Int): L2CapSocket =
+        throw UnsupportedOperationException("L2CAP not supported")
 
     @ExperimentalKableApi
     override suspend fun rssi(): Int = withContext(Dispatchers.IO) {

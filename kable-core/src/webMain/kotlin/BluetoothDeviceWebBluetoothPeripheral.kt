@@ -123,6 +123,9 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
         DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
 
+    override suspend fun openL2CapChannel(psm: Int): L2CapSocket =
+        throw UnsupportedOperationException("L2CAP not supported")
+
     /**
      * Per [Web Bluetooth / Scanning Sample][https://googlechrome.github.io/samples/web-bluetooth/scan.html]:
      *
