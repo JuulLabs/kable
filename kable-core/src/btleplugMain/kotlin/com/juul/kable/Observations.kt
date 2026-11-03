@@ -1,7 +1,6 @@
 package com.juul.kable
 
 import com.juul.kable.btleplug.BtleplugPeripheral
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 internal actual fun Peripheral.observationHandler(): Observation.Handler {
@@ -17,7 +16,7 @@ private class BtleplugObservationHandler(
             message = "Start observation"
             detail(characteristic)
         }
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             peripheral.ffi.subscribe(peripheral.getCharacteristic(characteristic))
         }
     }
@@ -27,7 +26,7 @@ private class BtleplugObservationHandler(
             message = "Stop observation"
             detail(characteristic)
         }
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             peripheral.ffi.unsubscribe(peripheral.getCharacteristic(characteristic))
         }
     }
