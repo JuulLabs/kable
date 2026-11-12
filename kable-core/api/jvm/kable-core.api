@@ -202,6 +202,13 @@ public final class com/juul/kable/InternalError : java/lang/Error {
 public abstract interface annotation class com/juul/kable/InternalKableApi : java/lang/annotation/Annotation {
 }
 
+public abstract interface class com/juul/kable/L2CapSocket {
+	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getIncoming ()Lkotlinx/coroutines/flow/SharedFlow;
+	public abstract fun isConnected ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun write ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class com/juul/kable/LazyCharacteristic : com/juul/kable/Characteristic {
 	public final fun component1 ()Lkotlin/uuid/Uuid;
 	public final fun component2 ()Lkotlin/uuid/Uuid;
@@ -259,6 +266,7 @@ public abstract interface class com/juul/kable/Peripheral : java/lang/AutoClosea
 	public abstract fun maximumWriteValueLengthForType (Lcom/juul/kable/WriteType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun observe (Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun observe$default (Lcom/juul/kable/Peripheral;Lcom/juul/kable/Characteristic;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun openL2CapChannel (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun read (Lcom/juul/kable/Characteristic;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun read (Lcom/juul/kable/Descriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun rssi (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
