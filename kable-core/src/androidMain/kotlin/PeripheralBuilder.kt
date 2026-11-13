@@ -103,6 +103,13 @@ public actual class PeripheralBuilder internal actual constructor() {
      *
      * [predicate] is called once per connection attempt, not per call to
      * [connect][Peripheral.connect].
+     *
+     * This setting only influences how a connection is established; it does **not** enable
+     * automatic **re**connection. Android's system-level behavior of re-establishing `autoConnect`
+     * connections after a disconnect does not take effect, because Kable closes the underlying
+     * [android.bluetooth.BluetoothGatt] as soon as a disconnect occurs. To implement automatic
+     * reconnection, monitor the [state][Peripheral.state] flow and call
+     * [connect][Peripheral.connect] when [Disconnected][State.Disconnected] state is observed.
      */
     public fun autoConnectIf(predicate: () -> Boolean) {
         autoConnectPredicate = predicate
