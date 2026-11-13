@@ -15,10 +15,13 @@ import kotlin.uuid.Uuid
  * | NamePrefix       |    ✓    |   ✓   |     ✓✓     |
  * | Address          |   ✓✓    |       |            |
  * | ManufacturerData |   ✓✓    |   ✓   |     ✓✓     |
+ * | ServiceData      |   ✓✓    |   ✓   |    ✓✓†     |
  *
  *  ✓✓ = Supported natively
  *   ✓ = Support provided by Kable via flow filter
  * ✓✓* = Supported natively if the only filter type used, otherwise falls back to flow filter
+ * ✓✓† = Passed through natively, but subject to browser support (see
+ *       [implementation status](https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md))
  */
 public sealed class Filter {
 
@@ -143,11 +146,14 @@ public sealed class Filter {
      * | `byteArrayOf(0x00, 0xFF)` | 0000 0000 1111 1111 | the 2nd byte of advertisement service data.               |
      * | `byteArrayOf(0xF0)`       | 1111 0000           | bits 4-7 of the first byte of advertisement service data. |
      *
-     * | Platform   | Supported | Details                                   |
-     * |------------|:---------:|-------------------------------------------|
-     * | Android    | Yes       | Supported natively                        |
-     * | Apple      | Yes       | Support provided by Kable via flow filter |
-     * | JavaScript | Yes       | Support provided by Kable via flow filter |
+     * | Platform   | Supported        | Details                                                    |
+     * |------------|:----------------:|------------------------------------------------------------|
+     * | Android    | Yes              | Supported natively                                         |
+     * | Apple      | Yes              | Support provided by Kable via flow filter                  |
+     * | JavaScript | Yes<sup>1</sup>  | Passed through natively, but subject to browser support    |
+     *
+     * <sup>1</sup>: Browser support for service data filtering is tracked at:
+     * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md
      */
     public class ServiceData(
 
