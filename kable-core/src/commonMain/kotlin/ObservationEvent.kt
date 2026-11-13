@@ -5,12 +5,12 @@ internal sealed class ObservationEvent<out T> {
     open val characteristic: Characteristic? get() = null
 
     data class CharacteristicChange<T>(
-        override val characteristic: PlatformDiscoveredCharacteristic,
+        override val characteristic: Characteristic,
         val data: T,
     ) : ObservationEvent<T>()
 
     data class Error(
-        override val characteristic: PlatformDiscoveredCharacteristic,
+        override val characteristic: Characteristic,
         val cause: Exception,
     ) : ObservationEvent<Nothing>()
 
