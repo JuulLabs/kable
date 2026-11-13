@@ -64,6 +64,14 @@ internal class Observation(
         }
     }
 
+    suspend fun onServicesChanged() = mutex.withLock {
+        if (didStartObservation && isConnected) {
+            suppressNotConnectedException {
+                startObservation()
+            }
+        }
+    }
+
     private suspend fun startObservation() {
         handler.startObservation(characteristic)
         didStartObservation = true

@@ -113,4 +113,22 @@ internal class Observers<T>(
             }
         }
     }
+
+    /**
+     * Re-enables active observations after the peripheral's services changed, as the platform may
+     * have dropped them (e.g. Android, upon a Service Changed indication).
+     */
+    suspend fun onServicesChanged() {
+        synchronized(lock) {
+            observations.entries.toSet()
+        }.forEach { (characteristic, observation) ->
+            // Pipe failures to the associated observation flow, as there is no connection attempt to fail.
+            try {
+                observation.onServicesChanged()
+            } catch (e: Exception) {
+                currentCoroutineContext().ensureActive()
+                characteristicChanges.emit(Error(characteristic, e))
+            }
+        }
+    }
 }
