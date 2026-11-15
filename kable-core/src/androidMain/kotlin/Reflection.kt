@@ -40,7 +40,7 @@ internal fun BluetoothDevice.connectGattWithReflection(
 /** Invokes the hidden `BluetoothGatt.refresh()`, which clears the stack's cached attribute table for the device. */
 internal fun BluetoothGatt.refreshWithReflection(): Boolean = try {
     invoke("refresh") as? Boolean ?: false
-} catch (e: ReflectiveOperationException) {
+} catch (_: ReflectiveOperationException) {
     false
 }
 
