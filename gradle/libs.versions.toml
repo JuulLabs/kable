@@ -38,7 +38,7 @@ krayon-compose = { module = "com.juul.krayon:compose", version.ref = "krayon" }
 krayon-scale = { module = "com.juul.krayon:scale", version.ref = "krayon" }
 krayon-selection = { module = "com.juul.krayon:selection", version.ref = "krayon" }
 krayon-shape = { module = "com.juul.krayon:shape", version.ref = "krayon" }
-mockk = { module = "io.mockk:mockk", version = "1.14.11" }
+mockk = { module = "io.mockk:mockk", version = "1.14.12" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }
 serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version = "1.11.0" }
 tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.5.0" }
@@ -71,7 +71,7 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.2" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
+dokka = { id = "org.jetbrains.dokka", version = "2.3.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version = "5.7.0" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
