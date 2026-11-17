@@ -7,6 +7,7 @@ import js.json.stringify
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
+import web.errors.DOMExceptionName
 import web.errors.NotFoundError
 import web.errors.SecurityError
 import kotlin.js.JsException
@@ -54,11 +55,11 @@ public suspend fun requestPeripheral(
         val thrownValue = e.thrownValue
         when {
             // User cancelled picker dialog by either clicking outside dialog, or clicking cancel button.
-            thrownValue is DOMException && thrownValue.name == DOMException.NotFoundError -> null
+            thrownValue is DOMException && thrownValue.name == DOMExceptionName.NotFoundError -> null
 
             // The Web Bluetooth API can only be used in a secure context.
             // https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API#security_considerations
-            thrownValue is DOMException && thrownValue.name == DOMException.SecurityError ->
+            thrownValue is DOMException && thrownValue.name == DOMExceptionName.SecurityError ->
                 throw IllegalStateException("Operation is not permitted in this context due to security concerns", e)
 
             thrownValue is TypeError -> {
