@@ -179,8 +179,11 @@ public interface Peripheral : AutoCloseable {
      * For Core Bluetooth, this is automatically negotiated and can also vary depending on the
      * [writeType].
      *
-     * On JavaScript, this will always return the default (23 - 3) every time as there is no ATT MTU
-     * property available.
+     * On JavaScript, this will always return the default (23 - 3) as there is no ATT MTU property
+     * available.
+     *
+     * On JVM, this is automatically negotiated and known once services have been discovered;
+     * the default (23 - 3) is returned until then.
      */
     public suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int
 
