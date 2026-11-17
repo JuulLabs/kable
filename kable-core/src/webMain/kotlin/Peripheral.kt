@@ -5,6 +5,7 @@ import com.juul.kable.interop.await
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
+import web.errors.DOMExceptionName
 import web.errors.SecurityError
 import kotlin.js.JsException
 import kotlin.js.thrownValue
@@ -32,7 +33,7 @@ public suspend fun Peripheral(
         throw when {
             // The Web Bluetooth API can only be used in a secure context.
             // https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API#security_considerations
-            thrownValue is DOMException && thrownValue.name == DOMException.SecurityError ->
+            thrownValue is DOMException && thrownValue.name == DOMExceptionName.SecurityError ->
                 IllegalStateException("Operation is not permitted in this context due to security concerns", e)
 
             else -> InternalError("Failed to invoke getDevices request", e)
