@@ -1,6 +1,5 @@
 package com.juul.kable
 
-import com.juul.kable.SharedRepeatableAction.State
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.CancellationException
@@ -9,11 +8,12 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.job
-import kotlinx.coroutines.sync.withLock
 
 internal fun <T> CoroutineScope.sharedRepeatableAction(
     action: suspend (scope: CoroutineScope) -> T,
 ) = SharedRepeatableAction(this, action)
+
+internal class InactiveScopeException : IllegalStateException("Scope is not active")
 
 /**
  * A mechanism for launching and awaiting a shared [action][State.action] ([Deferred]) repeatedly.
@@ -82,7 +82,7 @@ internal class SharedRepeatableAction<T>(
     }
 
     private fun create(): State<T> {
-        check(scope.coroutineContext.job.isActive) { "Scope is not active" }
+        if (!scope.coroutineContext.job.isActive) throw InactiveScopeException()
         val root = Job(scope.coroutineContext.job)
         val scope = CoroutineScope(scope.coroutineContext + root)
         val action = scope.async { action(scope) }

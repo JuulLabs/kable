@@ -11,7 +11,7 @@ public actual fun Peripheral(
     return Peripheral(advertisement.bluetoothDevice, builderAction)
 }
 
-@ExperimentalApi // Experimental while evaluating if this API introduces any footguns.
+@ExperimentalKableApi // Experimental while evaluating if this API introduces any footguns.
 public fun Peripheral(
     scanResult: ScanResult,
     builderAction: PeripheralBuilderAction,
@@ -33,6 +33,7 @@ public fun Peripheral(
         builder.autoConnectPredicate,
         builder.transport,
         builder.phy,
+        builder.mtu,
         builder.threadingStrategy,
         builder.observationExceptionHandler,
         builder.onServicesDiscovered,

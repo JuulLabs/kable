@@ -1,5 +1,6 @@
 package com.juul.kable
 
+import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.bluetooth.BluetoothAdapter.STATE_OFF
 import android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF
 import android.bluetooth.BluetoothDevice
@@ -15,6 +16,8 @@ import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
 import android.bluetooth.BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 import android.bluetooth.BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+import android.os.Build
+import androidx.annotation.RequiresPermission
 import com.juul.kable.AndroidPeripheral.Priority
 import com.juul.kable.AndroidPeripheral.Type
 import com.juul.kable.State.Disconnected
@@ -50,12 +53,21 @@ private const val DISCOVER_SERVICES_RETRIES = 5
 
 private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
+private const val MAX_ATTRIBUTE_LENGTH_API_21 = 600 // Per RxAndroidBle (Android API 21-32).
+private const val MAX_ATTRIBUTE_LENGTH_API_33 = 512
+
+private val MAX_ATTRIBUTE_LENGTH = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    MAX_ATTRIBUTE_LENGTH_API_33
+} else {
+    MAX_ATTRIBUTE_LENGTH_API_21
+}
 
 internal class BluetoothDeviceAndroidPeripheral(
-    private val bluetoothDevice: BluetoothDevice,
+    @InternalKableApi override val bluetoothDevice: BluetoothDevice,
     private val autoConnectPredicate: () -> Boolean,
     private val transport: Transport,
     private val phy: Phy,
+    private val desiredMtu: Int?,
     private val threadingStrategy: ThreadingStrategy,
     observationExceptionHandler: ObservationExceptionHandler,
     private val onServicesDiscovered: ServicesDiscoveredAction,
@@ -100,7 +112,7 @@ internal class BluetoothDeviceAndroidPeripheral(
 
     override val address: String = requireNonZeroAddress(bluetoothDevice.address)
 
-    @ExperimentalApi
+    @ExperimentalKableApi
     override val name: String?
         get() = bluetoothDevice.name
 
@@ -128,6 +140,7 @@ internal class BluetoothDeviceAndroidPeripheral(
             )
 
             suspendUntil<State.Connecting.Services>()
+            if (desiredMtu != null) requestMtu(desiredMtu)
             discoverServices()
             configureCharacteristicObservations()
         } catch (e: Exception) {
@@ -168,10 +181,20 @@ internal class BluetoothDeviceAndroidPeripheral(
             .requestConnectionPriority(priority.intValue)
     }
 
-    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
-        (mtu.value ?: DEFAULT_ATT_MTU) - ATT_MTU_HEADER_SIZE
+    @ExperimentalKableApi
+    override fun refreshGattCache(): Boolean {
+        val refreshed = connectionOrThrow().gatt.refreshWithReflection()
+        logger.debug {
+            message = "refreshGattCache"
+            detail("refreshed", refreshed.toString())
+        }
+        return refreshed
+    }
 
-    @ExperimentalApi // Experimental until Web Bluetooth advertisements APIs are stable.
+    override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
+        ((mtu.value ?: DEFAULT_ATT_MTU) - ATT_MTU_HEADER_SIZE).coerceAtMost(MAX_ATTRIBUTE_LENGTH)
+
+    @ExperimentalKableApi // Experimental until Web Bluetooth advertisements APIs are stable.
     override suspend fun rssi(): Int =
         connectionOrThrow().execute<OnReadRemoteRssi> {
             readRemoteRssiOrThrow()
@@ -184,12 +207,13 @@ internal class BluetoothDeviceAndroidPeripheral(
         }
     }
 
-    override suspend fun requestMtu(mtu: Int): Int {
+    @RequiresPermission(BLUETOOTH_CONNECT)
+    private suspend fun requestMtu(mtu: Int) {
         logger.debug {
             message = "requestMtu"
             detail("mtu", mtu)
         }
-        return connectionOrThrow().requestMtu(mtu)
+        connectionOrThrow().requestMtu(mtu)
     }
 
     override suspend fun write(

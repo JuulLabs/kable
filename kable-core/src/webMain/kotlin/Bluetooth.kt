@@ -1,27 +1,21 @@
 package com.juul.kable
 
 import com.juul.kable.external.Bluetooth
-import com.juul.kable.external.getBluetooth
-import web.navigator.Navigator
 import kotlin.js.js
-import kotlin.js.undefined
 
-private val navigator: Navigator =
-    js("window.navigator")
+private fun isBluetoothSupported(): Boolean =
+    js("typeof window !== 'undefined' && typeof window.navigator !== 'undefined' && window.navigator.bluetooth !== 'undefined'")
+
+private fun jsBluetooth(): Bluetooth = js("window.navigator.bluetooth")
 
 /**
- * @return [Bluetooth] object or `null` if bluetooth is [unavailable](https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth#browser_compatibility).
+ * @return [Bluetooth] object or `null` if bluetooth is [unsupported](https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth#browser_compatibility).
  */
 internal fun bluetoothOrNull(): Bluetooth? =
-    getBluetooth(navigator).takeIf { it !== undefined }
+    if (isBluetoothSupported()) jsBluetooth() else null
 
 /**
- * @throws IllegalStateException If bluetooth is [unavailable](https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth#browser_compatibility).
+ * @throws IllegalStateException If bluetooth is [unsupported](https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth#browser_compatibility).
  */
-internal fun bluetoothOrThrow(): Bluetooth {
-    val bluetooth = getBluetooth(navigator)
-    if (bluetooth === undefined) {
-        error("Bluetooth unavailable")
-    }
-    return bluetooth
-}
+internal fun bluetoothOrThrow(): Bluetooth =
+    bluetoothOrNull() ?: error("Bluetooth unavailable")

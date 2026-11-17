@@ -3,10 +3,10 @@ package com.juul.kable
 import com.juul.kable.State.Connecting.Observes
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.atomics.AtomicBoolean
 
 internal class Observation(
     private val state: StateFlow<State>,
@@ -26,10 +26,10 @@ internal class Observation(
     private val subscribers = mutableListOf<OnSubscriptionAction>()
     private val mutex = Mutex()
 
-    private val _didStartObservation = atomic(false)
+    private val _didStartObservation = AtomicBoolean(false)
     private var didStartObservation: Boolean
-        get() = _didStartObservation.value
-        set(value) { _didStartObservation.value = value }
+        get() = _didStartObservation.load()
+        set(value) { _didStartObservation.store(value) }
 
     private val isConnected: Boolean
         get() = state.value.isAtLeast<Observes>()

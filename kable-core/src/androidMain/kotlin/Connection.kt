@@ -1,8 +1,10 @@
 package com.juul.kable
 
+import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGatt.GATT_SUCCESS
 import android.os.Handler
+import androidx.annotation.RequiresPermission
 import com.juul.kable.State.Disconnected
 import com.juul.kable.android.GattStatus
 import com.juul.kable.coroutines.childSupervisor
@@ -21,6 +23,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -37,7 +40,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.coroutines.coroutineContext
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
@@ -53,9 +55,9 @@ private val GattSuccess = GattStatus(GATT_SUCCESS)
  * To disconnect: simply call [disconnect] ([Connection] will be implicitly [closed][close] at the
  * end of the [disconnect] sequence).
  *
- * If [scope], or parent [CoroutineContext] is cancelled prior to [disconnecting][disconnect], then
- * [Connection] will be abruptly [closed][close] (upon completion of [job]) without a prior
- * [disconnect] sequence.
+ * If [connectionScope], or parent [CoroutineContext] is canceled prior to
+ * [disconnecting][disconnect], then [Connection] will be abruptly [closed][close] (upon completion
+ * of [job]) without a prior [disconnect] sequence.
  */
 internal class Connection(
     parentContext: CoroutineContext,
@@ -166,7 +168,7 @@ internal class Connection(
                         }
                     }
                 }
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 throw e.unwrapCancellationException()
             }
 
@@ -175,7 +177,7 @@ internal class Connection(
                     callback.onResponse.receive()
                 }.await()
             } catch (e: CancellationException) {
-                coroutineContext.ensureActive()
+                currentCoroutineContext().ensureActive()
                 throw e.unwrapCancellationException()
             }
         }.also(::checkResponse)
@@ -197,6 +199,7 @@ internal class Connection(
      * @throws GattRequestRejectedException if underlying `BluetoothGatt` method call returns `false`.
      * @throws GattStatusException if response has a non-`GATT_SUCCESS` status.
      */
+    @RequiresPermission(BLUETOOTH_CONNECT)
     suspend fun requestMtu(mtu: Int): Int = guard.withLock {
         try {
             withContext(dispatcher) {
@@ -204,7 +207,7 @@ internal class Connection(
             }
             connectionScope.async { callback.onMtuChanged.receive() }.await()
         } catch (e: CancellationException) {
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
             throw e.unwrapCancellationException()
         }
     }.also(::checkResponse).mtu

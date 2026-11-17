@@ -300,11 +300,9 @@ On Android targets, additional configuration options are available (all configur
 ```kotlin
 val peripheral = Peripheral(advertisement) {
     autoConnectIf { false } // default
-    onServicesDiscovered {
-        requestMtu(...)
-    }
     transport = Transport.Le // default
     phy = Phy.Le1M // default
+    mtu = 517 // default
 }
 ```
 
@@ -509,6 +507,24 @@ peripheral.write(descriptor, byteArrayOf(1, 2, 3))
 > [!NOTE]
 > _The [`read`] and [`write`] functions throw [`NotConnectedException`] until a connection is established._
 
+#### Write types
+
+When writing to a characteristic, a [`WriteType`] may be specified. The available write types are:
+
+| [`WriteType`]                   | Speed  | Reliability                                         |
+|---------------------------------|--------|-----------------------------------------------------|
+| [`WithResponse`]                | Slower | Peripheral acknowledges that the write was received |
+| [`WithoutResponse`] _(default)_ | Faster | No acknowledgement (delivery is not guaranteed)     |
+
+```kotlin
+peripheral.write(characteristic, byteArrayOf(1, 2, 3), WriteType.WithResponse)
+```
+
+When a write type is not specified, [`WithoutResponse`] is used.
+
+> [!NOTE]
+> _Write type only applies to characteristic writes (descriptor writes are always acknowledged by the peripheral)._
+
 ### Observation
 
 Bluetooth Low Energy provides the capability of subscribing to characteristic changes by means of notifications and/or
@@ -597,7 +613,7 @@ Android Developers guide: [Bluetooth permissions]
 
 ### Gradle
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/kable-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.juul.kable/kable-core)
+[![Maven Central](https://img.shields.io/maven-central/v/com.juul.kable/kable-core)](https://central.sonatype.com/artifact/com.juul.kable/kable-core)
 
 Kable can be configured via Gradle Kotlin DSL as follows:
 
@@ -637,6 +653,25 @@ android {
 }
 ```
 
+## Development
+
+The Java version used to build this project can optionally be managed via [SDKMAN!], as
+declared in the [`.sdkmanrc`] file. With [SDKMAN!] installed, the appropriate JDK can be
+installed and activated from the repository root by running:
+
+```shell
+sdk env install
+sdk env
+```
+
+> [!TIP]
+> Have [SDKMAN!] automatically use the SDK defined in [`.sdkmanrc`] when changing directories by
+> running `sdk config` then setting `sdkman_auto_env=true`.
+
+> [!NOTE]
+> If not using [SDKMAN!], be sure the JDK version specified in [`.sdkmanrc`] is installed, as Gradle
+> [toolchain automatic downloading is disabled] for this project.
+
 # License
 
 ```
@@ -659,7 +694,9 @@ limitations under the License.
 [Bluetooth permissions]: https://developer.android.com/develop/connectivity/bluetooth/bt-permissions
 [Coroutine scope]: https://kotlinlang.org/docs/reference/coroutines/coroutine-context-and-dispatchers.html#coroutine-scope
 [Coroutines with multithread support for Kotlin/Native]: https://github.com/Kotlin/kotlinx.coroutines/issues/462
-[SensorTag sample app]: https://github.com/JuulLabs/sensortag
+[SDKMAN!]: https://sdkman.io/
+[SensorTag sample app]: samples/sensortag
+[`.sdkmanrc`]: .sdkmanrc
 [`Advertisement`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-advertisement/index.html
 [`Characteristic`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-characteristic/index.html
 [`Connected`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/-connected/index.html
@@ -679,6 +716,7 @@ limitations under the License.
 [`ScanSettings`]: https://developer.android.com/reference/kotlin/android/bluetooth/le/ScanSettings
 [`Scanner`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-scanner.html
 [`Uuid`]: https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.uuid/-uuid/
+[`WithResponse`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-write-type/-with-response/index.html
 [`WithoutResponse`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-write-type/-without-response/index.html
 [`WriteType`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-write-type/index.html
 [`advertisements`]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-scanner/advertisements.html
@@ -707,3 +745,4 @@ limitations under the License.
 [badge-watchos]: http://img.shields.io/badge/platform-watchos-C0C0C0.svg?style=flat
 [badge-windows]: http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat
 [connection-state]: https://juullabs.github.io/kable/kable-core/com.juul.kable/-state/index.html
+[toolchain automatic downloading is disabled]: https://docs.gradle.org/current/userguide/toolchains.html#sub:disable_auto_provision

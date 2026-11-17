@@ -1,7 +1,6 @@
 plugins {
-    id("com.android.library")
-    id("com.vanniktech.maven.publish")
-    kotlin("android")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.maven.publish)
 }
 
 kotlin {
@@ -10,6 +9,9 @@ kotlin {
 
 android {
     compileSdk = libs.versions.android.compile.get().toInt()
-    defaultConfig.minSdk = libs.versions.android.min.get().toInt()
-    namespace = "com.juul.kable"
+    defaultConfig {
+        minSdk = libs.versions.android.min.get().toInt()
+        aarMetadata.minCompileSdk = libs.versions.android.min.get().toInt()
+    }
+    namespace = "com.juul.kable.permissions"
 }

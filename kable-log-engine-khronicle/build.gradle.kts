@@ -1,12 +1,13 @@
 plugins {
-    id("com.vanniktech.maven.publish")
-    id("org.jetbrains.dokka")
-    id("org.jmailen.kotlinter")
+    alias(libs.plugins.maven.publish)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlinter)
     kotlin("multiplatform")
 }
 
 fun isRunningOnMacOs() = System.getProperty("os.name").orEmpty().lowercase().startsWith("mac")
 
+@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
     explicitApi()
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
@@ -20,6 +21,9 @@ kotlin {
         iosSimulatorArm64()
         iosX64()
         macosArm64()
+        watchosArm64()
+        watchosDeviceArm64()
+        watchosSimulatorArm64()
     }
 
     js().browser()

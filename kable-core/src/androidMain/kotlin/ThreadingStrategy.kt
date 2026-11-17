@@ -2,21 +2,22 @@ package com.juul.kable
 
 import com.juul.kable.OnDemandThreadingStrategy.acquire
 import com.juul.kable.OnDemandThreadingStrategy.release
-import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
-private val threadNumber = atomic(0)
-private fun generateThreadName() = "Kable#${threadNumber.incrementAndGet()}"
+private val threadNumber = AtomicInt(0)
+private fun generateThreadName() = "Kable#${threadNumber.incrementAndFetch()}"
 
 public interface ThreadingStrategy {
     public fun acquire(): Threading
@@ -40,7 +41,7 @@ public object OnDemandThreadingStrategy : ThreadingStrategy {
  * A [ThreadingStrategy] that pools unused ["threads"][Threading] until [evictAfter] time has
  * elapsed.
  *
- * In most circumstances, only a a single [PooledThreadingStrategy] instance should be created per
+ * In most circumstances, only a single [PooledThreadingStrategy] instance should be created per
  * application run, as it holds the "shared" pool of unused ["threads"][Threading].
  *
  * Useful for when [Peripheral] connections are quickly being spun down and up again — as they can
@@ -79,8 +80,13 @@ public class PooledThreadingStrategy(
     public fun cancel(): Unit = job.cancel()
 
     override fun acquire(): Threading = guard.withLock {
-        pool.removeFirstOrNull()
-            ?.let { (_, threading) -> threading }
+        // `java.util.List.removeFirst()` is only available on Android 15 (API 35) or higher and
+        // causes a `NoSuchMethodError` on earlier Android versions when compiled against
+        // `compileSdk` 35+. Google Play flagged Kable's usage of `removeFirst` or `removeLast` (in
+        // `BluetoothGattKt`) but the only seemingly similar usage was `removeFirstOrNull` (which
+        // should be safe). We avoid the usage of `removeFirstOrNull` in hopes of not being
+        // erroneously flagged. https://github.com/JuulLabs/kable/issues/1129
+        if (pool.isEmpty()) null else pool.removeAt(0).second
     } ?: Threading(generateThreadName())
 
     override fun release(threading: Threading) {

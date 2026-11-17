@@ -4,7 +4,7 @@ import com.juul.kable.BasePeripheral
 import com.juul.kable.Characteristic
 import com.juul.kable.Descriptor
 import com.juul.kable.DiscoveredService
-import com.juul.kable.ExperimentalApi
+import com.juul.kable.ExperimentalKableApi
 import com.juul.kable.Identifier
 import com.juul.kable.NotConnectedException
 import com.juul.kable.ObservationEvent.CharacteristicChange
@@ -24,12 +24,9 @@ import com.juul.kable.btleplug.ffi.isAdapterOn
 import com.juul.kable.coroutines.childSupervisor
 import com.juul.kable.logs.Logger
 import com.juul.kable.logs.Logging
-import com.juul.kable.properties
 import com.juul.kable.sharedRepeatableAction
 import com.juul.kable.suspendUntil
 import com.juul.kable.unwrapCancellationException
-import jdk.internal.joptsimple.internal.Messages.message
-import jdk.internal.org.objectweb.asm.Type.getDescriptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -187,7 +184,7 @@ internal class BtleplugPeripheral(
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
         DEFAULT_ATT_MTU - ATT_MTU_HEADER_SIZE
 
-    @ExperimentalApi
+    @ExperimentalKableApi
     override suspend fun rssi(): Int = withContext(Dispatchers.IO) {
         ffi.properties().rssi?.toInt() ?: Int.MIN_VALUE
     }

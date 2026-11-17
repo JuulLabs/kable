@@ -296,21 +296,21 @@ private val BluetoothDescriptors by lazy {
 }
 
 /** Gets a service [Uuid] from a known service [name]. */
-@ExperimentalApi
+@ExperimentalKableApi
 public fun Uuid.Companion.service(name: String): Uuid =
     BluetoothServices[name]
         ?.let { Bluetooth.BaseUuid + it }
         ?: throw NoSuchElementException("Unknown Bluetooth service name: $name")
 
 /** Gets a characteristic [Uuid] from a known characteristic [name]. */
-@ExperimentalApi
+@ExperimentalKableApi
 public fun Uuid.Companion.characteristic(name: String): Uuid =
     BluetoothCharacteristics[name]
         ?.let { Bluetooth.BaseUuid + it }
         ?: throw NoSuchElementException("Unknown Bluetooth characteristic name: $name")
 
 /** Gets a descriptor [Uuid] from a known descriptor [name]. */
-@ExperimentalApi
+@ExperimentalKableApi
 public fun Uuid.Companion.descriptor(name: String): Uuid =
     BluetoothDescriptors[name]
         ?.let { Bluetooth.BaseUuid + it }

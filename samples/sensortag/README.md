@@ -1,0 +1,127 @@
+![badge][badge-android]
+![badge][badge-js]
+![badge][badge-mac]
+
+# SensorTag
+
+Sample app providing connectivity/communication (connects and reads gyroscope) with [SensorTag]
+devices to demonstrate capabilities/usage of [Kable] library.
+
+## Android
+
+![Android App screen recording](artwork/android.gif)
+
+The Android App can be built and installed via [Android Studio], or via command line by executing:
+
+```shell
+./gradlew :android:installDebug
+```
+
+## iOS
+
+![iOS App screen recording](artwork/ios.gif)
+
+The iOS project is generated via:
+
+```shell
+./gradlew :ios:generateXcodeProject
+```
+
+> [!TIP]
+> `./gradlew :ios:openXcode` can be used to both generate the project _and_ open it in Xcode.
+
+In Xcode, configure signing, then run.
+
+## Web
+
+> [!IMPORTANT]
+> Web Bluetooth is only available on supported browsers, see
+> [Web Bluetooth API: Browser compatibility] for a list of supported browsers.
+
+### Web Assembly
+
+A live demo can be viewed [here](https://juullabs.github.io/kable/sensortag), or to build and launch
+the demo within a browser window on your local machine, run:
+
+```shell
+./gradlew :shared:wasmJsBrowserDevelopmentRun
+```
+
+### JavaScript
+
+![JavaScript browser app screen recording](artwork/javascript.gif)
+
+```shell
+./gradlew :shared:jsBrowserDevelopmentRun
+```
+
+## MacOS
+
+When run, app will launch and immediately scan for nearby [SensorTag] peripherals. The first one found will be connected
+to. Once connected, the SensorTag gyro will be subscribed to and printed to console as values arrive.
+
+![MacOS console app screen recording](artwork/macos.gif)
+
+Console app can be built and run by executing:
+
+<table>
+<tr>
+<td align="center"><b>Mac CPU</b></td>
+<td align="center"><b>Command</b></td>
+</tr>
+
+<tr>
+<td>Intel</td>
+<td>
+
+```shell
+./gradlew :shared:runDebugExecutableMacosX64
+```
+
+</td>
+</tr>
+
+<tr>
+<td>Apple (e.g. M1)</td>
+<td>
+
+```shell
+./gradlew :shared:runDebugExecutableMacosArm64
+```
+
+</td>
+</tr>
+</table>
+
+## Desktop JVM (Linux, Mac, Windows)
+
+![MacOS desktop screen recording](artwork/desktop.gif)
+
+Desktop can be built and run by executing the following on Linux or Mac:
+
+```shell
+./gradlew :shared:run
+```
+
+On Windows, the command is similar:
+
+```cmd
+.\gradlew.bat :shared:run
+```
+
+
+[SensorTag]: https://www.ti.com/tool/CC2650STK
+[Android Studio]: https://developer.android.com/studio
+[Kable]: https://github.com/JuulLabs/kable
+[Web Bluetooth API: Browser compatibility]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API
+
+[badge-android]: http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat
+[badge-ios]: http://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat
+[badge-js]: http://img.shields.io/badge/platform-js-F8DB5D.svg?style=flat
+[badge-jvm]: http://img.shields.io/badge/platform-jvm-DB413D.svg?style=flat
+[badge-linux]: http://img.shields.io/badge/platform-linux-2D3F6C.svg?style=flat
+[badge-windows]: http://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat
+[badge-mac]: http://img.shields.io/badge/platform-macos-111111.svg?style=flat
+[badge-watchos]: http://img.shields.io/badge/platform-watchos-C0C0C0.svg?style=flat
+[badge-tvos]: http://img.shields.io/badge/platform-tvos-808080.svg?style=flat
+[badge-wasm]: https://img.shields.io/badge/platform-wasm-624FE8.svg?style=flat

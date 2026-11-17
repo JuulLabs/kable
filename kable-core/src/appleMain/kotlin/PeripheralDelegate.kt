@@ -323,6 +323,7 @@ internal class PeripheralDelegate(
     fun close(cause: Throwable?) {
         _response.close(NotConnectedException(cause = cause))
         characteristicChanges.emitBlocking(ObservationEvent.Disconnected)
+        canSendWriteWithoutResponse.value = true
     }
 }
 

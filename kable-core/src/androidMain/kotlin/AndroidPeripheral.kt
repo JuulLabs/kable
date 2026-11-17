@@ -3,6 +3,7 @@ package com.juul.kable
 import android.Manifest
 import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothStatusCodes
 import android.os.Build
@@ -126,15 +127,21 @@ public interface AndroidPeripheral : Peripheral {
     public fun requestConnectionPriority(priority: Priority): Boolean
 
     /**
-     * Requests that the current connection's MTU be changed. Suspends until the MTU changes, or failure occurs. The
-     * negotiated MTU value is returned, which may not be [mtu] value requested if the remote peripheral negotiated an
-     * alternate MTU.
+     * Clears Android's cached GATT database for this peripheral, so that the next service discovery reads the
+     * services from the remote device instead of the cache. Useful when a peripheral changes its attribute table
+     * (e.g. after a firmware update) without the stack noticing.
      *
-     * @throws NotConnectedException if invoked without an established [connection][Peripheral.connect].
-     * @throws GattRequestRejectedException if Android was unable to fulfill the MTU change request.
-     * @throws GattStatusException if MTU change request failed.
+     * Services already discovered for the current connection are unaffected: [disconnect] and [connect] again to
+     * discover the fresh attribute table.
+     *
+     * Invokes the hidden `BluetoothGatt.refresh()` via reflection, so may stop working on a future Android release.
+     *
+     * @return `true` if the cache refresh was requested, `false` if the platform declined it or the hidden API was
+     * unavailable.
+     * @throws NotConnectedException if invoked without an established [connection][connect].
      */
-    public suspend fun requestMtu(mtu: Int): Int
+    @ExperimentalKableApi
+    public fun refreshGattCache(): Boolean
 
     /**
      * @see Peripheral.write
@@ -155,9 +162,17 @@ public interface AndroidPeripheral : Peripheral {
     override suspend fun write(descriptor: Descriptor, data: ByteArray)
 
     /**
-     * [StateFlow] of the most recently negotiated MTU. The MTU will change upon a successful request to change the MTU
-     * (via [requestMtu]), or if the peripheral initiates an MTU change. [StateFlow]'s `value` will be `null` until MTU
-     * is negotiated.
+     * [StateFlow] of the most recently negotiated MTU. The MTU will change upon a successful
+     * request to change the MTU (as configured via the [PeripheralBuilder.mtu] property), or if the
+     * peripheral initiates an MTU change. [StateFlow]'s `value` will be `null` until MTU is
+     * negotiated.
      */
     public val mtu: StateFlow<Int?>
+
+    /**
+     * This is an internal API and may be removed from a future release. If you are using it, please
+     * open an issue and report your use case.
+     */
+    @InternalKableApi
+    public val bluetoothDevice: BluetoothDevice
 }

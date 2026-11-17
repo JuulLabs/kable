@@ -6,24 +6,19 @@ buildscript {
 }
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.android.bcv.bridge) apply false
+    alias(libs.plugins.android.kotlin.multiplatform.library) apply false
     alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.api)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlinter) apply false
     alias(libs.plugins.maven.publish) apply false
-    alias(libs.plugins.atomicfu) apply false
-    alias(libs.plugins.dokka)
-    alias(libs.plugins.api)
-}
-
-dokka {
-    dokkaPublications.html {
-        outputDirectory.set(layout.buildDirectory.dir("dokkaHtmlMultiModule"))
-    }
 }
 
 dependencies {
-    dokka(project(":kable-core"))
-    dokka(project(":kable-log-engine-khronicle"))
+    dokka(project("kable-core"))
+    dokka(project("kable-log-engine-khronicle"))
 }
 
 apiValidation {

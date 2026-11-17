@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm")
-    id("com.vanniktech.maven.publish")
+    alias(libs.plugins.maven.publish)
     id("com.juul.kable.uniffi")
 }
 
@@ -9,7 +9,7 @@ kotlin {
 
     dependencies {
         api(libs.jna)
-        api(libs.kotlinx.coroutines.core)
+        api(libs.kotlinx.coroutines)
     }
 }
 

@@ -54,6 +54,9 @@ internal fun BluetoothDevice.connect(
 
             else -> connectGattCompat(context, autoConnect, callback, transport)
         } ?: throw IOException("Binder remote-invocation error")
+    } catch (e: SecurityException) {
+        threading.release()
+        throw IllegalStateException(e.message, e)
     } catch (t: Throwable) {
         threading.release()
         throw t

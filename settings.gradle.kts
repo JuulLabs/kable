@@ -9,6 +9,8 @@ pluginManagement {
     includeBuild("uniffi-plugin")
 }
 
+includeBuild("samples/sensortag")
+
 include(
     "kable-btleplug-ffi",
     "kable-core",
