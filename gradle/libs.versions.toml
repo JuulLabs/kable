@@ -1,31 +1,30 @@
 [versions]
-agp = "9.3.0"
+agp = "9.5.1"
 android-compile = "37"
 android-min = "21"
 android-target = "33"
-compose = "1.11.1"
+compose = "1.12.2"
 coroutines = "1.11.0"
 jna = "5.19.1"
 jvm-toolchain = "17"
-kotlin = "2.4.10"
+kotlin = "2.4.21"
 krayon = "0.24.0"
-tuulbox = "8.1.0"
 voyager = "2.2.21-1.10.3"
 
 [libraries]
-androidx-core = { module = "androidx.core:core-ktx", version = "1.19.0" }
+androidx-core = { module = "androidx.core:core-ktx", version = "1.16.0" }
 androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version = "2.11.0" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version = "1.2.0" }
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version = "0.33.0" }
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.13.0" }
-compose-ui = { module = "androidx.compose.ui:ui", version = "1.11.4" }
+compose-ui = { module = "androidx.compose.ui:ui", version = "1.12.1" }
 datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.8.0-0.6.x-compat" }
 desugar = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
-equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5" }
+equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.5.2" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 kable = { module = "com.juul.kable:kable-core" }
 kable-permissions = { module = "com.juul.kable:kable-default-permissions" }
-khronicle = { module = "com.juul.khronicle:khronicle-core", version = "1.1.0" }
+khronicle = { module = "com.juul.khronicle:khronicle-core", version = "1.2.0" }
 kotlin-parcelize-runtime = { module = "org.jetbrains.kotlin:kotlin-parcelize-runtime", version.ref = "kotlin" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version = "0.5.0" }
@@ -33,21 +32,21 @@ kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core",
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.1" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.2" }
 krayon-axis = { module = "com.juul.krayon:axis", version.ref = "krayon" }
 krayon-compose = { module = "com.juul.krayon:compose", version.ref = "krayon" }
 krayon-scale = { module = "com.juul.krayon:scale", version.ref = "krayon" }
 krayon-selection = { module = "com.juul.krayon:selection", version.ref = "krayon" }
 krayon-shape = { module = "com.juul.krayon:shape", version.ref = "krayon" }
-mockk = { module = "io.mockk:mockk", version = "1.14.11" }
-robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }
-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version = "1.11.0" }
+mockk = { module = "io.mockk:mockk", version = "1.14.12" }
+robolectric = { module = "org.robolectric:robolectric", version = "4.17" }
+serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version = "1.13.0" }
 tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.5.0" }
-tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version.ref = "tuulbox" }
+tuulbox-coroutines = { module = "com.juul.tuulbox:coroutines", version = "8.1.1" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2026.7.2" }
+wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version = "2026.7.5" }
 wrappers-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser" }
 wrappers-web = { module = "org.jetbrains.kotlin-wrappers:kotlin-web" }
 
@@ -66,13 +65,14 @@ voyager = [
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-bcv-bridge = { id = "io.github.tjokinen.android-bcv-bridge", version = "0.2.0" } # Workaround for https://github.com/Kotlin/binary-compatibility-validator/issues/312
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }
+api = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.2" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
+dokka = { id = "org.jetbrains.dokka", version = "2.3.0" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlinter = { id = "org.jmailen.kotlinter", version = "5.6.0" }
+kotlinter = { id = "org.jmailen.kotlinter", version = "5.7.0" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

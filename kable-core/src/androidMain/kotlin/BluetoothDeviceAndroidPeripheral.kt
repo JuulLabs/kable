@@ -181,6 +181,16 @@ internal class BluetoothDeviceAndroidPeripheral(
             .requestConnectionPriority(priority.intValue)
     }
 
+    @ExperimentalKableApi
+    override fun refreshGattCache(): Boolean {
+        val refreshed = connectionOrThrow().gatt.refreshWithReflection()
+        logger.debug {
+            message = "refreshGattCache"
+            detail("refreshed", refreshed.toString())
+        }
+        return refreshed
+    }
+
     override suspend fun maximumWriteValueLengthForType(writeType: WriteType): Int =
         ((mtu.value ?: DEFAULT_ATT_MTU) - ATT_MTU_HEADER_SIZE).coerceAtMost(MAX_ATTRIBUTE_LENGTH)
 

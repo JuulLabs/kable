@@ -4,11 +4,11 @@ import com.juul.kable.interop.await
 import com.juul.kable.logs.Logger
 import js.errors.TypeError
 import js.json.stringify
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import web.errors.DOMException
 import web.errors.NotFoundError
 import web.errors.SecurityError
-import kotlin.coroutines.coroutineContext
 import kotlin.js.JsException
 import kotlin.js.thrownValue
 
@@ -36,7 +36,7 @@ public suspend fun requestPeripheral(
         bluetooth.requestDevice(requestDeviceOptions)
     } catch (e: JsException) {
         val thrownValue = e.thrownValue
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         throw when (thrownValue) {
             is TypeError -> IllegalStateException("Requesting a device is not supported", e)
             else -> InternalError("Failed to invoke device request", e)
@@ -50,7 +50,7 @@ public suspend fun requestPeripheral(
     return try {
         requestDevice.await()
     } catch (e: JsException) {
-        coroutineContext.ensureActive()
+        currentCoroutineContext().ensureActive()
         val thrownValue = e.thrownValue
         when {
             // User cancelled picker dialog by either clicking outside dialog, or clicking cancel button.

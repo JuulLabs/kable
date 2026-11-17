@@ -6,6 +6,7 @@ buildscript {
 }
 
 plugins {
+    alias(libs.plugins.android.bcv.bridge) apply false
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.api)
