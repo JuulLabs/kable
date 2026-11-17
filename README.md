@@ -300,11 +300,9 @@ On Android targets, additional configuration options are available (all configur
 ```kotlin
 val peripheral = Peripheral(advertisement) {
     autoConnectIf { false } // default
-    onServicesDiscovered {
-        requestMtu(...)
-    }
     transport = Transport.Le // default
     phy = Phy.Le1M // default
+    mtu = 517 // default
 }
 ```
 
@@ -632,7 +630,7 @@ repositories {
 kotlin {
     androidTarget()
     js().browser()
-    macosX64()
+    macosArm64()
     iosX64()
     iosArm64()
     jvm()
