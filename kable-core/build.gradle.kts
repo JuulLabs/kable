@@ -49,10 +49,9 @@ kotlin {
         iosSimulatorArm64()
         iosX64()
         macosArm64()
-        macosX64()
         watchosArm64()
-        watchosSimulatorArm64()
         watchosDeviceArm64()
+        watchosSimulatorArm64()
     }
 
     js().browser()
