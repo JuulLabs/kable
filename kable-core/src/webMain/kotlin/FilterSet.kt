@@ -1,8 +1,8 @@
 package com.juul.kable
 
 /**
- * Filtering on Service Data is not supported because it is not implemented:
- * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md
+ * Filtering on Service Data is not supported by [FilterSet]; use [FilterPredicateBuilder]
+ * (via the `filters { match { ... } }` DSL) with [Filter.ServiceData] instead.
  *
  * Filtering on Manufacturer Data is supported and a good explanation can be found here:
  * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md

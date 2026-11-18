@@ -18,11 +18,12 @@ public actual class ScannerBuilder {
      * Filters [Advertisement]s during a scan. If predicates are non-empty, then only [Advertisement]s
      * that match at least one of the predicates are emitted during a scan.
      *
-     * Filtering on Service Data is not supported because it is not implemented:
-     * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md
-     *
-     * Filtering on Manufacturer Data is supported and a good explanation can be found here:
+     * Filtering on Manufacturer Data and Service Data is passed through to the browser, and a good
+     * explanation can be found here:
      * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/data-filters-explainer.md
+     *
+     * Service Data filtering is subject to browser support; implementation status is tracked at:
+     * https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md
      */
     public actual fun filters(builderAction: FiltersBuilder.() -> Unit) {
         filterPredicates = FiltersBuilder().apply(builderAction).build()
