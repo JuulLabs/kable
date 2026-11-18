@@ -116,8 +116,16 @@ internal class Connection(
 
         services.value = peripheral.services
             .orEmpty()
-            .map { it as PlatformService }
-            .map(::PlatformDiscoveredService)
+            .mapIndexed { index, service ->
+                // Core Bluetooth does not provide service/characteristic instance ids (as Android
+                // does), so instance ids are artificially generated (as positions within the
+                // discovered services) to support multiple services/characteristics with the same
+                // UUID.
+                PlatformDiscoveredService(
+                    service = service as PlatformService,
+                    instanceId = index,
+                )
+            }
     }
 
     suspend inline fun <reified T : Response> execute(
