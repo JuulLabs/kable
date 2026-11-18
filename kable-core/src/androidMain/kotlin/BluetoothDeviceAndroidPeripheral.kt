@@ -137,6 +137,7 @@ internal class BluetoothDeviceAndroidPeripheral(
                 logging,
                 threadingStrategy,
                 disconnectTimeout,
+                observers::onServicesChanged,
             )
 
             suspendUntil<State.Connecting.Services>()

@@ -135,6 +135,62 @@ class ObservationTest {
     }
 
     @Test
+    fun hasSubscribers_servicesChanged_reObservesOnce() = runTest {
+        val state = MutableStateFlow<State>(Connected(this))
+        val characteristic = generateCharacteristic()
+        val counter = ObservationCounter(characteristic)
+        val observation = Observation(state, counter, characteristic, logging, identifier = "test")
+
+        var actionCount = 0
+        observation.onSubscription { actionCount++ }
+        counter.assert(
+            startCount = 1,
+            stopCount = 0,
+        )
+
+        observation.onServicesChanged()
+        counter.assert(
+            startCount = 2,
+            stopCount = 0,
+        )
+        assertEquals(
+            expected = 1,
+            actual = actionCount,
+            message = "Subscription action count",
+        )
+    }
+
+    @Test
+    fun noSubscribers_servicesChanged_doesNotStartObservation() = runTest {
+        val state = MutableStateFlow<State>(Connected(this))
+        val characteristic = generateCharacteristic()
+        val counter = ObservationCounter(characteristic)
+        val observation = Observation(state, counter, characteristic, logging, identifier = "test")
+
+        observation.onServicesChanged()
+        counter.assert(
+            startCount = 0,
+            stopCount = 0,
+        )
+    }
+
+    @Test
+    fun hasSubscribers_servicesChangedWhileDisconnected_doesNotStartObservation() = runTest {
+        val state = MutableStateFlow<State>(Connected(this))
+        val characteristic = generateCharacteristic()
+        val counter = ObservationCounter(characteristic)
+        val observation = Observation(state, counter, characteristic, logging, identifier = "test")
+
+        observation.onSubscription { }
+        state.value = Disconnected()
+        observation.onServicesChanged()
+        counter.assert(
+            startCount = 1,
+            stopCount = 0,
+        )
+    }
+
+    @Test
     fun addingSubscribersDuringConnect_startsObserveOnce() = runTest {
         val state = MutableStateFlow<State>(Disconnected())
         val characteristic = generateCharacteristic()

@@ -67,6 +67,7 @@ internal class Connection(
     private val services: MutableStateFlow<List<PlatformDiscoveredService>?>,
     private val disconnectTimeout: Duration,
     logging: Logging,
+    private val onServicesChanged: suspend () -> Unit,
 ) {
 
     private val name = "Kable/Connection/${gatt.device}"
@@ -88,7 +89,11 @@ internal class Connection(
         require(disconnectTimeout > ZERO) { "Disconnect timeout must be >0, was $disconnectTimeout" }
 
         onDispose(::disconnect)
-        onServiceChanged(::discoverServices)
+        onServiceChanged {
+            discoverServices()
+            // Android drops notification registrations upon a Service Changed indication.
+            onServicesChanged()
+        }
 
         on<Disconnected> {
             val state = it.toString()
