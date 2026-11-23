@@ -37,6 +37,7 @@ internal fun BluetoothDevice.connect(
     logging: Logging,
     threadingStrategy: ThreadingStrategy,
     disconnectTimeout: Duration,
+    onServicesChanged: suspend () -> Unit,
 ): Connection {
     val callback = Callback(state, mtu, onCharacteristicChanged, logging, address)
     val threading = threadingStrategy.acquire()
@@ -62,7 +63,16 @@ internal fun BluetoothDevice.connect(
         throw t
     }
 
-    return Connection(coroutineContext, bluetoothGatt, threading, callback, services, disconnectTimeout, logging)
+    return Connection(
+        coroutineContext,
+        bluetoothGatt,
+        threading,
+        callback,
+        services,
+        disconnectTimeout,
+        logging,
+        onServicesChanged,
+    )
 }
 
 private fun BluetoothDevice.connectGattCompat(

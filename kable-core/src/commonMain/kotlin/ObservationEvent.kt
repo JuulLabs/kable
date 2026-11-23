@@ -10,7 +10,7 @@ internal sealed class ObservationEvent<out T> {
     ) : ObservationEvent<T>()
 
     data class Error(
-        override val characteristic: PlatformDiscoveredCharacteristic,
+        override val characteristic: Characteristic,
         val cause: Exception,
     ) : ObservationEvent<Nothing>()
 
