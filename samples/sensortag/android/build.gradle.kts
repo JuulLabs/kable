@@ -9,7 +9,11 @@ kotlin {
 
 android {
     namespace = "com.juul.sensortag.android"
-    compileSdk = libs.versions.android.compile.get().toInt()
+    compileSdk {
+        version = release(libs.versions.android.compile.major.get().toInt()) {
+            minorApiLevel = libs.versions.android.compile.minor.get().toInt()
+        }
+    }
 
     defaultConfig {
         applicationId = "com.juul.sensortag.android"
