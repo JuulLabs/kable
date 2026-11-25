@@ -90,10 +90,12 @@ The following filters are supported:
 | `NamePrefix`       | ✓<sup>1</sup> | ✓<sup>1</sup> |     ✓      | ✓<sup>1</sup> |
 | `Address`          |       ✓       |               |            |               |
 | `ManufacturerData` |       ✓       | ✓<sup>1</sup> |     ✓      | ✓<sup>1</sup> |
+| `ServiceData`      |       ✓       | ✓<sup>1</sup> | ✓<sup>3</sup> | ✓<sup>1</sup> |
 
 ✓&nbsp; Supported natively  
 ✓<sup>1</sup> Support provided by Kable via flow filter  
 ✓<sup>2</sup> Supported natively if the only filter type used, otherwise falls back to flow filter  
+✓<sup>3</sup> Passed through natively, but subject to browser support ([implementation status](https://github.com/WebBluetoothCG/web-bluetooth/blob/main/implementation-status.md))  
 
 > [!TIP]
 > When a filter is supported natively, the system will often be able to perform scan optimizations. If feasible, it is
