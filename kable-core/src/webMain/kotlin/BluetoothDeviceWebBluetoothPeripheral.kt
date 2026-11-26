@@ -5,9 +5,10 @@ package com.juul.kable
 import com.juul.kable.WriteType.WithResponse
 import com.juul.kable.WriteType.WithoutResponse
 import com.juul.kable.bluetooth.isWatchingAdvertisementsSupported
-import com.juul.kable.external.BluetoothAdvertisingEvent
+import com.juul.kable.external.ADVERTISEMENT_RECEIVED
 import com.juul.kable.external.BluetoothDevice
 import com.juul.kable.external.BluetoothRemoteGATTServer
+import com.juul.kable.external.addAdvertisementReceivedHandler
 import com.juul.kable.external.string
 import com.juul.kable.interop.await
 import com.juul.kable.logs.Logger
@@ -28,14 +29,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.khronos.webgl.DataView
 import org.khronos.webgl.toInt8Array
-import web.events.EventType
-import web.events.addEventListener
-import web.events.removeEventListener
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
 
-private val ADVERTISEMENT_RECEIVED = EventType<BluetoothAdvertisingEvent>("advertisementreceived")
 private const val DEFAULT_ATT_MTU = 23
 private const val ATT_MTU_HEADER_SIZE = 3
 
@@ -163,7 +160,11 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
     }
 
     private suspend fun receiveRssiEvent() = suspendCancellableCoroutine { continuation ->
-        val listener = { event: BluetoothAdvertisingEvent ->
+        logger.verbose {
+            message = "addEventHandler"
+            detail("event", ADVERTISEMENT_RECEIVED.toString())
+        }
+        val unsubscribe = bluetoothDevice.addAdvertisementReceivedHandler(once = true) { event ->
             val rssi = event.rssi
             if (rssi != null) {
                 continuation.resume(rssi)
@@ -174,18 +175,12 @@ internal class BluetoothDeviceWebBluetoothPeripheral(
             }
         }
 
-        logger.verbose {
-            message = "addEventListener"
-            detail("event", ADVERTISEMENT_RECEIVED.toString())
-        }
-        bluetoothDevice.addEventListener(ADVERTISEMENT_RECEIVED, listener)
-
         continuation.invokeOnCancellation {
             logger.verbose {
-                message = "removeEventListener"
+                message = "Unsubscribing from event"
                 detail("event", ADVERTISEMENT_RECEIVED.toString())
             }
-            bluetoothDevice.removeEventListener(ADVERTISEMENT_RECEIVED, listener)
+            unsubscribe()
         }
     }
 

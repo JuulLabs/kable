@@ -4,7 +4,6 @@ import com.juul.kable.State.Connecting
 import com.juul.kable.State.Disconnected
 import com.juul.kable.coroutines.childSupervisor
 import com.juul.kable.external.BluetoothDevice
-import com.juul.kable.external.BluetoothRemoteGATTCharacteristic
 import com.juul.kable.external.BluetoothRemoteGATTServer
 import com.juul.kable.interop.await
 import com.juul.kable.logs.Logger
@@ -34,19 +33,16 @@ import kotlinx.io.IOException
 import org.khronos.webgl.DataView
 import web.errors.DOMException
 import web.events.Event
+import web.events.EventHandler
 import web.events.EventType
-import web.events.addEventListener
-import web.events.removeEventListener
+import web.events.addEventHandler
 import kotlin.coroutines.CoroutineContext
 import kotlin.js.JsAny
 import kotlin.js.JsException
 import kotlin.js.Promise
 import kotlin.js.thrownValue
 import kotlin.js.toList
-import kotlin.js.unsafeCast
 import kotlin.time.Duration
-
-private typealias ObservationListener = (Event) -> Unit
 
 private val GATT_SERVER_DISCONNECTED = EventType<Event>("gattserverdisconnected")
 private val CHARACTERISTIC_VALUE_CHANGED = EventType<Event>("characteristicvaluechanged")
@@ -74,14 +70,16 @@ internal class Connection(
 
     private val logger = Logger(logging, tag = "Kable/Connection", identifier = bluetoothDevice.id)
 
-    private val disconnectedListener: (Event) -> Unit = {
-        logger.debug { message = GATT_SERVER_DISCONNECTED.toString() }
-        state.value = Disconnected()
-    }
+    private val unsubscribeFromDisconnection = bluetoothDevice.addEventHandler(
+        GATT_SERVER_DISCONNECTED,
+        EventHandler {
+            logger.debug { message = GATT_SERVER_DISCONNECTED.toString() }
+            state.value = Disconnected()
+        },
+    )
 
     init {
         onDispose(::disconnect)
-        registerDisconnectedListener()
 
         on<Disconnected> {
             val state = it.toString()
@@ -111,7 +109,7 @@ internal class Connection(
             .map { it.toDiscoveredService(logger) }
     }
 
-    private val observationListeners = mutableMapOf<PlatformCharacteristic, ObservationListener>()
+    private val observationUnsubscribers = mutableMapOf<PlatformCharacteristic, () -> Unit>()
 
     suspend fun startObservation(characteristic: Characteristic) {
         logger.debug {
@@ -120,24 +118,21 @@ internal class Connection(
         }
 
         val platformCharacteristic = servicesOrThrow().obtain(characteristic, Notify or Indicate)
-        if (platformCharacteristic in observationListeners) return
-
-        val listener = platformCharacteristic.createObservationListener()
-        observationListeners[platformCharacteristic] = listener
+        if (platformCharacteristic in observationUnsubscribers) return
 
         platformCharacteristic.apply {
             logger.verbose {
-                message = "addEventListener"
+                message = "addEventHandler"
                 detail(characteristic)
                 detail("event", CHARACTERISTIC_VALUE_CHANGED.toString())
             }
-            addEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
+            observationUnsubscribers[platformCharacteristic] = subscribeToCharacteristicChanges()
 
             try {
                 execute { startNotifications() }
             } catch (e: JsException) {
-                removeCharacteristicValueChangedListener(listener)
-                observationListeners.remove(platformCharacteristic)
+                val unsubscribe = observationUnsubscribers.remove(platformCharacteristic)
+                if (unsubscribe != null) unsubscribeFromCharacteristicChanges(unsubscribe)
 
                 currentCoroutineContext().ensureActive()
                 throw when (e.thrownValue) {
@@ -174,8 +169,8 @@ internal class Connection(
                     else -> throw InternalError("Unexpected stop notification failure", e)
                 }
             } finally {
-                val listener = observationListeners.remove(platformCharacteristic) ?: return
-                removeCharacteristicValueChangedListener(listener)
+                val unsubscribe = observationUnsubscribers.remove(platformCharacteristic) ?: return
+                unsubscribeFromCharacteristicChanges(unsubscribe)
             }
         }
     }
@@ -227,25 +222,22 @@ internal class Connection(
 
     private fun close(cause: Throwable?) {
         logger.debug(cause) { message = "Closing" }
-        unregisterDisconnectedListener()
-        clearObservationListeners()
+        unsubscribeFromDisconnection()
+        observationUnsubscribers.forEach { (characteristic, unsubscribe) ->
+            characteristic.unsubscribeFromCharacteristicChanges(unsubscribe)
+        }
+        observationUnsubscribers.clear()
         logger.info { message = "Closed" }
     }
 
-    private fun registerDisconnectedListener() {
-        bluetoothDevice.addEventListener(GATT_SERVER_DISCONNECTED, disconnectedListener)
-    }
+    private fun PlatformCharacteristic.subscribeToCharacteristicChanges(): () -> Unit =
+        addEventHandler(CHARACTERISTIC_VALUE_CHANGED, EventHandler { emitCharacteristicChange() })
 
-    private fun unregisterDisconnectedListener() {
-        bluetoothDevice.removeEventListener(GATT_SERVER_DISCONNECTED, disconnectedListener)
-    }
-
-    private fun PlatformCharacteristic.createObservationListener(): ObservationListener = { event ->
-        val target = event.target?.unsafeCast<BluetoothRemoteGATTCharacteristic>()
-        val data = target?.value!!
+    private fun PlatformCharacteristic.emitCharacteristicChange() {
+        val data = value!!
         logger.debug {
             message = CHARACTERISTIC_VALUE_CHANGED.toString()
-            detail(this@createObservationListener)
+            detail(this@emitCharacteristicChange)
             detail(data, Operation.Change)
         }
 
@@ -265,22 +257,13 @@ internal class Connection(
         }
     }
 
-    private fun clearObservationListeners() {
-        observationListeners.forEach { (characteristic, listener) ->
-            characteristic.removeCharacteristicValueChangedListener(listener)
-        }
-        observationListeners.clear()
-    }
-
-    private fun PlatformCharacteristic.removeCharacteristicValueChangedListener(
-        listener: ObservationListener,
-    ) {
+    private fun PlatformCharacteristic.unsubscribeFromCharacteristicChanges(unsubscribe: () -> Unit) {
         logger.verbose {
-            message = "removeEventListener"
-            detail(this@removeCharacteristicValueChangedListener)
+            message = "Unsubscribing from event"
+            detail(this@unsubscribeFromCharacteristicChanges)
             detail("event", CHARACTERISTIC_VALUE_CHANGED.toString())
         }
-        removeEventListener(CHARACTERISTIC_VALUE_CHANGED, listener)
+        unsubscribe()
     }
 
     private inline fun <reified T : State> on(crossinline action: suspend (T) -> Unit) {
