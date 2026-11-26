@@ -12,6 +12,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import web.errors.DOMException
+import web.errors.DOMExceptionName
 import web.errors.SecurityError
 import web.events.EventType
 import web.events.addEventListener
@@ -85,7 +86,7 @@ internal class BluetoothWebBluetoothScanner(
             // The Web Bluetooth API can only be used in a secure context.
             // https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API#security_considerations
             val thrownValue = e.thrownValue
-            if (thrownValue is DOMException && thrownValue.name == DOMException.SecurityError) {
+            if (thrownValue is DOMException && thrownValue.name == DOMExceptionName.SecurityError) {
                 throw IllegalStateException("Operation is not permitted in this context due to security concerns", e)
             }
 
