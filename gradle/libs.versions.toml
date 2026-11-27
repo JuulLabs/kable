@@ -27,7 +27,7 @@ kable-permissions = { module = "com.juul.kable:kable-default-permissions" }
 khronicle = { module = "com.juul.khronicle:khronicle-core", version = "1.2.0" }
 kotlin-parcelize-runtime = { module = "org.jetbrains.kotlin:kotlin-parcelize-runtime", version.ref = "kotlin" }
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version = "0.5.0" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version = "0.6.1" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
